@@ -1,7 +1,7 @@
 ---
 layout: post
-title: Java交流群(QQ)
-tags: java 交流群 group qq
+title: Python交流群(QQ)
+tags: python 交流群 group qq
 categories: post
 ---
 
