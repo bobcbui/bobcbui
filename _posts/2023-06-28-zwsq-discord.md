@@ -1,7 +1,7 @@
 ---
 layout: post
-title: Java交流群(QQ)
-tags: java 交流群 group qq
+title: 中文社区交流群(discord)
+tags: 中文社区 交流群 group discord
 categories: post
 ---
 
