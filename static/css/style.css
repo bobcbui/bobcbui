@@ -264,5 +264,5 @@ a:active {text-decoration: none}	/* 选定的链接 */
 }
 
 .search-button,.post-comment{
-    display: none;
+    display: none !important;
 }
