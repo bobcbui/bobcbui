@@ -263,6 +263,6 @@ a:active {text-decoration: none}	/* 选定的链接 */
     }
 }
 
-.search-button,.post-comment{
+.search-button,#post-comment{
     display: none !important;
 }
