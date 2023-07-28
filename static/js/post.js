@@ -7,7 +7,6 @@
  */
 $(document).ready(function() {
     generateContent();
-    // share();
     renderComment();
 });
 
@@ -21,12 +20,6 @@ function generateContent() {
         $(o).html(toc);
     });
 }
-
-function share(){
-    window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"1","bdSize":"24"},"share":{}};
-    with(document)0[getElementsByTagName("script")[0].parentNode.appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
-}
-
 
 function renderComment() {
     var gittalk = new Gitalk({
