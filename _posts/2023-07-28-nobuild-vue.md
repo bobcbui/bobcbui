@@ -5,17 +5,205 @@ tags: 前端 Vue NbTemplate
 categories: post
 ---
 
-作为一名后端程序员且兼职前端开发使用现在的前后端分离架构给我带来了很大的困扰，但市面上几乎大多数新的前端框架都需要使用构建工具，而构建工具又需要一定的学习成本，所以我一直在寻找一种不需要构建工具的前端架构，但是又能够满足我日常开发的需求，于是试用了一下不用Build的Vue.js，发现它的确能够满足我的需求，于是就有了这篇文章。
+作为一名大多数时间花在后端的程序员对现在的前后端分离的架构表示不是很喜欢，因为项目特别小，有时候就几个页面，一个单机项目，这时候使用build工具项目的部署，开发都非常的繁琐，因为前后端都是自己干的，于是自己设计了一套适合后端程序员的前端模板，我们以Java为例，只需要把几个页面放在static目录中就可以进行前端开发了，写代码的方式也依然保持用构建工具开发的思路就可以了。
 
-## 为什么不用Build
-使用Build工具对一些小型项目来说是一种浪费，因为它需要你安装一些依赖，而且还需要你学习一些配置，这对于一些小型项目来说是一种浪费，而且使用Build工具还会增加项目的体积，对于一些需要快速开发的项目来说，这是一种浪费，所以我认为对于一些小型项目来说不用Build是一种更好的选择。
+用这个模板开发前端需要用到的工具：
+VScode 插件 es6-string-html 帮助字符串中的html,css 高亮.
 
-## 什么是Vue.js
-Vue.js是一套用于构建用户界面的渐进式框架，Vue.js的核心库只关注视图层，它不仅易于上手，还便于与第三方库或既有项目整合，Vue.js的目标是通过尽可能简单的API实现响应的数据绑定和组合的视图组件，Vue.js自身不是一个全能框架，它只关注视图层，因此它非常容易学习，非常容易与其它库或已有项目整合，所以我认为Vue.js是一种非常适合不用Build的前端框架。
+如果你想直接看代码可以下拉Git仓库，这是我创建的模板,我给它取名NbTemplate,这里的`“NB”`不是	`“牛逼”`模板的意思而是No Build Template 的意思.
 
-## Vue.js的安装
-Vue.js的安装非常简单，只需要引入Vue.js的CDN即可，如下所示：
-```html
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+项目地址：[Github项目地址](https://github.com/bobcbui/NbTemplate) ， [Gitee项目地址](https://gitee.com/bobcbui/NbTemplate)
+## 现在我们开始实践
+
+### Step : 1
+这里我们只要引入了Vue.js、VueRouter、Vuex、Axios就可以了，当然你也可以引入其他的库，但是我们现在只是演示，所以这些就足够了。
+
+``` html
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>NbTemplate</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+	<script src="https://cdn.bootcdn.net/ajax/libs/vue/3.2.47/vue.global.min.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/vue-router/4.1.6/vue-router.global.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/vuex/4.1.0/vuex.global.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.js"></script>
+	<style></style>
+	<style id='PageStyle'></style>
+</head>
+<body>
+	<div id="app" v-cloak>
+		<router-view></router-view>
+	</div>
+</body>
+<script type="module">
+	const routes = [
+		{
+			path: '/', redirect:"home", component: () => import('./view/index.js'),
+			children: [
+				{
+					path: '/', name:'home', redirect: 'message', component: () => import('./view/home.js'),
+					children: [
+						{
+							path: "/message", name: "message", component: () => import('./view/message.js')
+						},
+						{
+							path: "/more", name: "more", component: () => import('./view/more.js')
+						},
+						{
+							path: "/member", name: "member", component: () => import('./view/member.js')
+						},
+						{
+							path: "/group", name: "group", component: () => import('./view/group.js')
+						},
+						{
+							path: "/me", name: "me", component: () => import('./view/me.js')
+						}
+					]
+				},
+				{
+					path: "/member-message", name: "member-message", component: () => import('./view/member-message.js')
+				},
+				{
+					path: "/group-message", name: "group-message", component: () => import('./view/group-message.js')
+				},
+				
+			]
+		}
+	]
+
+	const router = VueRouter.createRouter({
+		history: VueRouter.createWebHashHistory(),
+		routes,
+	})
+
+	const app = Vue.createApp({})
+
+	let store = Vuex.createStore({
+		state: {
+			member:null,
+		}
+	})
+
+	router.afterEach((to) => {
+		// 这个地方是希望在js里写css的方式
+        let matched = to.matched.find(item => item.path == to.fullPath)
+        document.getElementById("PageStyle").textContent = ""
+        if(matched.components){
+            if(matched.components.default.style){
+                document.getElementById("PageStyle").textContent = matched.components.default.style
+                console.log("修改颜色了")
+            }
+        }
+	})
+	
+	app.use(router)
+	app.use(store)
+	app.mount('#app')
+	
+</script>
+
+</html>
 ```
-Vue.js的CDN可以在[这里](https://www.jsdelivr.com/package/npm/vue)找到。
+
+### Step : 2 如何新增一个页面
+我们只需要在view文件夹下新增一个js文件，然后在路由中引入就可以了，这里我们以home.js为例，如果你是在Vscode上开发你需要安装一个插件`es6-string-html`，字符串模板，这样你就可以在js文件中写html代码了，如果你不想安装插件，你也可以在html文件中写，但是这样会导致你的代码不够优雅，所以我推荐你安装插件。
+
+这个页面我们演示了如何用一个.js 文件替换我们的.vue文件，如何引入一个自定义组件。
+
+``` js
+let style = // css
+`
+body,html{
+        background: red;
+}
+`
+
+let template = // html
+`
+<cNav title='我的'>
+	<cModal buttonName='设置'>
+        <button @click="logout" class='w-100'>退出登录</button>
+	</cModal>
+</cNav>
+<div v-if="member!=null" class='p-10'>
+名称：{{member.username}}<br>
+账号：{{member.account}}<br>
+</div>
+`
+import cModal from '../component/modal.js'
+import cNav from '../component/nav.js'
+export default {
+	template: template,
+	style:style,
+	data: () => {
+		return {
+			
+		}
+	},
+	components:{
+		cNav, cModal
+	},
+	computed:{
+		member(){
+			return this.$store.state.member;
+		}
+	},
+	destroyed() {
+
+	},
+	methods: {
+		logout(){
+			
+		}
+		
+	},
+	created() {
+	
+	}
+}
+
+```
+
+### Step : 3 如何新增一个组件
+我们可以看到，这新增一个页面和使用Build模式是一样的。
+
+```js
+let template = // html
+`
+<button @click='show = !show' class='h-100'>{{buttonName}}</button>
+<div class='mode' v-if='show'>
+	<div class='mode-body'>
+		<div class='header p-10 border-b-1' style='background: rgb(255, 222, 252);'>
+            <button style='width:100%;' @click='close()'>关闭</button>
+        </div>
+        <div class='body p-10' style='background: rgb(255, 248, 248);height:100%;text-align: left'>
+		    <slot></slot>
+        </div>
+	</div>
+</div>
+`
+export default {
+    props: {
+        buttonName:{
+            type: String,
+            default: '按钮'
+        }
+    },
+    data: () => {
+        return {
+            show: false
+        }
+    },
+    methods: {
+        close(){
+            this.show = false;
+        },
+        open(){
+            this.show = true;
+        }
+    },
+    template: template
+}
+```
