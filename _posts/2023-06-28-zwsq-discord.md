@@ -5,7 +5,7 @@ tags: 中文社区 交流群 group discord
 categories: post
 ---
 
-**链接加入：[https://discord.gg/sQ6d4fSq](https://discord.gg/sQ6d4fSq)**
+**链接加入：[https://discord.gg/rBqu9AbHT](https://discord.gg/rBqu9AbHT)**
 
 我们非常高兴地宣布，我们正在discord中文社区进行新一轮的招募！我们欢迎所有对discord感兴趣的用户加入我们的社区，无论你是新手还是有丰富经验的用户，我们都热情欢迎你的加入。
 
