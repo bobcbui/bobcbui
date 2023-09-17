@@ -1,6 +1,6 @@
 ---
 layout: post
-title: LWJGL交流群Java游戏开发交流群
+title: LWJGL交流群 Java游戏开发交流群
 tags: java tool
 categories: post
 ---
