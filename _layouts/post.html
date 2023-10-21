@@ -48,16 +48,36 @@ layout: default
 
                 <div class="list-group mb-2">
                     <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
+                    {% assign postsAfterFilter = '-' | split: "-" %}
+
                     {% for p in site.posts %}
-                    {{p.categories}}
-                        {% for cat in p.categories %}
-                            {% page.categories contains cat %}
-                            <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">
-                                {{ p.title }}
-                            </a>
+
+                        {% assign commonTagCount = 0 %}
+
+                        {% for tag in p.tags %}
+                            {% if page.tags contains tag %}
+                                {% assign commonTagCount = commonTagCount | plus: 1 %}
                             {% endif %}
                         {% endfor %}
+
+                        {% for cat in p.categories %}
+                            {% if page.categories contains cat %}
+                                {% assign commonTagCount = commonTagCount | plus: 1 %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if commonTagCount > 0 %}
+                            {% assign postsAfterFilter = postsAfterFilter | push: p %}
+                        {% endif %}
+
                     {% endfor %}
+
+                    {% if postsAfterFilter.size > 0 %}
+                        {% for p in postsAfterFilter limit: 15 %}
+                        <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
+                        {% endfor %}
+                    {% endif %}
+
                 </div>
             </div>
         </div>
