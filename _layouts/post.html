@@ -48,18 +48,16 @@ layout: default
 
                 <div class="list-group mb-2">
                     <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
-                    {{page.categories}}
-                    <!-- {% for p in site.posts %}
+                    {% for p in site.posts %}
                     {{p.categories}}
                         {% for cat in p.categories %}
-                        {{cat}}
-                            {% if page.categories == cat %}
+                            {% page.categories contains cat %}
                             <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">
                                 {{ p.title }}
                             </a>
                             {% endif %}
                         {% endfor %}
-                    {% endfor %} -->
+                    {% endfor %}
                 </div>
             </div>
         </div>
