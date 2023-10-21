@@ -8,17 +8,22 @@ layout: default
                 <header>
                     <h2>{{ page.title }}</h2>
                     <p class="post-meta">
-                        <span class="octicon octicon-clock"></span> {{ page.date | date: "%b %-d, %Y" }}{% if
-                        page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}
+                        {{ page.date | date: "%b %-d, %Y" }}
+                        {% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}
                     </p>
                     <p class="post-tag">
-                        <span>{% for cat in page.categories %}<a
-                                href="{{ '/category' | prepend: site.baseurl | prepend: site.url }}/#{{ cat }}"><span
-                                    class="octicon octicon-list-unordered"></span>&nbsp;{{ cat }}</a>{% endfor %}</span>
-                        <span>{% for tag in page.tags %}
-                            <a class="word-keep"
-                                href="{{ '/tags' | prepend: site.baseurl | prepend: site.url }}/#{{ tag }}"><span
-                                    class="octicon octicon-tag"></span>&nbsp;{{ tag }}</a>
+                        <span>
+                            {% for cat in page.categories %}
+                            <a href="{{ '/category' | prepend: site.baseurl | prepend: site.url }}/#{{ cat }}">
+                                {{ cat }}
+                            </a>
+                            {% endfor %}
+                        </span>
+                        <span>
+                            {% for tag in page.tags %}
+                            <a href="{{ '/tags' | prepend: site.baseurl | prepend: site.url }}/#{{ tag }}">
+                                {{ tag }}
+                            </a>
                             {% endfor %}
                         </span>
                     </p>
@@ -43,8 +48,11 @@ layout: default
 
                 <div class="list-group mb-2">
                     <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
+                    {{site.posts}}
                     {% for p in site.posts %}
+                    {{p.categories}}
                         {% for cat in p.categories %}
+                        {{cat}}
                             {% if page.categories == cat %}
                             <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">
                                 {{ p.title }}
