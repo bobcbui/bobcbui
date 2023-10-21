@@ -36,50 +36,46 @@ layout: default
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card mb-2">
-            <div class="card-body">
-                <div class="list-group mb-2">
-                    <a class="list-group-item active">Tags<span class="float-end">🎇</span></a>
-                    {% for tag in page.tags %}
-                    <a class="list-group-item"
-                        href="{{ '/tags' | prepend: site.baseurl | prepend: site.url }}#{{ tag }}">{{ tag }}</a>
-                    {% endfor %}
-                </div>
+        <div class="list-group mb-2">
+            <a class="list-group-item active">Tags<span class="float-end">🎇</span></a>
+            {% for tag in page.tags %}
+            <a class="list-group-item"
+                href="{{ '/tags' | prepend: site.baseurl | prepend: site.url }}#{{ tag }}">{{ tag }}</a>
+            {% endfor %}
+        </div>
 
-                <div class="list-group mb-2">
-                    <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
-                    {% assign postsAfterFilter = '-' | split: "-" %}
+        <div class="list-group mb-2">
+            <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
+            {% assign postsAfterFilter = '-' | split: "-" %}
 
-                    {% for p in site.posts %}
+            {% for p in site.posts %}
 
-                        {% assign commonTagCount = 0 %}
+                {% assign commonTagCount = 0 %}
 
-                        {% for tag in p.tags %}
-                            {% if page.tags contains tag %}
-                                {% assign commonTagCount = commonTagCount | plus: 1 %}
-                            {% endif %}
-                        {% endfor %}
-
-                        {% for cat in p.categories %}
-                            {% if page.categories contains cat %}
-                                {% assign commonTagCount = commonTagCount | plus: 1 %}
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if commonTagCount > 0 %}
-                            {% assign postsAfterFilter = postsAfterFilter | push: p %}
-                        {% endif %}
-
-                    {% endfor %}
-
-                    {% if postsAfterFilter.size > 0 %}
-                        {% for p in postsAfterFilter limit: 15 %}
-                        <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
-                        {% endfor %}
+                {% for tag in p.tags %}
+                    {% if page.tags contains tag %}
+                        {% assign commonTagCount = commonTagCount | plus: 1 %}
                     {% endif %}
+                {% endfor %}
 
-                </div>
-            </div>
+                {% for cat in p.categories %}
+                    {% if page.categories contains cat %}
+                        {% assign commonTagCount = commonTagCount | plus: 1 %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if commonTagCount > 0 %}
+                    {% assign postsAfterFilter = postsAfterFilter | push: p %}
+                {% endif %}
+
+            {% endfor %}
+
+            {% if postsAfterFilter.size > 0 %}
+                {% for p in postsAfterFilter limit: 15 %}
+                <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
+                {% endfor %}
+            {% endif %}
+
         </div>
         {% include all.html %}
     </div>
