@@ -62,7 +62,7 @@ layout: default
         <a href="{{ post.url | prepend: site.baseurl | prepend: site.url }}">
           <h4>{{ post.title }}</h4>
         </a>
-        <div>{% if post.excerpt.size > 32 %}{{ post.excerpt }}{% else %}{{ post.content | strip_html | strip_newlines | truncate: 160 }}{% endif %}</div>
+        <div>{{ post.content | strip_html | truncate: 160 }}</div>
         <div>
           <span class="date-color">{{ post.date | date: '%Y-%m-%d' }}</span>
           <span class="date-color"> . {{ item.category.name }}</span>
