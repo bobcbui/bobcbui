@@ -44,14 +44,13 @@ layout: default
                 <div class="list-group mb-2">
                     <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
                     {% for p in site.posts %}
-                        {%if p.url != page.url %}
-                            {% for cat in p.categories %}
-                                {% if page.categories = cat %}
-                                <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title
-                                    }}</a>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
+                        {% for cat in p.categories %}
+                            {% if page.categories == cat %}
+                            <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">
+                                {{ p.title }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
                     {% endfor %}
                 </div>
             </div>
