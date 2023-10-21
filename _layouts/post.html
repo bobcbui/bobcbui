@@ -47,8 +47,8 @@ layout: default
         <div class="list-group mb-2">
             <a class="list-group-item active">Related<span class="float-end">🎇</span></a>
             {% assign postsAfterFilter = '-' | split: "-" %}
-
-            {% for p in site.posts %}
+            {% assign sorted_posts = site.posts | sort: 'title' %}
+            {% for p in sorted_posts %}
 
                 {% assign commonTagCount = 0 %}
 
@@ -59,7 +59,7 @@ layout: default
                 {% endfor %}
 
             {% endfor %}
-            
+
         </div>
         {% include all.html %}
     </div>
