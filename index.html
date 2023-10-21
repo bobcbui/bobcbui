@@ -57,10 +57,10 @@ layout: default
 <div class="row">
   <div class="col-md-9 mb-2">
     <ul class="list-group ">
+      {% for post in paginator.posts %}
       <li class="list-group-item">
-        {% for post in paginator.posts %}
-        <a href="{{ site.baseurl | prepend: site.url  }}/archive/#{{ post.date | date: '%Y-%m-%d' }}">
-          <h3 v-text="item.title">{{ post.date | date: "%Y-%m-%d" }}</h3>
+        <a href="{{ post.url | prepend: site.baseurl | prepend: site.url }}">
+          <h3>{{ post.title }}</h3>
         </a>
         <div class="article-synopsis" style="color: #5f5a5a;">{{ item.synopsis }}</div>
         <div>
@@ -70,8 +70,8 @@ layout: default
           <a class="word-keep" href="{{ site.baseurl | prepend: site.url }}/tags/#{{ tag }}"><span class="octicon octicon-tag"></span>&nbsp;{{ tag }}</a>
           {% endfor %}
         </div>
-        {% endfor %}
       </li>
+      {% endfor %}
       
     </ul>
   </div>
