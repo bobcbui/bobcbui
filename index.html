@@ -28,27 +28,7 @@ layout: default
 
           <div class="pad-mid"></div>
 
-          <nav class="text-center">
-              <ul class="pagination">
-                {% if paginator.total_pages > 1 %}
-                  {% if paginator.previous_page %}
-                        <li><a href="{{ paginator.previous_page_path | prepend: site.baseurl | prepend: site.url }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
-                  {% endif %}
-                  {% for page in (1..paginator.total_pages) %}
-                      {% if page == paginator.page %}
-                        <li class="active"><span>{{ page }}</span></li>
-                      {% elsif page == 1 %}
-                        <li><a href="{{ '/' | prepend: site.baseurl | prepend: site.url  }}">{{ page }}</a></li>
-                      {% else %}
-                        <li><a href="{{ page |  prepend: '/page/' | prepend: site.baseurl | prepend: site.url }}">{{ page }}</a></li>
-                      {% endif %}
-                  {% endfor %}
-                  {% if paginator.next_page %}
-                        <li><a href="{{ paginator.next_page_path | prepend: site.baseurl | prepend: site.url }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
-                  {% endif %}
-                {% endif %}
-              </ul>
-          </nav>
+          
       </div>
   </div>
 </div> -->
@@ -56,7 +36,7 @@ layout: default
 
 <div class="row">
   <div class="col-md-9 mb-2">
-    <ul class="list-group ">
+    <ul class="list-group mb-2">
       {% for post in paginator.posts %}
       <li class="list-group-item">
         <a href="{{ post.url | prepend: site.baseurl | prepend: site.url }}">
@@ -74,8 +54,28 @@ layout: default
         </div>
       </li>
       {% endfor %}
-      
     </ul>
+    <nav class="text-center">
+      <ul class="pagination">
+        {% if paginator.total_pages > 1 %}
+          {% if paginator.previous_page %}
+                <li><a href="{{ paginator.previous_page_path | prepend: site.baseurl | prepend: site.url }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+          {% endif %}
+          {% for page in (1..paginator.total_pages) %}
+              {% if page == paginator.page %}
+                <li class="active"><span>{{ page }}</span></li>
+              {% elsif page == 1 %}
+                <li><a href="{{ '/' | prepend: site.baseurl | prepend: site.url  }}">{{ page }}</a></li>
+              {% else %}
+                <li><a href="{{ page |  prepend: '/page/' | prepend: site.baseurl | prepend: site.url }}">{{ page }}</a></li>
+              {% endif %}
+          {% endfor %}
+          {% if paginator.next_page %}
+                <li><a href="{{ paginator.next_page_path | prepend: site.baseurl | prepend: site.url }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+  </nav>
   </div>
   <div class="col-md-3 mb-2">
     {% include all.html %}
