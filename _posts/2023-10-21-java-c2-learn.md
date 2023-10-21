@@ -3,6 +3,7 @@ layout: post
 title: Java基础：环境配置
 tags: java learn 教程 Java基础教程
 categories: java-learn
+order: 2
 ---
 ### 什么是Java开发环境？
 Java 开发环境是用于开发、测试和运行 Java 应用程序的一套工具和设置的集合。这个环境包括以下关键组件和工具：
