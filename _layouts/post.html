@@ -54,18 +54,12 @@ layout: default
 
                 {% for cat in p.categories %}
                     {% if page.categories contains cat %}
-                        {% assign commonTagCount = commonTagCount | plus: 1 %}
+                    <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
                     {% endif %}
                 {% endfor %}
 
             {% endfor %}
-
-            {% if postsAfterFilter.size > 0 %}
-                {% for p in postsAfterFilter limit: 15 %}
-                <a class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
-                {% endfor %}
-            {% endif %}
-
+            
         </div>
         {% include all.html %}
     </div>
