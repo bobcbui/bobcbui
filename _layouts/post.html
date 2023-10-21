@@ -2,7 +2,7 @@
 layout: default
 ---
 <div class="row">
-    <div class="content col-lg-9">
+    <div class="content col-md-9">
         <div class="sheet post">
           <header>
             <h2>{{ page.title }}</h2>
@@ -24,8 +24,8 @@ layout: default
         </div>
         <div class="pad-min"></div>
     </div>
-    <div class="content-navigation col-lg-3">
-      <div class="shadow-bottom-center" >
+    <div class="content-navigation col-md-3">
+      <div class="shadow-bottom-center md-2" >
         <div class="content-navigation-toc">
             <div class="content-navigation-header">
                 <span class="octicon octicon-list-unordered"></span>&nbsp;Toc
@@ -87,5 +87,6 @@ layout: default
             </div>
         </div>
       </div>
+      {% include all.html %}
     </div>
 </div>
