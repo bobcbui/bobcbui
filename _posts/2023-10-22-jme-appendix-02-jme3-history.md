@@ -1,3 +1,10 @@
+---
+layout: post
+title: JME教程：第三章：模型
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 01-02
+---
 # 序章：jME3的故事
 
 ## 起源

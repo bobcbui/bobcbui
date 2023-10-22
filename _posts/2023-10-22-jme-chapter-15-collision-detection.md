@@ -1,4 +1,10 @@
-# 第十五章：碰撞检测
+---
+layout: post
+title: JME教程：第十五章：碰撞检测
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-15
+---
 
 ## 碰撞与相交
 

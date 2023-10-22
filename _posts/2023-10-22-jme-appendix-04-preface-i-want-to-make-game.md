@@ -1,4 +1,10 @@
-# 前言：我想做游戏
+---
+layout: post
+title: JME教程：前言：我想做游戏
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 01-04
+---
 
 ## 缘起
 

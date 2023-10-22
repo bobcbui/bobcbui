@@ -1,4 +1,10 @@
-# 第十三章：控制游戏逻辑
+---
+layout: post
+title: JME教程：第十三章：控制游戏逻辑
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-13
+---
 
 ## 导读：《入门：游戏主循环》
 

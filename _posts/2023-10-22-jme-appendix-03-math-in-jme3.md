@@ -1,4 +1,10 @@
-# jME3中的数学
+---
+layout: post
+title: JME教程：jME3中的数学
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 01-03
+---
 
 ## 坐标系统
 

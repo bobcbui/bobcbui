@@ -1,4 +1,10 @@
-# 第九章：用户交互
+---
+layout: post
+title: JME教程：第九章：用户交互
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-09
+---
 
 ## 游戏控制器
 

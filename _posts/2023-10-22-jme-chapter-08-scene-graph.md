@@ -1,4 +1,11 @@
-# 第八章：场景图
+---
+layout: post
+title: JME教程：第八章：场景图
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-08
+---
+
 
 ## 概念
 

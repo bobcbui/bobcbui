@@ -1,4 +1,10 @@
-# 3D游戏开发术语
+---
+layout: post
+title: JME教程：3D游戏开发术语
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 01-01
+---
 
 翻译自JME官方wiki。原文：[3D Game Development Terminology](http://jmonkeyengine.github.io/wiki/jme3/terminology.html)
 

@@ -1,4 +1,11 @@
-# 第三章：模型
+---
+layout: post
+title: JME教程：第三章：模型
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-03
+---
+
 
 ## 理解3D模型
 

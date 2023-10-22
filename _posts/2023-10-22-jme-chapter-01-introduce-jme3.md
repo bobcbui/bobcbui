@@ -1,5 +1,10 @@
-# 第一章：jME3简介
-
+---
+layout: post
+title: JME教程：jME3简介
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-01
+---
 ## 概述 
 
 **jMonkeyEngine3**是一个用纯Java开发的免费3D游戏引擎。拜开源社区所赐，它拥有非常非常多的功能，远多于一般游戏开发的需要。而且它的API非常简洁明了，只需要花少量的学习时间就可以掌握。
