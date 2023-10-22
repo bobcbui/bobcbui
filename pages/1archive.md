@@ -4,7 +4,6 @@ title: Archive
 permalink: /archive/
 icon: octicon-repo
 isNavItem: true
-styles: archive.css
 ---
 
 <section id="cd-timeline" class="cd-container">

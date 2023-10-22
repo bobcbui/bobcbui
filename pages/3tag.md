@@ -4,8 +4,6 @@ title: Tag
 permalink: /tags/
 icon: octicon-tag
 isNavItem: true
-styles: [tagCloud.css,tags.css]
-scripts: [tagCloud.js,tags.js]
 ---
 
 <div class="tagCloud">
