@@ -22,11 +22,11 @@
 
 下面只用7行有效代码，就可以在手机上显示钢铁侠3D模型。
 
-![钢铁侠](/content/images/2017/03/android_studio2.png)
+![钢铁侠](/static/img/jme/2017/03/android_studio2.png)
 
 下图是jME3的一些主要的jar。这些类库按不同的功能分别打包，可以根据需要来添加到项目中。
 
-![jar文件](/content/images/2017/03/jME3.png)
+![jar文件](/static/img/jme/2017/03/jME3.png)
 
 jME3的这些组件已经发布到了公共仓库中：
 
@@ -72,9 +72,9 @@ jME3开发Android应用，你至少需要下面这几个组件：
 
 **jMonkeyEngine3 SDK**是开发团队基于NetBeans平台开发的jME3集成开发环境。它包含场景制作、模型预览、材质编辑等诸多游戏开发所需的功能。jMonkeyPlatform跟jME3 SDK是一码事，说的都是这个东西。
 
-![SDK](/content/images/2017/03/jME3_SDK.png)
+![SDK](/static/img/jme/2017/03/jME3_SDK.png)
 
-![SDK 3.0](/content/images/2017/03/jME3_SDK_3-0.png)
+![SDK 3.0](/static/img/jme/2017/03/jME3_SDK_3-0.png)
 
 官方推荐初学者使用jME3 SDK来开发游戏。官方下载地址为：
 https://github.com/jMonkeyEngine/sdk/releases
@@ -83,7 +83,7 @@ https://github.com/jMonkeyEngine/sdk/releases
 
 注意：在jME3.1.0之后SDK就出了一个对中国开发者不太友好的bug，菜单上的中文变成了方框乱码。
 
-![SDK 3.1](/content/images/2017/03/jME3_SDK_3-1.png)
+![SDK 3.1](/static/img/jme/2017/03/jME3_SDK_3-1.png)
 
 这个bug的原因是NetBeans会自动根据用户电脑的语言来进行本地化，但却使用了一种不支持中文的字体。我向官方团队反馈了这个bug[#73](https://github.com/jMonkeyEngine/sdk/issues/73)，但是到目前为止都没有修复。
 
@@ -109,7 +109,7 @@ http://pan.baidu.com/s/1kUPddkV
 
 jME3在github.com的地址是 [github.com/jMonkeyEngine/jmonkeyengine](https://github.com/jMonkeyEngine/jmonkeyengine)，你可以通过[Clone or download](https://github.com/jMonkeyEngine/jmonkeyengine/archive/master.zip)直接下载它的源代码，或者从[release](https://github.com/jMonkeyEngine/jmonkeyengine/releases)中下载最新发布的jar包。
 
-![github](/content/images/2017/03/jME3_github.png)
+![github](/static/img/jme/2017/03/jME3_github.png)
 
 如果从github下载比较慢，你也可以通过我的百度网盘下载这个引擎。
 
@@ -135,11 +135,11 @@ jME3.1 稳定版：http://pan.baidu.com/s/1hrRPeJE
 
 例如，在Android Studio中：
 
-![Android Studio](/content/images/2017/03/android_studio.png)
+![Android Studio](/static/img/jme/2017/03/android_studio.png)
 
 例如，Eclipse Neon 在安装了 BuildShip插件后，也可以使用Gradle。
 
-![Eclipse with Gradle](/content/images/2017/03/eclipse2.png)
+![Eclipse with Gradle](/static/img/jme/2017/03/eclipse2.png)
 
 ### Maven
 
@@ -196,16 +196,16 @@ jME3.1 稳定版：http://pan.baidu.com/s/1hrRPeJE
 
 如果你下载了`jME3.1-stable`，解压缩后可以在文件夹中看到一个名为`jMonkeyEngine.jar`的可执行jar文件，其中就是编译过的example。运行这个程序，可以查看官方提供的诸多例子。
 
-![examples](/content/images/2017/03/examples.png)
+![examples](/static/img/jme/2017/03/examples.png)
 
-![examples2](/content/images/2017/03/examples2.png)
+![examples2](/static/img/jme/2017/03/examples2.png)
 
 如果你下载了jME3 SDK，通过选择菜单 File -> New Project，可以创建一个JME3的测试项目。这个项目会自动包含exmaples中的源代码，并可以编译运行。
 
-![examples3](/content/images/2017/03/jme3test.png)
+![examples3](/static/img/jme/2017/03/jme3test.png)
 
-![jme3test](/content/images/2017/03/jme3test2.png)
+![jme3test](/static/img/jme/2017/03/jme3test2.png)
 
 如果你用的是Intellij IDEA 或者 Eclipse，我想你应该不介意下载源代码，然后像我这样把jme3-exmaples文件夹里面的东西直接拷贝到自己的项目里面吧？
 
-![eclipse](/content/images/2017/03/eclipse.png)
+![eclipse](/static/img/jme/2017/03/eclipse.png)

@@ -4,7 +4,7 @@
 
 jMonkeyEngine3是一个基于场景图的3D游戏引擎，因此有必要对场景图的概念进行一些说明。jME3的场景图通过Spatial、Geometry、Node这3个类来实现，它们之间的关系如下图：
 
-![SceneGraph](/content/images/2017/04/SceneGraph.png)
+![SceneGraph](/static/img/jme/2017/04/SceneGraph.png)
 
 场景图(Scene Graph)是一种数据结构，用于管理游戏场景中的物体，场景中的每个物体都被称为Spatial。
 
@@ -16,7 +16,7 @@ jMonkeyEngine3是一个基于场景图的3D游戏引擎，因此有必要对场�
 
 为了让你能够更容易理解这些概念，我从画了一幅画，用来做类比：一个气球就是一个Geometry，多个气球被一个小朋友牵在手里，小朋友的手心就是一个Node。
 
-![小孩牵着气球](/content/images/2017/04/Spatials.png)
+![小孩牵着气球](/static/img/jme/2017/04/Spatials.png)
 
 ## 实例：HelloNode
 
@@ -118,7 +118,7 @@ jMonkeyEngine3是一个基于场景图的3D游戏引擎，因此有必要对场�
 
 运行效果如下：
 
-![HelloNode](/content/images/2017/04/HelloNode.png)
+![HelloNode](/static/img/jme/2017/04/HelloNode.png)
 
 ## Node
 
@@ -175,7 +175,7 @@ jMonkeyEngine3是一个基于场景图的3D游戏引擎，因此有必要对场�
 		node.scale(0.5f);
 	}
 
-![Scaled Node](/content/images/2017/04/HelloNode_scale.png)
+![Scaled Node](/static/img/jme/2017/04/HelloNode_scale.png)
 
 ## 遍历场景图
 

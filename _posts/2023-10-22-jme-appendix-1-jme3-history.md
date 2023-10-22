@@ -42,11 +42,11 @@
 
 jMonkeyEngine3以猴子为名，它的吉祥物也是只小猴子，名叫Jaime。
 
-![Jaime](/content/images/2017/03/Jaime.png)
+![Jaime](/static/img/jme/2017/03/Jaime.png)
 
 `Nehon`使用Blender制作一个Jaime的3D动画模型，它现在是jME3-testdata中的一部分。
 
-![Jaime2](/content/images/2017/03/Jaime2.png)
+![Jaime2](/static/img/jme/2017/03/Jaime2.png)
 
 不知道你有没有注意到，Jaime的名字是一个双关语。它的发音就是 Jaime = 'J' 'M' 'E'三个字母连读。
 

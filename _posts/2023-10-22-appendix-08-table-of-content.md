@@ -6,7 +6,7 @@
 
 ## [1. jME3简介](http://blog.jmecn.net/chapter-1-introduce-jme3/)
 
-![AndroidStudio与钢铁侠](/content/images/2017/03/android_studio2.png)
+![AndroidStudio与钢铁侠](/static/img/jme/2017/03/android_studio2.png)
 
 1.1 概述
 1.2 jME3 SDK
@@ -15,7 +15,7 @@
 
 ## [2. JME3基本概念](http://blog.jmecn.net/chapter-2-basic-concepts/)
 
-![第一人称相机](/content/images/2017/03/FlyCam.png)
+![第一人称相机](/static/img/jme/2017/03/FlyCam.png)
 
 2.1 应用程序主类SimpleApplication
 2.2 生命周期
@@ -27,7 +27,7 @@
 
 ## [3. 模型](http://blog.jmecn.net/chapter-3-model/)
 
-![寒冰射手艾希](/content/images/2017/03/Ashe_AA_4x.png)
+![寒冰射手艾希](/static/img/jme/2017/03/Ashe_AA_4x.png)
 
 3.1 理解3D模型
 3.2 模型的来源
@@ -36,7 +36,7 @@
 
 ## [4. 网格](http://blog.jmecn.net/chapter-4-mesh/)
 
-![球体网格](/content/images/2017/03/sphere.png)
+![球体网格](/static/img/jme/2017/03/sphere.png)
 
 4.1 定义模型的形状
 4.2 实例：自定义网格
@@ -45,7 +45,7 @@
 
 ## [5. 材质，障眼法](http://blog.jmecn.net/chapter-5-material-the-light-magic/)
 
-![卡通边缘](/content/images/2017/04/PostCartoonEdge.png)
+![卡通边缘](/static/img/jme/2017/04/PostCartoonEdge.png)
 
 5.1 五色令人目盲
 5.2 jME3的材质
@@ -55,7 +55,7 @@
 
 ## [6. 材质系统](http://blog.jmecn.net/chapter-6-material-system/)
 
-![不同反光度的效果](/content/images/2017/04/Materials_shininess.png)
+![不同反光度的效果](/static/img/jme/2017/04/Materials_shininess.png)
 
 6.1 材质系统
 6.2 材质实例：j3m文件
@@ -64,7 +64,7 @@
 
 ## [7. 光与影](http://blog.jmecn.net/chapter-7-light-and-shadow/)
 
-![点光源](/content/images/2017/04/PointLight.png)
+![点光源](/static/img/jme/2017/04/PointLight.png)
 
 7.1 感受光影
 7.2 光源
@@ -73,7 +73,7 @@
 
 ## [8. 场景图](http://blog.jmecn.net/chapter-8-scene-graph/)
 
-![场景图](/content/images/2017/04/SceneGraph.svg)
+![场景图](/static/img/jme/2017/04/SceneGraph.svg)
 
 8.1 概念
 8.2 实例：HelloNode
@@ -82,7 +82,7 @@
 
 ## [9. 用户交互](http://blog.jmecn.net/chapter-9-user-interaction/)
 
-![方向盘](/content/images/2017/05/wheel.png)
+![方向盘](/static/img/jme/2017/05/wheel.png)
 
 9.1 键盘、鼠标、手柄、触屏
 9.2 ActionListener
@@ -91,7 +91,7 @@
 
 ## [10. 图形用户界面](http://blog.jmecn.net/chapter-10-graphics-user-interface/)
 
-![Picture](/content/images/2017/05/Picture.png)
+![Picture](/static/img/jme/2017/05/Picture.png)
 
 10.1 GuiNode
 10.2 屏幕坐标系
@@ -100,14 +100,14 @@
 
 ## [11. 3D音效](http://blog.jmecn.net/chapter-11-3d-audio/)
 
-![Lumer音乐播放器](/content/images/2017/05/LemurMusicPlayer.png)
+![Lumer音乐播放器](/static/img/jme/2017/05/LemurMusicPlayer.png)
 
 11.1 3D音效
 11.2 音效系统分析
 
 ## [12. 动画](http://blog.jmecn.net/chapter-12-animation)
 
-![HelloAnimation](/content/images/2017/05/HelloAnimation.png)
+![HelloAnimation](/static/img/jme/2017/05/HelloAnimation.png)
 
 12.1 概述
 12.2 骨骼蒙皮动画
@@ -117,7 +117,7 @@
 12.6 剧情动画
 
 ## [13. 控制游戏逻辑](http://blog.jmecn.net/chapter-13-controlling-game-logic)
-![AppState生命周期](/content/images/2017/06/AppState-Lift-Cycle.svg)
+![AppState生命周期](/static/img/jme/2017/06/AppState-Lift-Cycle.svg)
 13.1 导读：游戏主循环
 13.2 jME3的主循环
 13.3 AppState
@@ -125,7 +125,7 @@
 13.5 多线程优化
 
 ## [14. 特效](http://blog.jmecn.net/chapter-14-special-effects/)
-![火焰粒子特效](/content/images/2017/06/ParticleFire.png)
+![火焰粒子特效](/static/img/jme/2017/06/ParticleFire.png)
 14.1 特效概述
 14.2 后期滤镜
 14.3 场景处理器
@@ -133,7 +133,7 @@
 14.5 性能问题
 
 ## [15. 碰撞检测](http://blog.jmecn.net/chapter-15-collision-detection)
-![射线检测](/content/images/2017/06/ray-cast.png)
+![射线检测](/static/img/jme/2017/06/ray-cast.png)
 15.1 碰撞与相交
 15.2 Collidable
 15.3 jME3中的射线检测
