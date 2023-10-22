@@ -35,7 +35,7 @@
 
 运行这个程序，在桌面上将会弹出一个对话框，让我们选择一些启动参数。
 
-![启动参数](/content/images/2017/03/settings.png)
+![启动参数](/static/img/jme/2017/03/settings.png)
 
 * Fullscreen?: 是否全屏
 * Screen Resolution: 窗口分辨率
@@ -49,7 +49,7 @@
 
 窗口的左下角显示当前画面的刷新速度，按`F5`可以隐藏/显示这些文字。
 
-![启动界面](/content/images/2017/03/HelloJME3.png)
+![启动界面](/static/img/jme/2017/03/HelloJME3.png)
 
 ### Android的第一次？
 
@@ -139,7 +139,7 @@ Android项目和Java项目有一点点区别，你没有办法从main方法启�
 
 运行这个程序，我们会看到屏幕上多了一个...正方形？？这怎么看都是2D的吧？！说好的3D方块呢？！
 
-![正方形](/content/images/2017/03/FirstShot.png)
+![正方形](/static/img/jme/2017/03/FirstShot.png)
 
 耐心点，你用手机拍过照吗？`SimpleApplication`中自带一个第一人称摄像机(flyCam)。画面之所以看上去是个正方形，是因为摄像机恰好对准了方块的其中一个面。
 
@@ -152,7 +152,7 @@ Android项目和Java项目有一点点区别，你没有办法从main方法启�
 
 如果你乐意，还可以按`W`让摄像机离方块近一点，这将使画面中的方块变大；按`S`则会离目标远一些，让它看起来更小。
 
-![FlyCam](/content/images/2017/03/FlyCam.png)
+![FlyCam](/static/img/jme/2017/03/FlyCam.png)
 
 ### Debug
 
@@ -231,7 +231,7 @@ jME3 Application的**简化版**生命周期是这样的：
 		app.start();
 	}
 
-![AppSettings](/content/images/2017/03/AppSettings.png)
+![AppSettings](/static/img/jme/2017/03/AppSettings.png)
 
 ### 初始化
 
@@ -375,7 +375,7 @@ jME3就像一台汽车发动机，点火成功之后发动机就会飞速运转�
 	
 	}
 
-![旋转](/content/images/2017/03/rotate2.gif)
+![旋转](/static/img/jme/2017/03/rotate2.gif)
 
 关于主循环还有太多东西可以说，但现在只需要简单理解一下它的作用就足够了。
 

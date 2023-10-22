@@ -251,7 +251,7 @@ BulletAppState 是jME3为Bullet物理引擎开发的核心接口，我们将会�
 下面我们来生成一个场景，做个小实验。场景中有一个固定不动的地板，作为其它物体的载体；一个以一定初速度飞出去的小球，从地板左侧向右侧运动；几块挡在小球行进路上的木板，它们将被小球逐一击倒。
 
 示意图如下：
-![一个简单的实验场景](/content/images/2017/06/ball_and_board.png)
+![一个简单的实验场景](/static/img/jme/2017/06/ball_and_board.png)
 
 ### 物理空间
 
@@ -472,7 +472,7 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
     rigidBodyBall.setLinearVelocity(new Vector3f(4, 3, 0));
 
-![Linear Velocity](/content/images/2017/06/linear_velocity.png)
+![Linear Velocity](/static/img/jme/2017/06/linear_velocity.png)
 
 重力加速度（Gravity）与速度的表示类似，让物体受到一个垂直向下的重力加速度，是这样的：
 
@@ -607,7 +607,7 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 效果截图：
 
-![TestBullet](/content/images/2017/06/TestBullet.png)
+![TestBullet](/static/img/jme/2017/06/TestBullet.png)
 
 小球从“篮球场”的一端发射出去，逐一击倒了挡在路上的木板。随着击倒木板的数量增加，小球的运动速度也渐渐归零。
 
@@ -840,7 +840,7 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 下图为被小球击倒的墙体截图。
 
-![HelloPhysics](/content/images/2017/06/HelloPhysics.png)
+![HelloPhysics](/static/img/jme/2017/06/HelloPhysics.png)
 
 ### 例三
 
@@ -1136,7 +1136,7 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 下图为玩家在一人称视角看到的场景。
 
-![HelloCollision](/content/images/2017/06/HelloCollision.png)
+![HelloCollision](/static/img/jme/2017/06/HelloCollision.png)
 
 ### 例四
 
@@ -1148,15 +1148,15 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 图一：Jaime的模型和胶囊体的尺寸不一样，而且原点也不重合，导致Jaime看起来是浮在天上的。
 
-![比例问题](/content/images/2017/06/ScaleProblem.png)
+![比例问题](/static/img/jme/2017/06/ScaleProblem.png)
 
 图二：我们把Jaime放大为与原来2倍，使它与胶囊体的尺寸保持一致，但由于原点坐标不重合，它看起来依然是浮空的。
 
-![原点坐标不重合](/content/images/2017/06/OriginProblem.png)
+![原点坐标不重合](/static/img/jme/2017/06/OriginProblem.png)
 
 图三：寒冰射手艾希的模型，与胶囊体的原点坐标有偏差，而且比例不统一，看起来像是陷进地里了。
 
-![原点不重合，比例不统一。](/content/images/2017/06/ScaleProblem2.png)
+![原点不重合，比例不统一。](/static/img/jme/2017/06/ScaleProblem2.png)
 
 上图中出现的问题，都是在尝试把3D模型和物理控件绑定时出的问题。不仅是角色模型，就算是简单的方块、球体，也同样会出现类似的问题，为什么？
 
@@ -1172,11 +1172,11 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 到目前为止，我们都是直接把物理控制器（PhysicsControl）和Spatial关联在一起（如下图）。由于物体和Spatial的标准不统一，就会造成前面的问题。
 
-![ModelNode](/content/images/2017/06/ModelNode.png)
+![ModelNode](/static/img/jme/2017/06/ModelNode.png)
 
 我们换一个方式，先创建一个“角色”节点，把物体控制器（PhysicsControl）和它关联在一起。同时，把模型的Spatial对象也挂在这个“角色”节点下方。如果你想灵活调整摄像机的位置，还可以再创建一个摄像机节点挂在“角色”节点中。
 
-![CharacterNode](/content/images/2017/06/CharacterNode.png)
+![CharacterNode](/static/img/jme/2017/06/CharacterNode.png)
 
 由于3D模型是这个“角色”节点的子节点，因此在“角色”节点随物体运动时，模型也会随父节点运动。同时，我们可以调整模型的尺寸、朝向，并改变它相对父节点的位置（比如下移一点距离）。通过这种方式，就可以调整角色模型，使其能够和碰撞体近似重合。
 
@@ -1217,7 +1217,7 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 结果：
 
-![Adjusted](/content/images/2017/06/Adjusted.png)
+![Adjusted](/static/img/jme/2017/06/Adjusted.png)
 
 对于胶囊体而言，模型需要下移多少距离是比较容易计算的，即半个圆筒的高度+球的半径(`height/2+radius`)。模型缩放的比例就不太好计算了。对于未知来源的模型，要么通过包围盒的高度来计算，要么还是手动试吧。
 
@@ -1246,7 +1246,7 @@ Bullet引擎中的质量单位为kg，刚体的默认质量为1kg。通过
 
 下面是一个更复杂的例子，使用第三人称控制Jaime在地图中走来走去。
 
-![PhysicsJaime](/content/images/2017/06/PhysicsJaime.png)
+![PhysicsJaime](/static/img/jme/2017/06/PhysicsJaime.png)
 
 这个例子基于例三，不过我对它进行了重构，把主要功能分解到了多个AppState中，并额外增加了一些功能。
 
@@ -1653,7 +1653,7 @@ Body的**物理属性**包括重力加速度（Gravity），线速度（Linear V
 
 运行效果如图所示：
 
-![TestDyn4j](/content/images/2017/06/TestDyn4j.png)
+![TestDyn4j](/static/img/jme/2017/06/TestDyn4j.png)
 
 ### 例六
 
@@ -1705,17 +1705,17 @@ Body的**物理属性**包括重力加速度（Gravity），线速度（Linear V
 
 为摄像机的位置为中心（原点），摄像机的边框分别与X、Y轴相交于4个点，left、right、top、bottom的值即为交点在数轴上的值。
 
-![摄相机分辨率](/content/images/2017/06/CameraDimension.png)
+![摄相机分辨率](/static/img/jme/2017/06/CameraDimension.png)
 
 以摄像机所在平面为中心，在垂直方向平行“伸出”两个平面，到摄像机平面的距离分别为near、far。这两个平面之间形成了一个空间，只有处于这个空间内的3D物体才会被渲染到画面上。这个空间也称为“视锥空间”。
 
 当摄像机处于“平行投影”模式时，near平面和far平面的大小的一样的，视锥空间的形状是一个长方体。
 
-![平行投影](/content/images/2017/06/frustum.png)
+![平行投影](/static/img/jme/2017/06/frustum.png)
 
 至于“正交投影”模式，空间的形状则是一个锥形，这也是为什么称其为“视锥”的原因。
 
-![正交投影](/content/images/2017/06/world-view-projection.png)
+![正交投影](/static/img/jme/2017/06/world-view-projection.png)
 
 #### 模型纸片化
 
@@ -1725,7 +1725,7 @@ Body的**物理属性**包括重力加速度（Gravity），线速度（Linear V
 
 下面是一张篮球图片，来源是dyn4j引擎自带的例子。
 
-![篮球](/content/images/2017/06/Basketball.png)
+![篮球](/static/img/jme/2017/06/Basketball.png)
 
 图片本身是方形的，但是画面上除篮球以外的部分都是透明的。我们可以把这个篮球图片用作纸片的纹理贴图，并把材质的“混色模式（BlendMode）”设为“Alpha混色”，这样透明部分就看不见了。
 
@@ -2002,15 +2002,15 @@ Body的**物理属性**包括重力加速度（Gravity），线速度（Linear V
 
 效果如下：
 
-![飞起的小球](/content/images/2017/06/FlyingBall.png)
+![飞起的小球](/static/img/jme/2017/06/FlyingBall.png)
 
-![篮球击垮了木箱](/content/images/2017/06/Crash.png)
+![篮球击垮了木箱](/static/img/jme/2017/06/Crash.png)
 
 ### 例七
 
 在了解了2D摄像机、2D物理引擎之后，我准备了一个投篮小游戏的例子。通过鼠标拖拽，控制投篮的方向和力量，视图把它扔到篮筐里。
 
-![投篮小游戏](/content/images/2017/06/PlayBasketball.png)
+![投篮小游戏](/static/img/jme/2017/06/PlayBasketball.png)
 
 源码：[投篮小游戏](https://github.com/jmecn/jME3Tutorials/tree/master/src/main/java/net/jmecn/physics2d/basket)
 

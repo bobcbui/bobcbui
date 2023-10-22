@@ -8,15 +8,15 @@
 
 你看到了什么，一个三维方块？
 
-![一个三维方块？](/content/images/2017/04/paper_cube.gif)
+![一个三维方块？](/static/img/jme/2017/04/paper_cube.gif)
 
 或者是一头瞪着你的龙？
 
-![一只头瞪着你的龙？](/content/images/2017/04/paper_dragon.gif)
+![一只头瞪着你的龙？](/static/img/jme/2017/04/paper_dragon.gif)
 
 这些家具到底谁大谁小？
 
-![近大远小？](/content/images/2017/04/fake_room.gif)
+![近大远小？](/static/img/jme/2017/04/fake_room.gif)
 
 这就是本章的主题，障眼法。
 
@@ -42,11 +42,11 @@ Material对象基于材质定义文件(.j3md，jME3 Material Definition)，例�
 
 jME3的材质系统相当灵活，而且扩展性很强，可以通过GLSL编程来实现所需要的任何特效。例如下图为应用了卡通边缘材质的滤镜效果。
 
-![卡通边缘](/content/images/2017/04/PostCartoonEdge.png)
+![卡通边缘](/static/img/jme/2017/04/PostCartoonEdge.png)
 
 又比如PBR材质，只需要把PBR着色器的代码添加到assets中，再为其创建一个j3md文件来声明输入参数，就可以在jME3中产生这种效果。
 
-![PBR光照](/content/images/2017/04/PBR.png)
+![PBR光照](/static/img/jme/2017/04/PBR.png)
 
 libGdx、Unity3D等引擎底层也是基于相同的技术，这些引擎除了给Shader传递参数的方式不同，其他部分与jME3没任何差别。我在学习GLSL时经常逛[www.shadertoy.com](http://www.shadertoy.com)，遇到一些有趣的Shader就会在jME3中尝试一下。
 
@@ -226,7 +226,7 @@ jME3使用`com.jme3.material.Material`来表示材质，我们先通过一段代
 
 运行结果如下：
 
-![不同材质的渲染效果](/content/images/2017/04/Materials.png)
+![不同材质的渲染效果](/static/img/jme/2017/04/Materials.png)
 
 *补充说明：有些同学找不到上面代码中的BrickWall.jpg在哪里。代码中用的几张砖块的贴图，来自jME3的测试数据，在官方github仓库的[jme3-testdata目录](https://github.com/jMonkeyEngine/jmonkeyengine/tree/master/jme3-testdata/src/main/resources/Textures/Terrain/BrickWall)下可以找到这些文件。如果你下载了jME3.1-stable或者jME3 SDK，就可以直接在jME3的lib文件夹下搜索到jme3-testdata.jar。*
 
@@ -398,7 +398,7 @@ ColorRGBA中定义了一些常用的颜色，通过这些颜色的定义可以�
 
 法线贴图通常称为NormalMap或BumpMap。[wiki百科](https://en.wikipedia.org/wiki/Bump_mapping)
 
-![](/content/images/2017/04/400px-Bump-map-demo-full.png)
+![](/static/img/jme/2017/04/400px-Bump-map-demo-full.png)
 
 使用第二种方式的话，可以使用`CrazyBump`等工具制作法线贴图，然后将其应用到Lighting.j3md材质中。
 
@@ -506,7 +506,7 @@ Lighting.j3md材质可以表现模型的光泽度，Unshaded.j3md是没有光泽
     
     }
 
-![光泽度](/content/images/2017/04/Materials_shininess.png)
+![光泽度](/static/img/jme/2017/04/Materials_shininess.png)
 
 **(可选) 高光贴图**
 
@@ -543,13 +543,13 @@ Lighting.j3md和Unshaded.j3md都可以让模型看起来在发光，做法是这
     mat.setTexture("GlowMap", assetManager.loadTexture("Textures/alien_glow.png"));
 
 漫反射贴图 DiffuseMap
-![漫反射贴图](/content/images/2017/04/tank_diffuse_ss.png)
+![漫反射贴图](/static/img/jme/2017/04/tank_diffuse_ss.png)
 
 发光贴图 GlowMap
-![发光贴图](/content/images/2017/04/tank_glow_map_ss.png)
+![发光贴图](/static/img/jme/2017/04/tank_glow_map_ss.png)
 
 最终效果
-![最终效果](/content/images/2017/04/tanlglow1.png)
+![最终效果](/static/img/jme/2017/04/tanlglow1.png)
 
 Learn more about [Bloom and Glow](https://jmonkeyengine.github.io/wiki/jme3/advanced/bloom_and_glow.html)
 
@@ -714,7 +714,7 @@ Alpha的取值范围是0~1，默认值为1。
 
 效果如下。
 
-![透明度](/content/images/2017/04/Materials_alpha.png)
+![透明度](/static/img/jme/2017/04/Materials_alpha.png)
 
 **(可选)AlphaMap**
 
@@ -759,7 +759,7 @@ Alpha的取值范围是0~1，默认值为1。
 
 运行结果如下，透过猴子的脸可以看到后面的物体。
 
-![透明材质](/content/images/2017/04/Materials_transparent.png)
+![透明材质](/static/img/jme/2017/04/Materials_transparent.png)
 
 ### 线框模式
 
@@ -769,9 +769,9 @@ Alpha的取值范围是0~1，默认值为1。
 
 这种模式可以直接观察到网格的真实形态，通常用于开发调试。
 
-![渲染模式](/content/images/2017/04/Material_no_wireframe.png)
+![渲染模式](/static/img/jme/2017/04/Material_no_wireframe.png)
 
-![线框模式](/content/images/2017/04/Material_wireframe.png)
+![线框模式](/static/img/jme/2017/04/Material_wireframe.png)
 
 ## 扩展阅读：UV坐标
 
@@ -781,11 +781,11 @@ Alpha的取值范围是0~1，默认值为1。
 
 虽然艾希肯定不希望你看到她这副样子，但是为了让你能够迅速理解纹理映射，我决定牺牲她。
 
-![艾希的纹理](/content/images/2017/04/b_ash.jpg)
+![艾希的纹理](/static/img/jme/2017/04/b_ash.jpg)
 
 这幅图跟我们之前看到的艾希有很大的区别。
 
-![艾希的模型](/content/images/2017/04/Ashe_texture.png)
+![艾希的模型](/static/img/jme/2017/04/Ashe_texture.png)
 
 打开艾希的网格数据文件`b_Ashe.obj`，可以找到类似下面的数据，这就是纹理坐标。
 
@@ -933,4 +933,4 @@ Alpha的取值范围是0~1，默认值为1。
 
 效果如下。
 
-![](/content/images/2017/04/TexCoord.png)
+![](/static/img/jme/2017/04/TexCoord.png)

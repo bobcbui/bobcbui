@@ -85,7 +85,7 @@ jME3基于OpenGL，使用GLSL着色器语言来实现3D图形渲染。在jME3中
 
 例如Lighting.j3md就是一个模板，我们使用它来实例化多个Material对象。改变每个实例的参数，就能得到不同的效果。
 
-![模板和实例](/content/images/2017/04/Materials_shininess.png)
+![模板和实例](/static/img/jme/2017/04/Materials_shininess.png)
 
 ### 多Technique
 
@@ -380,7 +380,7 @@ j3m文件的主要内容就是定义材质的参数，以`MaterialParameters`开
 
 结果如下：
 
-![加载j3m材质](/content/images/2017/04/Materials_j3m.png)
+![加载j3m材质](/static/img/jme/2017/04/Materials_j3m.png)
 
 超级方便，不是吗？
 

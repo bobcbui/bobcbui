@@ -38,7 +38,7 @@ HUD是Head Up Display的缩写，指的是抬头平视显示设计，简称HUD�
 
 下图为游戏“皇牌空战6”的HUD。
 
-![皇牌空战6](/content/images/2017/05/hud.jpg)
+![皇牌空战6](/static/img/jme/2017/05/hud.jpg)
 
 HUD是游戏的辅助系统，它的设计重点是信息整合和合理摆放，以此来满足玩家最直接的需求。玩家通过HUD可以随时注意到游戏中最重要的信息（诸如血量、时间、比分等），而且不需要暂停游戏去查看别的窗口。
 
@@ -53,7 +53,7 @@ jME3是一个3D游戏引擎，3D环境下的GUI和2D有很大的不同。2D游�
 
 作为例子，我随手画了一张界面白板图，将其存放在项目的resource目录中，路径为`Interface/Gui/pic.png`。
 
-![界面白板图](/content/images/2017/05/pic.png)
+![界面白板图](/static/img/jme/2017/05/pic.png)
 
 下面的代码演示了如何在jME3中显示这张“图片”。
 
@@ -144,13 +144,13 @@ jME3是一个3D游戏引擎，3D环境下的GUI和2D有很大的不同。2D游�
 
 运行程序，效果如下。
 
-![显示“图片”](/content/images/2017/05/FakePicture.png)
+![显示“图片”](/static/img/jme/2017/05/FakePicture.png)
 
 这个技巧在很多3D游戏中都有所应用，只是一种障眼法。使用这种技巧的游戏又被称为2.5D游戏。很多早期游戏中都使用了这种“纸片人”的技巧，[知乎：开发游戏时，有哪些欺骗人眼睛的技巧？](https://www.zhihu.com/question/41720683)
 
-![](/content/images/2017/05/2_5_d_car.png)
+![](/static/img/jme/2017/05/2_5_d_car.png)
 
-![](/content/images/2017/05/2_5_d_car_pic.png)
+![](/static/img/jme/2017/05/2_5_d_car_pic.png)
 
 ### GuiNode
 
@@ -158,11 +158,11 @@ jME3是一个3D游戏引擎，3D环境下的GUI和2D有很大的不同。2D游�
 
 在现实世界中我们要做到这些其实挺简单的，只要把“图片”直接贴在镜片上就好了！
 
-![glass](/content/images/2017/05/glass.png)
+![glass](/static/img/jme/2017/05/glass.png)
 
 VR头盔、Google Glass等设备虽然非常复杂，但是其本意都是直接在人眼处做文章。
 
-![google project glass](/content/images/2017/05/google_glass.jpg)
+![google project glass](/static/img/jme/2017/05/google_glass.jpg)
 
 说穿了，在现实世界中我们欺骗人的眼睛，在3D引擎中我们欺骗虚拟“摄像机”。为了让一个图片看起来更像是屏幕上的Gui，我们需要一些额外的障眼法，例如：
 
@@ -257,11 +257,11 @@ VR头盔、Google Glass等设备虽然非常复杂，但是其本意都是直接
 
 运行程序，观察一下效果。
 
-![guiNode](/content/images/2017/05/guiNode.png)
+![guiNode](/static/img/jme/2017/05/guiNode.png)
 
 奇怪了，为什么什么都没了？坐标轴呢？图片呢？
 
-![黑人问号](/content/images/2017/05/why.jpg)
+![黑人问号](/static/img/jme/2017/05/why.jpg)
 
 先按下F5，关闭左下角的状态界面。然后把你的全部注意力都集中到画面的左下角，仔细观察那里有什么？
 
@@ -269,7 +269,7 @@ VR头盔、Google Glass等设备虽然非常复杂，但是其本意都是直接
 
 为了保护你的视力，我把左下角的画面放大8倍，然后再观察。
 
-![small picture](/content/images/2017/05/small_pic.png)
+![small picture](/static/img/jme/2017/05/small_pic.png)
 
 是的，这个小玩意就是我们上文中出现过的坐标轴和图片。为什么它在guiNode中看起来比在rootNode小那么多？
 
@@ -277,13 +277,13 @@ VR头盔、Google Glass等设备虽然非常复杂，但是其本意都是直接
 
 rootNode中的数值并没有单位。通过一个透视摄像机去观察场景，看到的画面遵循近大远小的原则。“图片”的大小为4*3个单位，摄像机距离它不超过10个单位距离，因此看起来是比较大的。如果我们把摄像机退远之后再观察，这个物体看起来就会变小。下图是退后200个单位距离后看到的结果。
 
-![远距离观察物体](/content/images/2017/05/far_away.png)
+![远距离观察物体](/static/img/jme/2017/05/far_away.png)
 
 guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel）。getPicture()方法中定义的“图片”宽和高分别是4和3，因此通过摄像机观察它时，它只有4x3像素这么大。而坐标轴的长度只有5，也就是5个像素，看起来也很短。
 
 下面稍微修改一下代码，把图片的大小改为400*300，坐标轴的长度改为500。
 
-![放大100倍后](/content/images/2017/05/100size.png)
+![放大100倍后](/static/img/jme/2017/05/100size.png)
 
 通过上图可以得出结论：**在jME3中，屏幕采用XOY坐标系，单位为像素。坐标系原点O位于屏幕左下角，向右为X轴正方向，向上为Y轴正方向。**
 
@@ -321,7 +321,7 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 运行程序，效果如下：
 
-![全屏显示](/content/images/2017/05/full_screen.png)
+![全屏显示](/static/img/jme/2017/05/full_screen.png)
 
 #### 图像居中
 
@@ -360,7 +360,7 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 效果如下：
 
-![图像居中](/content/images/2017/05/center_screen.png)
+![图像居中](/static/img/jme/2017/05/center_screen.png)
 
 
 #### Z坐标
@@ -400,7 +400,7 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 效果如下：
 
-![改变Z坐标](/content/images/2017/05/z_axis.png)
+![改变Z坐标](/static/img/jme/2017/05/z_axis.png)
 
 可以看到，当图片的Z坐标变成-1后，原本被图片挡住的坐标轴和左下角的状态界面又出现了。
 
@@ -416,11 +416,11 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 透视投影的原理来源于小孔成像，与人眼的工作原理类似。jME3的摄像机默认采用的就是透视投影，因此场景中的物体看起来才更真实。
 
-![透视投影](/content/images/2017/05/perspective.jpg)
+![透视投影](/static/img/jme/2017/05/perspective.jpg)
 
 正交投影又称为平行投影（Parallel projection），无论摄像机距离物体多远，物体的大小都不会改变。guiNode中的场景渲染采用的是正交投影，因此改变Z坐标并不会改变物体的大小。
 
-![正交投影](/content/images/2017/05/ortho.png)
+![正交投影](/static/img/jme/2017/05/ortho.png)
 
 在jME3中，摄像机默认采用透视投影，可以通过`cam.setParallelProjection(true)`来开启摄像机的平行投影功能。
 
@@ -451,11 +451,11 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 通过平行投影模式去观察rootNode中的物体，效果如下：
 
-![正交投影](/content/images/2017/05/ParallelProjection.png)
+![正交投影](/static/img/jme/2017/05/ParallelProjection.png)
 
 透视投影下是这样的：
 
-![透视投影](/content/images/2017/05/FakePicture.png)
+![透视投影](/static/img/jme/2017/05/FakePicture.png)
 
 写到这里，我想应该可以回答新手经常问的一个问题了：jME3如何做2D游戏？
 
@@ -592,7 +592,7 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 运行结果如下：
 
-![Picture](/content/images/2017/05/Picture.png)
+![Picture](/static/img/jme/2017/05/Picture.png)
 
 需要注意的是，Picture类使用的材质并不是Unshaded.j3md，而是Gui.j3md。如果想要改变Picture的纹理，参数名并不是`ColorMap`而是`Texture`。
 
@@ -624,21 +624,21 @@ guiNode中的物体会被绘制到屏幕上，屏幕的单位是像素（pixel�
 
 * Bitmap Font Generator
 
-![Bitmap Font Generator](/content/images/2017/05/BMFontGenerator.png)
+![Bitmap Font Generator](/static/img/jme/2017/05/BMFontGenerator.png)
 
 * Hiero
 
-![Hiero](/content/images/2017/05/Hiero.png)
+![Hiero](/static/img/jme/2017/05/Hiero.png)
 
 然后，你会得到一个.fnt文件和一个.png文件(如果字符量大，可能会有多个png文件)，这就是你得到的字体。这种字体不仅适用于JME3应用，cocos2d-x、libgdx等游戏引擎也可以使用这种字体。
 
 得到BMFont字体文件后，接下来要在程序中加载这种字体，然后使用它们。JME 3.0实现了对Bitmap Font字体的支持，而且jme3-core.jar这个lib中已经内置了2套字体（可惜是都是英文字符，没有中文。）
 
-![jME3自带字体](/content/images/2017/05/DefaultFonts.png)
+![jME3自带字体](/static/img/jme/2017/05/DefaultFonts.png)
 
 当你每次启动JME3应用程序的时候，左下角显示的参数其实就是用`Interface/Fonts/Console.fnt`和`Interface/Fonts/Default.fnt`这2个字体。
 
-![StatsAppState](/content/images/2017/05/StatsAppState.png)
+![StatsAppState](/static/img/jme/2017/05/StatsAppState.png)
 
 JME3也提供了一个样例代码，教你怎么使用BitmapFont。
 
@@ -750,7 +750,7 @@ JME3也提供了一个样例代码，教你怎么使用BitmapFont。
 
 效果如下：
 
-![BitmapFont](/content/images/2017/05/BitmapFont.png)
+![BitmapFont](/static/img/jme/2017/05/BitmapFont.png)
 
 BitmapText作为一个几何物体，当也可以被添加到rootNode中。如果需要在3D场景中显示文字（例如在怪物头顶显示名称），它同样可以生效。
 
@@ -797,7 +797,7 @@ BitmapText作为一个几何物体，当也可以被添加到rootNode中。如�
 
 效果如下：
 
-![BitmapFont3D](/content/images/2017/05/BitmapFont3D.png)
+![BitmapFont3D](/static/img/jme/2017/05/BitmapFont3D.png)
 
 **总结：**
 
@@ -809,7 +809,7 @@ BitmapFont的缺点也很明显。首先BitmapFont需要专门制作，而且无
 
 #### 使用TTF字体
 
-![jME True Type Font](/content/images/2017/05/jme3_ttf.jpg)
+![jME True Type Font](/static/img/jme/2017/05/jme3_ttf.jpg)
 
 TTF（TrueTypeFont）是Apple公司和Microsoft公司共同推出的字体文件格式，是各种操作系统中最常用的一种字体文件表示方式。如果你使用的是Windows操作系统，可以直接在自己的`C:/Windows/Fonts/`文件夹下找到很多内置的字体；也可以在网上下载到诸多个性化的字体。
 
@@ -819,7 +819,7 @@ JME3原本是不支持TTF字体的，不过好在2016年3月份有人为JME3社�
 
 这个库的用法及其简单，首先把TTF字体添加到你的项目中，然后把jME-TrueTypeFont这个jar也添加到你的项目中。
 
-![工程结构](/content/images/2017/05/ttf_libs.png)
+![工程结构](/static/img/jme/2017/05/ttf_libs.png)
 
 点击查看项目源码：[True TypeFont Test](https://github.com/jmecn/learnJME3/tree/master/True%20TypeFont%20Test)
 
@@ -890,7 +890,7 @@ JME3原本是不支持TTF字体的，不过好在2016年3月份有人为JME3社�
 
 运行效果如下：
 
-![测试TTF字体](/content/images/2017/05/TTF.png)
+![测试TTF字体](/static/img/jme/2017/05/TTF.png)
 
 优点：字体丰富；理论上支持所有语言；字体大小缩放不影响清晰度。
 
@@ -1107,7 +1107,7 @@ jME3支持3种格式的图标：cur、ico、ani。如果想要更改鼠标的图
 
 效果如下：
 
-![FakeCursor](/content/images/2017/05/FakeCursor.png)
+![FakeCursor](/static/img/jme/2017/05/FakeCursor.png)
 
 #### 获得鼠标位置
 
@@ -1300,7 +1300,7 @@ Lemur提供的默认样式名为"glass"，它的外观风格看起来像是墨�
 
 运行程序，效果如下：
 
-![Hello Lemur](/content/images/2017/05/HelloLemur.png)
+![Hello Lemur](/static/img/jme/2017/05/HelloLemur.png)
 
 完整代码如下：
 

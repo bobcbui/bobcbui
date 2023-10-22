@@ -469,7 +469,7 @@ OpenAL的官方网站为，[www.openal.org](http://www.openal.org/)。官网提�
 
 OpenAL编程指南这个文档介绍了OpenAL的体系结构：
 
-![openal](/content/images/2017/05/openal.png)
+![openal](/static/img/jme/2017/05/openal.png)
 
 OpenAL从本质上来讲，是一套管理**音频场景图**的库（audio scene graph library）。它描述对象之间的一系列关系，其中重要概念有：
 
@@ -657,13 +657,13 @@ Context中可以有多个音源，而且Context负责播放这些音源。AudioN
 
 下面是我利用“jME3中的音频接口+jME3自带OGG/WAV解码器+LemurGUI”制作的一个简易音乐播放器。
 
-![Lemur音乐播放器](/content/images/2017/05/LemurMusicPlayer.png)
+![Lemur音乐播放器](/static/img/jme/2017/05/LemurMusicPlayer.png)
 
 源代码：
 [net.jmecn.lemur.MusicPlayer.java](https://github.com/jmecn/jME3Tutorials/blob/master/src/main/java/net/jmecn/lemur/MusicPlayer.java)
 
 对比我做的这个渣渣，jME3官方社区的用户@Tryder直接把我秒了。
-![CD_MusicPlayer_Dev](/content/images/2017/05/3e26652f4a_690x388.png)
+![CD_MusicPlayer_Dev](/static/img/jme/2017/05/3e26652f4a_690x388.png)
 
 原帖地址：https://hub.jmonkeyengine.org/t/may-2015-montly-wip-screenshot-thread/32463/3
 

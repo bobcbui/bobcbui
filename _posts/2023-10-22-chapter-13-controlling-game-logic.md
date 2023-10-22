@@ -420,7 +420,7 @@ AppState是jME3的一个重要接口，主要用于处理全局的游戏机制�
 
 AppState的生命周期有三个主要阶段：初始化（initialize）、主循环（update）、清理（cleanup）。
 
-![AppState life cycle](/content/images/2017/06/AppState-Life-Cycle.png)
+![AppState life cycle](/static/img/jme/2017/06/AppState-Life-Cycle.png)
 
 `AppStateManager` 用于管理所有的 AppState 实例，通过 下面两行代码，可以把一个 AppState 实例添加到系统的处理队列中，或者移除一个 AppState对象。
 
@@ -466,7 +466,7 @@ AppState的生命历程是这样的：
 
 ### 实例：子场景管理
 
-![](/content/images/2017/06/HelloAppState.png)
+![](/static/img/jme/2017/06/HelloAppState.png)
 
 上图中的场景我们已经看过很多次了，场景中是一个红色的方块，使用Lighting.j3md材质。为了让你能够看清它，场景中还加入了光源。
 
@@ -1110,7 +1110,7 @@ BaseAppState是最好用的一个，而AbstractAppState更加简单粗暴。我�
 
 效果：
 
-![](/content/images/2017/06/AxisAppState.png)
+![](/static/img/jme/2017/06/AxisAppState.png)
 
 #### 保存对全局对象的引用
 

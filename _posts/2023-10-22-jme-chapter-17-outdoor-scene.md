@@ -8,21 +8,21 @@
 
 如果在玩家头顶上放置一个平面，再把云朵、太阳、星星、月亮等图片“贴”上去，就可以混合成类似下面的效果。
 
-![Sky](/content/images/2017/06/Sky-1.png)
+![Sky](/static/img/jme/2017/06/Sky-1.png)
 
 这种技术称为**“天空面（SkyPlane）”**。
 
 显然，这种方法是很容易露馅的。当玩家的视野足够远时，就会发现天空的“边缘”。
 
-![Sky's edge](/content/images/2017/06/SkyEdge.png)
+![Sky's edge](/static/img/jme/2017/06/SkyEdge.png)
 
 稍微改进一下这个障眼法，可以试图让“天空面”始终遮挡在摄像机的前方，或者在远处用高山挡住玩家的视线，这样玩家就没有机会看到边缘。
 
-![](/content/images/2017/06/sky_scroll_1.png)
+![](/static/img/jme/2017/06/sky_scroll_1.png)
 
 但是，也不过是另一种骗局。
 
-![](/content/images/2017/06/sky_scroll_2.png)
+![](/static/img/jme/2017/06/sky_scroll_2.png)
 
 ### 环境贴图
 
@@ -30,7 +30,7 @@
 
 使用立方体环境贴图时，这种技术也被称为“**天空盒（SkyBox）**”。使用球体环境贴图时，则叫**“天空穹（SkyDome）”**。
 
-![SkyDome](/content/images/2017/06/sphere.png)
+![SkyDome](/static/img/jme/2017/06/sphere.png)
 
 这种障眼法的破绽依然很明显。第一，环境贴图是静止的，这于我们的常识不符；其二，一切看起来都是扁平的，而云应该有体积。
 
@@ -40,7 +40,7 @@
 
 下图是网游“天涯明月刀”的画面截图。
 
-![](/content/images/2017/06/hangzhou-6.jpg)
+![](/static/img/jme/2017/06/hangzhou-6.jpg)
 
 游戏开发者对画面真实性的追求是无止境的，而机器的性能是有限的。你尽可以在游戏中使用动态天气，但这意味着能用到烘焙阴影的地方会大量减少。如何在机器性能与画面真实性之间进行取舍，如何压榨出设备的每一分性能，是对开发者最大的考验。
 
@@ -125,11 +125,11 @@ SkyFactory中提供了多个重载的 `createSky()` 方法，其中之一是使�
 
 圣彼得大教堂
 
-![StPeters](/content/images/2017/06/StPeters.jpg)
+![StPeters](/static/img/jme/2017/06/StPeters.jpg)
 
 平原
 
-![](/content/images/2017/06/SphereMap.jpg)
+![](/static/img/jme/2017/06/SphereMap.jpg)
 
 通常在场景建模中，朝向z轴正方向，利用正交投影模拟无穷远处进行渲染，就可以得到这个纹理图。
 
@@ -147,29 +147,29 @@ SkyFactory中提供了多个重载的 `createSky()` 方法，其中之一是使�
 
 效果：
 
-![](/content/images/2017/06/stpeters_result.png)
+![](/static/img/jme/2017/06/stpeters_result.png)
 
-![](/content/images/2017/06/sphere_result.png)
+![](/static/img/jme/2017/06/sphere_result.png)
 
 SphereMap出现的时间比较早，它有一个很大的破绽，就在摄像机的背后。对于那些制作得不够精细的贴图，边缘汇聚在一起的痕迹会非常重。
 
-![](/content/images/2017/06/sphere_result_bug.png)
+![](/static/img/jme/2017/06/sphere_result_bug.png)
 
 #### CubeMap
 
 **立方体贴图**的做法比较简单：把摄像机置于场景中央，朝着x，-x，y，-y，z，-z方向将场景渲染出6张纹理。然后用6张纹理组成一个立方体的6个面。这样一个真正的全景图组成了。
 
-![Lagoon](/content/images/2017/06/Lagoon.jpg)
+![Lagoon](/static/img/jme/2017/06/Lagoon.jpg)
 
 对于那些制作得不够好的CubeMap，破绽在于面与面的接缝处。
 
 这6个面的排列顺序是一个很有趣的问题，在OpenGL和Dirext3D中，加载同样的天空盒会出现上下颠倒的情况。你可以从这篇文章了解更多内容：[OpenGL和D3D中Cubemap的图象方向问题 ](http://blog.csdn.net/nhsoft/article/details/1398630)
 
-![](/content/images/2017/06/Cube_map.png)
+![](/static/img/jme/2017/06/Cube_map.png)
 
 实际加载CubeMap时，有两种截然不同的方式。不过这两种方式只是图片格式不同，效果并没有什么区别。
 
-![](/content/images/2017/06/cube_map_result.png)
+![](/static/img/jme/2017/06/cube_map_result.png)
 
 **Texture * 6**
 
@@ -209,17 +209,17 @@ SphereMap出现的时间比较早，它有一个很大的破绽，就在摄像�
 
 其特性是：保持经距和纬距相等，经纬线成正方形网格；沿经线方向无长度变形；角度和面积等变形线与纬线平行，变形值由赤道向高纬逐渐增大。该投影适合于低纬地区制图 。
 
-![](/content/images/2017/06/cylindrical.gif)
+![](/static/img/jme/2017/06/cylindrical.gif)
 
 实际应用中，最常见的就是地图。
 
-![](/content/images/2017/06/earth.jpg)
+![](/static/img/jme/2017/06/earth.jpg)
 
 还有全景实景展示：
 
-![](/content/images/2017/06/path.jpg)
+![](/static/img/jme/2017/06/path.jpg)
 
-![](/content/images/2017/06/SkyEquirectMap.jpg)
+![](/static/img/jme/2017/06/SkyEquirectMap.jpg)
 
 代码：
 
@@ -230,13 +230,13 @@ SphereMap出现的时间比较早，它有一个很大的破绽，就在摄像�
 
 效果：
 
-![](/content/images/2017/06/earth_result.png)
+![](/static/img/jme/2017/06/earth_result.png)
 
-![](/content/images/2017/06/path_result-1.png)
+![](/static/img/jme/2017/06/path_result-1.png)
 
 这种贴图的破绽在于头顶和脚底，即纬度最高处。那些制作得不够精细的贴图，在这两个点会有明显的“汇聚感”。
 
-![](/content/images/2017/06/equirect_result_bug.png)
+![](/static/img/jme/2017/06/equirect_result_bug.png)
 
 ## 水面
 
@@ -244,21 +244,21 @@ SphereMap出现的时间比较早，它有一个很大的破绽，就在摄像�
 
 水面的制作方式也有很多种，最简单的莫过于采用纹理贴图。
 
-![波纹](/content/images/2017/06/op.jpg)
+![波纹](/static/img/jme/2017/06/op.jpg)
 
 如果嫌弃静态的水面，可以准备多张纹理贴图，使用帧动画让水面看起来是流动的。
 
-![](/content/images/2017/06/many_water.png)
+![](/static/img/jme/2017/06/many_water.png)
 
 当然，也可以使用着色器技术，通过俗称“滚UV”的方式让一张图片看起来是流动的。
 
-![](/content/images/2017/06/water.gif)
+![](/static/img/jme/2017/06/water.gif)
 
 ### 水面反射
 
 更复杂一些的做法，是制作一个平面来代表水面，然后用着色器再其表面绘制场景的反射贴图。另外，还可以利用算法让平面波动起来，这样显得更加真实。
 
-![](/content/images/2017/06/simplewater.png)
+![](/static/img/jme/2017/06/simplewater.png)
 
 jME3的 [SimpleWaterProcessor](https://github.com/jMonkeyEngine/jmonkeyengine/blob/master/jme3-effects/src/main/java/com/jme3/water/SimpleWaterProcessor.java) 就是基于这个原理实现的。
 
@@ -275,7 +275,7 @@ jME3的 [SimpleWaterProcessor](https://github.com/jMonkeyEngine/jmonkeyengine/bl
 
 在jME3中，[WaterFilter](https://github.com/jMonkeyEngine/jmonkeyengine/blob/master/jme3-effects/src/main/java/com/jme3/water/WaterFilter.java) 用于模拟真实的水体，它是一种后期特效。其核心算法与 SimpleWaterFilter 类似，也是实时计算水面反射。除此之外，当玩家把摄像机移到水面以下时，还能够实现水下的特效。
 
-![水下](/content/images/2017/06/under_water.png)
+![水下](/static/img/jme/2017/06/under_water.png)
 
 WaterFilter 须配合 FilterPostProcessor 一起使用。关于它的用法，我们在“第十四章：特效”中有所介绍，这里就不再赘述了。
 
@@ -291,7 +291,7 @@ WaterFilter 须配合 FilterPostProcessor 一起使用。关于它的用法，�
 
 制作3D游戏时，可以使用建模工具来雕刻大型的游戏地图。这样做能够获得非常精细的地图模型，而且创作自由度也非常高，缺陷是渲染速度较慢。
 
-![3D terrain model](/content/images/2017/06/terrain_model.png)
+![3D terrain model](/static/img/jme/2017/06/terrain_model.png)
 
 在实际开发中，经常使用**高度图（Height map）**来创建能够快速渲染的地形。再结合着色器实现“抛雪球算法（Texture Splatting）”算法，能够使用少量纹理贴图，绘制出效果不错的地形。
 
@@ -301,11 +301,11 @@ WaterFilter 须配合 FilterPostProcessor 一起使用。关于它的用法，�
 
 下面两幅图分别为等高线图与高度图：
 
-![等高线图](/content/images/2017/06/isoheight.png)
+![等高线图](/static/img/jme/2017/06/isoheight.png)
 
 在高度图中，图像的每个象素存储了对应的高度值，取值范围为0~255。
 
-![高度图](/content/images/2017/06/heightmap.png)
+![高度图](/static/img/jme/2017/06/heightmap.png)
 
 根据图像每个象素的(x, y)坐标，以及高度值height，就可以获得3D空间中的顶点。把这些顶点连接成网格，就可以生成3D模型。
 
@@ -313,11 +313,11 @@ WaterFilter 须配合 FilterPostProcessor 一起使用。关于它的用法，�
 
 下面3个截图就是用过一副高度图生成的3D地形。这个算法的实现并不复杂，如果你感兴趣，可以读读这个测试类：[TestHeightmap.java](https://github.com/jmecn/jME3Tutorials/blob/master/src/main/java/net/jmecn/outscene/TestHeightmap.java)。
 
-![地形，点云模式](/content/images/2017/06/point_clouds.png)
+![地形，点云模式](/static/img/jme/2017/06/point_clouds.png)
 
-![地形，线框模式](/content/images/2017/06/terrain_tri_mesh.png)
+![地形，线框模式](/static/img/jme/2017/06/terrain_tri_mesh.png)
 
-![地形，着色模式](/content/images/2017/06/terrain_shade_model.png)
+![地形，着色模式](/static/img/jme/2017/06/terrain_shade_model.png)
 
 #### 制作高度图
 
@@ -335,9 +335,9 @@ WaterFilter 须配合 FilterPostProcessor 一起使用。关于它的用法，�
 
 下面是它的主界面：
 
-![](/content/images/2017/06/terra_mesh.png)
+![](/static/img/jme/2017/06/terra_mesh.png)
 
-![](/content/images/2017/06/terra_color.png)
+![](/static/img/jme/2017/06/terra_color.png)
 
 本文使用的高度图均由 EarthSculptor 生成。下载 EarthSculptor 后，你可以在Maps目录、Textures目录中找到一些默认的资源图片。我已经把高度图添加到了工程的资源目录中：[Secenes/Maps/DefaultMap](https://github.com/jmecn/jME3Tutorials/tree/master/src/main/resources/Scenes/Maps/DefaultMap)。
 
@@ -371,7 +371,7 @@ Gradle
 * **根据高度数据生成3D地形**。通过 `AbstractHeightMap` 来定义统一的高度图接口，既可以使用 `ImageBasedHeightMap` 来加载图像数据，也可以通过一些算法来随机生成高度数据。
 * **基于GeoMipMapping算法的层次细节（LOD）技术。**这种技术可以根据顶点到摄像机的距离来动态改变层次细节。离摄像机越近，细节越清晰；离摄像机越远，看起来越简化。
 
-![](/content/images/2017/06/terrain-lod-high-medium-low.png)
+![](/static/img/jme/2017/06/terrain-lod-high-medium-low.png)
 
 * **四叉树（Quad Tree）网格优化**。整个地形的网格由多个地形区块（TerrainPatch）组成，并归于地形四叉树（TerrainQuad）统一管理。这些区块存储了实际的网格数据，可以支持层次细节、加速视锥裁剪等优化功能。
 * **Texture Splatting渲染**。这是一种基于着色器的多重纹理渲染技术，jME3最大支持16张不同的纹理。
@@ -512,7 +512,7 @@ TerrainQuad 是 Spatial 的子类，可以根据需要来给它设置材质，�
 
 运行结果是这样的：
 
-![地形，线框模式](/content/images/2017/06/terrain_tri_mesh.png)
+![地形，线框模式](/static/img/jme/2017/06/terrain_tri_mesh.png)
 
 ### 地形渲染
 
@@ -533,7 +533,7 @@ TerrainQuad 是 Spatial 的子类，可以根据需要来给它设置材质，�
 
 例如，使用 `Unshaded.j3md`设置下面的 ColorMap：
 
-![default_c](/content/images/2017/06/default_c.png)
+![default_c](/static/img/jme/2017/06/default_c.png)
 
 代码：
 
@@ -547,13 +547,13 @@ TerrainQuad 是 Spatial 的子类，可以根据需要来给它设置材质，�
 
 结果：
 
-![ColorMap](/content/images/2017/06/terrain_unshaded_color_map.png)
+![ColorMap](/static/img/jme/2017/06/terrain_unshaded_color_map.png)
 
 **LightMap**
 
 还可以把光影烘焙成亮度图（LightMap），这样能够节省计算光影的开销，更适合手游。
 
-![default_l](/content/images/2017/06/default_l.png)
+![default_l](/static/img/jme/2017/06/default_l.png)
 
 代码：
 
@@ -570,7 +570,7 @@ TerrainQuad 是 Spatial 的子类，可以根据需要来给它设置材质，�
 
 结果：
 
-![LightMap](/content/images/2017/06/terrain_unshaded_light_map.png)
+![LightMap](/static/img/jme/2017/06/terrain_unshaded_light_map.png)
 
 **其他？**
 
@@ -604,7 +604,7 @@ TerrainQuad 是 Spatial 的子类，可以根据需要来给它设置材质，�
 * 平原，高度值50~200
 * 高原，高度值200~255
 
-![](/content/images/2017/06/terrain-from-heightmap.png)
+![](/static/img/jme/2017/06/terrain-from-heightmap.png)
 
 `jme3-terrain` 模块提供了一个 `Common/MatDefs/Terrain/HeightBasedTerrain.j3md` 材质，我们可以使用它来实现基于等高线的地形渲染。材质定义的内容是这样的：
 
@@ -673,7 +673,7 @@ terrainSize 表示地形的大小，即高度图的分辨率。
 
 效果：
 
-![](/content/images/2017/06/terrain_height_based.png)
+![](/static/img/jme/2017/06/terrain_height_based.png)
 
 #### 抛雪球算法
 
@@ -683,25 +683,25 @@ Texture Splatting，中文翻译为“抛雪球”算法，也叫作“足迹法
 
 下图是[wikipedia](https://en.wikipedia.org/wiki/Texture_splatting)上对texture splatting技术的演示。在这个例子中，一共有2个texture和1个alphamap。alphamap中使用黑白二色表示了2个texture各自的颜色强度，经过混合后得到了右下的纹理。
 
-![](/content/images/2017/06/texture_splatting-1.png)
+![](/static/img/jme/2017/06/texture_splatting-1.png)
 
 这种技术允许我们使用多种不同的纹理在地形的表面作画。通过着色器实现texture splatting算法，就可以混合出丰富的颜色。
 
 一般来说，每个alphamap中最多有4个通道可以使用。例如 EarthSculptor（未注册版）的画刷功能，提供的就是4种纹理，恰好可以用1张alphamap来表示。
 
-![](/content/images/2017/06/terra_color.png)
+![](/static/img/jme/2017/06/terra_color.png)
 
 最终生成的alphamap看起来很怪异，仿佛是随意涂鸦而成。
 
-![](/content/images/2017/06/color_map.png)
+![](/static/img/jme/2017/06/color_map.png)
 
 实际上，alphamap中的每个通道都对应着一种纹理，例如下面4个。
 
-![](/content/images/2017/06/texture_splatting.png)
+![](/static/img/jme/2017/06/texture_splatting.png)
 
 当它们混色之后，就可以得到下面的实际纹理。
 
-![](/content/images/2017/06/splatting.png)
+![](/static/img/jme/2017/06/splatting.png)
 
 `jme3-terrain` 提供了2个材质，都实现了 texture-splatting 算法。
 
@@ -718,11 +718,11 @@ Texture Splatting，中文翻译为“抛雪球”算法，也叫作“足迹法
 
 `useTriPlanarMapping = false`
 
-![](/content/images/2017/06/triPlanar-regularTerrain.jpg)
+![](/static/img/jme/2017/06/triPlanar-regularTerrain.jpg)
 
 `useTriPlanarMapping = true`
 
-![](/content/images/2017/06/triPlanar-Terrain.jpg)
+![](/static/img/jme/2017/06/triPlanar-Terrain.jpg)
 
 **TerrainLighting.j3md**
 
@@ -762,7 +762,7 @@ Texture Splatting，中文翻译为“抛雪球”算法，也叫作“足迹法
 
 下图是使用 `TerrainLighting.j3md` 材质渲染出来的地形。
 
-![](/content/images/2017/06/DefaultMap.png)
+![](/static/img/jme/2017/06/DefaultMap.png)
 
 ### 地形的碰撞检测
 
@@ -781,11 +781,11 @@ Texture Splatting，中文翻译为“抛雪球”算法，也叫作“足迹法
 
 高斯模糊前：
 
-![](/content/images/2017/06/BeforeGaussianBlur.png)
+![](/static/img/jme/2017/06/BeforeGaussianBlur.png)
 
 高随模糊后：
 
-![](/content/images/2017/06/AfterGaussianBlur.png)
+![](/static/img/jme/2017/06/AfterGaussianBlur.png)
 
 使用方法：
 
@@ -941,7 +941,7 @@ Texture Splatting，中文翻译为“抛雪球”算法，也叫作“足迹法
 
 效果图：
 
-![outscene](/content/images/2017/06/outscene.png)
+![outscene](/static/img/jme/2017/06/outscene.png)
 
 ## 扩展阅读
 
