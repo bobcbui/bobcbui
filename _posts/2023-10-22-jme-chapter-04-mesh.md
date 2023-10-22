@@ -1,3 +1,11 @@
+---
+layout: post
+title: JME教程：第四章：网格
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-04
+---
+
 # 第四章：网格
 
 声明：本章理论内容大量参考《DirectX 9.0 3D游戏开发编程基础》，素材都是我手绘的。

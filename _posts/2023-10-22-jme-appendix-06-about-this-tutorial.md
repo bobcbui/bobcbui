@@ -1,3 +1,10 @@
+---
+layout: post
+title: JME教程：jMonkeyEngine入门教程
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 01-06
+---
 # jMonkeyEngine入门教程
 
 目前国内3D游戏开发几乎Unity3D一家独大，很多Java、Android工程师想转向游戏开发时不得不重新进行技能培训，为何不直接使用我们熟悉的语言、熟悉的IDE来进行开发呢？

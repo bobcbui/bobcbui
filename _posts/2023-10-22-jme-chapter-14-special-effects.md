@@ -1,4 +1,10 @@
-# 第十四章：特效
+---
+layout: post
+title: JME教程：第十四章：特效
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-14
+---
 
 在jMonkeyEngine中，我们有3种实现特殊视觉效果的工具。
 

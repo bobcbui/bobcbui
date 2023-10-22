@@ -1,4 +1,10 @@
-# 第十章：图形用户界面
+---
+layout: post
+title: JME教程：第十章：图形用户界面
+tags: java learn jme教程 jme-learn
+categories: java-jme-learn
+order: 02-10
+---
 
 ## 基本概念
 
