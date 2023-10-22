@@ -3,7 +3,7 @@ layout: post
 title: JME教程：第二章：jME3基本概念
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 02-02
+order: 202
 ---
 
 *在正文开始之前，如果你不太了解3D开发的基本概念，建议先简单阅读一下[3D游戏开发术语](http://blog.jmecn.net/3d-game-terminology/)。不必全部搞懂，简单过一遍即可。*

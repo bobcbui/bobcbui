@@ -3,7 +3,7 @@ layout: post
 title: JME教程：第十二章：动画
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 02-11
+order: 211
 ---
 
 本章我们将学习如何在jME3中播放3D动画。

@@ -3,7 +3,7 @@ layout: post
 title: JME教程：第四章：网格
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 02-04
+order: 204
 ---
 
 # 第四章：网格
