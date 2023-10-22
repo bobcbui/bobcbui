@@ -47,7 +47,8 @@ layout: default
 
                 {% for cat in p.categories %}
                     {% if page.categories contains cat %}
-                    <a class="list-group-item {{% if page.url == p.url %}}ia{{% endif %}}" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
+                    {{page.permalink}} ： {{p.permalink}}
+                    <a class="list-group-item {{% if page.permalink == p.permalink %}}ia{{% endif %}}" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
                     {% endif %}
                 {% endfor %}
 
