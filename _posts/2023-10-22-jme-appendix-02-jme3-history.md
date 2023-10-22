@@ -3,7 +3,7 @@ layout: post
 title: JME教程：第三章：模型
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 01-02
+order: 102
 ---
 # 序章：jME3的故事
 

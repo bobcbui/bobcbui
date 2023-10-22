@@ -3,7 +3,7 @@ layout: post
 title: JME教程：户外场景
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 02-17
+order: 217
 ---
 
 本章我们将会学习如何在3D游戏中制作户外场景，包括天空、海洋、地形等。

@@ -3,7 +3,7 @@ layout: post
 title: JME教程：第五章：材质，障眼法
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 02-05
+order: 205
 ---
 
 ## 五色令人目盲

@@ -3,7 +3,7 @@ layout: post
 title: JME教程：第六章：材质系统
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 02-06
+order: 206
 ---
 
 > 作者：这一章内容不属于jME3入门必须弄懂的知识，如果你对jME3的材质系统工作原理感兴趣可以继续往下阅读，直接跳过下方内容也不影响开发。

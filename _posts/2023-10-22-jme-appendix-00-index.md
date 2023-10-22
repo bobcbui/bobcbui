@@ -3,7 +3,7 @@ layout: post
 title: JME教程：目录
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 01-00
+order: 100
 ---
 ## About
 This is a tutorial about how to make games with [jMonkeyEngine3](https://jmonkeyengine.org), it's all in Chinese. For English speaker who is reading this document, I sugguest you go to https://jmonkeyengine.github.io/wiki for more information.

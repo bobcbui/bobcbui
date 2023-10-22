@@ -3,7 +3,7 @@ layout: post
 title: JME教程：jMonkeyEngine入门教程
 tags: java learn jme教程 jme-learn
 categories: java-jme-learn
-order: 01-06
+order: 106
 ---
 # jMonkeyEngine入门教程
 
