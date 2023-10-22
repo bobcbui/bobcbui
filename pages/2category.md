@@ -4,8 +4,6 @@ title: Category
 permalink: /category/
 icon: octicon-list-unordered
 isNavItem: true
-styles : [article-list.css,category.css]
-scripts: [category.js]
 ---
 
 <div class="row index">
