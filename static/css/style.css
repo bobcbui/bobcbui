@@ -17,6 +17,10 @@ body {
     padding-right: 0px !important;
 }
 
+.ia{
+    background: rgb(224, 224, 224);
+}
+
 html,
 body {
     width: 100%;
