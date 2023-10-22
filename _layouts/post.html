@@ -47,7 +47,7 @@ layout: default
 
                 {% for cat in p.categories %}
                     {% if page.categories contains cat %}
-                    <a {% if post.permalink == page.permalink %} style="background: rgb(224, 224, 224) "{% endif %} class="list-group-item" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
+                    <a class="list-group-item {{% if page.url == p.url %}}ia{{% endif %}}" href="{{ p.url | prepend: site.baseurl | prepend: site.url }}">{{ p.title }}</a>
                     {% endif %}
                 {% endfor %}
 
