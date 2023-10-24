@@ -1,71 +1,40 @@
-    <header>
-        <!-- <nav class="navbar navbar-tiffany rectangle" role="navigation">
-            <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="{{ site.baseurl | prepend: site.url }}/">{{ site.title }}</a>
-                    <p class="navbar-text">{{ site.description }}</p>
-                </div>
-                <div class="collapse navbar-collapse">
-                    <ul class="nav navbar-nav navbar-right">
-                        {% if page.url == "/index.html" %}
-                        <li class="active">{% else %}
-                        <li>{% endif %}
-                        <a href="{{ site.baseurl | prepend: site.url }}/" class="word-keep"><span class="octicon octicon-book"></span></span>&nbsp;&nbsp;Blog</a>
-                        </li>
-                        {% for p in site.pages %}{% if p.isNavItem %}
-                        {% if p.url == page.url %}
-                        <li class="active">{% else %}
-                        <li>{% endif %}
-                            <a href="{{ p.url | prepend: site.baseurl | prepend: site.url }}" class="word-keep"><span class="octicon {{ p.icon }}"></span>&nbsp;&nbsp;{{ p.title }}</a>
-                        </li>
-                        {% endif %}
-                        {% endfor %}
-                        <li><a href="#stq=" class="search-button"><span class="octicon octicon-search"></span></a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav> -->
-        <nav class="navbar navbar-expand navbar navbar-expand-lg navbar-light bg-light t-b-b-1 mb-2" id="top">
-            <div class="container-fluid">
-              <a class="navbar-brand pc" href="/" style='margin-right: 0px;'>{{ site.title }}</a>
-              <a class="navbar-brand yd" href="/" style='margin-right: 0px;'>🙃</a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-        
-              <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-                <ul class="navbar-nav me-auto mb-lg-0 pc">
-                  <li class="nav-item"><a class="nav-link active" href="/article">📰文章</a></li>
-                  <li class="nav-item"><a class="nav-link active" href="/category">📒专题</a></li>
-                  <li class="nav-item"><a class="nav-link active" href="/search">🔍搜索</a></li>
+<header>
+    <nav class="navbar navbar-expand navbar navbar-expand-lg navbar-light bg-light t-b-b-1 mb-2" id="top">
+        <div class="container-fluid">
+          <a class="navbar-brand pc" href="/" style='margin-right: 0px;'>{{ site.title }}</a>
+          <a class="navbar-brand yd" href="/" style='margin-right: 0px;'>🙃</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+    
+          <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+            <ul class="navbar-nav me-auto mb-lg-0 pc">
+              <li class="nav-item"><a class="nav-link active" href="/article">📰文章</a></li>
+              <li class="nav-item"><a class="nav-link active" href="/category">📒专题</a></li>
+              <li class="nav-item"><a class="nav-link active" href="/search">🔍搜索</a></li>
+            </ul>
+            <ul class="navbar-nav me-auto mb-lg-0 yd">
+              <li class="nav-item dropdown float-start">
+                <a class="nav-link active dropdown-toggle" href="#" data-bs-toggle="dropdown">菜单</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/article">📰文章</a></li>
+                  <li><a class="dropdown-item" href="/category">📒专题</a></li>
+                  <li><a class="dropdown-item" href="/search">🔍搜索</a></li>
                 </ul>
-                <ul class="navbar-nav me-auto mb-lg-0 yd">
-                  <li class="nav-item dropdown float-start">
-                    <a class="nav-link active dropdown-toggle" href="#" data-bs-toggle="dropdown">菜单</a>
-                    <ul class="dropdown-menu">
-                      <li><a class="dropdown-item" href="/article">📰文章</a></li>
-                      <li><a class="dropdown-item" href="/category">📒专题</a></li>
-                      <li><a class="dropdown-item" href="/search">🔍搜索</a></li>
-                    </ul>
-                  </li>
-                  <li class="nav-item float-start">
-                    <a class="nav-link active" href="/search">🔍搜索</a>
-                  </li>
-                </ul>
-                <form class="d-flex d-md-inline">
-                  <ul class="navbar-nav me-auto">
-                    <li class="nav-item" v-if="isLogin">
-                      <a class="nav-link active" >关于</a>
-                    </li>
-                  </ul>
-                </form>
-              </div>
-            </div>
-        </nav>
-    </header>
+              </li>
+              <li class="nav-item float-start">
+                <a class="nav-link active" href="/search">🔍搜索</a>
+              </li>
+            </ul>
+            <form class="d-flex d-md-inline">
+              <ul class="navbar-nav me-auto">
+                <li class="nav-item" v-if="isLogin">
+                  <a class="nav-link active" >关于</a>
+                </li>
+              </ul>
+            </form>
+          </div>
+        </div>
+    </nav>
+</header>
 
