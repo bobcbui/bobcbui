@@ -37,7 +37,7 @@ isNavItem: true
         <div>
             <section class="category-slice" post-cate="All">
                 {% for post in site.posts %}
-                <article>
+                <article class="markdown-body">
                     <header>
                         <a href="{{ site.baseurl | prepend: site.url  }}/archive/#{{ post.date | date: '%Y-%m-%d' }}"><span class="octicon octicon-calendar"></span>&nbsp;<span>{{ post.date | date: "%Y-%m-%d" }}</span></a>
                     </header>
@@ -62,7 +62,7 @@ isNavItem: true
                 {% for posts in category  %}
                 {% for post in posts %}
                 {% if post.url %}
-                <article>
+                <article class="markdown-body">
                     <header>
                         <a href="{{ site.baseurl | prepend: site.url  }}/archive/#{{ post.date | date: '%Y-%m-%d' }}"><span class="octicon octicon-calendar"></span>&nbsp;<span>{{ post.date | date: "%Y-%m-%d" }}</span></a>
                     </header>
