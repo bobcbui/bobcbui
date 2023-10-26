@@ -1007,42 +1007,42 @@ jME3粒子为点状或片状，通过设置不同的材质和纹理，可以改�
   <tr>
     <td>Effects/Explosion/Debris.png</td>
     <td>3*3</td>
-    <td><img src="content/images/2017/06/Debris.png" /></td>
+    <td><img src="/static/img/jme/2017/06/Debris.png" /></td>
   </tr>
   <tr>
     <td>Effects/Explosion/flame.png</td>
     <td>2*2</td>
-    <td><img src="content/images/2017/06/flame.png" width="128"/></td>
+    <td><img src="/static/img/jme/2017/06/flame.png" width="128"/></td>
   </tr>
   <tr>
     <td>Effects/Explosion/flash.png</td>
     <td>2*2</td>
-    <td><img src="content/images/2017/06/flash.png" width="128"/></td>
+    <td><img src="/static/img/jme/2017/06/flash.png" width="128"/></td>
   </tr>
   <tr>
     <td>Effects/Explosion/roundspark.png</td>
     <td>1*1</td>
-    <td><img src="content/images/2017/06/roundspark.png" /></td>
+    <td><img src="/static/img/jme/2017/06/roundspark.png" /></td>
   </tr>
   <tr>
     <td>Effects/Explosion/shockwave.png</td>
     <td>1*1</td>
-    <td><img src="content/images/2017/06/shockwave.png" /></td>
+    <td><img src="/static/img/jme/2017/06/shockwave.png" /></td>
   </tr>
   <tr>
     <td>Effects/Explosion/smoketrail.png</td>
     <td>1*3</td>
-    <td><img src="content/images/2017/06/smoketrail.png" width="128" /></td>
+    <td><img src="/static/img/jme/2017/06/smoketrail.png" width="128" /></td>
   </tr>
   <tr>
     <td>Effects/Explosion/spark.png</td>
     <td>1*1</td>
-    <td><img src="content/images/2017/06/spark.png" /></td>
+    <td><img src="/static/img/jme/2017/06/spark.png" /></td>
   </tr>
   <tr>
     <td>Effects/Smoke/Smoke.png</td>
     <td>15*1</td>
-    <td><img src="content/images/2017/06/Smoke.png" width="200" style="background-color:#000"></img></td>
+    <td><img src="/static/img/jme/2017/06/Smoke.png" width="200" style="background-color:#000"></img></td>
   </tr>
 </table>
 
