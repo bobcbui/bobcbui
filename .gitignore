@@ -1,6 +1,5 @@
-_site
-.sass-cache
-.idea
-.local
-.local/*
-.jekyll-cache
+/_site
+/dist
+/dist.tar.gz
+/.jekyll-cache
+/.bundle
