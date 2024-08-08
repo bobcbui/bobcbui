@@ -5,7 +5,6 @@
 }
 .list-post ul {
   box-sizing: border-box;
-  padding-left: 15px;
 }
 .list-post li {
   display: flex;
