@@ -2,7 +2,7 @@
 layout: post
 title: Python交流群(QQ)
 tags: python 交流群 group qq
-日志
+categories: 交流群
 ---
 
 **点击链接加入群聊【Python交流群】：[738458661](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=0p0u4j0KWevEsU--FZPXrmhw0XA2GxHv&authKey=fv6hxlnTu95pOev6cjduyVp7GtfCAVRpKr8InBlRDyvQCHEG3sOhGgPlYJv%2FFZGd&noverify=0&group_code=738458661)**

@@ -2,7 +2,7 @@
 layout: post
 title: 中文社区交流群(discord)
 tags: 中文社区 交流群 group discord
-日志
+categories: 交流群
 ---
 
 **链接加入：[https://discord.gg/rBqu9AbHT](https://discord.gg/rBqu9AbHT)**
