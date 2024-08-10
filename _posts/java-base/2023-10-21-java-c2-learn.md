@@ -2,7 +2,7 @@
 layout: post
 title: Java基础：环境配置
 tags: java learn 教程 Java基础教程
-categories: java-learn
+categories: Java文档
 order: 2
 ---
 ### 什么是Java开发环境？

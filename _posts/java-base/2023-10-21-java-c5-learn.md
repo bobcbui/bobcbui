@@ -2,7 +2,7 @@
 layout: post
 title: Java基础：Java注释
 tags: java learn 教程 Java基础教程
-categories: java-learn
+categories: Java文档
 order: 5
 ---
 Java注释是用于解释代码的语句，它们不会被编译器执行。注释对于提高代码的可读性和维护性非常重要，尤其是在团队合作和代码复用的情况下。Java提供了三种主要的注释方式：

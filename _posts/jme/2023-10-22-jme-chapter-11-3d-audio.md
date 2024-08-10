@@ -2,7 +2,7 @@
 layout: post
 title: JME教程：第十一章：3D音效
 tags: java learn jme教程 jme-learn
-categories: java-jme-learn
+categories: JME中文文档
 order: 211
 ---
 

@@ -2,7 +2,7 @@
 layout: post
 title: JME教程：第九章：用户交互
 tags: java learn jme教程 jme-learn
-categories: java-jme-learn
+categories: JME中文文档
 order: 209
 ---
 
