@@ -2,7 +2,7 @@
 layout: post
 title: Java基础：Java 修饰符
 tags: java learn 教程 Java基础教程
-categories: java-learn
+categories: Java文档
 order: 9
 ---
 在Java中，修饰符主要分为两类：访问控制修饰符和非访问控制修饰符。它们用于定义类、变量、方法和构造器的访问类型及其行为。

@@ -2,7 +2,7 @@
 layout: post
 title: Java基础：Java 对象和类
 tags: java learn 教程 Java基础教程
-categories: java-learn
+categories: Java文档
 order: 6
 ---
 在Java中，对象和类是面向对象编程的核心概念。理解这两个概念对于编写有效的Java代码至关重要。

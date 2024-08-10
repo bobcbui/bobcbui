@@ -2,7 +2,7 @@
 layout: post
 title: JMonkeyEngine(jme)交流群
 tags: java game jme jmonkeyengine
-categories: post
+categories: JME中文文档
 ---
 
 JME中文交流群，全中国最厉害的JME都在这了。

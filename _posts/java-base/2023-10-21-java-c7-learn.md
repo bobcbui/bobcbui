@@ -2,7 +2,7 @@
 layout: post
 title: Java基础：Java 基本数据类型
 tags: java learn 教程 Java基础教程
-categories: java-learn
+categories: Java文档
 order: 7
 ---
 Java语言提供了八种基本数据类型，这些数据类型用于定义变量和方法的返回类型。基本数据类型是编程中的最基本的数据单元。以下是Java中的基本数据类型：

@@ -2,7 +2,7 @@
 layout: post
 title: Java基础：Java 变量类型
 tags: java learn 教程 Java基础教程
-categories: java-learn
+categories: Java文档
 order: 8
 ---
 在Java中，变量主要分为三种类型：局部变量、实例变量和静态变量。理解这些变量类型对于编写有效和高效的Java程序非常重要。
