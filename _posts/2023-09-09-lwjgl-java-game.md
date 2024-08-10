@@ -2,7 +2,7 @@
 layout: post
 title: LWJGL交流群 Java游戏开发交流群
 tags: java tool
-categories: post
+日志
 ---
 
 ### QQ群号 325328871
