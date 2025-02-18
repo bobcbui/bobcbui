@@ -199,7 +199,7 @@ input:-webkit-autofill {
 @media screen and (max-width: 560px) {
   .header {
     padding: 35px 0 20px 0;
-    justify-content: flex-start;
+    /* justify-content: flex-start; */
   }
   .header .menu {
     margin-right: -2px;
