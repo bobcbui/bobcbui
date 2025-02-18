@@ -4,11 +4,11 @@ plugins:
   - jekyll-regex-replace
 
 # SEO相关信息
-title: Bobcbui
-description: 一个个人网站
-keywords: Bobcbui,Blog,Java,Html,JavaScript,交流群,JME,Python,Linux
-author: Bobcbui
-footerText: 'Copyright © 2024 湘ICP备20009234号'
+title: 牛马程序员
+description: 学IT月薪过万,上牛马程序员.
+keywords: 牛马程序员,Blog,Java,Html,JavaScript,交流群,JME,Python,Linux,博客
+author: 牛码
+footerText: 'Copyright © 2024'
 
 # 这些不要动
 permalink: /posts/:year/:month/:day/:title.html
@@ -20,7 +20,7 @@ exclude: ['CNAME', 'README.md', 'LICENSE', '_site', 'dist', 'Gemfile', 'Gemfile.
 
 # 域名配置
 # baseurl配置,如果网站部署在根目录下的其他目录中，请设置为 /目录名
-domainUrl: 'https://bobcbui.ooqn.com'
+domainUrl: 'https://nmcxy.com'
 baseurl: ''
 
 # 菜单
