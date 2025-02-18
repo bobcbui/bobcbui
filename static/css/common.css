@@ -11,6 +11,9 @@ html {
   font-family: 'Cascadia Code', Consolas, Helvetica, 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   overflow-y: overlay;
 }
+.f1{
+  flex-grow: 1;
+}
 html[transition] {
   transition: all 500ms ease;
 }
