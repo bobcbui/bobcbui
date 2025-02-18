@@ -9,7 +9,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: 'Cascadia Code', Consolas, Helvetica, 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  overflow-y: overlay;
+  overflow-y: scroll;
 }
 .f1{
   flex-grow: 1;
