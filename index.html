@@ -1,31 +1,82 @@
----
-layout: page
-title: 首页
----
-<div class="page page-index">
-  {% for post in site.posts  -%}
-    {%- capture post_year %}{{ post.date | date: "%Y" }}{% endcapture -%}
-    {%- capture post_previous_year %}{{ post.previous.date | date: "%Y" }}{% endcapture -%}
-    {%- capture post_next_year %}{{ post.next.date | date: "%Y" }}{% endcapture -%}
-    {%- if forloop.first or post_next_year != post_year -%}
-    <div class="list-post">
-      <!-- <h2 id="{{post_year}}">{{post_year}}</h2> -->
-      <ul>
-    {%- endif %}
-        <li>
-          <span class="date">{{ post.date | date: "%Y/%m/%d" }}</span>
-          <div class="title">
-            <a href="{{ site.baseurl | append: post.url }}" class="hover-underline">{{ post.title }}</a>
-          </div>
-          <div class="categories">
-            {% for categorie in post.categories -%}
-            <a href="{{site.baseurl}}/pages/categories.html#{{ categorie }}" class="hover-underline">{{ categorie }}</a>
-            {%- endfor %}
-          </div>
-        </li>
-    {%- if forloop.last or post_previous_year != post_year %}
-      </ul>
-    </div>
-    {%- endif %}
-  {%- endfor %}
-</div>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛马程序员 - IT培训</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background: #333;
+            color: white;
+            padding: 15px 0;
+        }
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .banner {
+            background: #f4f4f4;
+            padding: 50px 20px;
+        }
+        .banner h1 {
+            font-size: 36px;
+            color: #333;
+        }
+        .banner button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #ff6600;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .courses, .students {
+            padding: 40px 20px;
+        }
+        .footer {
+            background: #333;
+            color: white;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#">首页</a>
+            <a href="#">课程</a>
+            <a href="#">学员评价</a>
+            <a href="#">关于我们</a>
+            <a href="#">咨询</a>
+        </nav>
+    </header>
+    
+    <section class="banner">
+        <h1>学IT年薪过万，就上牛马程序员！</h1>
+        <button>立即咨询</button>
+    </section>
+    
+    <section class="courses">
+        <h2>热门课程</h2>
+        <p>前端开发 | 后端开发 | 全栈工程师 | 人工智能</p>
+    </section>
+    
+    <section class="students">
+        <h2>学员案例</h2>
+        <p>来自全国各地的学员成功入职大厂</p>
+    </section>
+    
+    <footer class="footer">
+        <p>&copy; 2025 牛马程序员 | nmcxy.com</p>
+    </footer>
+</body>
+</html>
