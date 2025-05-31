@@ -63,7 +63,7 @@ export default defineUserConfig({
       '/python-doc/':[
         {
           text: 'Python入门', 
-          link: '/python-doc/1.md'
+          link: '/python-doc/2.md'
         }
       ]
     }, // 可以添加更多中文页面
