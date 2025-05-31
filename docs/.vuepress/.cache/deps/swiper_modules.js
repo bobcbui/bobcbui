@@ -18,7 +18,7 @@ import {
   now,
   setCSSProperty,
   setInnerHTML
-} from "./chunk-DMPKUPAU.js";
+} from "./chunk-3BH4Q4VD.js";
 
 // node_modules/swiper/modules/virtual.mjs
 function Virtual(_ref) {
