@@ -1,0 +1,16 @@
+import comp from "C:/Users/bobcb/Desktop/Dd/vuepress-starter/docs/.vuepress/.temp/pages/java-doc/get-env-dev.html.vue"
+const data = JSON.parse("{\"path\":\"/java-doc/get-env-dev.html\",\"title\":\"快速开始\",\"lang\":\"zh-CN\",\"frontmatter\":{},\"headers\":[{\"level\":2,\"title\":\"页面\",\"slug\":\"页面\",\"link\":\"#页面\",\"children\":[]},{\"level\":2,\"title\":\"内容\",\"slug\":\"内容\",\"link\":\"#内容\",\"children\":[]},{\"level\":2,\"title\":\"配置\",\"slug\":\"配置\",\"link\":\"#配置\",\"children\":[]},{\"level\":2,\"title\":\"布局与自定义\",\"slug\":\"布局与自定义\",\"link\":\"#布局与自定义\",\"children\":[]}],\"git\":{},\"filePathRelative\":\"java-doc/get-env-dev.md\"}")
+export { comp, data }
+
+if (import.meta.webpackHot) {
+  import.meta.webpackHot.accept()
+  if (__VUE_HMR_RUNTIME__.updatePageData) {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  }
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept(({ data }) => {
+    __VUE_HMR_RUNTIME__.updatePageData(data)
+  })
+}
