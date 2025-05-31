@@ -1,5 +1,5 @@
-import { GitContributors } from "C:/Users/bobcb/Desktop/Dd/vuepress-starter/node_modules/@vuepress/plugin-git/lib/client/components/GitContributors.js";
-import { GitChangelog } from "C:/Users/bobcb/Desktop/Dd/vuepress-starter/node_modules/@vuepress/plugin-git/lib/client/components/GitChangelog.js";
+import { GitContributors } from "D:/AProject/bobcbui/node_modules/@vuepress/plugin-git/lib/client/components/GitContributors.js";
+import { GitChangelog } from "D:/AProject/bobcbui/node_modules/@vuepress/plugin-git/lib/client/components/GitChangelog.js";
 
 export default {
   enhance: ({ app }) => {
