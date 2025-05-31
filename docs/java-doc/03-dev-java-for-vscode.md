@@ -1,68 +1,32 @@
-# Java教程
+# 在 VSCode 中配置 Java 开发环境
 
-欢迎来到 Java 教程页面。本页面将帮助你快速了解 Java 的基础知识和常用开发技巧。
+## 1. 安装 VSCode
 
-## 目录
+前往 [Visual Studio Code 官网](https://code.visualstudio.com/) 下载并安装最新版 VSCode。
 
-- [Java 简介](#java-简介)
-- [开发环境搭建](#开发环境搭建)
-- [基础语法](#基础语法)
-- [面向对象编程](#面向对象编程)
-- [常用类库](#常用类库)
-- [示例代码](#示例代码)
+## 2. 安装 Java JDK
 
-## Java 简介
+请先完成 JDK 的安装和环境变量配置（参考上一节“开发工具与环境”）。
 
-Java 是一种广泛使用的面向对象编程语言，具有跨平台、高性能、安全性强等特点，适用于 Web、移动、企业级应用开发。
+## 3. 安装 Java 扩展包
 
-## 开发环境搭建
+打开 VSCode，进入扩展（Extensions）面板，搜索并安装 **Extension Pack for Java**（由 Microsoft 提供），它会自动安装以下常用扩展：
+- Extension Pack for Java
 
-1. 下载并安装 [JDK](https://www.oracle.com/java/technologies/downloads/)。
-2. 配置环境变量 `JAVA_HOME`。
-3. 安装常用 IDE，如 IntelliJ IDEA 或 Eclipse。
+## 4. 创建和运行 Java 项目
 
-## 基础语法
+1. 按下 `Ctrl+Shift+P`，输入 `Java: Create Java Project`，选择合适的模板创建项目。
+2. 新建 `.java` 文件，输入代码。
+3. 右上角点击“运行”按钮或右键选择“Run Java”即可运行。
 
-- 类和对象
-- 数据类型
-- 流程控制（if、for、while）
-- 方法定义与调用
+## 5. 常见问题
 
-## 面向对象编程
+- 如果提示找不到 JDK，请检查 JDK 是否安装并配置了环境变量。
+- 电脑安装的JDK必须大于或等于Java17。
+- 使用Zip安装java , 不要使用安装程序来安装(可能出现未知问题)。
 
-- 封装、继承、多态
-- 接口与抽象类
-- 重载与重写
+---
 
-## 常用类库
-
-- 集合框架（List、Map、Set）
-- IO 流
-- 异常处理
-
-## 示例代码
-
-```java
-public class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, Java!");
-    }
-}
-```
-
-# Java 基础
-
-...
-
-# Java For Spring
-
-...
-
-# Java 高级
-
-...
-
-# Java 知识扩展
-
-...
-
+**参考资料：**
+- [VSCode 官方 Java 教程](https://code.visualstudio.com/docs/languages/java)
+- [Java 扩展包文档](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack)

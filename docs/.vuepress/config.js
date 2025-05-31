@@ -31,7 +31,7 @@ export default defineUserConfig({
           link: '/java-doc/02-get-env-dev.md'
         },
         {
-          text: 'Java在VSCode中开发', 
+          text: '在VSCode中开发Java', 
           link: '/java-doc/03-dev-java-for-vscode.md'
         },
         {
