@@ -4,7 +4,7 @@
       :modules="[Navigation, Pagination]"
       :navigation="true"
       :pagination="{ clickable: true }"
-      style="width:100%;max-width:900px;margin:0 auto 0px;border-radius:5px;overflow:hidden;"
+      style="width:100%;max-width:1200px;margin:0 auto 0px;border-radius:5px;overflow:hidden;"
     >
       <SwiperSlide>
         <img src="/images/1.png" alt="banner1" style="width:100%;" data-zoom="false" />
