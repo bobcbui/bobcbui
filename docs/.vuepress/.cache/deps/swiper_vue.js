@@ -19,7 +19,7 @@ import {
   setCSSProperty,
   setInnerHTML,
   showWarning
-} from "./chunk-3BH4Q4VD.js";
+} from "./chunk-DMPKUPAU.js";
 import {
   computed,
   h,
@@ -32,7 +32,7 @@ import {
   provide,
   ref,
   watch
-} from "./chunk-FA4MWVOB.js";
+} from "./chunk-CZRH2NFJ.js";
 
 // node_modules/swiper/shared/swiper-core.mjs
 var support;
