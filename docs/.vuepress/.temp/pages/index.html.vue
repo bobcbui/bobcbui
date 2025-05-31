@@ -7,10 +7,10 @@
       style="width:100%;max-width:900px;margin:0 auto 32px;border-radius:12px;overflow:hidden;"
     >
       <SwiperSlide>
-        <img src="/public/image/1.png" alt="banner1" style="width:100%;" data-zoom="false" />
+        <img src="/image/1.png" alt="banner1" style="width:100%;" data-zoom="false" />
       </SwiperSlide>
       <SwiperSlide>
-        <img src="/public/image/2.png" alt="banner2" style="width:100%;" data-zoom="false" />
+        <img src="/image/2.png" alt="banner2" style="width:100%;" data-zoom="false" />
       </SwiperSlide>
     </Swiper>
   </ClientOnly>
