@@ -1,0 +1,23 @@
+{
+  "name": "nm-site",
+  "description": "为了帮助企业培养和招募更多高效、实用的程序员，我们一直在不断努力提升人才的专业能力和综合素质。",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "docs:build": "vuepress build docs",
+    "docs:clean-dev": "vuepress dev docs --clean-cache",
+    "docs:dev": "vuepress dev docs",
+    "docs:update-package": "npx vp-update"
+  },
+  "devDependencies": {
+    "@vuepress/bundler-vite": "2.0.0-rc.20",
+    "@vuepress/theme-default": "2.0.0-rc.88",
+    "sass-embedded": "^1.86.0",
+    "vue": "^3.5.13",
+    "vuepress": "2.0.0-rc.20"
+  },
+  "dependencies": {
+    "swiper": "^11.2.8"
+  }
+}
