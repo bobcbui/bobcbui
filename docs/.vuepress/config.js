@@ -62,7 +62,7 @@ export default defineUserConfig({
       ],
       '/python-doc/':[
         {
-          text: 'Python入门', 
+          text: 'Python入门1', 
           link: '/python-doc/2.md'
         }
       ]
