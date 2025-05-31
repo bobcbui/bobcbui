@@ -12,7 +12,7 @@ export const routes = Object.fromEntries([
   ["/java-doc/07-get-general.html", { loader: () => import(/* webpackChunkName: "java-doc_07-get-general.html" */"D:/AProject/bobcbui/docs/.vuepress/.temp/pages/java-doc/07-get-general.html.js"), meta: {"title":""} }],
   ["/java-doc/08-fast-learn-lib.html", { loader: () => import(/* webpackChunkName: "java-doc_08-fast-learn-lib.html" */"D:/AProject/bobcbui/docs/.vuepress/.temp/pages/java-doc/08-fast-learn-lib.html.js"), meta: {"title":""} }],
   ["/java-doc/09-java-dev-skill.html", { loader: () => import(/* webpackChunkName: "java-doc_09-java-dev-skill.html" */"D:/AProject/bobcbui/docs/.vuepress/.temp/pages/java-doc/09-java-dev-skill.html.js"), meta: {"title":""} }],
-  ["/python-doc/1.html", { loader: () => import(/* webpackChunkName: "python-doc_1.html" */"D:/AProject/bobcbui/docs/.vuepress/.temp/pages/python-doc/1.html.js"), meta: {"title":"关于牛马程序员"} }],
+  ["/python-doc/2.html", { loader: () => import(/* webpackChunkName: "python-doc_2.html" */"D:/AProject/bobcbui/docs/.vuepress/.temp/pages/python-doc/2.html.js"), meta: {"title":"关于牛马程序员"} }],
   ["/404.html", { loader: () => import(/* webpackChunkName: "404.html" */"D:/AProject/bobcbui/docs/.vuepress/.temp/pages/404.html.js"), meta: {"title":""} }],
 ]);
 
