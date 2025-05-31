@@ -9,7 +9,7 @@ export default defineUserConfig({
   description: '为了帮助更多企业培养和便宜好用高效、实用的程序员，我们一直在不断努力培养出成千上万的牛马程序员。', // 描述改为中文
 
   theme: defaultTheme({
-    logo: '/image/favicon.png', // 使用中文logo
+    logo: '/images/favicon.png', // 使用中文logo
     navbar: [{
       text: '首页',
       link: '/'
@@ -60,6 +60,12 @@ export default defineUserConfig({
         }
 
       ],
+      '/python-doc/':[
+        {
+          text: 'Python入门', 
+          link: '/python-doc/1.md'
+        }
+      ]
     }, // 可以添加更多中文页面
   }),
 
