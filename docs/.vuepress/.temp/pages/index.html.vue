@@ -4,7 +4,7 @@
       :modules="[Navigation, Pagination]"
       :navigation="true"
       :pagination="{ clickable: true }"
-      style="width:100%;max-width:900px;margin:0 auto 32px;border-radius:12px;overflow:hidden;"
+      style="width:100%;max-width:900px;margin:0 auto 0px;border-radius:5px;overflow:hidden;"
     >
       <SwiperSlide>
         <img src="/images/1.png" alt="banner1" style="width:100%;" data-zoom="false" />
@@ -14,7 +14,7 @@
       </SwiperSlide>
     </Swiper>
   </ClientOnly>
-  <div class="vp-features">
+  <div class="vp-features" style="margin:0;border: 0">
     <a class="vp-feature" href="/get-started.html" style="text-decoration:none;color:inherit;">
       <h3 class="vp-feature-title">📖 学习编程</h3>
       <p class="vp-feature-description">为了给社会输出高性价比技术人员, 我们在持续努力着。</p>
