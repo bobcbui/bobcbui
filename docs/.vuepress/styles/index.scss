@@ -45,3 +45,14 @@
   opacity: 1;
   pointer-events: auto;
 }
+
+.swiper, .swiper-wrapper, .swiper-slide {
+  min-height: 220px; /* 你可以根据实际内容调整高度 */
+  box-sizing: border-box;
+}
+.swiper-slide > div {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
