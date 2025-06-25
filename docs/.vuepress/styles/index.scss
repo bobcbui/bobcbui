@@ -32,3 +32,16 @@
     display: none !important;
   }
 }
+
+/* Swiper箭头仅在鼠标悬停时显示 */
+.swiper-button-next,
+.swiper-button-prev {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.swiper:hover .swiper-button-next,
+.swiper:hover .swiper-button-prev {
+  opacity: 1;
+  pointer-events: auto;
+}

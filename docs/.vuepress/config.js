@@ -14,7 +14,7 @@ export default defineUserConfig({
       text: '首页',
       link: '/'
     }, {
-      text: 'Java教程',
+      text: 'Java',
       link: '/java-doc/01-get-java-started.md'
     }, {
       text: '关于我',
@@ -23,46 +23,46 @@ export default defineUserConfig({
     sidebar: {
       '/java-doc/': [
         {
-          text: '认识Java从一个电脑软件开始', 
+          text: '认识Java从一个电脑软件开始',
           link: '/java-doc/01-get-java-started.md'
         },
         {
-          text: '开发工具与环境', 
+          text: '开发工具与环境',
           link: '/java-doc/02-get-env-dev.md'
         },
         {
-          text: '在VSCode中开发Java', 
+          text: '在VSCode中开发Java',
           link: '/java-doc/03-dev-java-for-vscode.md'
         },
         {
-          text: 'Java语言基础', 
+          text: 'Java语言基础',
           link: '/java-doc/04-java-base.md',
         },
         {
-          text: '第三方包管理', 
+          text: '第三方包管理',
           link: '/java-doc/05-lib-manage.md',
         },
         {
-          text: 'SpringBoot入门', 
+          text: 'SpringBoot入门',
           link: '/java-doc/06-springboot-started.md',
         },
         {
-          text: 'Java进阶', 
+          text: 'Java进阶',
           link: '/java-doc/07-get-general.md',
         },
         {
-          text: '如何快速熟悉一个库', 
+          text: '如何快速熟悉一个库',
           link: '/java-doc/08-fast-learn-lib.md'
         },
         {
-          text: '开发技巧', 
+          text: '开发技巧',
           link: '/java-doc/09-java-dev-skill.md',
         }
 
       ],
-      '/python-doc/':[
+      '/python-doc/': [
         {
-          text: 'Python入门14', 
+          text: 'Python入门14',
           link: '/python-doc/2.md'
         }
       ]
