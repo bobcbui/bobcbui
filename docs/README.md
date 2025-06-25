@@ -7,10 +7,23 @@
       style="width:100%;max-width:1200px;margin:0 auto 0px;border-radius:5px;overflow:hidden;"
     >
       <SwiperSlide>
-        <img src="/images/1.png" alt="banner1" style="width:100%;" data-zoom="false" />
+        <!-- 学IT年薪过万就上牛马程序员 -->
+        <div style="padding:40px;text-align:center;background: beige;">
+          <h2>学IT年薪过万就上牛马程序员</h2>
+          <p>这里可以放任意HTML内容，比如按钮、列表、甚至表单。</p>
+        </div>
       </SwiperSlide>
       <SwiperSlide>
-        <img src="/images/2.png" alt="banner2" style="width:100%;" data-zoom="false" />
+        <div style="padding:40px;text-align:center;background: beige;">
+          <h2>欢迎访问牛马程序员</h2>
+          <p>这里可以放任意HTML内容，比如按钮、列表、甚至表单。</p>
+        </div>
+      </SwiperSlide>
+      <SwiperSlide>
+        <div style="padding:40px;text-align:center;background: beige;">
+          <h2>欢迎访问牛马程序员</h2>
+          <p>这里可以放任意HTML内容，比如按钮、列表、甚至表单。</p>
+        </div>
       </SwiperSlide>
     </Swiper>
   </ClientOnly>
