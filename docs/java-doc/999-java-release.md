@@ -1,45 +1,33 @@
 # 各种JDK的发行版介绍
 下面JDK的排序与性能是否推荐无关， 如果有异议可以联系我进行修改。
 
-## OracleJDK
-Oracle公司成立于1977年，是全球最大的企业级软件公司，总部位于美国加利福尼亚州的红木滩。2009年以7.4B$收购了Sun公司。2013年超越 IBM ，成为继 Microsoft 后全球第二大软件公司。
-
-**警告：生产环境中OracleJDK的使用请注意法律风险！**  
-[OracleJDK下载](https://www.oracle.com/java/technologies/javase-downloads.html)
-
-⛔️ **建议：不要使用 Oracle 构建的 OpenJDK，尤其是在打算坚持使用 LTS 版本时。**
-
----
-
 ## OpenJDK
 OpenJDK原是Sun Microsystems公司为Java平台构建的Java开发环境（JDK）的开源版本，完全自由，开放源码。Sun Microsystems公司在2006年的JavaOne大会上称将对Java开放源代码，于2009年4月15日正式发布OpenJDK。甲骨文在2010年收购Sun Microsystem之后接管了这个项目。
 
-[OpenJDK官网](http://openjdk.java.net)
+[OpenJDK官网](http://openjdk.org)
 
----
-
-## RedHatOpenJDK
-Red Hat 将为 OpenJDK 8、11、17和21发行版每年提供四次更新，间隔大约三个月。OpenJDK 的一个主要版本从 Red Hat 首次引入起，至少支持六年时间。如果底层 RHEL 平台的退役日期早于 OpenJDK 版本的退役日期，则 OpenJDK 版本可能失去对 RHEL 版本的支持。目前 RHEL 有三个主要的活动版本，但建议客户尽快迁移到最新版本的 OpenJDK，以继续获得更新和支持。
-
-[RedHat OpenJDK下载](https://developers.redhat.com/products/openjdk/download)
-
----
-
-## AdoptOpenJDK
-2017年开始采用OpenJDK.net，建立在多个平台上普遍缺乏一个开放的、可复制的OpenJDK源代码构建和测试系统。AdoptOpenJDK为Java生态系统提供了坚如磐石的OpenJDK二进制文件，还为任何平台上的OpenJDK构建者提供了作为代码的基础设施和构建场。
-
-[AdoptOpenJDK官网](https://adoptopenjdk.net)
-
-⛔️ **建议：不要再使用 AdoptOpenJDK。请改用 Adoptium Eclipse Temurin。**
-
----
 
 ## Adoptium Eclipse Temurin
 Eclipse Adoptium 是 Eclipse基金会下的顶级项目，为开源软件提供资源和专业治理模型。Adoptium 工作组由对 Java 技术有战略兴趣的主要公司和组织组成，包括 Red Hat、 IBM、 Microsoft、 Azul 和 iJUG。以前的 AdoptOpenJDK 项目已经转移到了 EclipseAdoptium。AdoptiumOpenJDK 构建被称为 EclipseTemurin，以区分项目和构建。Eclipse Temurin 构建是高质量的，与供应商无关，并且在许可证下经过 TCK 测试。Adoptium 声明，只要相应的上游源得到积极维护，它将继续为 LTS 版本构建二进制文件。
 
 [Temurin下载](https://adoptium.net/zh-CN/temurin/releases/)
 
+
+## OracleJDK
+Oracle公司成立于1977年，是全球最大的企业级软件公司，总部位于美国加利福尼亚州的红木滩。2009年以7.4B$收购了Sun公司。2013年超越 IBM ，成为继 Microsoft 后全球第二大软件公司。
+
+[OracleJDK下载](https://www.oracle.com/java/technologies/javase-downloads.html)
+
+**建议：OracleJDK 也是基于OpenJDK的，但是OracleJDK增加了一些OpenJDK没有的工具和库，在生产环境不要使用Oracle独有的库。（OracleJDK是商业JDK，没有付费的用户不要使用，不要抵制商用软件，毕竟也是花钱开发的）**
+
+
 ---
+
+## RedHatOpenJDK
+Red Hat 将为 OpenJDK 8、11、17和21发行版每年提供四次更新，间隔大约三个月。OpenJDK 的一个主要版本从 Red Hat 首次引入起，至少支持六年时间。如果底层 RHEL 平台的退役日期早于 OpenJDK 版本的退役日期，则 OpenJDK 版本可能失去对 RHEL 版本的支持。目前 RHEL 有三个主要的活动版本，但建议客户尽快迁移到最新版本，以继续获得更新和支持。
+
+[RedHat OpenJDK下载](https://developers.redhat.com/products/openjdk/download)
+
 
 ## Alibaba Dragonwell
 阿里巴巴 Dragonwell 作为 OpenJDK 的下游版本，是阿里巴巴内部的 OpenJDK 实现。它针对在 100,000+ 台服务器上运行的在线电子商务、金融和物流应用程序进行了优化。Dragonwell有两个版本：
@@ -70,7 +58,7 @@ Azul Systems为需要为其面向网络的客户（旅游、在线零售、游�
 
 [Zulu下载](https://www.azul.com/downloads/?package=jdk#zulu)
 
-⚠️ 这些构建的缺点是依赖于单个公司，可能会突然更改其许可证或更新策略。
+建议：使用这个JDK在你什么都不做的情况下，整体可以提升性能20%~30%（特殊场景提升性能50%~100%），不过这也是一个使用JDK，这家公司专业提供Java技术服务有大概50多人专门研究JDK的（**商用JDK,不购买也不要抵制**）。
 
 ---
 
@@ -140,6 +128,19 @@ Microsoft可能会包含来自较新OpenJDK版本的错误修复的向后移植�
 
 ---
 
-参考：[whichjdk.com](https://whichjdk.com)
+## IBM OpenJ9
+IBM OpenJ9 是 IBM 维护的一个高性能、可扩展的 Java 虚拟机（JVM），最初是 IBM J9，现在作为 Eclipse OpenJ9 项目开源。OpenJ9 以其启动速度快、内存占用低、适合云原生和容器环境著称。
+
+- **官网**：[https://www.eclipse.org/openj9/](https://www.eclipse.org/openj9/)
+- **主要特点：**
+  - 启动速度快，内存占用低
+  - 支持多平台（Linux、Windows、macOS、AIX、z/OS 等）
+  - 适合云原生、容器和微服务场景
+  - 与 OpenJDK 兼容，可作为 OpenJDK 的 JVM 选项
+  - 社区活跃，持续更新
+
+⚠️ 注意：OpenJ9 适合对启动速度和内存敏感的场景，如云原生、容器化部署等。部分极端性能场景下，可能与 HotSpot 有差异，建议根据实际需求测试选择。
+
+---
 
 **目前 default 建议 JDK 版本：使用 Adoptium Eclipse Temurin 21，并确保本地版本与 CI 和生产版本匹配。**
