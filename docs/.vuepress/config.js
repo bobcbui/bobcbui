@@ -1,6 +1,7 @@
 import { defaultTheme } from '@vuepress/theme-default'
 import { defineUserConfig } from 'vuepress'
 import { viteBundler } from '@vuepress/bundler-vite'
+import { shikiPlugin } from '@vuepress/plugin-shiki'
 
 export default defineUserConfig({
   lang: 'zh-CN', // 语言改为中文
@@ -23,11 +24,11 @@ export default defineUserConfig({
     sidebar: {
       '/java-doc/': [
         {
-          text: '认识Java从一个电脑软件开始',
+          text: '认识Java',
           link: '/java-doc/01-get-java-started.md'
         },
         {
-          text: '开发工具与环境',
+          text: 'Java开发工具与环境',
           link: '/java-doc/02-get-env-dev.md'
         },
         {
@@ -57,6 +58,10 @@ export default defineUserConfig({
         {
           text: '开发技巧',
           link: '/java-doc/09-java-dev-skill.md',
+        },
+        {
+          text: 'Java JDK 版本介绍',
+          link: '/java-doc/999-java-release.md'
         }
 
       ],
@@ -67,13 +72,17 @@ export default defineUserConfig({
         }
       ]
     }, // 可以添加更多中文页面
+
   }),
 
   bundler: viteBundler(),
 
   // plugins 数组可以为空或添加其他插件
   plugins: [
-    // 这里不再使用 carouselPlugin
+    shikiPlugin({
+      // 配置项
+      langs: ['ts', 'json', 'vue', 'md', 'bash', 'diff', 'java'],
+    }),
   ],
 })
 
