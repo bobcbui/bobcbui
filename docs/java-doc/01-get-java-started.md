@@ -16,7 +16,7 @@ Java 软件和传统的 `.exe` 软件有一些不同：
 ## 让Java在桌面上显示一个消息框
 
 着是一个告诉Java在桌面显示一个消息看的内容, 把它拖拽到java.exe 上就可以在桌面显示一个消息.
-```java
+
 import javax.swing.JOptionPane;
 
 public class HelloWorld {
@@ -24,7 +24,6 @@ public class HelloWorld {
         JOptionPane.showMessageDialog(null, "HelloWorld");
     }
 }
-```
 
 
 ## 小结
