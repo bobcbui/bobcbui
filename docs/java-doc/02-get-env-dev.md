@@ -1,8 +1,23 @@
-# 开发工具与环境
+# Java环境配置
 
-## 什么是 Java 环境配置？
+## 什么是 Java 环境？
 
-Java 环境配置，就是把 `java.exe` 等工具设置为在电脑任意地方都可以运行，并且让其他软件知道 Java 的安装位置。当我们配置好 Java 环境后，比如 QQ、IDE 等软件就能自动找到你的 Java 安装目录，无需手动指定路径。
+Java 环境和PS, PPT, Excel这些一样， 要打开或创建excal 文件就需要安装office, WPS这些软件就是Excel的环境。
+
+Java环境就是运行java文件的一些软件和系统配置，java环境又区分编辑Java文件的环境和运行Java的环境。
+
+编辑Java的环境就是一些文本编辑器，例如VSCODE, IDEA， 这些软件可以很好的编辑Java文件。
+
+运行Java的环境就需要JDK(Java Development Kitx)即Java开发工具包， 启示就是一个软件。
+
+> 所谓java的跨平台就是JDK这个软件在windows, linux ， mac上都可以安装上，所以你写的java文件可以在这些设备上运行。
+
+## 下载JDK和编辑器
+这里用了OpenJDK 和 VSCode编辑器
+
+JDK下载地址：[https://jdk.java.net/java-se-ri/21](https://jdk.java.net/java-se-ri/21)
+
+VSCode下载地址：[https://code.visualstudio.com/Download](https://code.visualstudio.com/Download)
 
 ## 配置 JAVA_HOME
 
