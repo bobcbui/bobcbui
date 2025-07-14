@@ -28,7 +28,7 @@ export default defineUserConfig({
           link: '/java-doc/01-get-java-started.md'
         },
         {
-          text: 'Java开发工具与环境',
+          text: 'Java环境配置',
           link: '/java-doc/02-get-env-dev.md'
         },
         {
