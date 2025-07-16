@@ -2,9 +2,9 @@
 
 ## 什么是 Java 环境？
 
-Java 环境和PPT, Excel，MP3,MP4 这些一样， 要打开或创建excal 文件就需要安装office, WPS而这些软件,而安装这些软件就是Excel的环境配置。
+Java 环境和PPT, Excel，MP3,MP4 这些一样， 要打开或创建excel文件就需要安装Office, WPS而安装这些软件的过程就是Excel环境配置。
 
-Java环境就是运行java文件的一些软件和系统配置，java环境又区分编辑Java文件的环境和运行Java的环境。
+Java环境配置就是运行java文件和编辑Java文件的一些软件和系统设置，Java环境又区分编辑Java文件的环境和运行Java文件的环境。
 
 编辑Java的环境就是一些文本编辑器，例如VSCODE, IDEA， 这些软件可以很好的编辑Java文件。
 
@@ -49,7 +49,6 @@ VSCode下载地址：
 4. 新增一条：`%JAVA_HOME%\bin`或`D:\Java\jdk-21\bin`（后面这种的缺点就是你更新java后要改两个地方）
 5. 点击确定就可以了。
 
-这样就完成了 Java 环境变量的配置。
 ## 验证配置
 
 打开命令行（Win+R 输入 `cmd`），输入：
