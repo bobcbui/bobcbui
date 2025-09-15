@@ -1,29 +1,14 @@
 # 认识Java
 
-Java就是一个电脑软件，这个电脑软件有Windows版本, 也有Mac版本, 还有Linux版本. 而过去主要系统就这些，所以Java是一种跨平台的编程语言（现在不那么是了）。
+Java就是一个电脑软件，这个软件有Windows版本, 也有Mac版本, 还有Linux版本. 而过去主要就这些系统，所以Java是一种跨平台的编程语言（现在不那么是了）。
 
-## 什么是电脑软件？
+## Java可以做什么?
+Java和其他软件不一样，我们可以用这个软件再做一个软件, 它是一个没有操作界面的软件， 你需要给它一段话, 它会根据你说的内容来运行, 显示出你想要的结果.
 
-电脑软件通常是指可以在操作系统上运行的应用程序。在 Windows 下，最常见的格式是 `.exe` 文件，这是“可执行文件”（Executable File）的缩写。它们通常由 C/C++ 等编译型语言生成，直接运行在操作系统上。比如 QQ、微信等，用户只需要点击图标即可打开软件，进行聊天、输入文本等操作。
+你可以给Java一段话, 让它在桌面上显示一个消息框，这文本我们通常称它为`Java程序`.
 
-## java.exe 和普通 .exe 软件的区别
-
-下载java后，打开文件夹里面的bin目录, 你会看到很多exe文件, 这些exe文件就是Java的各种工具, 其中最重要的就是java.exe, 其他的exe大多是为java.exe 提供帮助的.
-
-## 用Java开发的软件是怎么运行的？
-```java
-# 第一步：编写Java代码并保存为`.java`文件。
-# 第二步：使用`javac.exe`执行`.java`文件编译为字节码文件，生成`.class`文件。
-javac.exe HelloWorld.java
-# 第三步：使用`java.exe`命令运行`.class`文件，Java虚拟机（JVM）解释执行字节码。
-java.exe HelloWorld
-```
-
-## 让Java在桌面上显示一个消息框
-
-这是一个告诉Java在桌面显示一个消息看的内容, 把它拖拽到java.exe 上就可以在桌面显示一个消息.
-
-```java
+**比如：**
+``` java
 import javax.swing.JOptionPane;
 
 public class HelloWorld {
@@ -32,7 +17,7 @@ public class HelloWorld {
     }
 }
 ```
-
+上面这个`Java程序`只是一个简单弹出一个对话框，我们可以通过复杂的描述来实现更丰富的功能，比如实现一个类似QQ,微信软件。
 
 ## 小结
 
