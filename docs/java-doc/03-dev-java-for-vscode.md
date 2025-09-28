@@ -13,6 +13,8 @@
 打开 VSCode，进入扩展（Extensions）面板，搜索并安装 **Extension Pack for Java**（由 Microsoft 提供），它会自动安装以下常用扩展：
 - Extension Pack for Java
 
+![](/images/20250928-vscode-insert-java.png)
+
 ## 4. 创建和运行 Java 项目
 
 1. 按下 `Ctrl+Shift+P`，输入 `Java: Create Java Project`，选择合适的模板创建项目。
