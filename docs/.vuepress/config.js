@@ -15,9 +15,6 @@ export default defineUserConfig({
       text: '首页',
       link: '/'
     }, {
-      text: 'Java',
-      link: '/java-doc/01-get-java-started.md'
-    }, {
       text: '关于我',
       link: '/about.md'
     }],
