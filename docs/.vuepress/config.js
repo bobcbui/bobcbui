@@ -14,10 +14,36 @@ export default defineUserConfig({
     navbar: [{
       text: '首页',
       link: '/'
-    }, {
+    }, 
+    {
+      text: '学习编程',
+      link: '/page/study.md'
+    }, 
+    {
+      text: '软件开发',
+      link: '/page/dev.md'
+    }, 
+    {
+      text: '云服务器',
+      link: '/page/counselor.md'
+    },
+    {
+      text: '电商运营',
+      link: '/page/e-commerce.md'
+    },
+    {
+      text: '媒体运营',
+      link: '/page/media.md'
+    }, 
+    {
+      text: '技术外包',
+      link: '/page/outsource.md'
+    }, 
+    {
       text: '关于我',
       link: '/about.md'
-    }],
+    }
+  ],
     sidebar: {
       '/java-doc/': [
         {
