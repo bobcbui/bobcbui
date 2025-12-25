@@ -16,6 +16,8 @@
 
 ## 联系我们
 
+<img src="/images/img.jpg" alt="牛马程序员公众号二维码" style="width:250px;"/>
+
 如有合作或建议，欢迎通过邮箱与我们联系：  
 **Email:** contact@niuma.dev
 
