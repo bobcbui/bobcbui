@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>日历</title>
+    <meta name="description" content="一个简单的网页日历工具，支持查看公历、农历、节气和节日信息。" />
+    <meta name="keywords" content="日历,农历,节气,节日,网页工具,日期查询" />
+    <style>
+        :root {
+            --bg: #f6f0db;
+            --card: #fff8e6;
+            /* keep a base accent but split today vs selected so they can differ */
+            --today-accent: #b76e2a;
+            /* used for current day outline */
+            --sel-accent: #3a7bd5;
+            /* used for user-selected day (different color) */
+            --muted: #6b5a44;
+            --text: #2b261f;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(180deg, var(--bg) 0%, #efe6cc 60%);
+            color: var(--text);
+            font-family: Inter, system-ui, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+        }
+
+        .center {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px 22px;
+            border-radius: 12px;
+            text-align: center;
+            width: 720px;
+            max-width: 100%;
+            box-shadow: 0 6px 18px rgba(43, 38, 31, 0.08);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            background: transparent;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .month-label {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* make inline year/month selects look like compact controls */
+        .month-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .month-label select {
+            -webkit-appearance: none;
+            appearance: none;
+            padding: 6px 28px 6px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            background: transparent;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M1 1 L5 5 L9 1" stroke="%236b5a44" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>');
+            background-repeat: no-repeat;
+            background-position: calc(100% - 8px) center;
+        }
+
+        .month-label select:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(183, 110, 42, 0.08);
+        }
+
+        /* hide default IE/Edge dropdown arrow */
+        .month-label select::-ms-expand {
+            display: none;
+        }
+
+        .wk-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            /* make rows consistent and reserve space for 6 rows to avoid height changes */
+            grid-auto-rows: 56px;
+            /* ensure total height remains consistent */
+            height: calc(56px * 6 + 8px * 5);
+        }
+
+        .day {
+            box-sizing: border-box;
+            padding: 10px 6px;
+            border-radius: 8px;
+            /* remove min-height (we use grid-auto-rows) */
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
+            color: var(--text);
+            /* reserve border space so highlighting doesn't shift layout */
+            border: 1px solid transparent;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease;
+        }
+
+        .day.out {
+            opacity: 0.45;
+        }
+
+        .day.today {
+            border-color: var(--today-accent);
+            box-shadow: 0 4px 10px rgba(183, 110, 42, 0.08);
+        }
+
+        /* selected day styling (when user clicks a date) - must visually differ from today */
+        /* ensure selection takes precedence over .today by using a more specific selector */
+        .day.selected,
+        .day.selected.today {
+            border-color: var(--sel-accent);
+            box-shadow: 0 6px 18px rgba(58, 123, 213, 0.16);
+            transform: translateY(-2px);
+        }
+
+        .day .num {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .day .lunar {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1;
+        }
+
+        @media (max-width:720px) {
+            .card {
+                padding: 14px;
+            }
+
+            .day {
+                min-height: 48px;
+                padding: 8px 6px
+            }
+
+            .title {
+                font-size: 16px
+            }
+        }
+
+        @media (max-width:420px) {
+            .card {
+                padding: 10px
+            }
+
+            .wk-row {
+                font-size: 12px
+            }
+
+            .day {
+                min-height: 40px;
+                padding: 6px 4px
+            }
+
+            .month-label select {
+                padding: 6px 24px 6px 6px;
+                font-size: 13px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="center">
+        <div class="card" role="main" aria-label="日历">
+            <div class="header">
+                <div class="title">日历</div>
+                <div class="controls">
+                    <button class="btn" id="prev">上月</button>
+                    <div class="month-label" id="monthLabel" tabindex="0" role="button" title="点击选择年/月"><select
+                            id="year"></select> 年 <select id="month"></select> 月</div>
+                    <button class="btn" id="next">下月</button>
+                </div>
+            </div>
+
+            <div class="wk-row">
+                <div>日</div>
+                <div>一</div>
+                <div>二</div>
+                <div>三</div>
+                <div>四</div>
+                <div>五</div>
+                <div>六</div>
+            </div>
+
+            <div class="days" id="days"></div>
+
+            <div id="info"
+                style="margin-top:12px;padding-top:12px;border-top:1px dashed rgba(0,0,0,0.04);color:var(--muted);">
+                <div id="selSummary" style="font-weight:700;color:var(--text);"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Simple calendar render based on a year/month
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        const daysEl = document.getElementById('days');
+        const monthLabel = document.getElementById('monthLabel');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const yearInline = document.getElementById('year');
+        const monthInline = document.getElementById('month');
+
+        let view = new Date();
+        view.setDate(1);
+
+        function render() {
+            const y = view.getFullYear();
+            const m = view.getMonth();
+            // if inline selects exist, update them; otherwise update monthLabel text
+            if (!yearInline || !monthInline) {
+                monthLabel.textContent = y + ' 年 ' + (m + 1) + ' 月';
+            }
+            daysEl.innerHTML = '';
+
+            // first day of month weekday (0=Sun)
+            const firstWeekday = new Date(y, m, 1).getDay();
+            // number of days in this month
+            const daysCount = new Date(y, m + 1, 0).getDate();
+
+            // previous month days to show
+            const prevCount = firstWeekday;
+            const prevMonthDays = new Date(y, m, 0).getDate();
+
+            // We always render 6 rows (42 slots): show previous month tail, current month, then next month head
+            const totalSlots = 42;
+            // render previous month tail (prevCount slots)
+            for (let i = prevCount - 1; i >= 0; i--) {
+                const dayNum = prevMonthDays - i;
+                const el = createDay(dayNum, true);
+                daysEl.appendChild(el);
+            }
+
+            // ensure inline selects reflect current view (do not overwrite monthLabel when selects present)
+            if (yearInline && monthInline) {
+                yearInline.value = y;
+                monthInline.value = m;
+            }
+
+            // render current month
+            for (let d = 1; d <= daysCount; d++) {
+                const el = createDay(d, false, y, m, d);
+                daysEl.appendChild(el);
+            }
+
+            // render next month head to reach 42 slots
+            const rendered = prevCount + daysCount;
+            const need = Math.max(0, totalSlots - rendered);
+            for (let i = 1; i <= need; i++) {
+                const el = createDay(i, true);
+                daysEl.appendChild(el);
+            }
+        }
+
+        function createDay(num, out = false, y, m, d) {
+            const div = document.createElement('div');
+            div.className = 'day' + (out ? ' out' : '');
+            const span = document.createElement('div'); span.className = 'num'; span.textContent = num;
+            div.appendChild(span);
+
+            // (lunar label is shown in the info panel; day tiles are kept minimal)
+
+            if (!out) {
+                // mark today
+                const now = new Date();
+                if (now.getFullYear() === y && now.getMonth() === m && now.getDate() === d) {
+                    div.classList.add('today');
+                }
+                // click to select (simple toggle) and show info
+                div.addEventListener('click', () => {
+                    // remove previous selection
+                    const prev = document.querySelector('.day.selected');
+                    if (prev) prev.classList.remove('selected');
+                    div.classList.add('selected');
+                    // build a Date for this tile and show info
+                    if (typeof y === 'number' && typeof m === 'number' && typeof d === 'number') {
+                        const sd = new Date(y, m, d);
+                        showInfo(sd);
+                    }
+                });
+            } else {
+                // if user clicks a gray/out day, navigate to that month and select the date
+                div.addEventListener('click', () => {
+                    // determine if the out-day belongs to previous or next month
+                    const currentMonth = view.getMonth();
+                    // if the day number is large (>=20) assume it's from previous month; otherwise next month
+                    // this heuristic works because tail days are high (like 28-31) and head days are small (1-10)
+                    const targetDate = (num >= 20) ? new Date(view.getFullYear(), currentMonth - 1, num) : new Date(view.getFullYear(), currentMonth + 1, num);
+                    // update view to that month
+                    view = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+                    render();
+                    // after render, find the matching day tile and select it
+                    // small timeout to ensure DOM updated (render is synchronous but keep safe)
+                    setTimeout(() => {
+                        const all = Array.from(document.querySelectorAll('.day'));
+                        // find a non-out day whose text matches the clicked number
+                        const match = all.find(e => !e.classList.contains('out') && e.querySelector('.num') && e.querySelector('.num').textContent == String(num));
+                        if (match) {
+                            const prev = document.querySelector('.day.selected');
+                            if (prev) prev.classList.remove('selected');
+                            match.classList.add('selected');
+                            showInfo(new Date(view.getFullYear(), view.getMonth(), parseInt(num, 10)));
+                        }
+                        // also update inline selects if present
+                        if (yearInline && monthInline) {
+                            yearInline.value = view.getFullYear();
+                            monthInline.value = view.getMonth();
+                        }
+                    }, 0);
+                });
+            }
+            return div;
+        }
+
+        // show detailed info for a selected Date
+        function showInfo(date) {
+            const selSummary = document.getElementById('selSummary');
+            let lunarText = '';
+            try {
+                const dtf = new Intl.DateTimeFormat('zh-CN-u-ca-chinese', { month: 'short', day: 'numeric' });
+                lunarText = dtf.format(date);
+            } catch (e) { lunarText = ''; }
+
+            const term = getSolarTermApprox(date);
+
+            // basic festival detection
+            const solarFestivals = {
+                '1-1': '元旦', '2-14': '情人节', '5-1': '劳动节', '10-1': '国庆节', '12-25': '圣诞节'
+            };
+            const lunarFestivals = {
+                '1-1': '春节', '1-15': '元宵节', '5-5': '端午节', '7-7': '七夕', '8-15': '中秋节', '9-9': '重阳节'
+            };
+
+            const sKey = (date.getMonth() + 1) + '-' + date.getDate();
+            let festival = solarFestivals[sKey] || '';
+            // try lunar festival by parsing lunarText (format varies)
+            if (!festival && lunarText) {
+                // attempt to extract lunar month/day like "正月 初一" or "八月 十五"
+                const m = lunarText.match(/(闰?\S+月)?\s*(初\d+|十\d+|廿\d+|\d+|朔|望|十五)?/);
+                if (m) {
+                    // crude: look for numeric day part
+                    const dayPart = m[2] || '';
+                    // map a few common lunar festival days by dayPart
+                    if (dayPart.includes('初一') || lunarText.includes('正月')) festival = '春节';
+                    else if (dayPart.includes('十五') || lunarText.includes('十五')) festival = '元宵/中秋';
+                }
+            }
+
+            const parts = [];
+            if (lunarText) parts.push(lunarText);
+            if (term) parts.push(term);
+            if (festival) parts.push(festival);
+            selSummary.textContent = parts.join(' · ');
+        }
+
+        // approximate solar term by computing sun ecliptic longitude
+        function toJulian(date) {
+            return date.valueOf() / 86400000 + 2440587.5;
+        }
+
+        function solarLongitude(date) {
+            // simplified solar longitude (in degrees) approximation
+            const J = toJulian(date);
+            const T = (J - 2451545.0) / 36525.0;
+            const L0 = (280.46646 + 36000.76983 * T + 0.0003032 * T * T) % 360;
+            const M = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) % 360;
+            const Mrad = M * Math.PI / 180;
+            const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(Mrad)
+                + (0.019993 - 0.000101 * T) * Math.sin(2 * Mrad)
+                + 0.000289 * Math.sin(3 * Mrad);
+            let lambda = L0 + C; // apparent longitude approx
+            lambda = (lambda + 360) % 360;
+            return lambda;
+        }
+
+        function getSolarTermApprox(date) {
+            const names = ['立春', '雨水', '惊蛰', '春分', '清明', '谷雨', '立夏', '小满', '芒种', '夏至', '小暑', '大暑', '立秋', '处暑', '白露', '秋分', '寒露', '霜降', '立冬', '小雪', '大雪', '冬至', '小寒', '大寒'];
+            const lambda = solarLongitude(date);
+            const idx = Math.floor(((lambda + 360) % 360) / 15);
+            return names[idx] || '';
+        }
+        // populate inline selects once and wire handlers
+        (function initInlineSelectors() {
+            if (!yearInline || !monthInline) return;
+            const now = new Date();
+            const cy = now.getFullYear();
+            for (let y = cy - 10; y <= cy + 10; y++) {
+                const opt = document.createElement('option'); opt.value = y; opt.textContent = y;
+                yearInline.appendChild(opt);
+            }
+            for (let m = 1; m <= 12; m++) {
+                const opt = document.createElement('option'); opt.value = m - 1; opt.textContent = m;
+                monthInline.appendChild(opt);
+            }
+            // set initial
+            yearInline.value = view.getFullYear();
+            monthInline.value = view.getMonth();
+
+            yearInline.addEventListener('change', () => {
+                const y = parseInt(yearInline.value, 10);
+                const m = parseInt(monthInline.value, 10);
+                view = new Date(y, m, 1);
+                render();
+            });
+            monthInline.addEventListener('change', () => {
+                const y = parseInt(yearInline.value, 10);
+                const m = parseInt(monthInline.value, 10);
+                view = new Date(y, m, 1);
+                render();
+            });
+        })();
+
+        prevBtn.addEventListener('click', () => { view.setMonth(view.getMonth() - 1); render(); });
+        nextBtn.addEventListener('click', () => { view.setMonth(view.getMonth() + 1); render(); });
+
+        // initial
+        render();
+        // default select today if visible in current view
+        (function selectToday() {
+            const todayEl = document.querySelector('.day.today');
+            if (todayEl) {
+                todayEl.classList.add('selected');
+                const now = new Date();
+                showInfo(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+            }
+        })();
+    </script>
+</body>
+
+</html>
