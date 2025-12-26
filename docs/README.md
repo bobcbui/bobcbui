@@ -48,5 +48,3 @@ onMounted(() => {
 
 </script>
 
-这是首页内容。更多详情请查阅[首页文档](https://vuejs.press/reference/default-theme/frontmatter.html#home-page)。
-
