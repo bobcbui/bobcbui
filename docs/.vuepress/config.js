@@ -10,40 +10,45 @@ export default defineUserConfig({
   description: '为了帮助更多企业培养和便宜好用高效、实用的程序员，我们一直在不断努力培养出成千上万的牛马程序员。', // 描述改为中文
 
   theme: defaultTheme({
-    logo: '/images/favicon.png', // 使用中文logo
+    logo: '/favicon.ico', // 使用中文logo
     navbar: [{
       text: '首页',
       link: '/'
-    }, 
+    },
     {
       text: '学习编程',
       link: '/page/study.md'
-    }, 
+    },
     {
       text: '软件开发',
       link: '/page/dev.md'
-    }, 
-    {
-      text: '云服务器',
-      link: '/page/counselor.md'
-    },
-    {
-      text: '电商运营',
-      link: '/page/e-commerce.md'
     },
     {
       text: '媒体运营',
       link: '/page/media.md'
-    }, 
+    },
     {
-      text: '技术外包',
-      link: '/page/outsource.md'
-    }, 
+      text: '其他服务',
+      children: [
+        {
+          text: '电商运营',
+          link: '/page/e-commerce.md'
+        },
+        {
+          text: '云服务器',
+          link: '/page/counselor.md'
+        },
+        {
+          text: '技术外包',
+          link: '/page/outsource.md'
+        }
+      ]
+    },
     {
       text: '关于我',
       link: '/about.md'
     }
-  ],
+    ],
     sidebar: {
       '/java-doc/': [
         {
