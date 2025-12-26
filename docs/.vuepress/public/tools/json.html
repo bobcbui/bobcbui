@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线JSON处理工具</title>
+    <meta name="description" content="基于浏览器的 JSON 格式化、压缩、排序、校验 工具。">
+    <meta name="keywords" content="JSON, 格式化, 压缩, 排序, 校验, 工具">
+    <link rel="stylesheet" href="/bootstrap.min.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+
+        textarea {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        /* 面板改为自适应 flex，高度由父容器分配，只有内部 textarea 滚动 */
+        .pane {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .pane .card-body {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .pane textarea {
+            flex: 1 1 auto;
+            min-height: 0;
+            resize: none;
+            overflow: auto;
+        }
+
+        /* JSON Viewer 样式与滚动 */
+        .pane .json-viewer {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: .5rem .75rem;
+        }
+
+        .json-key {
+            color: #0d6efd;
+        }
+
+        .json-string {
+            color: #d63384;
+        }
+
+        .json-number {
+            color: #198754;
+        }
+
+        .json-boolean {
+            color: #fd7e14;
+        }
+
+        .json-null {
+            color: #6c757d;
+        }
+
+        .json-summary {
+            color: #6c757d;
+            margin-left: .25rem;
+        }
+
+        .json-line {
+            padding-left: 1rem;
+        }
+
+        .json-viewer details {
+            padding-left: .75rem;
+        }
+
+        .json-viewer summary {
+            cursor: pointer;
+        }
+
+        .toolbar .btn {
+            white-space: nowrap;
+        }
+
+        .height-0 {
+            height: 0;
+        }
+    </style>
+    <meta name="robots" content="noindex">
+    <meta name="description" content="基于浏览器的 JSON 格式化、压缩、排序、校验 工具。">
+    <meta name="keywords" content="JSON, 格式化, 压缩, 排序, 校验, 工具">
+
+</head>
+
+<body class="h-100">
+    <div class="container-fluid h-100 d-flex flex-column p-2">
+        <header class="flex-shrink-0 d-flex align-items-center justify-content-between mb-2">
+            <h4 class="h4 m-0">在线JSON处理工具</h4>
+            <div class="d-flex align-items-center gap-2">
+
+                <a class="btn btn-sm btn-outline-primary" href="/">首页</a>
+            </div>
+        </header>
+
+        <!-- 左右两栏布局：左输入 右输出（参考 base64 页面） -->
+        <main class="flex-grow-1 d-flex flex-column min-vh-0 min-h-0">
+            <div class="row g-2 flex-grow-1 min-h-0">
+                <!-- 左侧：输入 -->
+                <div class="col-12 col-lg-6 d-flex flex-column min-h-0">
+                    <div class="card h-100 pane">
+                        <div class="card-header p-2 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <button id="btn-format" class="btn btn-sm btn-outline-primary">格式化</button>
+                                <button id="btn-minify" class="btn btn-sm btn-outline-primary">压缩</button>
+
+                                <button id="btn-clear" class="btn btn-sm btn-outline-danger">清空</button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0 d-flex flex-column height-0">
+                            <textarea id="input" class="form-control flex-grow-1 border-0 rounded-0"
+                                placeholder="在此粘贴 JSON..."></textarea>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <small id="input-stats" class="text-muted"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：输出 + 操作 -->
+                <div class="col-12 col-lg-6 d-flex flex-column min-h-0">
+                    <div class="card h-100 pane">
+                        <div class="card-header p-2 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <button id="btn-copy" class="btn btn-sm btn-outline-primary">复制</button>
+                                <button id="btn-remove-empty" class="btn btn-sm btn-outline-danger">删除空值</button>
+                                <button id="btn-download" class="btn btn-sm btn-outline-primary">下载输出</button>
+                            </div>
+                            <small id="output-stats" class="text-muted"></small>
+                        </div>
+                        <div class="card-body p-0 d-flex flex-column height-0">
+                            <div class="px-2 pt-2">
+                                <span id="message"></span>
+                            </div>
+                            <div id="output-viewer" class="json-viewer"></div>
+                            <textarea id="output" class="form-control border-0 rounded-0 d-none" placeholder="结果显示在这里"
+                                readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Thymeleaf-injected i18n constants for client-side messages -->
+    <script>
+        const I18N = {
+            statsUnit: "\u5B57\u7B26",
+            errorPrefix: "\u9519\u8BEF\uFF1A",
+            inputEmpty: "\u8F93\u5165\u4E3A\u7A7A",
+            jsonLegal: "\u2705 JSON \u5408\u6CD5",
+            jsonIllegalPrefix: "JSON \u975E\u6CD5\uFF1A",
+            arrayLabel: "Array",
+            objectLabel: "Object"
+        };
+    </script>
+    <script>
+        (function () {
+            const els = {
+                input: document.getElementById('input'),
+                output: document.getElementById('output'),
+                viewer: document.getElementById('output-viewer'),
+                inputStats: document.getElementById('input-stats'),
+            };
+
+            const state = {
+                lastOutputText: '',
+                lastOutputObj: null,
+            };
+
+            const parseJSON = (text) => {
+                if (!text || !text.trim()) throw new Error(I18N.inputEmpty);
+                return JSON.parse(text);
+            };
+
+            const pretty = (obj) => JSON.stringify(obj, null, 2);
+            const minify = (obj) => JSON.stringify(obj);
+
+            const isPlainObject = (v) => Object.prototype.toString.call(v) === '[object Object]';
+
+
+            const isEmpty = (v) => v === null || v === '' || (Array.isArray(v) && v.length === 0) || (isPlainObject(v) && Object.keys(v).length === 0);
+
+            const removeEmpty = (val) => {
+                if (Array.isArray(val)) return val.map(removeEmpty);
+                if (isPlainObject(val)) {
+                    const out = {};
+                    for (const [k, v] of Object.entries(val)) {
+                        const nv = removeEmpty(v);
+                        if (!isEmpty(nv)) out[k] = nv;
+                    }
+                    return out;
+                }
+                return val;
+            };
+
+
+            const updateStats = () => {
+                const inText = els.input.value || '';
+                if (els.inputStats) els.inputStats.textContent = `${inText.length} ${I18N.statsUnit}`;
+                const outText = els.output.value || '';
+                if (els.outputStats) els.outputStats.textContent = `${outText.length} ${I18N.statsUnit}`;
+            };
+
+            const setOutput = (obj, text) => {
+                state.lastOutputObj = obj;
+                state.lastOutputText = text ?? '';
+                els.output.value = state.lastOutputText;
+                renderViewer(obj, state.lastOutputText);
+                updateStats();
+            };
+
+            const doWithParsed = (transform, stringify = 'pretty') => {
+                try {
+                    const src = parseJSON(els.input.value);
+                    const obj = transform ? transform(src) : src;
+                    const text = stringify === 'minify' ? minify(obj) : pretty(obj);
+                    setOutput(obj, text);
+                } catch (e) {
+                    console.error(e);
+                    const msg = I18N.errorPrefix + (e && e.message ? e.message : e);
+                    setOutput(null, String(msg));
+                }
+            };
+
+            function renderViewer(obj, fallbackText = '') {
+                const v = els.viewer;
+                v.innerHTML = '';
+                const isObj = obj && (Array.isArray(obj) || isPlainObject(obj));
+                if (!isObj) {
+                    const pre = document.createElement('pre');
+                    pre.className = 'm-0 p-2';
+                    pre.textContent = fallbackText;
+                    v.appendChild(pre);
+                    return;
+                }
+                v.appendChild(buildNode(obj, null));
+            }
+
+            function buildNode(val, key) {
+                const isObj = isPlainObject(val);
+                const isArr = Array.isArray(val);
+                if (isObj || isArr) {
+                    const details = document.createElement('details');
+                    details.open = true;
+                    const summary = document.createElement('summary');
+                    if (key !== null && key !== undefined) {
+                        const k = document.createElement('span');
+                        k.className = 'json-key';
+                        k.textContent = JSON.stringify(String(key));
+                        summary.appendChild(k);
+                        summary.appendChild(document.createTextNode(': '));
+                    }
+                    const type = document.createElement('span');
+                    type.className = 'json-summary';
+                    type.textContent = isArr ? `${I18N.arrayLabel} (${val.length})` : `${I18N.objectLabel} (${Object.keys(val).length})`;
+                    summary.appendChild(type);
+                    details.appendChild(summary);
+                    const container = document.createElement('div');
+                    if (isArr) {
+                        val.forEach((item, idx) => container.appendChild(buildNode(item, idx)));
+                    } else {
+                        Object.keys(val).forEach(k => container.appendChild(buildNode(val[k], k)));
+                    }
+                    details.appendChild(container);
+                    return details;
+                }
+
+                const line = document.createElement('div');
+                line.className = 'json-line';
+                if (key !== null && key !== undefined) {
+                    const k = document.createElement('span');
+                    k.className = 'json-key';
+                    k.textContent = JSON.stringify(String(key));
+                    line.appendChild(k);
+                    line.appendChild(document.createTextNode(': '));
+                }
+                const vs = document.createElement('span');
+                switch (true) {
+                    case typeof val === 'string':
+                        vs.className = 'json-string';
+                        vs.textContent = JSON.stringify(val);
+                        break;
+                    case typeof val === 'number':
+                        vs.className = 'json-number';
+                        vs.textContent = String(val);
+                        break;
+                    case typeof val === 'boolean':
+                        vs.className = 'json-boolean';
+                        vs.textContent = String(val);
+                        break;
+                    case val === null:
+                        vs.className = 'json-null';
+                        vs.textContent = 'null';
+                        break;
+                    default:
+                        vs.textContent = String(val);
+                }
+                line.appendChild(vs);
+                return line;
+            }
+
+            // 事件绑定
+            document.getElementById('btn-format').addEventListener('click', () => doWithParsed(null, 'pretty'));
+            document.getElementById('btn-minify').addEventListener('click', () => doWithParsed(null, 'minify'));
+            document.getElementById('btn-remove-empty').addEventListener('click', () => doWithParsed(removeEmpty, 'pretty'));
+
+            // 校验按钮及功能已移除
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                els.input.value = '';
+                setOutput(null, '');
+            });
+
+            document.getElementById('btn-copy').addEventListener('click', async () => {
+
+                await navigator.clipboard.writeText(els.output.value || '');
+
+            });
+            document.getElementById('btn-download').addEventListener('click', () => {
+                const blob = new Blob([els.output.value || ''], { type: 'application/json;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'output.json';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
+
+
+            els.input.addEventListener('input', updateStats);
+
+            // 快捷键：Ctrl/Cmd + Enter 格式化
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('btn-format').click();
+                }
+            });
+
+            // 初始统计与空视图
+            renderViewer(null, '');
+            updateStats();
+        })();
+    </script>
+</body>
+
+</html>

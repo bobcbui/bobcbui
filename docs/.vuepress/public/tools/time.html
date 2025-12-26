@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>时间工具</title>
+    <meta name="description" content="一个简单的网页时钟工具，显示当前的年、月、日、时、分、秒，并支持多种主题切换。" />
+    <meta name="keywords" content="时钟,时间,网页工具,当前时间,主题切换" />
+    <style>
+        :root {
+            --bg: #f6f0db;
+            --card: #fff8e6;
+            --accent: #b76e2a;
+            --muted: #6b5a44;
+            --text: #2b261f;
+        }
+
+        /* dark theme variables */
+        :root.theme-dark {
+            --bg: #071024;
+            --card: #0b1220;
+            --accent: #22c55e;
+            --muted: #9aa4b2;
+            --text: #e6eef6;
+        }
+
+        /* tea theme */
+        :root.theme-tea {
+            --bg: #f4efe6;
+            --card: #fbf5ea;
+            --accent: #a66b2a;
+            --muted: #6d5b45;
+            --text: #2b261f;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(180deg, var(--bg) 0%, #efe6cc 60%);
+            color: var(--text);
+            font-family: Inter, system-ui, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+        }
+
+        .center {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock-wrap {
+            background: var(--card);
+            padding: 24px 28px;
+            border-radius: 12px;
+            text-align: center;
+            /* remove fixed min-width so mobile can shrink */
+            min-width: 0;
+            box-shadow: 0 6px 18px rgba(43, 38, 31, 0.08);
+            position: relative
+        }
+
+        .time-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: flex-end;
+            /* allow wrapping on small screens so units stack */
+            flex-wrap: wrap;
+        }
+
+        .unit {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
+            padding: 8px 12px;
+            border-radius: 8px;
+            /* allow flexible sizing, but keep a pleasant maximum */
+            flex: 1 0 86px;
+            max-width: 120px;
+            border: 1px solid rgba(0, 0, 0, 0.04)
+        }
+
+        .unit .label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px
+        }
+
+        .pager {
+            height: 56px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .pager .inner {
+            position: relative;
+            transition: transform .38s cubic-bezier(.2, .9, .2, 1)
+        }
+
+        .pager .item {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-variant-numeric: tabular-nums;
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--text)
+        }
+
+        .sub {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: 8px
+        }
+
+        .controls {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity .25s ease, transform .25s ease
+        }
+
+        .controls.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(-6px)
+        }
+
+        .theme-select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            background: transparent;
+            color: var(--text)
+        }
+
+        @media (max-width:920px) {
+            .clock-wrap {
+                padding: 18px 18px;
+                width: calc(100% - 32px);
+                box-sizing: border-box;
+            }
+
+            .time-row {
+                gap: 8px
+            }
+
+            .unit {
+                max-width: 100px;
+                padding: 6px 10px
+            }
+
+            .pager .item {
+                font-size: 34px;
+                height: 48px
+            }
+
+            .pager {
+                height: 48px
+            }
+        }
+
+        @media (max-width:620px) {
+            .clock-wrap {
+                padding: 12px 12px;
+                width: calc(100% - 24px);
+            }
+
+            /* allow each unit to shrink and wrap to next line */
+            .unit {
+                flex: 1 0 48px;
+                max-width: 48%;
+                min-width: 48px;
+                padding: 6px 8px
+            }
+
+            .pager .item {
+                font-size: 22px;
+                height: 36px
+            }
+
+            .pager {
+                height: 36px
+            }
+
+            .controls {
+                top: 8px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="center">
+        <div class="clock-wrap" role="main" aria-label="时钟">
+            <div class="controls" id="controls">
+                <select id="theme" class="theme-select">
+                    <option value="vintage">复古纸张</option>
+                    <option value="tea">茶色</option>
+                    <option value="dark">暗色</option>
+                </select>
+            </div>
+            <div class="time-row" id="time-row">
+                <div class="unit">
+                    <div class="label">年</div>
+                    <div class="pager" data-key="year">
+                        <div class="inner">
+                            <div class="item">----</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="unit">
+                    <div class="label">月</div>
+                    <div class="pager" data-key="month">
+                        <div class="inner">
+                            <div class="item">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="unit">
+                    <div class="label">日</div>
+                    <div class="pager" data-key="date">
+                        <div class="inner">
+                            <div class="item">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="unit">
+                    <div class="label">时</div>
+                    <div class="pager" data-key="hour">
+                        <div class="inner">
+                            <div class="item">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="unit">
+                    <div class="label">分</div>
+                    <div class="pager" data-key="minute">
+                        <div class="inner">
+                            <div class="item">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="unit">
+                    <div class="label">秒</div>
+                    <div class="pager" data-key="second">
+                        <div class="inner">
+                            <div class="item">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // paging update helper
+        function pad(n, d = 2) { return String(n).padStart(d, '0'); }
+        // pager animation with optional stagger delay
+        function setPager(pager, text, delay = 0) {
+            const run = () => {
+                const inner = pager.querySelector('.inner');
+                const current = inner.querySelector('.item');
+                if (current && current.textContent === text) return;
+                // create next item
+                const next = document.createElement('div'); next.className = 'item'; next.textContent = text;
+                inner.appendChild(next);
+                // trigger reflow
+                void inner.offsetHeight;
+                inner.style.transform = 'translateY(-100%)';
+                const onEnd = function () {
+                    inner.removeEventListener('transitionend', onEnd);
+                    // remove first item and reset
+                    if (current.parentNode === inner) inner.removeChild(current);
+                    inner.style.transition = 'none';
+                    inner.style.transform = 'translateY(0)';
+                    // force reflow and restore transition
+                    void inner.offsetHeight;
+                    inner.style.transition = '';
+                };
+                inner.addEventListener('transitionend', onEnd);
+            };
+            if (delay && delay > 0) setTimeout(run, delay); else run();
+        }
+
+        function update() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth() + 1; const d = now.getDate();
+            const hh = now.getHours(); const mm = now.getMinutes(); const ss = now.getSeconds();
+
+
+            // staggered update so each unit follows the previous one
+            const keys = ['year', 'month', 'date', 'hour', 'minute', 'second'];
+            const vals = [String(y), pad(m), pad(d), pad(hh), pad(mm), pad(ss)];
+            keys.forEach((k, i) => {
+                const pager = document.querySelector('.pager[data-key="' + k + '"]');
+                // small stagger (e.g., 70ms) so the next unit follows closely
+                setPager(pager, vals[i], i * 70);
+            });
+        }
+
+        // initial populate
+        update();
+        // update each second, but animate seconds smoothly when they change
+        setInterval(update, 1000);
+
+        // theme switcher
+        document.getElementById('theme').addEventListener('change', function () {
+            const v = this.value;
+            document.documentElement.classList.remove('theme-dark', 'theme-tea');
+            if (v === 'dark') document.documentElement.classList.add('theme-dark');
+            if (v === 'tea') document.documentElement.classList.add('theme-tea');
+        });
+
+        // auto-hide controls on idle
+        let idleTimer = null; const controls = document.getElementById('controls');
+        function showControls() { controls.classList.remove('hidden'); if (idleTimer) clearTimeout(idleTimer); idleTimer = setTimeout(() => controls.classList.add('hidden'), 2000); }
+        document.addEventListener('mousemove', showControls); document.addEventListener('touchstart', showControls);
+        // start hidden after short delay
+        idleTimer = setTimeout(() => controls.classList.add('hidden'), 1200);
+    </script>
+</body>
+
+</html>

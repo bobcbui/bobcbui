@@ -30,6 +30,20 @@
   </a>
 </div>
 
+## 实用工具
+
+
+<a href="/tools/base64.html" target="_blank" rel="noopener noreferrer" style="margin-left:8px;">Base64工具</a>
+
+<a href="/tools/json.html" target="_blank" rel="noopener noreferrer" style="margin-left:8px;">JSON工具</a>
+
+<a href="/tools/corn.html" target="_blank" rel="noopener noreferrer" style="margin-left:8px;">Corn表达式</a>
+
+<a href="/tools/date.html" target="_blank" rel="noopener noreferrer" style="margin-left:8px;">日期</a>
+
+<a href="/tools/time.html" target="_blank" rel="noopener noreferrer" style="margin-left:8px;">时间</a>
+
+
 <script setup>
 
 import { onMounted, ref } from 'vue'

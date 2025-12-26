@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Base64 工具</title>
+	<meta name="description" content="Base64 编解码工具，支持文本、文件和图片。">
+	<meta name="keywords" content="Base64, 编码, 解码, 文本, 文件, 图片, 工具">
+	<link rel="stylesheet" href="/bootstrap.min.css">
+	<style>
+		html,
+		body {
+			height: 100%;
+		}
+
+		body {
+			background-color: #f8f9fa;
+			overflow: hidden;
+		}
+
+		textarea,
+		pre,
+		code,
+		input[type=text] {
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+		}
+
+		.pane {
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+		}
+
+		.pane .card-body {
+			flex: 1 1 auto;
+			min-height: 0;
+		}
+
+		.pane textarea {
+			flex: 1 1 auto;
+			min-height: 0;
+			resize: none;
+			overflow: auto;
+		}
+
+		.toolbar .btn {
+			white-space: nowrap;
+		}
+
+		.nav-pills .nav-link.active {
+			background-color: #0d6efd;
+		}
+
+		.img-preview {
+			max-width: 100%;
+			max-height: 260px;
+			object-fit: contain;
+			border: 1px dashed #dee2e6;
+			background: #fff;
+		}
+
+		.video-preview {
+			max-width: 100%;
+			max-height: 260px;
+			background: #000;
+		}
+
+		.audio-preview {
+			width: 100%;
+		}
+
+		.height-0 {
+			height: 0;
+		}
+	</style>
+	<meta name="robots" content="noindex">
+	<meta name="description" content="Base64 编解码工具，支持文本、文件和图片。">
+	<meta name="keywords" content="Base64, 编码, 解码, 文本, 文件, 图片, 工具">
+
+	<script>
+		const I18N = {
+			statsUnit: "\u5B57\u7B26",
+			errorPrefix: "\u9519\u8BEF\uFF1A",
+			inputEmpty: "\u8F93\u5165\u4E3A\u7A7A",
+			invalidBase64: "Base64 \u975E\u6CD5",
+			encoding: "\u7F16\u7801",
+			decoding: "\u89E3\u7801",
+			fileTooLarge: "\u6587\u4EF6\u8FC7\u5927\uFF0C\u53EF\u80FD\u5BFC\u81F4\u6D4F\u89C8\u5668\u5361\u987F",
+			base64InputHeader: "\u8F93\u5165",
+			outputHeader: "\u8F93\u51FA",
+		};
+	</script>
+</head>
+
+<body class="h-100">
+	<div class="container-fluid h-100 d-flex flex-column p-2">
+		<header class="flex-shrink-0 d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+			<h4 class="h4 m-0">Base64 工具</h4>
+			<div class="d-flex align-items-center gap-2">
+				<a class="btn btn-sm btn-outline-secondary" href="/zh">首页</a>
+			</div>
+		</header>
+
+		<main class="flex-grow-1 d-flex flex-column min-vh-0 min-h-0">
+			<div class="row g-2 flex-grow-1 min-h-0">
+				<!-- 左侧：输入 + 模式选择 -->
+				<div class="col-12 col-lg-6 d-flex flex-column min-h-0">
+					<div class="card h-100 pane">
+						<div class="card-header p-2 d-flex align-items-center justify-content-between">
+							<div class="d-flex align-items-center gap-2">
+
+								<div class="btn-group btn-group-sm" role="group" aria-label="Input mode">
+									<button class="btn btn-outline-primary" id="tab-text" type="button">文本</button>
+									<button class="btn btn-outline-primary" id="tab-file" type="button">文件</button>
+									<button class="btn btn-outline-primary" id="tab-image" type="button">图片</button>
+								</div>
+							</div>
+							<small id="input-stats" class="text-muted"></small>
+						</div>
+						<div class="card-body p-2 d-flex flex-column height-0">
+							<div id="pane-text" class="d-flex flex-column flex-grow-1 min-h-0">
+								<textarea id="input-text" class="form-control flex-grow-1 border-0 p-0"
+									placeholder="在此粘贴内容或 Base64..."></textarea>
+							</div>
+							<div id="pane-file" class="d-none">
+								<input id="input-file" type="file" class="form-control" aria-label="选择文件">
+								<small class="text-muted mt-2" id="file-info"></small>
+							</div>
+							<div id="pane-image" class="d-none">
+								<input id="input-image" type="file" class="form-control" accept="image/*"
+									aria-label="选择图片">
+								<div class="mt-2 text-center">
+									<img id="image-preview" class="img-preview d-none" alt="preview">
+								</div>
+								<small class="text-muted d-block mt-2" id="image-info"></small>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 右侧：输出 + 操作 -->
+				<div class="col-12 col-lg-6 d-flex flex-column min-h-0">
+					<div class="card h-100 pane">
+						<div class="card-header p-2 d-flex align-items-center justify-content-between">
+							<div class="d-flex align-items-center gap-2 flex-wrap">
+								<div class="btn-group btn-group-sm" role="group" aria-label="主操作">
+									<button id="btn-encode" class="btn btn-outline-primary">编码</button>
+									<button id="btn-decode" class="btn btn-outline-primary">解码</button>
+									<button id="btn-clear" class="btn btn-outline-danger">清空</button>
+								</div>
+							</div>
+							<small id="output-stats" class="text-muted"></small>
+						</div>
+						<div class="card-body p-0 d-flex flex-column height-0">
+							<div class="p-2 h-100">
+								<div id="output-preview" class="text-center d-none h-100">
+									<div id="message" class="text-muted small"></div>
+									<img id="output-image" class="img-preview d-none" alt="output">
+									<video id="output-video" class="video-preview d-none" controls></video>
+									<audio id="output-audio" class="audio-preview d-none" controls></audio>
+									<a id="output-link" class="d-none" target="_blank" rel="noopener">download</a>
+								</div>
+								<textarea id="output" class="form-control p-0 border-0 h-100" readonly
+									placeholder="结果显示在这里"></textarea>
+							</div>
+						</div>
+						<div class="card-footer d-flex justify-content-end gap-2">
+							<button id="btn-copy-2" class="btn btn-sm btn-outline-secondary">复制</button>
+							<button id="btn-download-2" class="btn btn-sm btn-outline-secondary">下载输出</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<script>
+		(function () {
+			const els = {
+				tabs: {
+					text: document.getElementById('tab-text'),
+					file: document.getElementById('tab-file'),
+					image: document.getElementById('tab-image'),
+				},
+				panes: {
+					text: document.getElementById('pane-text'),
+					file: document.getElementById('pane-file'),
+					image: document.getElementById('pane-image'),
+				},
+				inputText: document.getElementById('input-text'),
+				inputFile: document.getElementById('input-file'),
+				inputImage: document.getElementById('input-image'),
+				imgPreview: document.getElementById('image-preview'),
+				fileInfo: document.getElementById('file-info'),
+				imageInfo: document.getElementById('image-info'),
+				inputStats: document.getElementById('input-stats'),
+				outputStats: document.getElementById('output-stats'),
+				output: document.getElementById('output'),
+				outputImage: document.getElementById('output-image'),
+				outputVideo: document.getElementById('output-video'),
+				outputAudio: document.getElementById('output-audio'),
+				outputLink: document.getElementById('output-link'),
+				outputPreview: document.getElementById('output-preview'),
+				message: document.getElementById('message'),
+				btnEncode: document.getElementById('btn-encode'),
+				btnDecode: document.getElementById('btn-decode'),
+				btnClear: document.getElementById('btn-clear'),
+				btnCopy: document.getElementById('btn-copy'),
+				btnCopy2: document.getElementById('btn-copy-2'),
+				btnDownload: document.getElementById('btn-download'),
+				btnDownload2: document.getElementById('btn-download-2'),
+			};
+
+			const state = {
+				mode: 'text', // 'text' | 'file' | 'image'
+				lastBlobUrl: null,
+			};
+
+			// ---- small utils ----
+			function revokeLastBlobUrl() {
+				if (state.lastBlobUrl) {
+					URL.revokeObjectURL(state.lastBlobUrl);
+					state.lastBlobUrl = null;
+				}
+			}
+
+			function updateStats() {
+				let inLen = 0;
+				if (state.mode === 'text') {
+					inLen = (els.inputText.value || '').length;
+				} else if (state.mode === 'file' && els.inputFile.files && els.inputFile.files[0]) {
+					inLen = els.inputFile.files[0].size;
+				} else if (state.mode === 'image' && els.inputImage.files && els.inputImage.files[0]) {
+					inLen = els.inputImage.files[0].size;
+				}
+				const outText = els.output.value || '';
+				els.inputStats.textContent = `${I18N.base64InputHeader}${inLen} ${I18N.statsUnit}`;
+				els.outputStats.textContent = `${I18N.outputHeader}${outText.length} ${I18N.statsUnit}`;
+			}
+
+			function selectMode(mode) {
+				state.mode = mode;
+				// tabs (button group style: primary for active, outline-primary otherwise)
+				Object.keys(els.tabs).forEach(k => {
+					const btn = els.tabs[k];
+					const active = k === mode;
+					btn.classList.toggle('btn-primary', active);
+					btn.classList.toggle('btn-outline-primary', !active);
+				});
+				// panes
+				Object.keys(els.panes).forEach(k => {
+					els.panes[k].classList.toggle('d-none', k !== mode);
+				});
+				// preview reset
+				els.imgPreview.classList.add('d-none');
+				if (state.lastBlobUrl) URL.revokeObjectURL(state.lastBlobUrl);
+				state.lastBlobUrl = null;
+				els.outputPreview.classList.add('d-none');
+				els.outputImage.src = '';
+				updateStats();
+			}
+
+			// Base64 helpers (UTF-8 safe)
+			function bytesToBase64(bytes) {
+				let binary = '';
+				const chunk = 0x8000;
+				for (let i = 0; i < bytes.length; i += chunk) {
+					const sub = bytes.subarray(i, i + chunk);
+					binary += String.fromCharCode.apply(null, sub);
+				}
+				return btoa(binary);
+			}
+
+			function base64ToBytes(b64) {
+				const bin = atob(b64);
+				const len = bin.length;
+				const bytes = new Uint8Array(len);
+				for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+				return bytes;
+			}
+
+			// Best-effort image mime detection from magic numbers
+			function detectImageMime(bytes) {
+				if (!bytes || bytes.length < 4) return null;
+				// PNG
+				if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'image/png';
+				// JPEG
+				if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg';
+				// GIF87a/GIF89a
+				if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return 'image/gif';
+				// WebP: RIFF....WEBP
+				if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) return 'image/webp';
+				// BMP
+				if (bytes[0] === 0x42 && bytes[1] === 0x4D) return 'image/bmp';
+				return null;
+			}
+
+			function encodeText(text) {
+				const enc = new TextEncoder();
+				const bytes = enc.encode(text);
+				return bytesToBase64(bytes);
+			}
+
+			function decodeText(b64) {
+				const bytes = base64ToBytes(cleanBase64(b64));
+				const dec = new TextDecoder();
+				return dec.decode(bytes);
+			}
+
+			function cleanBase64(s) {
+				return (s || '').trim().replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
+			}
+
+			function clearPreview() {
+				els.message.textContent = '';
+				els.outputImage.src = '';
+				els.outputImage.classList.add('d-none');
+				els.outputVideo.pause();
+				els.outputVideo.src = '';
+				els.outputVideo.classList.add('d-none');
+				els.outputAudio.pause();
+				els.outputAudio.src = '';
+				els.outputAudio.classList.add('d-none');
+				els.outputLink.classList.add('d-none');
+				els.outputLink.removeAttribute('href');
+				els.outputLink.textContent = '';
+			}
+
+			function setOutputMedia(kind, url, putInTextarea = false) {
+				// manage blob URL lifecycle
+				revokeLastBlobUrl();
+				if (url && /^blob:/.test(url)) state.lastBlobUrl = url;
+				els.outputPreview.classList.remove('d-none');
+				clearPreview();
+				if (kind === 'image') {
+					els.outputImage.src = url;
+					els.outputImage.classList.remove('d-none');
+					putInTextarea = false; // images: keep textarea hidden
+				} else if (kind === 'video') {
+					els.outputVideo.src = url;
+					els.outputVideo.classList.remove('d-none');
+				} else if (kind === 'audio') {
+					els.outputAudio.src = url;
+					els.outputAudio.classList.remove('d-none');
+				}
+				showOutputTextarea(putInTextarea);
+				els.output.value = putInTextarea ? (url || '') : '';
+				updateStats();
+			}
+
+			function showOutputTextarea(show) {
+				els.output.classList.toggle('d-none', !show);
+			}
+
+			function setOutputText(text) {
+				// Text output: hide image; keep preview visible only if message exists
+				clearPreview();
+				if (!(els.message.textContent && els.message.textContent.trim())) {
+					els.outputPreview.classList.add('d-none');
+				}
+				showOutputTextarea(true);
+				els.output.value = text ?? '';
+				updateStats();
+			}
+
+			function setOutputImageFromBytes(bytes, type = 'image/png') {
+				const url = URL.createObjectURL(new Blob([bytes], { type }));
+				setOutputMedia('image', url, false);
+			}
+
+			function setOutputImageDataUrl(dataUrl) { setOutputMedia('image', dataUrl, false); }
+
+			function setOutputVideoDataUrl(dataUrl) { setOutputMedia('video', dataUrl, true); }
+
+			function setOutputAudioDataUrl(dataUrl) { setOutputMedia('audio', dataUrl, true); }
+
+			function setOutputDownloadLink(blob, filename = 'output.bin') {
+				if (state.lastBlobUrl) URL.revokeObjectURL(state.lastBlobUrl);
+				state.lastBlobUrl = URL.createObjectURL(blob);
+				els.outputPreview.classList.remove('d-none');
+				clearPreview();
+				els.outputLink.href = state.lastBlobUrl;
+				els.outputLink.textContent = filename;
+				els.outputLink.classList.remove('d-none');
+				showOutputTextarea(true);
+				els.output.value = state.lastBlobUrl;
+				updateStats();
+			}
+
+			// Actions
+			async function doEncode() {
+				try {
+					if (state.mode === 'text') {
+						const text = els.inputText.value || '';
+						if (!text.trim()) throw new Error(I18N.inputEmpty);
+						const b64 = encodeText(text);
+						// 编码时仅显示 Base64 文本
+						setOutputText(b64);
+					} else {
+						const isFile = state.mode === 'file';
+						const inp = isFile ? els.inputFile : els.inputImage;
+						const f = inp.files && inp.files[0];
+						if (!f) throw new Error(I18N.inputEmpty);
+						if (f.size > 25 * 1024 * 1024) console.warn(I18N.fileTooLarge);
+						const buf = await f.arrayBuffer();
+						const b64 = bytesToBase64(new Uint8Array(buf));
+						const fallback = isFile ? 'application/octet-stream' : 'image/png';
+						const mime = f.type || fallback;
+						setOutputText(`data:${mime};base64,${b64}`);
+					}
+				} catch (e) {
+					console.error(e);
+					setOutputText('');
+				}
+			}
+
+			async function doDecode() {
+				try {
+					if (state.mode === 'text') {
+						const b64 = els.inputText.value || '';
+						if (!b64.trim()) throw new Error(I18N.inputEmpty);
+						// Try treat as data URL first
+						const m = (b64.match(/^data:([^;]+);base64,/) || [])[1];
+						const clean = cleanBase64(b64);
+						if (m) {
+							if (m.startsWith('image/')) setOutputImageDataUrl(`data:${m};base64,${clean}`);
+							else if (m.startsWith('video/')) setOutputVideoDataUrl(`data:${m};base64,${clean}`);
+							else if (m.startsWith('audio/')) setOutputAudioDataUrl(`data:${m};base64,${clean}`);
+							else setOutputText(`data:${m};base64,${clean}`);
+						} else {
+							// Plain base64: first detect image; else try decode as text; fallback to download link
+							const bytes = base64ToBytes(clean);
+							const mime = detectImageMime(bytes);
+							if (mime) {
+								setOutputImageFromBytes(bytes, mime);
+							} else {
+								try {
+									const out = new TextDecoder().decode(bytes);
+									setOutputText(out);
+								} catch {
+									setOutputDownloadLink(new Blob([bytes], { type: 'application/octet-stream' }), 'output.bin');
+								}
+							}
+						}
+					} else if (state.mode === 'file') {
+						const b64 = els.inputText.value || '';
+						if (!b64.trim()) throw new Error(I18N.inputEmpty);
+						const clean = cleanBase64(b64);
+						const bytes = base64ToBytes(clean);
+						const mime = detectImageMime(bytes);
+						if (mime) {
+							// 解码时才显示图片
+							setOutputImageFromBytes(bytes, mime);
+						} else {
+							// 非图片则给出下载链接，并保留可复制的 data: 协议文本
+							setOutputDownloadLink(new Blob([bytes], { type: 'application/octet-stream' }), 'output.bin');
+							setOutputText(`data:application/octet-stream;base64,${clean}`);
+						}
+					} else if (state.mode === 'image') {
+						const b64 = els.inputText.value || '';
+						if (!b64.trim()) throw new Error(I18N.inputEmpty);
+						const m = (b64.match(/^data:([^;]+);base64,/) || [])[1];
+						const clean = cleanBase64(b64);
+						let mime = m || null;
+						if (!mime) {
+							const bytes = base64ToBytes(clean);
+							mime = detectImageMime(bytes) || 'image/png';
+						}
+						const dataUrl = `data:${mime};base64,${clean}`;
+						setOutputImageDataUrl(dataUrl);
+					}
+				} catch (e) {
+					console.error(e);
+					setOutputText('');
+				}
+			}
+
+			function clearAll() {
+				els.inputText.value = '';
+				if (els.inputFile) els.inputFile.value = '';
+				if (els.inputImage) els.inputImage.value = '';
+				els.fileInfo.textContent = '';
+				els.imageInfo.textContent = '';
+				els.imgPreview.src = '';
+				els.imgPreview.classList.add('d-none');
+				if (state.lastBlobUrl) URL.revokeObjectURL(state.lastBlobUrl);
+				state.lastBlobUrl = null;
+				els.output.value = '';
+				els.outputImage.src = '';
+				els.outputImage.classList.add('d-none');
+				els.outputPreview.classList.add('d-none');
+				showOutputTextarea(true);
+				updateStats();
+			}
+
+			async function copyOutput() {
+				await navigator.clipboard.writeText(els.output.value || '');
+			}
+
+			function downloadOutput() {
+				const text = els.output.value || '';
+				let source = text;
+				if (!source) {
+					// Try preview elements
+					if (!els.outputImage.classList.contains('d-none') && els.outputImage.src) source = els.outputImage.src;
+					else if (!els.outputVideo.classList.contains('d-none') && els.outputVideo.src) source = els.outputVideo.src;
+					else if (!els.outputAudio.classList.contains('d-none') && els.outputAudio.src) source = els.outputAudio.src;
+					else if (!els.outputLink.classList.contains('d-none') && els.outputLink.href) source = els.outputLink.href;
+				}
+				let blob;
+				let name = 'output.txt';
+				if (/^data:[^;]+;base64,/.test(source)) {
+					// Data URL path
+					const mime = (source.match(/^data:([^;]+);base64,/) || [])[1] || 'application/octet-stream';
+					const bytes = base64ToBytes(cleanBase64(source));
+					blob = new Blob([bytes], { type: mime });
+					const ext = mime.split('/')[1] || 'bin';
+					name = `output.${ext}`;
+				} else if (/^blob:/.test(source)) {
+					// blob URL: fetch and download
+					fetch(source).then(r => r.blob()).then(b => {
+						const a = document.createElement('a');
+						const url = URL.createObjectURL(b);
+						a.href = url;
+						a.download = 'output.bin';
+						a.click();
+						URL.revokeObjectURL(url);
+					});
+					return;
+				} else {
+					blob = new Blob([source], { type: 'text/plain;charset=utf-8' });
+				}
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = name;
+				a.click();
+				URL.revokeObjectURL(a.href);
+			}
+
+			// Events
+			els.tabs.text.addEventListener('click', () => selectMode('text'));
+			els.tabs.file.addEventListener('click', () => selectMode('file'));
+			els.tabs.image.addEventListener('click', () => selectMode('image'));
+
+			els.inputText.addEventListener('input', updateStats);
+			els.inputFile.addEventListener('change', () => {
+				const f = els.inputFile.files && els.inputFile.files[0];
+				els.fileInfo.textContent = f ? `${f.name} (${f.size} bytes)` : '';
+				updateStats();
+			});
+			els.inputImage.addEventListener('change', () => {
+				const f = els.inputImage.files && els.inputImage.files[0];
+				if (f) {
+					els.imageInfo.textContent = `${f.name} (${f.type || 'image/*'}, ${f.size} bytes)`;
+					const r = new FileReader();
+					r.onload = () => {
+						els.imgPreview.src = r.result;
+						els.imgPreview.classList.remove('d-none');
+					};
+					r.readAsDataURL(f);
+				} else {
+					els.imageInfo.textContent = '';
+					els.imgPreview.classList.add('d-none');
+					els.imgPreview.src = '';
+				}
+				updateStats();
+			});
+
+			els.btnEncode.addEventListener('click', doEncode);
+			els.btnDecode.addEventListener('click', doDecode);
+			els.btnClear.addEventListener('click', clearAll);
+			els.btnCopy.addEventListener('click', copyOutput);
+			els.btnCopy2.addEventListener('click', copyOutput);
+			els.btnDownload.addEventListener('click', downloadOutput);
+			els.btnDownload2.addEventListener('click', downloadOutput);
+
+			// Shortcut Ctrl/Cmd+Enter => encode
+			document.addEventListener('keydown', (e) => {
+				if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+					e.preventDefault();
+					doEncode();
+				}
+			});
+
+			// Init
+			selectMode('text');
+			updateStats();
+		})();
+	</script>
+</body>
+
+</html>

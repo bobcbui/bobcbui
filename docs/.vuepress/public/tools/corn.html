@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron时间表达式工具</title>
+    <meta name="description" content="基于浏览器的 Cron 表达式下次运行时间计算器。">
+    <meta name="keywords" content="Cron, 表达式, 调度, 下次, 时间, 工具">
+    <link rel="stylesheet" href="/bootstrap.min.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+
+        /* removed unused .toolbar styles */
+
+        code.cron {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .example-item {
+            cursor: pointer;
+        }
+
+        .example-item:hover {
+            background: #f1f3f5;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+
+        /* 屏幕大于或等于993 */
+        @media (min-width: 993px) {
+            .height-0 {
+                height: 0;
+            }
+        }
+    </style>
+    <meta name="robots" content="noindex">
+    <meta name="description" content="基于浏览器的 Cron 表达式下次运行时间计算器。">
+    <meta name="keywords" content="Cron, 表达式, 调度, 下次, 时间, 工具">
+</head>
+
+<body class="h-100">
+    <div class="container-fluid h-100 d-flex flex-column p-2 overflow-auto">
+        <header class="flex-shrink-0 d-flex align-items-center justify-content-between mb-2 p-2 border rounded">
+            <h4 class="h4 m-0">Cron时间表达式工具</h4>
+            <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-sm btn-outline-primary" href="/">首页</a>
+            </div>
+        </header>
+
+        <main class="flex-grow-1 d-md-flex d-block flex-column  mb-2">
+            <div class="row g-2 flex-grow-1">
+                <!-- 左侧：计算器 -->
+                <div class="col-12 col-lg-6 d-flex flex-column h-100">
+                    <div class="card h-100 d-flex flex-column">
+                        <div class="card-header p-2">
+                            <strong>时间计算</strong>
+                        </div>
+                        <div class="card-body p-2 d-flex flex-column flex-grow-1 height-0 overflow-y-scroll">
+                            <div class="row g-2 mb-2">
+                                <div class="col-12">
+                                    <label class="form-label mb-1" for="cron">Cron 表达式</label>
+                                    <div class="input-group">
+                                        <input id="cron" class="form-control mono"
+                                            placeholder="例如：*/5 * * * * 或 30 * * * * *">
+                                        <button id="btn-compute" class="btn btn-sm btn-outline-primary"
+                                            type="button">计算</button>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1" for="base-time">基准时间</label>
+                                    <div class="input-group">
+                                        <input id="base-time" type="datetime-local" class="form-control">
+                                        <button id="btn-now" class="btn btn-sm btn-outline-secondary"
+                                            type="button">此刻</button>
+                                    </div>
+
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1" for="count">数量</label>
+                                    <input id="count" type="number" min="1" max="200" value="10" class="form-control">
+                                </div>
+                            </div>
+
+                            <div id="message" class="text-danger small mb-2"></div>
+
+                            <div class="justify-content-between align-items-center mb-1">
+                                <strong>下次运行时间</strong>
+
+                            </div>
+
+                            <div id="results" class="flex-grow-1">
+                                <table class="table table-sm table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>本地时间</th>
+                                            <th>UTC</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="result-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：示例 -->
+                <div class="col-12 col-lg-6 d-flex flex-column h-100">
+                    <div class="card h-100 d-flex flex-column">
+                        <div class="card-header p-2 d-flex justify-content-between align-items-center">
+                            <strong>示例</strong>
+                        </div>
+                        <div class="card-body p-0 d-flex flex-column flex-grow-1 overflow-hidden">
+                            <div class="list-group list-group-flush flex-grow-1 overflow-y-scroll height-0"
+                                id="examples">
+                                <!-- Group: 每分钟/每秒 -->
+                                <div class="list-group-item bg-light fw-bold">每分钟/每秒</div>
+
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="* * * * *">
+                                    <span><code class="cron">* * * * *</code></span>
+                                    <small class="text-muted">每分钟</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="*/5 * * * *">
+                                    <span><code class="cron">*/5 * * * *</code></span>
+                                    <small class="text-muted">每5分钟</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 * * * *">
+                                    <span><code class="cron">0 * * * *</code></span>
+                                    <small class="text-muted">每小时的第0分</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="30 * * * *">
+                                    <span><code class="cron">30 * * * *</code></span>
+                                    <small class="text-muted">每小时的第30分</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="*/10 * * * * *">
+                                    <span><code class="cron">*/10 * * * * *</code></span>
+                                    <small class="text-muted">每10秒（含秒）</small>
+                                </button>
+
+                                <!-- Group: 每天/每周 -->
+                                <div class="list-group-item bg-light fw-bold">每天/每周</div>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 9 * * *">
+                                    <span><code class="cron">0 9 * * *</code></span>
+                                    <small class="text-muted">每天 09:00</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 18 * * 1-5">
+                                    <span><code class="cron">0 18 * * 1-5</code></span>
+                                    <small class="text-muted">工作日 18:00</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 10 * * 0">
+                                    <span><code class="cron">0 10 * * 0</code></span>
+                                    <small class="text-muted">每周日 10:00</small>
+                                </button>
+
+                                <!-- Group: 每月/指定日 -->
+                                <div class="list-group-item bg-light fw-bold">每月/指定日</div>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 0 1 * *">
+                                    <span><code class="cron">0 0 1 * *</code></span>
+                                    <small class="text-muted">每月 1 日 00:00</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 12 15 * *">
+                                    <span><code class="cron">0 12 15 * *</code></span>
+                                    <small class="text-muted">每月 15 日 12:00</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 8 1,15 * *">
+                                    <span><code class="cron">0 8 1,15 * *</code></span>
+                                    <small class="text-muted">每月 1/15 日 08:00</small>
+                                </button>
+
+                                <!-- Group: 每年 -->
+                                <div class="list-group-item bg-light fw-bold">每年</div>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 0 1 1 *">
+                                    <span><code class="cron">0 0 1 1 *</code></span>
+                                    <small class="text-muted">每年 1 月 1 日 00:00</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="0 9 15 6 *">
+                                    <span><code class="cron">0 9 15 6 *</code></span>
+                                    <small class="text-muted">每年 6 月 15 日 09:00</small>
+                                </button>
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center example-item"
+                                    data-exp="59 23 31 12 *">
+                                    <span><code class="cron">59 23 31 12 *</code></span>
+                                    <small class="text-muted">每年 12 月 31 日 23:59</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- i18n messages for client -->
+    <script>
+        const I18N = {
+            errorPrefix: "\u9519\u8BEF\uFF1A",
+            invalidCron: "Cron \u8868\u8FBE\u5F0F\u975E\u6CD5",
+            unsupported: "\u68C0\u6D4B\u5230\u4E0D\u652F\u6301\u7684 Cron \u7279\u6027\uFF08\u5982 ? L W #\uFF09",
+            baseTimeInvalid: "\u57FA\u51C6\u65F6\u95F4\u975E\u6CD5",
+        };
+    </script>
+    <script>
+        (function () {
+            // --- Utils ---
+            const pad = (n) => String(n).padStart(2, '0');
+            const fmtLocal = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            const fmtUTC = (d) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+
+            const els = {
+                cron: document.getElementById('cron'),
+                base: document.getElementById('base-time'),
+                count: document.getElementById('count'),
+                now: document.getElementById('btn-now'),
+                compute: document.getElementById('btn-compute'),
+                msg: document.getElementById('message'),
+                tbody: document.getElementById('result-body'),
+                examples: document.getElementById('examples'),
+            };
+
+            // --- Simple Cron Parser (5 or 6 fields; seconds optional) ---
+            const ranges = {
+                sec: [0, 59],
+                min: [0, 59],
+                hour: [0, 23],
+                dom: [1, 31],
+                mon: [1, 12],
+                dow: [0, 6], // 0=Sun
+            };
+
+            function parsePart(text, [lo, hi]) {
+                if (text.includes('?') || /[LW#]/i.test(text)) throw new Error(I18N.unsupported);
+                const set = new Set();
+                const items = text.split(',');
+                for (const it of items) {
+                    const part = it.trim();
+                    if (!part) continue;
+                    let step = 1;
+                    let base = part;
+                    if (part.includes('/')) {
+                        const [b, s] = part.split('/');
+                        base = b || '*';
+                        step = Number(s);
+                        if (!Number.isInteger(step) || step <= 0) throw new Error(I18N.invalidCron);
+                    }
+                    let start = lo, end = hi;
+                    if (base !== '*' && base.length) {
+                        if (base.includes('-')) {
+                            const [a, b] = base.split('-');
+                            start = Number(a); end = Number(b);
+                            if (!Number.isInteger(start) || !Number.isInteger(end) || start > end) throw new Error(I18N.invalidCron);
+                        } else {
+                            start = Number(base); end = Number(base);
+                            if (!Number.isInteger(start)) throw new Error(I18N.invalidCron);
+                        }
+                    }
+                    if (start < lo || end > hi) throw new Error(I18N.invalidCron);
+                    for (let v = start; v <= end; v += step) set.add(v);
+                }
+                if (set.size === 0) { // '*' case
+                    for (let v = lo; v <= hi; v++) set.add(v);
+                }
+                return set;
+            }
+
+            function parseCron(expr) {
+                const parts = expr.trim().split(/\s+/);
+                if (parts.length < 5 || parts.length > 6) throw new Error(I18N.invalidCron);
+                const hasSec = parts.length === 6;
+                const [p0, p1, p2, p3, p4, p5] = parts;
+                const sec = hasSec ? parsePart(p0, ranges.sec) : new Set([0]);
+                const min = parsePart(hasSec ? p1 : p0, ranges.min);
+                const hour = parsePart(hasSec ? p2 : p1, ranges.hour);
+                const dom = parsePart(hasSec ? p3 : p2, ranges.dom);
+                const mon = parsePart(hasSec ? p4 : p3, ranges.mon);
+                const dow = parsePart(hasSec ? p5 : p4, ranges.dow);
+                return { sec, min, hour, dom, mon, dow, hasSec };
+            }
+
+            function matches(cron, d) {
+                const m = d.getMonth() + 1;
+                const day = d.getDate();
+                const w = d.getDay();
+                if (!cron.mon.has(m)) return false;
+                const domAny = cron.dom.size === (ranges.dom[1] - ranges.dom[0] + 1);
+                const dowAny = cron.dow.size === (ranges.dow[1] - ranges.dow[0] + 1);
+                const domOk = cron.dom.has(day);
+                const dowOk = cron.dow.has(w);
+                if (!domAny && !dowAny) {
+                    if (!domOk && !dowOk) return false;
+                } else {
+                    if (!domOk) return false;
+                    if (!dowOk) return false;
+                }
+                if (!cron.hour.has(d.getHours())) return false;
+                if (!cron.min.has(d.getMinutes())) return false;
+                if (!cron.sec.has(d.getSeconds())) return false;
+                return true;
+            }
+
+            function nextRuns(cron, startDate, count, limitMs = 1000 * 60 * 60 * 24 * 400) {
+                const out = [];
+                let t = new Date(startDate.getTime());
+                // start from next second/minute boundary depending on hasSec
+                t.setMilliseconds(0);
+                if (cron.hasSec) t.setSeconds(t.getSeconds() + 1); else t.setSeconds(0, 0), t.setMinutes(t.getMinutes() + 1);
+                const endTime = startDate.getTime() + limitMs;
+                while (out.length < count && t.getTime() <= endTime) {
+                    if (matches(cron, t)) out.push(new Date(t.getTime()));
+                    // step: if has seconds, add 1 second; else add 1 minute
+                    if (cron.hasSec) t.setSeconds(t.getSeconds() + 1); else t.setMinutes(t.getMinutes() + 1);
+                }
+                return out;
+            }
+
+            // --- Examples (static HTML) ---
+            function wireExamples() {
+                const cont = els.examples;
+                if (!cont) return;
+                cont.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button.example-item');
+                    if (!btn) return;
+                    const exp = btn.getAttribute('data-exp');
+                    if (exp) {
+                        els.cron.value = exp;
+                        els.compute.click();
+                    }
+                });
+            }
+
+            // --- IO helpers ---
+            function readBaseTime() {
+                const v = els.base.value;
+                if (!v) return new Date();
+                // datetime-local is local, format YYYY-MM-DDTHH:mm or with seconds
+                const d = new Date(v);
+                if (isNaN(d.getTime())) throw new Error(I18N.baseTimeInvalid);
+                return d;
+            }
+
+            function showMessage(msg, isError = true) {
+                els.msg.textContent = msg || '';
+                els.msg.classList.toggle('text-danger', !!isError);
+                els.msg.classList.toggle('text-success', !isError);
+            }
+
+            function renderResults(list) {
+                els.tbody.innerHTML = '';
+                list.forEach((d, i) => {
+                    const tr = document.createElement('tr');
+                    const tdIdx = document.createElement('td'); tdIdx.textContent = String(i + 1);
+                    const tdLocal = document.createElement('td'); tdLocal.textContent = fmtLocal(d);
+                    const tdUTC = document.createElement('td'); tdUTC.textContent = fmtUTC(d);
+                    tr.appendChild(tdIdx); tr.appendChild(tdLocal); tr.appendChild(tdUTC);
+                    els.tbody.appendChild(tr);
+                });
+            }
+
+            //
+
+            // --- Wire events ---
+            els.now.addEventListener('click', () => {
+                const d = new Date();
+                // Build local datetime string for input[type=datetime-local]
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                const ss = String(d.getSeconds()).padStart(2, '0');
+                els.base.value = `${y}-${m}-${day}T${hh}:${mm}:${ss}`;
+            });
+
+            function clickCompute() {
+                try {
+                    showMessage('');
+                    const expr = (els.cron.value || '').trim();
+                    if (!expr) throw new Error(I18N.invalidCron);
+                    const cron = parseCron(expr);
+                    const base = readBaseTime();
+                    const cnt = Math.min(200, Math.max(1, Number(els.count.value) || 10));
+                    const list = nextRuns(cron, base, cnt);
+                    if (!list.length) throw new Error(I18N.invalidCron);
+                    renderResults(list);
+                } catch (e) {
+                    console.error(e);
+                    showMessage(I18N.errorPrefix + (e && e.message ? e.message : e));
+                    els.tbody.innerHTML = '';
+                }
+            }
+
+            els.compute.addEventListener('click', () => {
+                clickCompute();
+            });
+
+
+
+
+
+            // Enter to compute
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    els.compute.click();
+                }
+            });
+
+            // Init
+            wireExamples();
+            // set default values
+            els.cron.value = '*/5 * * * *';
+            els.now.click();
+            clickCompute();
+        })();
+    </script>
+</body>
+
+</html>
