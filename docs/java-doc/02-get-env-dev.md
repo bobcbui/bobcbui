@@ -2,95 +2,97 @@
 
 ## 什么是 Java 环境？
 
-Java 环境和PPT, Excel，MP3,MP4 这些一样， 要打开或创建excel文件就需要安装Office/WPS，而安装这些软件的过程就是Excel环境的安装配置。
+Java 环境类似于打开 Office 文档需要安装 Office 软件：编辑 Java 源文件需要编辑器（如 VSCode/IDEA），运行 Java 程序需要 JDK（Java Development Kit）。
 
-Java环境又区分编辑Java文件的环境（开发环境）和运行Java文件的环境（生产环境）。
+开发环境（编辑器/IDE）：用于编写代码，例如 VSCode、IntelliJ IDEA、Eclipse。
 
-编辑Java的环境就是一些文本编辑器，例如VSCODE, IDEA，记事本， 这些软件可以编辑Java文件。
+运行环境（JDK）：包含 `java`、`javac` 等命令，用于运行和编译 Java 程序。常见发行版有 OpenJDK、AdoptOpenJDK、Oracle JDK、阿里/腾讯定制版等。
 
-运行Java的环境就需要JDK(Java Development Kit)即Java开发工具包， 阿里，腾讯, 华为， Oracle, 微软都开发了JDK, 我们可以使用自己喜欢的公司开发的JDK。
+## 下载与安装
 
-## 下载JDK和编辑器
-本教程用了OpenJDK 和 VSCode编辑器
+- 推荐使用 OpenJDK（或厂商发行版）。本教程以 OpenJDK 为例。
+- JDK 下载： https://jdk.java.net/ 或厂商下载页（选择合适的版本，例如 17 或 21）。
+- 编辑器：VSCode 下载 https://code.visualstudio.com/Download
 
-JDK下载地址：
-[https://jdk.java.net/java-se-ri/21](https://jdk.java.net/java-se-ri/21)
+安装建议：
+- 推荐使用 ZIP/压缩包方式解压到简单路径，如 `D:\Java\jdk-21`，避免使用系统安装程序导致路径复杂或权限问题。
 
-VSCode下载地址：
-[https://code.visualstudio.com/Download](https://code.visualstudio.com/Download)
-
-## Java运行环境
-
-1. 下载JDK后用解压工具打开Java放到`D:\Java\jdk-21`目录,这个jdk-21文件夹就是Java软件目录，我们叫它JAVA_HOME，打开文件夹你可以看到下面这样子的目录。
-   ```
-   D:\Java\jdk-21
-     |--bin
-     |--conf
-     |--include
-     |--jmods
-     |--legal
-     |--lib
-     .....
-   ```
-
-2. 我们现在打开bin文件夹，在里面我们可以看到java.exe 这个就是java软件了，双击他就可以运行了，但是只会闪一下就没了，因为你没有告诉它要干什么， 给它一个.java后缀的文件才可以运行。
-
-3. 现在我们要配置JAVA_HOME, PATH，配置JAVA_HOME 的目的是告诉别的软件你的JAVA安装在哪，配置Path, 是希望Windows 知道你的java.exe， javac.exe 等程序在哪。
-
-### 配置 JAVA_HOME 和 Path 环境变量
+## 配置环境变量（GUI 方法）
 
 1. 右键“此电脑” → 属性 → 高级系统设置 → 环境变量。
 2. 在“系统变量”中新建变量：
-   - 变量名：`JAVA_HOME`
-   - 变量值：`D:\Java\jdk-21`（请根据你的实际安装路径填写）
-3. 在“系统变量”中找到 `Path`，点击编辑。
-4. 新增一条：`%JAVA_HOME%\bin`。
-5. 点击确定就可以了。
+	- 变量名：`JAVA_HOME`
+	- 变量值：`D:\Java\jdk-21`（根据你的实际路径）
+3. 编辑系统变量 `Path`，新增一条：`%JAVA_HOME%\bin`，并确保它在其他 `java` 路径之前。
 
-### 验证配置
+保存后关闭所有命令行窗口再打开以使配置生效。
 
-打开命令行（Win+R 输入 `cmd`），输入：
+## 配置环境变量（PowerShell / 命令行方法）
 
-```sh
-java -version
+使用 PowerShell 永久设置（当前用户）：
+
+```powershell
+setx JAVA_HOME "D:\Java\jdk-21"
 ```
+
+注意：`setx` 修改后对当前进程无效，需要重新打开新的终端窗口才能看到变化。
+
+如果需要临时在当前 PowerShell 会话中生效：
+
+```powershell
+$env:JAVA_HOME = 'D:\Java\jdk-21'
+$env:Path = $env:JAVA_HOME + '\\bin;' + $env:Path
+```
+
+## 验证安装与排查命令
+
+打开新的命令行或 PowerShell，运行：
+
+```powershell
+java -version
+javac -version
+where java        # Windows: 查看正在使用的 java 可执行路径
+where javac
+```
+
+期望输出示例：
 
 ```
 openjdk version "17" 2021-09-14
 OpenJDK Runtime Environment (build 17+35-2724)
 OpenJDK 64-Bit Server VM (build 17+35-2724, mixed mode, sharing)
+javac 17
 ```
 
-如果能正确输出版本号，说明配置成功。
+如果命令未找到或版本不对：
 
+- 检查 `JAVA_HOME` 是否指向 JDK 根目录（不要指向 JRE 或 bin 目录）。
+- 确认 `Path` 包含 `%JAVA_HOME%\bin`，并且该项排在其他旧 `java` 路径之前。
+- 关闭并重新打开终端窗口或重启 IDE。
 
-## 系统环境设置
-一些学习开发前需要设置的系统环境。
+## 常见问题与解决方案
 
-**1. 显示文件后缀名， 显示隐藏的文件和文件夹**
-   1. 步骤一：打开文件资源管理器，点击“查看”选项卡，然后点击“选项”。
+- 找不到 `java` 或 `javac`：确认 `JAVA_HOME` 与 `Path` 配置，使用 `where java` 查找可执行文件位置。
+- 多个 JDK 并存：使用 `where java`/`where javac` 或 `Get-Command java` 来查看优先使用的路径，调整 `Path` 顺序或删除旧路径。
+- 中文乱码/编码问题：确保源文件与 IDE 编码为 UTF-8，Windows 控制台可用 `chcp 65001` 切换到 UTF-8 编码。
+- 端口/权限/防火墙问题：与 Java 本身无关，针对具体应用排查。
+- 依赖下载慢或失败：配置阿里云 Maven 镜像或代理。
 
-   ![显示文件后缀名](/images/java-doc/show-file-name-and-hidefile.png)
+## 系统与开发环境小提示
 
-   2. 勾选“文件扩展名”复选框。
+- 显示文件扩展名与隐藏文件：在文件资源管理器“查看”中打开“文件扩展名”和“隐藏的项目”。
+- 解决 VSCode 与系统快捷键冲突：调整输入法按键设置，或在 VSCode 中修改快捷键。
+- VSCode Java：安装 `Extension Pack for Java`，如需在 VSCode 内指定 JDK，可在设置中配置 `java.home` 或在 `settings.json` 中添加：
 
-   ![显示文件后缀名](/images/java-doc/show-file-name-and-hidefile2.png)
+```json
+"java.home": "D:/Java/jdk-21"
+```
 
-**3. 设置Windows快捷键Ctrl+.和vscode冲突问题**
+## 参考与下一步
 
-   1. 右键输入法图标，选择“按键配置”。
-
-   ![设置Windows快捷键Ctrl+.和vscode冲突问题](/images/java-doc/setting-vscode-ctrl-key.png)
-
-   2. 中/英文标点切换，选择“无”。
-
-   ![设置Windows快捷键Ctrl+.和vscode冲突问题](/images/java-doc/setting-vscode-ctrl-key-2.png)
-
-
-## 开发环境配置
-[Java开发环境设置](/java-doc/03-dev-java-for-vscode.html)
+- 参考：VSCode Java 文档、OpenJDK 官方站点。
+- 下一章：在 VSCode 中配置 Java 开发环境（参见 `03-dev-java-for-vscode.md`）。
 
 ---
-**小贴士：**  
-- 推荐使用 [Visual Studio Code](https://code.visualstudio.com/) 作为 Java 开发工具，并安装 Java 扩展包。
-- 也可以使用 IntelliJ IDEA、Eclipse 等 IDE。
+
+**小贴士：** 推荐使用 VSCode 或 IDEA 编写 Java，并保持 JDK 版本为项目所需的最低版本（常见为 17 或 21）。

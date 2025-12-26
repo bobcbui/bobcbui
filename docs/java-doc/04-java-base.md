@@ -27,7 +27,7 @@ public class HelloWorld {
 2. 打开命令行，进入文件所在目录
 3. 直接运行：
    ```shell
-   java HelloWorld.java
+    java HelloWorld.java
    ```
 4. 输出结果：
    ```
@@ -35,6 +35,23 @@ public class HelloWorld {
    ```
 
 > 说明：Java 11 及以上版本支持直接运行源文件，无需先编译。推荐使用 Java 17 或更高版本学习。
+
+提示：上面示例使用的是 GUI 弹窗（`JOptionPane`），运行时会弹出对话框而不会在控制台输出文本。如果你想在控制台打印，请使用 `System.out.println`：
+
+```java
+public class HelloConsole {
+     public static void main(String[] args) {
+          System.out.println("Hello, World!");
+     }
+}
+```
+
+编译并运行（传统方式）：
+
+```shell
+javac HelloConsole.java
+java HelloConsole
+```
 
 ---
 
@@ -92,12 +109,33 @@ String name = "Tom";
 
 - 算术运算符：`+ - * / % ++ --`
 - 关系运算符：`== != > < >= <=`
-- 逻辑运算符：`&& || !`
-- 赋值运算符：`= += -= *= /= %=`
-- 位运算符：`& | ^ ~ << >> >>>`
+```java
+public class Utils {
+    public static int sum(int a, int b) {
+        return a + b;
+    }
+}
 
-## 流程控制
+int result = Utils.sum(3, 5);
+```
 
+说明：方法（函数）需要定义在类内部；若为静态方法可通过 `ClassName.method()` 直接调用。
+
+## 包与目录
+
+Java 使用 `package` 组织类，包名应与文件系统目录对应。例如：
+
+```java
+package com.example.myapp;
+
+public class App {
+    public static void main(String[] args) {
+        System.out.println("App start");
+    }
+}
+```
+
+文件应放在 `com/example/myapp/App.java`，编译和运行时也需在源代码根目录下操作。
 **条件语句**
 ```java
 if (age > 18) {
