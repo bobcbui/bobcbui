@@ -72,12 +72,9 @@ export default defineUserConfig({
     ],
     sidebar: {
       '/java-doc/': getSidebar('java-doc'),
-      '/python-doc/': [
-        {
-          text: 'Python入门14',
-          link: '/python-doc/2.md'
-        }
-      ]
+      '/blog/': getSidebar('log-blog'),
+      '/log-python/': getSidebar('log-python'),
+      '/log-aicode/': getSidebar('log-aicode'),
     }, // 可以添加更多中文页面
 
   }),

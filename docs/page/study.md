@@ -5,6 +5,8 @@
 - 课程方向：前端、后端、移动端、算法与工程化实战。
 - 学习方式：录播课程、直播训练营、项目实战指导、代码点评。
 
+[日志](../log-blog/0001-java-springboot4-h2-console.md)
+
 [Java日志](../java-doc/01-get-java-started.md)
 
 [Python日志](../log-python/01-get-python-started.md)
