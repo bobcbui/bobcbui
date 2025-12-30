@@ -4,6 +4,7 @@ import { viteBundler } from '@vuepress/bundler-vite'
 import { shikiPlugin } from '@vuepress/plugin-shiki'
 import fs from 'fs'
 import path from 'path'
+import { blogPlugin } from '@vuepress/plugin-blog'
 
 // 辅助函数：自动获取文件夹下的所有 md 文件并排序
 const getSidebar = (folder) => {
@@ -86,6 +87,21 @@ export default defineUserConfig({
     shikiPlugin({
       // 配置项
       langs: ['ts', 'json', 'vue', 'md', 'bash', 'diff', 'java'],
+    }),
+    blogPlugin({
+      filter: (page) =>
+        page.filePathRelative?.startsWith('posts/'),
+
+      sorter: (a, b) => {
+        return (
+          new Date(b.frontmatter.date).getTime() -
+          new Date(a.frontmatter.date).getTime()
+        )
+      },
+
+      pagination: {
+        perPage: 20,
+      },
     }),
   ],
 })
