@@ -5,15 +5,11 @@
 - 课程方向：前端、后端、移动端、算法与工程化实战。
 - 学习方式：录播课程、直播训练营、项目实战指导、代码点评。
 
-[日志](../log-blog/0001-java-springboot4-h2-console.md)
-
 [Java日志](../java-doc/01-get-java-started.md)
 
 [Python日志](../log-python/01-get-python-started.md)
 
 [AI学习日志](../log-aicode/01-get-aicode-started.md)
-
-[游戏开发日志](../log-game/01-get-game-started.md)
 
 如果你有特定的学习目标（如转职后端或前端），欢迎通过[关于我](../about.md) 页面联系定制化学习路径。
 

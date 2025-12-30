@@ -73,7 +73,6 @@ export default defineUserConfig({
     ],
     sidebar: {
       '/java-doc/': getSidebar('java-doc'),
-      '/blog/': getSidebar('log-blog'),
       '/log-python/': getSidebar('log-python'),
       '/log-aicode/': getSidebar('log-aicode'),
     }, // 可以添加更多中文页面
@@ -87,21 +86,6 @@ export default defineUserConfig({
     shikiPlugin({
       // 配置项
       langs: ['ts', 'json', 'vue', 'md', 'bash', 'diff', 'java'],
-    }),
-    blogPlugin({
-      filter: (page) =>
-        page.filePathRelative?.startsWith('posts/'),
-
-      sorter: (a, b) => {
-        return (
-          new Date(b.frontmatter.date).getTime() -
-          new Date(a.frontmatter.date).getTime()
-        )
-      },
-
-      pagination: {
-        perPage: 20,
-      },
     }),
   ],
 })
