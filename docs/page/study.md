@@ -1,17 +1,15 @@
-# 学习编程
+# 学习笔记
 
-本页面汇总学习编程相关的资源与课程，适合零基础到进阶学习者。
+这里是我在学习过程中整理的一些笔记，涵盖了多种编程语言和技术栈，供大家参考。
 
-- 课程方向：前端、后端、移动端、算法与工程化实战。
-- 学习方式：录播课程、直播训练营、项目实战指导、代码点评。
+[英语学习笔记](#)
 
-[Java日志](../java-doc/01-get-java-started.md)
+[送外卖学习笔记](#)
 
-[Python日志](../log-python/01-get-python-started.md)
+[Java学习笔记](../java-doc/01-get-java-started.md)
 
-[AI学习日志](../log-aicode/01-get-aicode-started.md)
+[Python学习笔记](../log-python/01-get-python-started.md)
+
+[AI学习笔记](../log-aicode/01-get-aicode-started.md)
 
 如果你有特定的学习目标（如转职后端或前端），欢迎通过[关于我](../about.md) 页面联系定制化学习路径。
-
-
-<!-- 可根据需要补充课程目录、示例视频与学习路线 -->
