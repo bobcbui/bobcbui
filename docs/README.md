@@ -49,8 +49,7 @@
 import { onMounted, ref } from 'vue'
 
 const array = [
-  {"title": "牛马程序员带你成为真正的牛马", "desc": "低薪程序员培训基地，为社会输出更多高性价比的程序员。"},
-  {"title": "学IT年薪过万就上牛马程序员", "desc": "目前已经培养了两个年薪过万的牛马程序员。"}
+  {"title": "学IT年薪过万就上牛马程序员", "desc": "牛马程序员带你成为真正的牛马"}
 ]
 
 const data = ref({title: '', desc: ''})
