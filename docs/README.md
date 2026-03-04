@@ -10,7 +10,7 @@
   </a>
   <a class="vp-feature" href="/page/dev.html" style="text-decoration:none;color:inherit;">
     <h3 class="vp-feature-title">💻 软件开发</h3>
-    <p class="vp-feature-description">5万牛马程序员为你的软件提供强大的技术支撑。</p>
+    <p class="vp-feature-description">1个牛马程序员为你的软件提供强大的技术支撑。</p>
   </a>
   <a class="vp-feature" href="/page/counselor.html" style="text-decoration:none;color:inherit;">
     <h3 class="vp-feature-title">☁️ 云服务器</h3>
