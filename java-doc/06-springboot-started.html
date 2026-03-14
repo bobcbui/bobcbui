@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Boot入门 - 牛马程序员</title>
+  <meta name="description" content="Spring Boot 入门：创建项目、运行 REST Controller、构建与部署。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>Java学习笔记</h3>
+      <ul>
+        <li><a href="01-get-java-started.html">认识Java</a></li>
+        <li><a href="02-get-env-dev.html">Java环境配置</a></li>
+        <li><a href="03-dev-java-for-vscode.html">VSCode配置Java</a></li>
+        <li><a href="04-java-base.html">Java基础语法</a></li>
+        <li><a href="05-lib-manage.html">库与依赖管理</a></li>
+        <li><a href="06-springboot-started.html" class="active">Spring Boot入门</a></li>
+        <li><a href="07-java-docker-graalvm.html">容器化与GraalVM</a></li>
+        <li><a href="08-fast-learn-lib.html">快速使用第三方库</a></li>
+        <li><a href="09-java-dev-skill.html">开发实用技能</a></li>
+        <li><a href="09-java-game-dev.html">Java游戏开发</a></li>
+        <li><a href="2001-java-springboot4-h2-console-config.html">SpringBoot4 H2配置</a></li>
+        <li><a href="999-java-release.html">JDK发行版介绍</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>Spring Boot 入门</h1>
+
+    <p>本章以 Spring Boot 为例，介绍如何快速创建、运行和调试一个简单的 Spring Boot 应用，包含 Maven/Gradle 命令、示例 Controller 代码与常见问题排查。</p>
+
+    <hr>
+
+    <h2>1. 什么是 Spring Boot</h2>
+
+    <p>Spring Boot 是 Spring 生态的快速启动框架，提供约定优于配置的项目结构、自动配置和内嵌服务器，使你可以用最少的样板代码快速构建独立运行的 Java 服务。</p>
+
+    <h2>2. 创建项目（推荐使用 start.spring.io）</h2>
+
+    <ol>
+      <li>打开 <a href="https://start.spring.io/" target="_blank" rel="noopener">https://start.spring.io/</a>，选择：
+        <ul>
+          <li>Project: Maven / Gradle</li>
+          <li>Language: Java</li>
+          <li>Spring Boot 版本（选择稳定 LTS，如 2.7.x 或 3.x，注意 JDK 版本要求）</li>
+          <li>添加依赖：<code>Spring Web</code>（用于构建 REST 服务），可选 <code>Spring Data JPA</code>, <code>H2</code>, <code>DevTools</code> 等。</li>
+        </ul>
+      </li>
+      <li>下载生成的 zip，解压并在 IDE（IntelliJ/VSCode）中打开。</li>
+    </ol>
+
+    <h2>3. 示例：最小可运行的 REST Controller</h2>
+
+    <p>创建 <code>src/main/java/com/example/demo/HelloController.java</code>：</p>
+
+<pre><code>package com.example.demo;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+  @GetMapping("/hello")
+  public String hello() {
+    return "Hello, Spring Boot!";
+  }
+}</code></pre>
+
+    <p>项目入口（通常由生成器创建）：</p>
+
+<pre><code>package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(DemoApplication.class, args);
+  }
+}</code></pre>
+
+    <h2>4. 构建与运行</h2>
+
+    <p>Maven:</p>
+
+<pre><code>mvn clean package
+mvn spring-boot:run   # 直接运行（开发时常用）</code></pre>
+
+    <p>Gradle:</p>
+
+<pre><code>./gradlew clean build
+./gradlew bootRun      # 直接运行</code></pre>
+
+    <p>打包后运行（可执行 jar）：</p>
+
+<pre><code>java -jar target/my-app-1.0-SNAPSHOT.jar   # Maven
+java -jar build/libs/my-app-1.0-SNAPSHOT.jar  # Gradle</code></pre>
+
+    <p>应用默认监听 8080 端口，访问 <code>http://localhost:8080/hello</code> 可见返回结果。</p>
+
+    <h2>5. 常见问题与排查</h2>
+
+    <ul>
+      <li>应用不启动 / 报错找不到类：检查 <code>spring-boot-starter</code> 依赖是否存在并成功编译。</li>
+      <li>端口冲突（8080 被占用）：在 <code>application.properties</code> 中修改 <code>server.port=9090</code>，或关闭占用进程。</li>
+      <li>JDK 版本不兼容：Spring Boot 3.x 要求 JDK 17 及以上，确保 <code>JAVA_HOME</code> 与 IDE 设置一致。</li>
+      <li>热重载无效：安装并启用 <code>spring-boot-devtools</code>，并确保 IDE 不在 <code>target</code>/<code>build</code> 外部运行编译产物。</li>
+      <li>依赖下载慢或失败：配置 Maven 镜像（<code>~/.m2/settings.xml</code>）或 Gradle 代理。</li>
+    </ul>
+
+    <h2>6. 开发与调试技巧</h2>
+
+    <ul>
+      <li>使用 <code>spring-boot-devtools</code> 获取热重载与快速重启体验（开发依赖）。</li>
+      <li>在 IDE 中设置断点，使用 <code>mvn spring-boot:run</code> / <code>bootRun</code> 启动后即可远程调试或本地调试。</li>
+      <li>使用 <code>application.properties</code> 或 <code>application.yml</code> 管理不同环境的配置（<code>spring.profiles.active=dev</code>）。</li>
+      <li>使用 Actuator（<code>spring-boot-starter-actuator</code>）查看健康检查、指标与环境信息（仅生产时谨慎开启敏感接口）。</li>
+    </ul>
+
+    <h2>7. 打包、容器化与部署</h2>
+
+    <ul>
+      <li>使用 <code>spring-boot-maven-plugin</code> 或 Gradle 的 <code>bootJar</code> 生成可执行 jar。</li>
+      <li>常见部署方式：直接运行 jar、Docker 镜像（基于 JRE / JDK 的基础镜像）、云平台（如 AWS Elastic Beanstalk、Heroku、Azure App Service）。</li>
+    </ul>
+
+    <p>示例 Dockerfile（最简）：</p>
+
+<pre><code>FROM eclipse-temurin:17-jre
+COPY target/my-app-1.0-SNAPSHOT.jar /app/app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]</code></pre>
+
+    <hr>
+
+    <blockquote>
+      <p>小结：使用 Spring Boot 可以快速搭建可运行的服务，推荐通过 <code>start.spring.io</code> 生成项目骨架并在开发时使用 <code>spring-boot-devtools</code> 提高效率。生产环境需关注 JDK 版本、依赖管理与配置隔离。</p>
+    </blockquote>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>

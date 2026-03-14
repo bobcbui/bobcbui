@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java容器化与GraalVM - 牛马程序员</title>
+  <meta name="description" content="Java 容器化：Docker 多阶段构建与 GraalVM 原生镜像指南。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>Java学习笔记</h3>
+      <ul>
+        <li><a href="01-get-java-started.html">认识Java</a></li>
+        <li><a href="02-get-env-dev.html">Java环境配置</a></li>
+        <li><a href="03-dev-java-for-vscode.html">VSCode配置Java</a></li>
+        <li><a href="04-java-base.html">Java基础语法</a></li>
+        <li><a href="05-lib-manage.html">库与依赖管理</a></li>
+        <li><a href="06-springboot-started.html">Spring Boot入门</a></li>
+        <li><a href="07-java-docker-graalvm.html" class="active">容器化与GraalVM</a></li>
+        <li><a href="08-fast-learn-lib.html">快速使用第三方库</a></li>
+        <li><a href="09-java-dev-skill.html">开发实用技能</a></li>
+        <li><a href="09-java-game-dev.html">Java游戏开发</a></li>
+        <li><a href="2001-java-springboot4-h2-console-config.html">SpringBoot4 H2配置</a></li>
+        <li><a href="999-java-release.html">JDK发行版介绍</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>Java 容器化与 GraalVM 原生镜像指南</h1>
+
+    <p>本章介绍如何将 Java 应用打包为 Docker 镜像（可执行 jar）以及如何使用 GraalVM 的 <code>native-image</code> 构建原生可执行文件并打包成更小的镜像。适用于 Spring Boot、普通 Java 应用与微服务场景。</p>
+
+    <hr>
+
+    <h2>1. 准备：可执行 Jar（Spring Boot / fat-jar）</h2>
+
+    <p>通过 Maven 或 Gradle 构建可执行 jar：</p>
+
+    <p>Maven:</p>
+
+<pre><code>mvn clean package
+# 生成 target/my-app-1.0-SNAPSHOT.jar</code></pre>
+
+    <p>Gradle:</p>
+
+<pre><code>./gradlew clean build
+# 生成 build/libs/my-app-1.0-SNAPSHOT.jar</code></pre>
+
+    <h2>2. 基本 Dockerfile（运行时镜像）</h2>
+
+    <p>简单、常用的多阶段构建 Dockerfile（基于 JDK 构建、JRE 运行）：</p>
+
+<pre><code># build stage
+FROM maven:3.8.6-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn -B -DskipTests package
+
+# runtime stage
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=build /app/target/my-app-1.0-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]</code></pre>
+
+    <p>构建并运行：</p>
+
+<pre><code>docker build -t my-app:latest .
+docker run -p 8080:8080 my-app:latest</code></pre>
+
+    <p>此镜像包含标准 JRE，启动简单但体积较大（几十到几百 MB）。</p>
+
+    <hr>
+
+    <h2>3. 更小的运行时：使用 Distroless / Slim 镜像</h2>
+
+    <p>将运行时替换为更小的基础镜像可以减小镜像体积，例如使用 <code>gcr.io/distroless/java17-debian11</code>：</p>
+
+<pre><code>FROM eclipse-temurin:17-jdk AS build
+WORKDIR /app
+COPY . .
+RUN ./mvnw -DskipTests package
+
+FROM gcr.io/distroless/java17-debian11
+COPY --from=build /app/target/my-app-1.0-SNAPSHOT.jar /app/app.jar
+ENTRYPOINT ["/usr/bin/java","-jar","/app/app.jar"]</code></pre>
+
+    <p>注意：distroless 镜像没有 shell，调试时需要用 build 阶段或临时镜像。</p>
+
+    <hr>
+
+    <h2>4. GraalVM 原生镜像概念与优点</h2>
+
+    <p>GraalVM 的 <code>native-image</code> 可以把 Java 应用编译成独立的本地可执行文件，启动快、内存驻留小，适合无冷启动要求的微服务和命令行工具。缺点包括构建时间长、原生镜像体积（通常仍较小但包含静态链接）及对动态特性（反射、动态代理）需要显式配置。</p>
+
+    <p>推荐场景：延迟敏感的短生命周期服务、CLI 工具、资源受限环境。</p>
+
+    <hr>
+
+    <h2>5. 使用 GraalVM 构建原生镜像（本地或 Docker）</h2>
+
+    <p>两种常见方法：在本地安装 GraalVM 并使用 <code>native-image</code>，或使用 GraalVM 提供的 Docker builder 镜像在容器内构建。</p>
+
+    <p>示例：使用 GraalVM 的 Docker builder（推荐，避免在本地安装大量依赖）</p>
+
+<pre><code># 1. build stage: use GraalVM builder image
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-23.0.2 as builder
+WORKDIR /app
+COPY . /app
+RUN gu install native-image
+RUN ./mvnw -DskipTests package
+RUN native-image --no-fallback -jar target/my-app-1.0-SNAPSHOT.jar -H:Name=myapp
+
+# 2. runtime: use minimal base
+FROM gcr.io/distroless/cc
+COPY --from=builder /app/myapp /usr/local/bin/myapp
+ENTRYPOINT ["/usr/local/bin/myapp"]</code></pre>
+
+    <p>说明：</p>
+    <ul>
+      <li><code>--no-fallback</code> 可以避免生成回退 jar，减小体积，但需确保所有反射配置正确。</li>
+      <li>复杂框架（Spring Boot）需要额外配置或使用专门的扩展（Spring Native / Spring AOT）来生成原生镜像。</li>
+    </ul>
+
+    <p>构建：</p>
+
+<pre><code>docker build -t myapp-native:latest .
+docker run -p 8080:8080 myapp-native:latest</code></pre>
+
+    <hr>
+
+    <h2>6. Spring Boot 与 GraalVM</h2>
+
+    <p>Spring Boot 支持原生编译的路线包括 Spring Native（老方案）和 Spring AOT（Spring Boot 3.x 的原生支持）。要生成原生镜像：</p>
+
+    <ul>
+      <li>使用 Spring Boot 3.x + spring-boot-maven-plugin 与 native-image 工具链，或</li>
+      <li>使用 Quarkus/ Micronaut 等对原生支持更成熟的框架以简化流程。</li>
+    </ul>
+
+    <p>构建注意事项：</p>
+    <ul>
+      <li>反射、代理、资源文件需在 <code>reflect-config.json</code> / <code>resource-config.json</code> 中声明，或使用 AOT 插件自动生成。</li>
+      <li>使用 <code>mvn -Pnative</code>（或 Gradle 的相应插件）触发原生编译（依赖项目配置）。</li>
+    </ul>
+
+    <hr>
+
+    <h2>7. 常见问题与排查</h2>
+
+    <ul>
+      <li>构建失败（内存不足）：原生镜像构建占用大量内存，建议在 CI 或具有更多资源的构建主机 / Docker builder 中运行。</li>
+      <li>反射相关错误（NoSuchMethod/NoSuchField）：需要生成并包含反射配置文件，或通过框架的 AOT 插件自动配置。</li>
+      <li>运行时缺少文件：确保将必要的资源（配置、模板等）包含在 native-image 构建时的资源配置中。</li>
+      <li>启动参数：原生可执行文件可接受 JVM 无关参数，但无法使用 <code>-Xmx</code> 等 JVM 参数；需在构建时调优内存占用。</li>
+    </ul>
+
+    <hr>
+
+    <h2>8. 参考与工具链</h2>
+
+    <ul>
+      <li>GraalVM 官方：<a href="https://www.graalvm.org/" target="_blank" rel="noopener">https://www.graalvm.org/</a></li>
+      <li>Spring AOT / Spring Native 文档</li>
+      <li>使用 Docker builder 镜像可以更稳定地在 CI 中构建原生镜像。</li>
+    </ul>
+
+    <blockquote>
+      <p>小结：普通 Java 服务可通过多阶段 Dockerfile 打包为较小的运行时镜像；对启动时间和内存有严格要求时，可考虑 GraalVM 原生镜像，但需投入更多构建与配置工作。</p>
+    </blockquote>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>

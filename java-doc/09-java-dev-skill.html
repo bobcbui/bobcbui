@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java开发实用技能 - 牛马程序员</title>
+  <meta name="description" content="Java开发过程中常用的实用技能、调试技巧、代码规范与常见问题排查。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>Java学习笔记</h3>
+      <ul>
+        <li><a href="01-get-java-started.html">认识Java</a></li>
+        <li><a href="02-get-env-dev.html">Java环境配置</a></li>
+        <li><a href="03-dev-java-for-vscode.html">VSCode配置Java</a></li>
+        <li><a href="04-java-base.html">Java基础语法</a></li>
+        <li><a href="05-lib-manage.html">库与依赖管理</a></li>
+        <li><a href="06-springboot-started.html">Spring Boot入门</a></li>
+        <li><a href="07-java-docker-graalvm.html">容器化与GraalVM</a></li>
+        <li><a href="08-fast-learn-lib.html">快速使用第三方库</a></li>
+        <li><a href="09-java-dev-skill.html" class="active">开发实用技能</a></li>
+        <li><a href="09-java-game-dev.html">Java游戏开发</a></li>
+        <li><a href="2001-java-springboot4-h2-console-config.html">SpringBoot4 H2配置</a></li>
+        <li><a href="999-java-release.html">JDK发行版介绍</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>Java开发实用技能与进阶技巧</h1>
+
+    <p>本章介绍Java开发过程中常用的实用技能、调试技巧、代码规范、常见问题排查等内容，帮助你成为更高效的Java开发者。</p>
+
+    <hr>
+
+    <h2>常用开发工具</h2>
+
+    <ul>
+      <li><strong>IDE推荐</strong>：VSCode、IntelliJ IDEA、Eclipse</li>
+      <li><strong>构建工具</strong>：Maven、Gradle（用于依赖管理和自动化构建）</li>
+      <li><strong>版本管理</strong>：Git（推荐使用GitHub、Gitee等平台托管代码）</li>
+      <li><strong>包管理</strong>：Maven中央仓库、阿里云Maven仓库</li>
+    </ul>
+
+    <hr>
+
+    <h2>代码规范与风格</h2>
+
+    <ul>
+      <li><strong>命名规范</strong>：类名首字母大写（驼峰），方法/变量首字母小写（驼峰）</li>
+      <li><strong>注释规范</strong>：重要方法、类、复杂逻辑要写注释，推荐使用Javadoc风格</li>
+      <li><strong>缩进风格</strong>：统一使用4个空格缩进</li>
+      <li><strong>避免魔法数字</strong>：常量用final修饰，统一管理</li>
+      <li><strong>包结构清晰</strong>：按功能模块分包</li>
+    </ul>
+
+    <hr>
+
+    <h2>调试与排查技巧</h2>
+
+    <ul>
+      <li><strong>断点调试</strong>：IDEA/VSCode均支持断点、单步执行、变量观察</li>
+      <li><strong>日志输出</strong>：使用System.out.println或日志框架（如log4j、slf4j）输出调试信息</li>
+      <li><strong>异常追踪</strong>：善用try-catch，打印异常堆栈trace，定位问题</li>
+      <li><strong>单元测试</strong>：用JUnit编写测试用例，保证代码质量</li>
+    </ul>
+
+    <hr>
+
+    <h2>常见问题与解决方案</h2>
+
+    <ul>
+      <li><strong>找不到JDK</strong>：检查环境变量JAVA_HOME和Path配置</li>
+      <li><strong>中文乱码</strong>：源文件保存为UTF-8，控制台/IDE编码一致</li>
+      <li><strong>端口被占用</strong>：更换端口或释放占用进程</li>
+      <li><strong>依赖冲突</strong>：用mvn dependency:tree或gradle dependencies排查</li>
+      <li><strong>内存溢出</strong>：调整JVM参数（如-Xmx512m）</li>
+    </ul>
+
+    <hr>
+
+    <h2>进阶建议</h2>
+
+    <ul>
+      <li><strong>阅读官方文档</strong>：多查阅<a href="https://docs.oracle.com/en/java/" target="_blank" rel="noopener">Java官方文档</a></li>
+      <li><strong>参与开源项目</strong>：提升实战能力</li>
+      <li><strong>持续学习新特性</strong>：关注Java新版本特性（如record、lambda、stream等）</li>
+      <li><strong>多写多练</strong>：通过项目实践巩固知识</li>
+    </ul>
+
+    <hr>
+
+    <h2>推荐学习资源</h2>
+
+    <ul>
+      <li><a href="https://www.runoob.com/java/java-tutorial.html" target="_blank" rel="noopener">菜鸟教程Java</a></li>
+      <li><a href="https://leetcode.cn/" target="_blank" rel="noopener">LeetCode算法练习</a></li>
+      <li><a href="https://docs.oracle.com/en/java/" target="_blank" rel="noopener">Java官方文档</a></li>
+      <li><a href="https://code.visualstudio.com/docs/languages/java" target="_blank" rel="noopener">VSCode Java官方文档</a></li>
+    </ul>
+
+    <hr>
+
+    <blockquote>
+      <p>本章内容适合初学者和进阶者查阅，建议结合实际开发多加练习。</p>
+    </blockquote>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>
