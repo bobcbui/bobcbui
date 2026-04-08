@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在线卖身</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script src="/static/htmx.min.js.js"></script>
+  <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+  <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <main>
+    <div id="content"></div>
+  </main>
+  <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script type="text/markdown" id="md-content">
+# 在线卖身（外包服务）
+
+包工头直聘！我们提供全栈牛马租赁服务，哪里需要背锅，我们就把牛马赶到哪里。技术好、薪水低、非常抗压！
+
+## 合作模式
+
+- **日结大神体验包**：代码能跑就行，干完这票去网吧打一天游戏。需求要加？那得加钱。
+- **长期驻场养殖**：自带机械键盘噪音污染，自带铺盖卷，能在老板的咆哮中稳如泰山。
+- **一次性买断**：全套源码交接，附赠一个不保证能跑的 Dockerfile，售后离职率 99%。
+
+## 我们负责
+
+解决所有没人愿意背锅的技术深坑。代码乱得像蜘蛛网？没关系，我们本来就是蜘蛛。
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const md = document.getElementById('md-content').textContent;
+    document.getElementById('content').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>

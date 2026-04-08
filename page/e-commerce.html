@@ -1,3 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电商技术与运营支持</title>
+  <link rel="stylesheet" href="../static/styles.css">
+    <script src="/static/htmx.min.js.js"></script>
+  <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+  <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <main>
+    <div id="content"></div>
+  </main>
+  <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script type="text/markdown" id="md-content">
 # 电商技术与运营支持
 
 我们为中大型电商平台与新零售项目提供从技术到运营的全栈支持，覆盖商品、支付、订单、物流与营销链路的落地与优化。
@@ -26,4 +44,13 @@
 - 项目交付：按里程碑交付可运行系统与文档
 - 持续优化：按月支持，包含活动支持与专项优化
 
-如需讨论具体业务场景，请通过[关于我](../about.md) 联系或发起需求说明。
+如需讨论具体业务场景，请通过[关于我](about.html)联系或发起需求说明。
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const md = document.getElementById('md-content').textContent;
+    document.getElementById('content').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>

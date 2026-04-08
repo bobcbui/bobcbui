@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>媒体运营</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script src="/static/htmx.min.js.js"></script>
+  <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+  <header>
+    <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  </header>
+  <main>
+    <div id="content"></div>
+  </main>
+  <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script type="text/markdown" id="md-content">
+# 媒体运营
+
+介绍媒体与内容运营服务：内容策略、渠道分发、短视频与图文制作、AI 内容辅助产出。
+
+- 服务内容：账号定位、内容日历、数据分析与投放优化。
+- 适合人群：希望借助内容拉动流量与转化的品牌/个人。
+
+联系渠道见[关于我](about.html)。
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const md = document.getElementById('md-content').textContent;
+    document.getElementById('content').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>

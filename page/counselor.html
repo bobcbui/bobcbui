@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICU防丢指南</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script src="/static/htmx.min.js.js"></script>
+  <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+  <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <main>
+    <div id="content"></div>
+  </main>
+  <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script type="text/markdown" id="md-content">
+# ICU防丢指南（技术/架构顾问）
+
+为了防止年轻牛马过早报废，减少医疗挤兑，我们的老中医架构师为您提供紧急抢救服务。治标不治本，保证系统再撑三个月！
+
+## 祖传急救手段
+
+- **屎山代码考古**：翻阅远古提交记录，帮你找回上一任离职时留下的暗门 Bug。
+- **P0 事故开光**：系统真崩了？老板疯了？我们教你怎么在机房在线拜佛，以及把锅甩给 AWS。
+- **塔罗牌技术选型**：靠算命决定用 React 还是 Vue，微服务到底拆不拆——反正拆了也是单体。
+- **被裁心理干预**：帮你的团队做心理建设，告诉他们“熬一熬，拿了 N+1 就可以休息了”。
+
+## 最终交付
+
+厚厚一册《重构可行性 PPT》，老板看懂了会觉得钱花得值，看不懂会觉得你们高深莫测，其实全是用 ChatGPT 写的。
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const md = document.getElementById('md-content').textContent;
+    document.getElementById('content').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>

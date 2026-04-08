@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习笔记</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <script src="/static/htmx.min.js.js"></script>
+    <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+    <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+    <main>
+        <div id="content"></div>
+    </main>
+    <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script type="text/markdown" id="md-content">
+# 卷王指南
+
+只要学不死，就往死里学！这份指南是你内卷成功、成功熬走同行的绝佳秘籍。
+
+[防脱发英语学习法](#)
+
+[《如何把外卖送到架构师手里》](#)
+
+[Java：从入门到入土](../java-doc/01-get-java-started.html)
+
+[Python：从精通到被裁](../log-python/01-get-python-started.html)
+
+[AI：提前干掉自己的最后一块拼图](../log-aicode/01-get-aicode-started.html)
+
+如果你有更极端的内卷目标（比如转行开滴滴或摊煎饼），欢迎通过[关于黑厂](about.html)联系定制化跑路路线。
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      const md = document.getElementById('md-content').textContent;
+      document.getElementById('content').innerHTML = marked.parse(md);
+    </script>
+</body>
+</html>

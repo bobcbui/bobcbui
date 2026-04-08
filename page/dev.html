@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛马法宝</title>
+    <link rel="stylesheet" href="../static/styles.css">
+    <script src="/static/htmx.min.js.js"></script>
+    <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+    <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+    <main>
+        <div id="content"></div>
+    </main>
+    <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script type="text/markdown" id="md-content">
+# 牛马法宝（生产力工具）
+
+好法宝，助你少敲两行代码，早点下班吃沙县大酒店。
+
+## 必备摸鱼工具集
+
+- [Base64 加解密（藏在代码里骂老板专用）](/tools/base64.html)
+- [JSON 格式化（专治祖传缩进不齐）](/tools/json.html)
+- [Cron 表达式（让定时任务精准在半夜报错）](/tools/corn.html)
+- [日期分析（算算离发工资还有几天）](/tools/date.html)
+- [时间计算（精确计算剩余寿命）](/tools/time.html)
+
+## 我们的增值代工服务
+
+- **简历抢救处**：帮你把普通的增删改查包装成“从无到有构建高可用分布式底层架构”。
+- **甩锅架构设计**：微服务、Serverless 一顿乱接，离职后绝不给下一任留活路。
+- **PPT 辅导黑市**：教你如何把一个毫无卵用的管理系统写成改变世界的宏伟蓝图。
+
+## 工作流改造（打死不上线版）
+
+1. 需求阶段：疯狂拖延，质疑一切功能。
+2. 开发阶段：大量引入第三方未经测试的库，埋下未来的雷。
+3. 测试阶段：只测 Happy Path，剩下的交给用户。
+4. 部署阶段：不提供回滚方案，主打一个破釜沉舟。 
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+      const md = document.getElementById('md-content').textContent;
+      document.getElementById('content').innerHTML = marked.parse(md);
+    </script>
+</body>
+</html>
