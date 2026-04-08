@@ -2,73 +2,64 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>牛马程序员</title>
-            <link rel="stylesheet" href="static/styles.css">
-            <script src="/static/htmx.min.js.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛马程序员 - 苦中作乐的技术杂货铺</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <script src="/static/htmx.min.js.js"></script>
 </head>
 <body>
-        <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+    <header class="site-header site-header-placeholder" hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></header>
 
-        <main>
-            <section class="hero-section">
-                <h2 id="hero-desc" class="hero-desc"></h2>
-            </section>
+    <main>
+        <section class="hero-section">
+            <h1 id="hero-title" class="hero-title"></h1>
+            <h2 id="hero-desc" class="hero-desc"></h2>
+        </section>
 
-            <section class="vp-features">
-                <a class="vp-feature" href="/page/study.html">
-                    <h3 class="vp-feature-title">📖 学习编程</h3>
-                    <p class="vp-feature-description">为了给社会输出高性价比技术人员, 我们在持续努力着。</p>
-                </a>
-                <a class="vp-feature" href="/page/dev.html">
-                    <h3 class="vp-feature-title">💻 软件开发</h3>
-                    <p class="vp-feature-description">1个牛马程序员为你的软件提供强大的技术支撑。</p>
-                </a>
-                <a class="vp-feature" href="/page/counselor.html">
-                    <h3 class="vp-feature-title">☁️ 云服务器</h3>
-                    <p class="vp-feature-description">跑路云成立10年还没有跑路的云服务器。</p>
-                </a>
-                <a class="vp-feature" href="/page/e-commerce.html">
-                    <h3 class="vp-feature-title">🛠️ 电商运营</h3>
-                    <p class="vp-feature-description">运营店铺累计仅亏损19万元。</p>
-                </a>
-                <a class="vp-feature" href="/page/media.html">
-                    <h3 class="vp-feature-title">📢 媒体运营</h3>
-                    <p class="vp-feature-description">牛马程序员为您提供人工智能运营服务。</p>
-                </a>
-                <a class="vp-feature" href="/page/outsource.html">
-                    <h3 class="vp-feature-title">🤝 技术外包</h3>
-                    <p class="vp-feature-description">承接各类技术外包项目，30元~30万元项目完全就找牛马程序员。</p>
-                </a>
-            </section>
+        <section class="vp-features">
+            <a class="vp-feature" href="/page/study.html">
+                <h3 class="vp-feature-title">📖 卷王指南</h3>
+                <p class="vp-feature-description">把学习路径、踩坑记录和转行碎碎念，整理成还能落地的学习清单。</p>
+            </a>
+            <a class="vp-feature" href="/page/dev.html">
+                <h3 class="vp-feature-title">💻 牛马法宝</h3>
+                <p class="vp-feature-description">收纳一批顺手的小工具和常用经验，少走弯路，早点收工。</p>
+            </a>
+            <a class="vp-feature" href="/page/counselor.html">
+                <h3 class="vp-feature-title">🏥 ICU 防丢指南</h3>
+                <p class="vp-feature-description">给老系统、线上故障和技术选型做一次体检，先稳住，再慢慢修。</p>
+            </a>
+            <a class="vp-feature" href="/page/outsource.html">
+                <h3 class="vp-feature-title">🤝 在线卖身</h3>
+                <p class="vp-feature-description">适合短期补位、原型开发和脏活累活接盘，主打一个靠谱交付。</p>
+            </a>
+            <a class="vp-feature" href="/page/e-commerce.html">
+                <h3 class="vp-feature-title">💸 破产电商</h3>
+                <p class="vp-feature-description">把踩过的坑、烧过的钱和复盘过的流程，整理成能少亏一点的经验。</p>
+            </a>
+            <a class="vp-feature" href="/page/media.html">
+                <h3 class="vp-feature-title">🤖 赛博水军</h3>
+                <p class="vp-feature-description">面向个人和小团队的内容运营支持，先把账号做清楚，再谈排场。</p>
+            </a>
+        </section>
+    </main>
 
-            <section class="tools-section">
-                <h3>实用工具</h3>
-                <div class="tools-links">
-                    <a href="/tools/base64.html" target="_blank" rel="noopener noreferrer">Base64工具</a>
-                    <a href="/tools/json.html" target="_blank" rel="noopener noreferrer">JSON工具</a>
-                    <a href="/tools/corn.html" target="_blank" rel="noopener noreferrer">Corn表达式</a>
-                    <a href="/tools/date.html" target="_blank" rel="noopener noreferrer">日期</a>
-                    <a href="/tools/time.html" target="_blank" rel="noopener noreferrer">时间</a>
-                </div>
-            </section>
+    <script>
+        (function(){
+            const array = [
+                {"title": "写代码不一定暴富，但能把问题讲明白", "desc": "一个带点自嘲的技术小站，记录学习、工具、复盘和接活经验"},
+                {"title": "项目可以慢慢做，别先把自己做坏了", "desc": "这里收纳开发工具、技术急救、内容运营和一些实打实的踩坑总结"},
+                {"title": "不装大厂方法论，只分享真踩过的坑", "desc": "从学习笔记到电商复盘，把能复用的经验留给后来的人"}
+            ];
+            const index = Math.floor(Math.random() * array.length);
+            const data = array[index];
+            const t = document.getElementById('hero-title');
+            const d = document.getElementById('hero-desc');
+            if(t) t.innerText = data.title;
+            if(d) d.innerText = data.desc;
+        })();
+    </script>
 
-        </main>
-
-        <script>
-            (function(){
-                const array = [
-                    {"title": "学IT年薪过万就上牛马程序员", "desc": "牛马程序员带你成为真正的牛马"}
-                ];
-                const index = Math.floor(Math.random() * array.length);
-                const data = array[index];
-                const t = document.getElementById('hero-title');
-                const d = document.getElementById('hero-desc');
-                if(t) t.innerText = data.title;
-                if(d) d.innerText = data.desc;
-            })();
-        </script>
-
-        <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+    <footer class="site-footer-placeholder" hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></footer>
 </body>
 </html>

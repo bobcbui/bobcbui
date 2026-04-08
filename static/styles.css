@@ -22,10 +22,12 @@ main {
 
 footer {
     text-align: center;
-    padding: 2rem 0;
+    padding: 3rem 0;
+    line-height: 1.5;
     background: #333;
     color: #fff;
-    margin-top: 40px;
+    margin-top: 60px;
+    box-sizing: border-box;
 }
 
 /* Homepage specific */
@@ -97,8 +99,8 @@ footer {
 }
 
 /* Site header (OpenAI-like) */
-.site-header { background: #fff; border-bottom: 1px solid #eaeaea; }
-.site-header .header-inner { display:flex; align-items:center; max-width:1200px; margin:0 auto; padding:10px 16px; gap:12px; }
+.site-header { background: #fff; border-bottom: 1px solid #eaeaea; box-sizing: border-box; }
+.site-header .header-inner { display:flex; align-items:center; max-width:1200px; margin:0 auto; padding:18px 16px; gap:12px; }
 .logo { font-weight:700; font-size:18px; color:#111; text-decoration:none; margin-right: 24px; }
 .header-left { flex: 1; display: flex; align-items: center; justify-content: flex-end; }
 .center-nav ul { display:flex; gap:18px; list-style:none; margin:0; padding:0; align-items:center; }
@@ -169,3 +171,11 @@ footer {
     padding-left: 1em;
     color: #666;
 }
+/* HTMX Placeholders to prevent layout shift */
+.site-header-placeholder { min-height: 48px; border-bottom: 1px solid #eaeaea; background: #fff; display: block; }
+
+
+
+/* HTMX Placeholders to prevent layout shift */
+.site-header-placeholder { min-height: 64px; border-bottom: 1px solid #eaeaea; background: #fff; display: block; width: 100%; box-sizing: border-box; }
+.site-footer-placeholder { min-height: 120px; margin-top: 60px; display: block; box-sizing: border-box; background: #333; }
