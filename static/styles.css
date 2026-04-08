@@ -99,7 +99,7 @@ footer {
 }
 
 /* Site header (OpenAI-like) */
-.site-header { background: #fff; border-bottom: 1px solid #eaeaea; box-sizing: border-box; }
+.site-header { background: #fff; border-bottom: 1px solid #eaeaea; box-sizing: border-box;height: 64.8px !important; }
 .site-header .header-inner { display:flex; align-items:center; max-width:1200px; margin:0 auto; padding:18px 16px; gap:12px; }
 .logo { font-weight:700; font-size:18px; color:#111; text-decoration:none; margin-right: 24px; }
 .header-left { flex: 1; display: flex; align-items: center; justify-content: flex-end; }
