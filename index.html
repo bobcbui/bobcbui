@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>牛马程序员</title>
+            <link rel="stylesheet" href="static/styles.css">
+            <script src="/static/htmx.min.js.js"></script>
+</head>
+<body>
+        <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+        <main>
+            <section class="hero-section">
+                <h2 id="hero-desc" class="hero-desc"></h2>
+            </section>
+
+            <section class="vp-features">
+                <a class="vp-feature" href="/page/study.html">
+                    <h3 class="vp-feature-title">📖 学习编程</h3>
+                    <p class="vp-feature-description">为了给社会输出高性价比技术人员, 我们在持续努力着。</p>
+                </a>
+                <a class="vp-feature" href="/page/dev.html">
+                    <h3 class="vp-feature-title">💻 软件开发</h3>
+                    <p class="vp-feature-description">1个牛马程序员为你的软件提供强大的技术支撑。</p>
+                </a>
+                <a class="vp-feature" href="/page/counselor.html">
+                    <h3 class="vp-feature-title">☁️ 云服务器</h3>
+                    <p class="vp-feature-description">跑路云成立10年还没有跑路的云服务器。</p>
+                </a>
+                <a class="vp-feature" href="/page/e-commerce.html">
+                    <h3 class="vp-feature-title">🛠️ 电商运营</h3>
+                    <p class="vp-feature-description">运营店铺累计仅亏损19万元。</p>
+                </a>
+                <a class="vp-feature" href="/page/media.html">
+                    <h3 class="vp-feature-title">📢 媒体运营</h3>
+                    <p class="vp-feature-description">牛马程序员为您提供人工智能运营服务。</p>
+                </a>
+                <a class="vp-feature" href="/page/outsource.html">
+                    <h3 class="vp-feature-title">🤝 技术外包</h3>
+                    <p class="vp-feature-description">承接各类技术外包项目，30元~30万元项目完全就找牛马程序员。</p>
+                </a>
+            </section>
+
+            <section class="tools-section">
+                <h3>实用工具</h3>
+                <div class="tools-links">
+                    <a href="/tools/base64.html" target="_blank" rel="noopener noreferrer">Base64工具</a>
+                    <a href="/tools/json.html" target="_blank" rel="noopener noreferrer">JSON工具</a>
+                    <a href="/tools/corn.html" target="_blank" rel="noopener noreferrer">Corn表达式</a>
+                    <a href="/tools/date.html" target="_blank" rel="noopener noreferrer">日期</a>
+                    <a href="/tools/time.html" target="_blank" rel="noopener noreferrer">时间</a>
+                </div>
+            </section>
+
+        </main>
+
+        <script>
+            (function(){
+                const array = [
+                    {"title": "学IT年薪过万就上牛马程序员", "desc": "牛马程序员带你成为真正的牛马"}
+                ];
+                const index = Math.floor(Math.random() * array.length);
+                const data = array[index];
+                const t = document.getElementById('hero-title');
+                const d = document.getElementById('hero-desc');
+                if(t) t.innerText = data.title;
+                if(d) d.innerText = data.desc;
+            })();
+        </script>
+
+        <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于黑厂</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script src="/static/htmx.min.js.js"></script>
+  <style>img{max-width:100%;} pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+  <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <main>
+    <div id="content"></div>
+  </main>
+  <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script type="text/markdown" id="md-content">
+# 关于黑厂（牛马程序员保护协会）
+
+这里是一个供年轻人们互相抱团取暖、交流脱发经验的技术避难所。我们不生产优秀代码，只做 Bug 的搬运工。
+
+## 第一原则
+
+- 让天下没有难甩的锅：只要跑得够快，线上事故就追不上你。
+
+## 厂训
+
+- 哪怕天天写 `if-else`，也要包装成基于 AST 的智能条件分支路由系统。
+- 只要老板开上迈巴赫，我们就觉得多掉几根头发是值得的（并没有）。
+- 周末休息是不可能休息的，只有重构和开会，才能维持生命的跳动。
+
+欢迎加入我们，共同抵御 35 岁被优化的达摩克利斯之剑。
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const md = document.getElementById('md-content').textContent;
+    document.getElementById('content').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>

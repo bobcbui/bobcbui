@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>摸鱼日记</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script src="/static/htmx.min.js.js"></script>
+  <style>pre{white-space:pre-wrap;}</style>
+</head>
+<body>
+  <div hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <main>
+    <div id="content"></div>
+  </main>
+  <div hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script type="text/markdown" id="md-content">
+# 摸鱼日记（Blog）
+
+带薪拉屎是牛马们不可剥夺的神圣权利！这里记录了我们上班时间偷闲学到的（或者没学到的）奇技淫巧。
+
+## 最新瞎编
+
+- **【置顶】 [如何优雅地在 VS Code 里看炒股软件且不被发现](#)**
+- [那个天天加班到凌晨的同事竟然是富二代下凡体验生活](#)
+- [震惊！产品经理提的需求竟然一次过审了，背后必有阴谋](#)
+- [键盘买贵了，只能连吃三个月泡面的感想](#)
+- [从删库到跑路：一份价值 12 万的实战指南](#)
+
+（等老板开会去了再更新...）
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const md = document.getElementById('md-content').textContent;
+    document.getElementById('content').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>
