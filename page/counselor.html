@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ICU防丢指南</title>
+  <title>ICU 防丢指南</title>
   <link rel="stylesheet" href="../static/styles.css">
   <script src="/static/htmx.min.js.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
@@ -16,20 +16,22 @@
   <footer class="site-footer-placeholder" hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></footer>
 
   <script type="text/markdown" id="md-content">
-# ICU防丢指南（技术/架构顾问）
+# ICU 防丢指南（技术急救台）
 
-为了防止年轻牛马过早报废，减少医疗挤兑，我们的老中医架构师为您提供紧急抢救服务。治标不治本，保证系统再撑三个月！
+给线上故障、老系统和临时接手项目做一次止血处理。先把系统稳住，再决定是重构、补文档，还是继续迭代。
 
-## 祖传急救手段
+## 常见服务
 
-- **屎山代码考古**：翻阅远古提交记录，帮你找回上一任离职时留下的暗门 Bug。
-- **P0 事故开光**：系统真崩了？老板疯了？我们教你怎么在机房在线拜佛，以及把锅甩给 AWS。
-- **塔罗牌技术选型**：靠算命决定用 React 还是 Vue，微服务到底拆不拆——反正拆了也是单体。
-- **被裁心理干预**：帮你的团队做心理建设，告诉他们“熬一熬，拿了 N+1 就可以休息了”。
+- **代码体检**：梳理核心链路、依赖关系、风险点和历史包袱。
+- **事故止血**：排查报错、补日志、补监控、补回滚方案，让问题先别继续扩大。
+- **选型对焦**：在预算、人力和上线周期里做务实判断，不拿术语压人。
+- **交接兜底**：帮新同事看懂旧项目，减少“上一任已经失联”的痛苦。
 
-## 最终交付
+## 交付方式
 
-厚厚一册《重构可行性 PPT》，老板看懂了会觉得钱花得值，看不懂会觉得你们高深莫测，其实全是用 ChatGPT 写的。
+- 问题清单和优先级建议
+- 一份能执行的改造路线图
+- 必要时配套文档、会议纪要和短期跟进
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
