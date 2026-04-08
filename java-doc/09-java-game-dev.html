@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java游戏开发 - 牛马程序员</title>
+  <meta name="description" content="Java 游戏开发路线：libGDX、jMonkeyEngine 与 LWJGL 的概述与选型建议。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>Java学习笔记</h3>
+      <ul>
+        <li><a href="01-get-java-started.html">认识Java</a></li>
+        <li><a href="02-get-env-dev.html">Java环境配置</a></li>
+        <li><a href="03-dev-java-for-vscode.html">VSCode配置Java</a></li>
+        <li><a href="04-java-base.html">Java基础语法</a></li>
+        <li><a href="05-lib-manage.html">库与依赖管理</a></li>
+        <li><a href="06-springboot-started.html">Spring Boot入门</a></li>
+        <li><a href="07-java-docker-graalvm.html">容器化与GraalVM</a></li>
+        <li><a href="08-fast-learn-lib.html">快速使用第三方库</a></li>
+        <li><a href="09-java-dev-skill.html">开发实用技能</a></li>
+        <li><a href="09-java-game-dev.html" class="active">Java游戏开发</a></li>
+        <li><a href="2001-java-springboot4-h2-console-config.html">SpringBoot4 H2配置</a></li>
+        <li><a href="999-java-release.html">JDK发行版介绍</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>Java 游戏开发</h1>
+
+    <p>本页概述三种常见的 Java 游戏开发路线：<code>libGDX</code>（跨平台、高级框架），<code>jMonkeyEngine</code>（3D 引擎），以及 <code>LWJGL</code>（低层原生绑定）。包括各自特点、快速入门依赖示例与选型建议。</p>
+
+    <hr>
+
+    <h2>概览比较</h2>
+
+    <ul>
+      <li><strong>libGDX</strong>：成熟的跨平台游戏框架，支持桌面、Android、iOS（通过 RoboVM /第三方）和 HTML5（GWT）。适合 2D、轻量 3D 游戏开发，项目模板和工具链完善，使用 Gradle 构建。</li>
+      <li><strong>jMonkeyEngine (jME)</strong>：完整的开源 3D 游戏引擎，提供场景图、物理、渲染管线与编辑器，适合需要 3D 功能、场景管理和快速原型的项目。</li>
+      <li><strong>LWJGL (Lightweight Java Game Library)</strong>：底层原生库（OpenGL、Vulkan、GLFW、OpenAL 等）的 Java 绑定。适合对性能和图形细节有完全控制需求的高级开发者或自研引擎者。</li>
+    </ul>
+
+    <p>选择要点：</p>
+    <ul>
+      <li>想快速启动并跨平台 → libGDX。</li>
+      <li>主要做 3D 游戏并需要引擎特性（场景、物理）→ jMonkeyEngine。</li>
+      <li>需要最低层控制、或想集成最新原生 API（Vulkan）→ LWJGL。</li>
+    </ul>
+
+    <hr>
+
+    <h2>libGDX 快速入门（Gradle）</h2>
+
+    <p>推荐用 libGDX 官方项目生成器（gdx-setup）生成项目骨架。Gradle 依赖示例（module 的 build.gradle）：</p>
+
+<pre><code>dependencies {
+    implementation "com.badlogicgames.gdx:gdx:1.11.0"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:1.11.0"
+    runtimeOnly "com.badlogicgames.gdx:gdx-platform:1.11.0:natives-desktop"
+}</code></pre>
+
+    <p>启动与打包：</p>
+
+<pre><code>./gradlew desktop:run      # 运行桌面端
+./gradlew android:assembleDebug  # 构建 Android APK（需 Android SDK）</code></pre>
+
+    <p>注意：libGDX 项目通常包含多个子模块（core/desktop/android/ios），建议使用官方生成器来避免配置复杂性。</p>
+
+    <hr>
+
+    <h2>jMonkeyEngine 快速入门</h2>
+
+    <p>jME 提供 Maven/Gradle 依赖，并有官方 SDK（基于 NetBeans 的编辑器）和社区资源。</p>
+
+    <p>Maven 依赖示例（pom.xml):</p>
+
+<pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;org.jmonkeyengine&lt;/groupId&gt;
+  &lt;artifactId&gt;jme3-core&lt;/artifactId&gt;
+  &lt;version&gt;3.6.0-stable&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+
+    <p>或 Gradle：</p>
+
+<pre><code>dependencies {
+  implementation 'org.jmonkeyengine:jme3-core:3.6.0-stable'
+}</code></pre>
+
+    <hr>
+
+    <h2>LWJGL 快速入门（低层）</h2>
+
+    <p>LWJGL 是对 OpenGL / Vulkan / GLFW / OpenAL 的 Java 绑定，使用时需同时处理原生库（natives）。示例（Gradle）：</p>
+
+<pre><code>def lwjglVersion = '3.3.1'
+dependencies {
+    implementation "org.lwjgl:lwjgl:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-opengl:${lwjglVersion}"
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-windows"
+}</code></pre>
+
+    <hr>
+
+    <h2>开发环境与打包注意事项</h2>
+
+    <ul>
+      <li><strong>本地运行与 natives</strong>：LWJGL 与 libGDX 的桌面 native 需要在运行时包含相应 natives（系统平台相关），Gradle/Maven 配置通常能自动处理。</li>
+      <li><strong>Android 支持</strong>：libGDX 原生支持 Android；jME 有 Android 支持但生态不如 libGDX。LWJGL 不用于 Android。</li>
+      <li><strong>IDE 支持</strong>：IntelliJ IDEA 对 Gradle/Maven 项目支持好，libGDX 官方推荐使用 Gradle 项目结构；jME 有官方 SDK 可加速入门。</li>
+      <li><strong>性能调优</strong>：对渲染性能敏感时，使用 profilers（VisualVM、Flight Recorder）和 GPU 调试工具。</li>
+    </ul>
+
+    <hr>
+
+    <h2>小型示例：libGDX 桌面应用 main 方法</h2>
+
+<pre><code>public class DesktopLauncher {
+    public static void main (String[] arg) {
+        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+        new Lwjgl3Application(new MyGdxGame(), config);
+    }
+}</code></pre>
+
+    <hr>
+
+    <h2>选型建议总结</h2>
+
+    <ul>
+      <li>首次尝试游戏开发、需要快速跨平台发布 → 使用 <code>libGDX</code>（模板、工具成熟、社区活跃）。</li>
+      <li>专注于 3D、需要引擎级功能（地形、光照、物理）→ 使用 <code>jMonkeyEngine</code>。</li>
+      <li>想学习图形底层、或开发自定义引擎/高性能渲染 → 使用 <code>LWJGL</code>。</li>
+    </ul>
+
+    <hr>
+
+    <h2>参考资源</h2>
+
+    <ul>
+      <li>libGDX 官方：<a href="https://libgdx.badlogicgames.com/" target="_blank" rel="noopener">https://libgdx.badlogicgames.com/</a></li>
+      <li>jMonkeyEngine 官方：<a href="https://jmonkeyengine.org/" target="_blank" rel="noopener">https://jmonkeyengine.org/</a></li>
+      <li>LWJGL 官方：<a href="https://www.lwjgl.org/" target="_blank" rel="noopener">https://www.lwjgl.org/</a></li>
+    </ul>
+
+    <blockquote>
+      <p>开始时建议先用 libGDX 官方生成器或 jME 官方示例快速跑通一个最小可运行项目，再深入学习渲染细节或底层 API。</p>
+    </blockquote>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>

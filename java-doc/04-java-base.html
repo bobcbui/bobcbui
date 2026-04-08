@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java基础语法 - 牛马程序员</title>
+  <meta name="description" content="Java基础语法：变量、数据类型、运算符、流程控制、方法、类与对象。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>Java学习笔记</h3>
+      <ul>
+        <li><a href="01-get-java-started.html">认识Java</a></li>
+        <li><a href="02-get-env-dev.html">Java环境配置</a></li>
+        <li><a href="03-dev-java-for-vscode.html">VSCode配置Java</a></li>
+        <li><a href="04-java-base.html" class="active">Java基础语法</a></li>
+        <li><a href="05-lib-manage.html">库与依赖管理</a></li>
+        <li><a href="06-springboot-started.html">Spring Boot入门</a></li>
+        <li><a href="07-java-docker-graalvm.html">容器化与GraalVM</a></li>
+        <li><a href="08-fast-learn-lib.html">快速使用第三方库</a></li>
+        <li><a href="09-java-dev-skill.html">开发实用技能</a></li>
+        <li><a href="09-java-game-dev.html">Java游戏开发</a></li>
+        <li><a href="2001-java-springboot4-h2-console-config.html">SpringBoot4 H2配置</a></li>
+        <li><a href="999-java-release.html">JDK发行版介绍</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>Java基础语法与第一个程序</h1>
+
+    <h2>第一个Java程序</h2>
+
+    <p>Java程序一般以类为单位，主入口为 <code>main</code> 方法。除了控制台输出，还可以用弹窗显示结果，推荐初学者体验 <code>JOptionPane</code> 图形界面弹窗。</p>
+
+    <p>下面是最经典的 HelloWorld 示例（弹窗方式）：</p>
+
+<pre><code>import javax.swing.JOptionPane;
+
+public class HelloWorld {
+    public static void main(String[] args) {
+        JOptionPane.showMessageDialog(null, "Hello, World!");
+    }
+}</code></pre>
+
+    <blockquote>
+      <p>说明：JOptionPane 是 Java 标准库中的弹窗工具类，需导入 <code>javax.swing.JOptionPane</code>。</p>
+    </blockquote>
+
+    <p><strong>运行方式（Java 17 及以上）</strong></p>
+    <ol>
+      <li>保存为 <code>HelloWorld.java</code></li>
+      <li>打开命令行，进入文件所在目录</li>
+      <li>直接运行：<pre><code>java HelloWorld.java</code></pre></li>
+    </ol>
+
+    <p>提示：上面示例使用的是 GUI 弹窗（<code>JOptionPane</code>），运行时会弹出对话框而不会在控制台输出文本。如果你想在控制台打印，请使用 <code>System.out.println</code>：</p>
+
+<pre><code>public class HelloConsole {
+     public static void main(String[] args) {
+          System.out.println("Hello, World!");
+     }
+}</code></pre>
+
+    <p>编译并运行（传统方式）：</p>
+
+<pre><code>javac HelloConsole.java
+java HelloConsole</code></pre>
+
+    <hr>
+
+    <h2>注释</h2>
+
+    <p>注释是写给其他开发者或未来自己的说明性文字，Java 编译器不会处理注释内容。合理、清晰的注释能帮助理解代码逻辑，方便维护和协作，避免遗忘细节。</p>
+
+<pre><code>// import 的意思是导入, 这里导入比如写好的代码,用于后续使用.
+// // 注释是单行注释的意思
+import javax.swing.JOptionPane;
+
+/**
+ * 这个是多行注释
+ */
+public class HelloWorld {
+    public static void main(String[] args) {
+        JOptionPane.showMessageDialog(null, "Hello, World!");
+        /*
+        这里也是多行注释,
+        但是上面的是文档注释,用于给代码写文档使用
+         */
+        // 你好
+        // 在吗?
+    }
+}</code></pre>
+
+    <h2>变量与数据类型</h2>
+
+    <p>Java常用数据类型：</p>
+    <ul>
+      <li>整型：<code>byte</code>、<code>short</code>、<code>int</code>、<code>long</code></li>
+      <li>浮点型：<code>float</code>、<code>double</code></li>
+      <li>字符型：<code>char</code></li>
+      <li>布尔型：<code>boolean</code></li>
+      <li>引用类型：类、接口、数组</li>
+    </ul>
+
+    <p>示例：</p>
+
+<pre><code>int age = 18;
+double price = 99.5;
+char grade = 'A';
+boolean isActive = true;
+String name = "Tom";</code></pre>
+
+    <h2>运算符</h2>
+
+    <ul>
+      <li>算术运算符：<code>+ - * / % ++ --</code></li>
+      <li>关系运算符：<code>== != &gt; &lt; &gt;= &lt;=</code></li>
+    </ul>
+
+<pre><code>public class Utils {
+    public static int sum(int a, int b) {
+        return a + b;
+    }
+}
+
+int result = Utils.sum(3, 5);</code></pre>
+
+    <h2>包与目录</h2>
+
+    <p>Java 使用 <code>package</code> 组织类，包名应与文件系统目录对应。例如：</p>
+
+<pre><code>package com.example.myapp;
+
+public class App {
+    public static void main(String[] args) {
+        System.out.println("App start");
+    }
+}</code></pre>
+
+    <p><strong>条件语句</strong></p>
+
+<pre><code>if (age &gt; 18) {
+    JOptionPane.showMessageDialog(null, "成年人");
+} else {
+    JOptionPane.showMessageDialog(null, "未成年人");
+}
+
+switch (grade) {
+    case 'A':
+        JOptionPane.showMessageDialog(null, "优秀");
+        break;
+    case 'B':
+        JOptionPane.showMessageDialog(null, "良好");
+        break;
+    default:
+        JOptionPane.showMessageDialog(null, "其他");
+}</code></pre>
+
+    <p><strong>循环语句</strong></p>
+
+<pre><code>for (int i = 0; i &lt; 5; i++) {
+    JOptionPane.showMessageDialog(null, i);
+}
+
+int j = 0;
+while (j &lt; 5) {
+    JOptionPane.showMessageDialog(null, j);
+    j++;
+}
+
+do {
+    JOptionPane.showMessageDialog(null, j);
+    j++;
+} while (j &lt; 10);</code></pre>
+
+    <h2>方法</h2>
+
+    <p>方法定义与调用：</p>
+
+<pre><code>public int sum(int a, int b) {
+    return a + b;
+}
+
+int result = sum(3, 5);</code></pre>
+
+    <h2>类与对象</h2>
+
+    <p>类定义与对象创建：</p>
+
+<pre><code>public class Person {
+    String name;
+    int age;
+
+    public void sayHello() {
+        JOptionPane.showMessageDialog(null, "Hello, " + name);
+    }
+}
+
+Person p = new Person();
+p.name = "Alice";
+p.age = 20;
+p.sayHello();</code></pre>
+
+    <h2>继承与多态</h2>
+
+    <p>继承：</p>
+
+<pre><code>public class Animal {
+    public void eat() {
+        JOptionPane.showMessageDialog(null, "动物吃饭");
+    }
+}
+
+public class Dog extends Animal {
+    public void eat() {
+        JOptionPane.showMessageDialog(null, "狗吃骨头");
+    }
+}
+
+Animal a = new Dog();
+a.eat(); // 输出：狗吃骨头</code></pre>
+
+    <h2>接口</h2>
+
+    <p>接口定义与实现：</p>
+
+<pre><code>public interface Flyable {
+    void fly();
+}
+
+public class Bird implements Flyable {
+    public void fly() {
+        JOptionPane.showMessageDialog(null, "鸟在飞");
+    }
+}</code></pre>
+
+    <h2>异常处理</h2>
+
+    <p>异常捕获与抛出：</p>
+
+<pre><code>try {
+    int x = 10 / 0;
+} catch (ArithmeticException e) {
+    JOptionPane.showMessageDialog(null, "除零错误");
+} finally {
+    JOptionPane.showMessageDialog(null, "结束");
+}</code></pre>
+
+    <h2>常用类库</h2>
+
+    <p>字符串处理、集合、IO等：</p>
+
+<pre><code>String s = "hello";
+JOptionPane.showMessageDialog(null, s.length());
+
+List&lt;String&gt; list = new ArrayList&lt;&gt;();
+list.add("A");
+list.add("B");
+
+for (String item : list) {
+    JOptionPane.showMessageDialog(null, item);
+}</code></pre>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>

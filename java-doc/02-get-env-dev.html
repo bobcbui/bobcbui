@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java环境配置 - 牛马程序员</title>
+  <meta name="description" content="Java环境配置：JDK安装、环境变量配置、VSCode开发环境。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>Java学习笔记</h3>
+      <ul>
+        <li><a href="01-get-java-started.html">认识Java</a></li>
+        <li><a href="02-get-env-dev.html" class="active">Java环境配置</a></li>
+        <li><a href="03-dev-java-for-vscode.html">VSCode配置Java</a></li>
+        <li><a href="04-java-base.html">Java基础语法</a></li>
+        <li><a href="05-lib-manage.html">库与依赖管理</a></li>
+        <li><a href="06-springboot-started.html">Spring Boot入门</a></li>
+        <li><a href="07-java-docker-graalvm.html">容器化与GraalVM</a></li>
+        <li><a href="08-fast-learn-lib.html">快速使用第三方库</a></li>
+        <li><a href="09-java-dev-skill.html">开发实用技能</a></li>
+        <li><a href="09-java-game-dev.html">Java游戏开发</a></li>
+        <li><a href="2001-java-springboot4-h2-console-config.html">SpringBoot4 H2配置</a></li>
+        <li><a href="999-java-release.html">JDK发行版介绍</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>Java环境配置</h1>
+
+    <h2>什么是 Java 环境？</h2>
+
+    <p>Java 环境类似于打开 Office 文档需要安装 Office 软件：编辑 Java 源文件需要编辑器（如 VSCode/IDEA），运行 Java 程序需要 JDK（Java Development Kit）。</p>
+
+    <p>开发环境（编辑器/IDE）：用于编写代码，例如 VSCode、IntelliJ IDEA、Eclipse。</p>
+
+    <p>运行环境（JDK）：包含 <code>java</code>、<code>javac</code> 等命令，用于运行和编译 Java 程序。常见发行版有 OpenJDK、AdoptOpenJDK、Oracle JDK、阿里/腾讯定制版等。</p>
+
+    <h2>下载与安装</h2>
+
+    <ul>
+      <li>推荐使用 OpenJDK（或厂商发行版）。本教程以 OpenJDK 为例。</li>
+      <li>JDK 下载： <a href="https://jdk.java.net/" target="_blank" rel="noopener">https://jdk.java.net/</a> 或厂商下载页（选择合适的版本，例如 17 或 21）。</li>
+      <li>编辑器：VSCode 下载 <a href="https://code.visualstudio.com/Download" target="_blank" rel="noopener">https://code.visualstudio.com/Download</a></li>
+    </ul>
+
+    <p>安装建议：推荐使用 ZIP/压缩包方式解压到简单路径，如 <code>D:\Java\jdk-21</code>，避免使用系统安装程序导致路径复杂或权限问题。</p>
+
+    <h2>配置环境变量（GUI 方法）</h2>
+
+    <ol>
+      <li>右键"此电脑" → 属性 → 高级系统设置 → 环境变量。</li>
+      <li>在"系统变量"中新建变量：
+        <ul>
+          <li>变量名：<code>JAVA_HOME</code></li>
+          <li>变量值：<code>D:\Java\jdk-21</code>（根据你的实际路径）</li>
+        </ul>
+      </li>
+      <li>编辑系统变量 <code>Path</code>，新增一条：<code>%JAVA_HOME%\bin</code>，并确保它在其他 <code>java</code> 路径之前。</li>
+    </ol>
+
+    <p>保存后关闭所有命令行窗口再打开以使配置生效。</p>
+
+    <h2>配置环境变量（PowerShell / 命令行方法）</h2>
+
+    <p>使用 PowerShell 永久设置（当前用户）：</p>
+
+<pre><code>setx JAVA_HOME "D:\Java\jdk-21"</code></pre>
+
+    <p>注意：<code>setx</code> 修改后对当前进程无效，需要重新打开新的终端窗口才能看到变化。</p>
+
+    <p>如果需要临时在当前 PowerShell 会话中生效：</p>
+
+<pre><code>$env:JAVA_HOME = 'D:\Java\jdk-21'
+$env:Path = $env:JAVA_HOME + '\\bin;' + $env:Path</code></pre>
+
+    <h2>验证安装与排查命令</h2>
+
+    <p>打开新的命令行或 PowerShell，运行：</p>
+
+<pre><code>java -version
+javac -version
+where java        # Windows: 查看正在使用的 java 可执行路径
+where javac</code></pre>
+
+    <p>期望输出示例：</p>
+
+<pre><code>openjdk version "17" 2021-09-14
+OpenJDK Runtime Environment (build 17+35-2724)
+OpenJDK 64-Bit Server VM (build 17+35-2724, mixed mode, sharing)
+javac 17</code></pre>
+
+    <p>如果命令未找到或版本不对：</p>
+    <ul>
+      <li>检查 <code>JAVA_HOME</code> 是否指向 JDK 根目录（不要指向 JRE 或 bin 目录）。</li>
+      <li>确认 <code>Path</code> 包含 <code>%JAVA_HOME%\bin</code>，并且该项排在其他旧 <code>java</code> 路径之前。</li>
+      <li>关闭并重新打开终端窗口或重启 IDE。</li>
+    </ul>
+
+    <h2>常见问题与解决方案</h2>
+    <ul>
+      <li>找不到 <code>java</code> 或 <code>javac</code>：确认 <code>JAVA_HOME</code> 与 <code>Path</code> 配置，使用 <code>where java</code> 查找可执行文件位置。</li>
+      <li>多个 JDK 并存：使用 <code>where java</code>/<code>where javac</code> 或 <code>Get-Command java</code> 来查看优先使用的路径，调整 <code>Path</code> 顺序或删除旧路径。</li>
+      <li>中文乱码/编码问题：确保源文件与 IDE 编码为 UTF-8，Windows 控制台可用 <code>chcp 65001</code> 切换到 UTF-8 编码。</li>
+      <li>端口/权限/防火墙问题：与 Java 本身无关，针对具体应用排查。</li>
+      <li>依赖下载慢或失败：配置阿里云 Maven 镜像或代理。</li>
+    </ul>
+
+    <h2>系统与开发环境小提示</h2>
+    <ul>
+      <li>显示文件扩展名与隐藏文件：在文件资源管理器"查看"中打开"文件扩展名"和"隐藏的项目"。</li>
+      <li>解决 VSCode 与系统快捷键冲突：调整输入法按键设置，或在 VSCode 中修改快捷键。</li>
+      <li>VSCode Java：安装 <code>Extension Pack for Java</code>，如需在 VSCode 内指定 JDK，可在设置中配置 <code>java.home</code> 或在 <code>settings.json</code> 中添加：</li>
+    </ul>
+
+<pre><code>"java.home": "D:/Java/jdk-21"</code></pre>
+
+    <h2>参考与下一步</h2>
+    <ul>
+      <li>参考：VSCode Java 文档、OpenJDK 官方站点。</li>
+      <li>下一章：<a href="03-dev-java-for-vscode.html">在 VSCode 中配置 Java 开发环境</a>。</li>
+    </ul>
+
+    <hr>
+
+    <p><strong>小贴士：</strong> 推荐使用 VSCode 或 IDEA 编写 Java，并保持 JDK 版本为项目所需的最低版本（常见为 17 或 21）。</p>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>

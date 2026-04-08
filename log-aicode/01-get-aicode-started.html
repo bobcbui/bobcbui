@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>认识AICode - 牛马程序员</title>
+  <meta name="description" content="AICode 入门：使用人工智能辅助编写、重构、测试和文档化代码的工具和工作流。">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="icon" href="../favicon.ico">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="navbar">
+    <a class="site-name" href="../index.html">牛马程序员</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">首页</a></li>
+      <li><a href="../page/study.html">学习编程</a></li>
+      <li><a href="../page/dev.html">软件开发</a></li>
+      <li><a href="../page/media.html">媒体运营</a></li>
+      <li class="dropdown">
+        <span>其他服务</span>
+        <ul class="dropdown-menu">
+          <li><a href="../page/e-commerce.html">电商运营</a></li>
+          <li><a href="../page/counselor.html">云服务器</a></li>
+          <li><a href="../page/outsource.html">技术外包</a></li>
+        </ul>
+      </li>
+      <li><a href="../about.html">关于我</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <h3>AI学习笔记</h3>
+      <ul>
+        <li><a href="01-get-aicode-started.html" class="active">认识AICode</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+
+    <h1>认识 AICode</h1>
+
+    <p>AICode 指的是使用人工智能（例如大语言模型）辅助编写、重构、测试和文档化代码的工具和工作流。本节面向初学者，介绍概念、准备工作、快速上手示例、调试建议和相关资源。</p>
+
+    <hr>
+
+    <h2>1. AICode 能做什么</h2>
+
+    <ul>
+      <li>自动生成函数/类骨架</li>
+      <li>帮助编写单元测试与示例</li>
+      <li>重构建议、代码风格修复</li>
+      <li>生成文档注释与使用示例</li>
+      <li>解释复杂代码片段、给出优化建议</li>
+    </ul>
+
+    <h2>2. 使用前的准备</h2>
+
+    <ul>
+      <li>注册并准备好所使用的 AI 服务（如 OpenAI、GitHub Copilot、企业内部模型等）。</li>
+      <li>在编辑器中安装对应扩展（如 VSCode 的 Copilot 或其它 AICode 插件）。</li>
+      <li>配置好网络/代理与 API Key（注意保密）。</li>
+      <li>在团队中明确哪些场景允许使用 AI 生成代码并规定审查流程。</li>
+    </ul>
+
+    <h2>3. 快速上手（以 VSCode + Copilot 为例）</h2>
+
+    <ol>
+      <li>打开项目并创建新文件（例如 <code>Example.java</code> 或 <code>example.py</code>）。</li>
+      <li>在编辑器中输入注释或函数签名，AI 会建议实现代码：</li>
+    </ol>
+
+<pre><code>// 计算两个数的最大公约数（GCD）
+public static int gcd(int a, int b) {
+  // AICode 会在此提供建议实现
+}</code></pre>
+
+    <ol start="3">
+      <li>接受或调整建议，始终手动 review AI 生成的代码并添加单元测试。</li>
+    </ol>
+
+    <h2>4. 示例：用 AI 生成单元测试（Java + JUnit）</h2>
+
+    <p>注释提示：</p>
+
+<pre><code>// 请为下面的 sum 方法生成 JUnit 5 测试用例
+public int sum(int a, int b) {
+  return a + b;
+}</code></pre>
+
+    <p>AI 可能生成的测试示例：</p>
+
+<pre><code>@Test
+public void testSum() {
+  assertEquals(5, new MyClass().sum(2, 3));
+}</code></pre>
+
+    <h2>5. 调试与验证建议</h2>
+
+    <ul>
+      <li>永远编写并运行单元测试来验证 AI 生成代码的正确性。</li>
+      <li>检查边界条件与异常处理（AI 有时忽略异常场景）。</li>
+      <li>关注性能热点，避免直接接受未评估复杂度的实现。</li>
+      <li>在安全敏感代码中（认证、加密、权限）避免直接使用未经审查的 AI 代码。</li>
+    </ul>
+
+    <h2>6. 法律与伦理提示</h2>
+
+    <ul>
+      <li>确认生成代码的许可证与公司策略，避免版权或合规问题。</li>
+      <li>不向公共 AI 服务泄露敏感或专有代码片段。</li>
+    </ul>
+
+    <h2>7. 常见问题</h2>
+
+    <ul>
+      <li>AI 建议与项目风格不一致：配置代码格式化工具（如 Prettier/EditorConfig）并在 review 中调整。</li>
+      <li>生成代码有错误：回退并手动修正，或修改提示以得到更精确建议。</li>
+    </ul>
+
+    <h2>8. 推荐学习资源</h2>
+
+    <ul>
+      <li>官方插件文档（如 GitHub Copilot 文档）</li>
+      <li>AI 提示工程（Prompt Engineering）相关文章与示例</li>
+      <li>团队内部最佳实践与代码审查流程</li>
+    </ul>
+
+    <hr>
+
+    <blockquote>
+      <p>小结：AICode 可以显著提升开发效率，但必须结合单元测试、人工审查与安全合规流程使用。</p>
+    </blockquote>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>© 2024 牛马程序员 · <a href="mailto:bobcbui@outlook.com">bobcbui@outlook.com</a></p>
+</footer>
+
+</body>
+</html>
