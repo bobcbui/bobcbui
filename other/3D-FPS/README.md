@@ -14,7 +14,7 @@
 
 ## 技术说明
 
-- 渲染引擎：`Babylon.js` + WebGPU。
+- 渲染引擎：`Babylon.js`，优先尝试 WebGPU，失败自动回退到 WebGL。
 - UI：`babylon.gui.min.js`。
 - 模型加载器：`babylonjs.loaders.min.js`。
 - 声音：Web Audio 合成音效。
@@ -44,12 +44,14 @@ python3 -m http.server 8877
 
 ## 目录结构
 
-- `index.html`：主程序（场景、输入、战斗、动画、HUD）。
-- `babylon.js`：Babylon 引擎。
-- `babylon.gui.min.js`：GUI 组件。
-- `babylonjs.loaders.min.js`：模型加载器。
-- `model/enemy.obj`：预留敌人模型资源。
-- `model/knock.obj`：预留武器模型资源。
+- `index.html`：页面骨架与脚本入口。
+- `src/main.js`：ESM 入口文件。
+- `src/fps-game.js`：核心游戏逻辑模块。
+- `lib/babylon.js`：Babylon 引擎（第三方）。
+- `lib/babylon.gui.min.js`：GUI 组件（第三方）。
+- `lib/babylonjs.loaders.min.js`：模型加载器（第三方）。
+- `resource/model/enemy.obj`：预留敌人模型资源。
+- `resource/model/knock.obj`：预留武器模型资源。
 
 ## 调试与自动化接口
 
@@ -60,9 +62,11 @@ python3 -m http.server 8877
 
 ## 资源扩展建议
 
-如果后续要继续扩展，可在本目录新增：
+如果后续要继续扩展，建议放在 `resource/` 下，例如：
 
-- `models/`：`OBJ` 模型 ， 利用大语言模型之际生成模型。
+- `resource/model/`：`OBJ/GLB/GLTF` 模型
+- `resource/texture/`：贴图
+- `resource/audio/`：外部音效/BGM
 
 ## 已知差距（相对完整游戏）
 

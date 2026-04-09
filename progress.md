@@ -11,3 +11,5 @@ Original prompt: 沒有物理效果啊, 沒有聲音
 - Upgraded `other/3D-FPS/index.html` to support WebGPU-first engine bootstrap with timed fallback to WebGL.
 - Integrated async Havok physics bootstrap (non-blocking startup) and physics registration helpers; added environment colliders + optional physics loot debris effects.
 - Added runtime backend visibility in HUD and in `window.render_game_to_text()` payload.
+- Modularized `other/3D-FPS` structure: moved third-party scripts to `lib/`, game code to `src/` (`main.js` + `fps-game.js`), and models to `resource/model/`.
+- Updated `other/3D-FPS/index.html` and `README.md` to match new paths and module entry flow.
