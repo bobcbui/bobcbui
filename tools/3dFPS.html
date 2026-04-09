@@ -215,7 +215,7 @@
 			});
 
 			const scene = new BABYLON.Scene(engine);
-			scene.clearColor = new BABYLON.Color4(0.03, 0.07, 0.12, 1);
+			scene.clearColor = new BABYLON.Color4(0.54, 0.8, 0.98, 1);
 			scene.collisionsEnabled = true;
 			scene.gravity = new BABYLON.Vector3(0, -0.4, 0);
 
@@ -225,17 +225,19 @@
 			// 我们使用单独的不可见碰撞体处理碰撞移动，避免依赖 camera.moveWithCollisions()
 			camera.checkCollisions = false;
 			// Minecraft 移动速度约 0.1 方块/毫秒，调整为合理的游戏感觉
-			camera.speed = 0.015;
-			camera.angularSensibility = 1000; // 更低的敏感度，接近 Minecraft 手感
+			camera.speed = 0.038;
+			camera.angularSensibility = 850; // 略快一点，避免拖滞感
 			// 更接近 Minecraft 玩家碰撞盒（宽、眼高、深）
 			camera.ellipsoid = new BABYLON.Vector3(0.6, 1.62, 0.6);
 
 			// 创建一个不可见的 player 碰撞体用于 moveWithCollisions
 			const playerHeight = 1.8; // Minecraft 玩家高度 1.8 方块
-			const player = BABYLON.MeshBuilder.CreateBox("playerCollider", { height: playerHeight, width: 0.8, depth: 0.8 }, scene);
+			const player = BABYLON.MeshBuilder.CreateBox("playerCollider", { height: playerHeight, width: 0.6, depth: 0.6 }, scene);
 			player.position = new BABYLON.Vector3(camera.position.x, playerHeight / 2, camera.position.z);
 			player.checkCollisions = true;
 			player.isVisible = false;
+			// 添加碰撞边距以改善碰撞检测稳定性
+			player.ellipsoid = new BABYLON.Vector3(0.3, 0.9, 0.3);
 			const cameraEyeOffset = 1.62 - (playerHeight / 2);
 			// 将相机初始位置同步到 player 的头部高度
 			camera.position = new BABYLON.Vector3(player.position.x, player.position.y + cameraEyeOffset, player.position.z);
@@ -244,18 +246,16 @@
 			camera.keysLeft = [65];
 			camera.keysRight = [68];
 
-			const light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0.2, 1, 0.1), scene);
-			// 偏冷的天空环境光
-			light.intensity = 0.75;
-			light.diffuse = new BABYLON.Color3(0.7, 0.82, 1);
-			light.groundColor = new BABYLON.Color3(0.18, 0.2, 0.28);
+			const light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+			light.intensity = 1.0;
+			light.diffuse = new BABYLON.Color3(0.92, 0.96, 1);
+			light.groundColor = new BABYLON.Color3(0.38, 0.32, 0.22);
 
-			const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.45, -1, 0.35), scene);
-			// 更偏黄的太阳光，接近 Minecraft 日光色调
-			sun.position = new BABYLON.Vector3(20, 30, -20);
-			sun.diffuse = new BABYLON.Color3(1.0, 0.95, 0.75);
-			sun.specular = new BABYLON.Color3(0.2, 0.18, 0.12);
-			sun.intensity = 1.2;
+			const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.35, -0.9, 0.25), scene);
+			sun.position = new BABYLON.Vector3(24, 32, -18);
+			sun.diffuse = new BABYLON.Color3(1.0, 0.98, 0.86);
+			sun.specular = new BABYLON.Color3(0.08, 0.08, 0.07);
+			sun.intensity = 1.45;
 
 			const shadowGenerator = new BABYLON.ShadowGenerator(1024, sun);
 			// 方块风格使用较硬的阴影（减少模糊）并启用 Poisson 取样以获得更稳定的像素化阴影
@@ -265,6 +265,17 @@
 
 			const arenaSize = 60;
 
+			const skybox = BABYLON.MeshBuilder.CreateBox("skybox", { size: 400 }, scene);
+			const skyboxMat = new BABYLON.StandardMaterial("skyboxMat", scene);
+			skyboxMat.backFaceCulling = false;
+			skyboxMat.disableLighting = true;
+			skyboxMat.specularColor = BABYLON.Color3.Black();
+			skyboxMat.diffuseColor = new BABYLON.Color3(0.56, 0.8, 0.98);
+			skyboxMat.emissiveColor = new BABYLON.Color3(0.56, 0.8, 0.98);
+			skybox.material = skyboxMat;
+			skybox.infiniteDistance = true;
+			skybox.isPickable = false;
+
 			const floor = BABYLON.MeshBuilder.CreateGround("floor", { width: arenaSize, height: arenaSize, subdivisions: 2 }, scene);
 			floor.checkCollisions = true;
 			floor.receiveShadows = true;
@@ -273,12 +284,25 @@
 			const floorMat = new BABYLON.StandardMaterial("floorMat", scene);
 			const floorTexture = new BABYLON.DynamicTexture("floorTexture", { width: 1024, height: 1024 }, scene, false);
 			const ctx = floorTexture.getContext();
-			ctx.fillStyle = "#68a04c";
+			ctx.fillStyle = "#74b44a";
 			ctx.fillRect(0, 0, 1024, 1024);
-			ctx.strokeStyle = "rgba(86, 58, 28, 0.38)";
-			ctx.lineWidth = 3;
+			const tileSize = 32;
+			for (let gx = 0; gx < 32; gx++) {
+				for (let gy = 0; gy < 32; gy++) {
+					const x = gx * tileSize;
+					const y = gy * tileSize;
+					ctx.fillStyle = (gx + gy) % 2 === 0 ? "#78bb4d" : "#6eae46";
+					ctx.fillRect(x, y, tileSize, tileSize);
+					ctx.fillStyle = "rgba(150, 198, 95, 0.18)";
+					ctx.fillRect(x + 3, y + 3, tileSize - 6, 6);
+					ctx.fillStyle = "rgba(78, 114, 43, 0.2)";
+					ctx.fillRect(x, y + tileSize - 5, tileSize, 5);
+				}
+			}
+			ctx.strokeStyle = "rgba(69, 48, 24, 0.35)";
+			ctx.lineWidth = 2;
 			for (let i = 0; i <= 32; i++) {
-				const p = (1024 / 32) * i;
+				const p = tileSize * i;
 				ctx.beginPath();
 				ctx.moveTo(p, 0);
 				ctx.lineTo(p, 1024);
@@ -288,16 +312,16 @@
 				ctx.lineTo(1024, p);
 				ctx.stroke();
 			}
-			ctx.fillStyle = "rgba(92, 137, 56, 0.18)";
-			for (let i = 0; i < 120; i++) {
-				ctx.fillRect(Math.random() * 1024, Math.random() * 1024, 4, 4);
+			ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+			for (let i = 0; i < 140; i++) {
+				ctx.fillRect(Math.random() * 1024, Math.random() * 1024, 3, 3);
 			}
 			floorTexture.update(false);
-			floorTexture.uScale = 6;
-			floorTexture.vScale = 6;
+			floorTexture.uScale = 5;
+			floorTexture.vScale = 5;
 			floorMat.diffuseTexture = floorTexture;
-			floorMat.specularColor = new BABYLON.Color3(0.08, 0.1, 0.12);
-			floorMat.emissiveColor = new BABYLON.Color3(0.02, 0.03, 0.04);
+			floorMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+			floorMat.emissiveColor = new BABYLON.Color3(0.05, 0.08, 0.03);
 			floor.material = floorMat;
 
 			function makeWall(name, width, height, depth, x, y, z) {
@@ -357,8 +381,9 @@
 
 			const weapon = new BABYLON.TransformNode("weapon", scene);
 			weapon.parent = camera;
-			weapon.position.set(0.33, -0.33, 0.72);
-			weapon.rotation.set(0.04, Math.PI, -0.02);
+			// 调整武器位置使其可见：右下前方（相对于相机）
+			weapon.position.set(0.25, -0.25, 0.5);
+			weapon.rotation.set(0.02, Math.PI, 0);
 
 			const weaponBase = BABYLON.MeshBuilder.CreateBox("weaponBase", { width: 0.34, height: 0.16, depth: 0.42 }, scene);
 			weaponBase.parent = weapon;
@@ -452,8 +477,7 @@
 			const moveState = { forward: false, back: false, left: false, right: false };
 			let jumpVelocity = 0;
 			let grounded = true;
-			// Minecraft 眼高约 1.62
-			const groundHeight = 1.62;
+			const floorLevel = playerHeight / 2;
 
 			let health = 100;
 			let ammo = 30;
@@ -661,7 +685,7 @@
 					shadowGenerator.addShadowCaster(body);
 				} else {
 					// 使用多个立方体组成的方块化敌人（根节点为 collider，用于移动/碰撞）
-					const collider = BABYLON.MeshBuilder.CreateBox(`enemy-collider-${index}`, { height: 1.8, width: 0.8, depth: 0.6 }, scene);
+					const collider = BABYLON.MeshBuilder.CreateBox(`enemy-collider-${index}`, { height: 1.8, width: 0.6, depth: 0.5 }, scene);
 					collider.position = randomSpawnPosition();
 					collider.position.y = 0.9;
 					collider.checkCollisions = true;
@@ -868,7 +892,7 @@
 						reload();
 					}
 					if (event.code === "Space" && grounded && !paused) {
-						jumpVelocity = 0.26;
+						jumpVelocity = 0.42;
 						grounded = false;
 					}
 					if (event.code === "Escape" && !paused) {
@@ -893,6 +917,17 @@
 			setupInput();
 			updateHUD();
 			await loadObjAssets();
+			
+			// 初始化：确保 player 立即与地面碰撞（大幅下落以确保到达地面）
+			player.moveWithCollisions(new BABYLON.Vector3(0, -10, 0));
+			if (player.position.y < floorLevel) {
+				player.position.y = floorLevel;
+			}
+			// 同步相机到 player 最终位置
+			camera.position.x = player.position.x;
+			camera.position.y = player.position.y + cameraEyeOffset;
+			camera.position.z = player.position.z;
+			
 			spawnWave();
 
 			scene.onBeforeRenderObservable.add(() => {
@@ -917,22 +952,34 @@
 					let right = camera.getDirection(BABYLON.Axis.X);
 					right.y = 0;
 					right.normalize();
-					horiz = forward.scale(moveVector.z).add(right.scale(moveVector.x)).scale(camera.speed * dt * 1.8);
+					horiz = forward.scale(moveVector.z).add(right.scale(moveVector.x)).scale(camera.speed * dt);
+					// 限制水平移动距离以防止穿模
+					const horizLen = horiz.length();
+					if (horizLen > 0.22) {
+						horiz.scaleInPlace(0.22 / horizLen);
+					}
 				}
 
-				// Minecraft 风格重力（更快的下落）
-				jumpVelocity -= 0.05 * dt; // 增加重力加速度
+				jumpVelocity -= 0.07 * dt;
 				const vertical = new BABYLON.Vector3(0, jumpVelocity * dt, 0);
+				if (vertical.y < -0.3) vertical.y = -0.3;
+				if (vertical.y > 0.24) vertical.y = 0.24;
 
-				// 使用不可见 player 碰撞体进行碰撞移动，然后把相机同步到该碰撞体之上
-				player.moveWithCollisions(horiz.add(vertical));
+				// 分离碰撞移动：先水平后垂直（更稳定）
+				if (horiz.lengthSquared() > 0) {
+					player.moveWithCollisions(horiz);
+				}
+				if (vertical.lengthSquared() > 0) {
+					player.moveWithCollisions(vertical);
+				}
 				// 同步相机到 player 上方（眼高偏移）
 				camera.position.x = player.position.x;
 				camera.position.z = player.position.z;
 				camera.position.y = player.position.y + cameraEyeOffset;
 
-				if (camera.position.y <= groundHeight + 0.001) {
-					camera.position.y = groundHeight;
+				if (player.position.y <= floorLevel + 0.001) {
+					player.position.y = floorLevel;
+					camera.position.y = player.position.y + cameraEyeOffset;
 					jumpVelocity = 0;
 					grounded = true;
 				} else {
@@ -953,7 +1000,15 @@
 					const distance = delta.length();
 					const direction = distance > 0.001 ? delta.scale(1 / distance) : BABYLON.Vector3.Zero();
 					enemy.mesh.lookAt(camera.position);
-					enemy.mesh.moveWithCollisions(direction.scale(enemy.speed * dt));
+					// 限制敌人每帧移动距离防止卡住
+					let moveDir = direction.scale(enemy.speed * dt);
+					const moveLen = moveDir.length();
+					if (moveLen > 0.08) {
+						moveDir.scaleInPlace(0.08 / moveLen);
+					}
+					if (moveLen > 0.001) {
+						enemy.mesh.moveWithCollisions(moveDir);
+					}
 					enemy.healthBar.linkOffsetY = -55;
 
 					if (distance < 1.8) {
