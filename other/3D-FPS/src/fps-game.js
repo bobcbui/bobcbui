@@ -1,0 +1,1327 @@
+export async function boot3DFPSGame() {
+const canvas = document.getElementById("gameCanvas");
+				const healthText = document.getElementById("healthText");
+				const ammoText = document.getElementById("ammoText");
+				const scoreText = document.getElementById("scoreText");
+				const waveText = document.getElementById("waveText");
+				const runtimeText = document.getElementById("runtimeText");
+				const enemyCountText = document.getElementById("enemyCount");
+				const centerHint = document.getElementById("centerHint");
+				const message = document.getElementById("message");
+				try {
+
+				const engineOptions = {
+					preserveDrawingBuffer: true,
+					stencil: true,
+				};
+
+				function withTimeout(promise, timeoutMs, timeoutValue) {
+					return Promise.race([
+						promise,
+						new Promise((resolve) => {
+							setTimeout(() => resolve(timeoutValue), timeoutMs);
+						}),
+					]);
+				}
+
+					async function supportsWebGPU() {
+						if (!BABYLON.WebGPUEngine) return false;
+						try {
+							const probe = BABYLON.WebGPUEngine.IsSupportedAsync;
+							if (typeof probe === "function") {
+								return !!(await withTimeout(
+									probe.call(BABYLON.WebGPUEngine),
+									1200,
+									false,
+								));
+							}
+							if (probe && typeof probe.then === "function") {
+								return !!(await withTimeout(probe, 1200, false));
+							}
+						} catch (error) {
+							console.warn("WebGPU support probe failed, fallback to WebGL.", error);
+						}
+						return !!navigator.gpu;
+				}
+
+				async function createRenderingEngine() {
+					const webgpuAvailable = await supportsWebGPU();
+						if (webgpuAvailable) {
+							try {
+								const webgpuEngine = new BABYLON.WebGPUEngine(canvas, engineOptions);
+								const webgpuReady = await withTimeout(
+									webgpuEngine.initAsync().then(() => true).catch(() => false),
+									3200,
+									false,
+								);
+								if (!webgpuReady) throw new Error("WebGPU init timeout");
+								return { engine: webgpuEngine, backend: "WebGPU" };
+							} catch (error) {
+								console.warn("WebGPU initialization failed, fallback to WebGL.", error);
+							}
+						}
+					return { engine: new BABYLON.Engine(canvas, true, engineOptions), backend: "WebGL" };
+				}
+
+				const rendering = await createRenderingEngine();
+				const engine = rendering.engine;
+				const renderingBackend = rendering.backend;
+
+				const scene = new BABYLON.Scene(engine);
+				scene.clearColor = new BABYLON.Color4(0.54, 0.8, 0.98, 1);
+				scene.collisionsEnabled = true;
+				scene.gravity = new BABYLON.Vector3(0, -0.4, 0);
+
+				const physicsState = {
+					enabled: false,
+					backend: "Disabled",
+					staticHandles: [],
+					dynamicHandles: [],
+				};
+				const pendingPhysicsRegistrations = [];
+
+				async function loadExternalScript(src, timeoutMs = 10000) {
+					return new Promise((resolve, reject) => {
+						const existing = Array.from(document.querySelectorAll("script")).find((node) => node.src === src);
+						if (existing) {
+							resolve();
+							return;
+						}
+						const tag = document.createElement("script");
+						tag.src = src;
+						tag.async = true;
+						let finished = false;
+						const timeout = setTimeout(() => {
+							if (finished) return;
+							finished = true;
+							tag.remove();
+							reject(new Error(`Loading script timed out: ${src}`));
+						}, timeoutMs);
+						tag.onload = () => {
+							if (finished) return;
+							finished = true;
+							clearTimeout(timeout);
+							resolve();
+						};
+						tag.onerror = () => {
+							if (finished) return;
+							finished = true;
+							clearTimeout(timeout);
+							tag.remove();
+							reject(new Error(`Failed to load script: ${src}`));
+						};
+						document.head.appendChild(tag);
+					});
+				}
+
+				async function initPhysicsEngine() {
+					if (!scene.enablePhysics) {
+						physicsState.backend = "ScenePhysicsUnavailable";
+						runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+						return;
+					}
+					physicsState.backend = "PhysicsBooting";
+					runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+					if (!BABYLON.HavokPlugin) {
+						physicsState.backend = "HavokPluginMissing";
+					}
+					if (typeof HavokPhysics !== "function") {
+						try {
+							await loadExternalScript("https://cdn.babylonjs.com/havok/HavokPhysics_umd.js");
+						} catch (error) {
+							console.warn("Havok runtime script unavailable.", error);
+							physicsState.backend = "HavokScriptUnavailable";
+							runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+						}
+					}
+					if (typeof HavokPhysics === "function" && BABYLON.HavokPlugin) {
+						try {
+							const havok = await withTimeout(HavokPhysics(), 2000, null);
+							if (!havok) {
+								physicsState.backend = "HavokInitTimeout";
+								runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+								return;
+							}
+							const plugin = new BABYLON.HavokPlugin(true, havok);
+							scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), plugin);
+							physicsState.enabled = true;
+							physicsState.backend = "Havok";
+							runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+							flushPendingPhysicsRegistrations();
+							return;
+						} catch (error) {
+							console.warn("Havok physics initialization failed.", error);
+							physicsState.backend = "HavokInitFailed";
+							runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+						}
+					}
+					runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+				}
+
+				function physicsShapeFromName(shapeName) {
+					if (!BABYLON.PhysicsShapeType) return null;
+					if (shapeName === "sphere") return BABYLON.PhysicsShapeType.SPHERE;
+					if (shapeName === "capsule") return BABYLON.PhysicsShapeType.CAPSULE;
+					if (shapeName === "mesh") return BABYLON.PhysicsShapeType.MESH;
+					return BABYLON.PhysicsShapeType.BOX;
+				}
+
+				function impostorShapeFromName(shapeName) {
+					if (!BABYLON.PhysicsImpostor) return null;
+					if (shapeName === "sphere") return BABYLON.PhysicsImpostor.SphereImpostor;
+					if (shapeName === "mesh") return BABYLON.PhysicsImpostor.MeshImpostor;
+					return BABYLON.PhysicsImpostor.BoxImpostor;
+				}
+
+				function registerPhysics(mesh, options = {}) {
+					if (!mesh) return null;
+					if (!physicsState.enabled) {
+						pendingPhysicsRegistrations.push({ mesh, options });
+						return null;
+					}
+					const {
+						shape = "box",
+						mass = 0,
+						friction = 0.8,
+						restitution = 0.02,
+						track = mass > 0 ? "dynamic" : "static",
+					} = options;
+
+					let handle = null;
+					if (BABYLON.PhysicsAggregate && BABYLON.PhysicsShapeType) {
+						try {
+							const aggregate = new BABYLON.PhysicsAggregate(
+								mesh,
+								physicsShapeFromName(shape),
+								{ mass, friction, restitution },
+								scene,
+							);
+							handle = { type: "aggregate", aggregate, body: aggregate.body, mesh };
+						} catch (error) {
+							console.warn("PhysicsAggregate registration failed.", error);
+						}
+					}
+
+					if (!handle && BABYLON.PhysicsImpostor) {
+						try {
+							mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+								mesh,
+								impostorShapeFromName(shape),
+								{ mass, friction, restitution },
+								scene,
+							);
+							handle = { type: "impostor", impostor: mesh.physicsImpostor, mesh };
+						} catch (error) {
+							console.warn("PhysicsImpostor registration failed.", error);
+						}
+					}
+
+					if (handle) {
+						if (track === "dynamic") physicsState.dynamicHandles.push(handle);
+						else physicsState.staticHandles.push(handle);
+					}
+					return handle;
+				}
+
+				function flushPendingPhysicsRegistrations() {
+					if (!physicsState.enabled || pendingPhysicsRegistrations.length === 0) return;
+					const pending = pendingPhysicsRegistrations.splice(0, pendingPhysicsRegistrations.length);
+					pending.forEach((entry) => {
+						registerPhysics(entry.mesh, entry.options);
+					});
+				}
+
+				function disposePhysicsHandle(handle) {
+					if (!handle) return;
+					if (handle.type === "aggregate" && handle.aggregate && handle.aggregate.dispose) {
+						handle.aggregate.dispose();
+					}
+					if (handle.type === "impostor" && handle.impostor && handle.impostor.dispose) {
+						handle.impostor.dispose();
+					}
+					physicsState.staticHandles = physicsState.staticHandles.filter((item) => item !== handle);
+					physicsState.dynamicHandles = physicsState.dynamicHandles.filter((item) => item !== handle);
+				}
+
+				function applyPhysicsImpulse(handle, impulse, point) {
+					if (!handle || !impulse) return;
+					if (handle.type === "aggregate" && handle.body && handle.body.applyImpulse) {
+						handle.body.applyImpulse(impulse, point || handle.mesh.getAbsolutePosition());
+						return;
+					}
+					if (handle.type === "impostor" && handle.impostor && handle.impostor.applyImpulse) {
+						handle.impostor.applyImpulse(impulse, point || handle.mesh.getAbsolutePosition());
+					}
+				}
+
+				runtimeText.textContent = `${renderingBackend} / Initializing`;
+				initPhysicsEngine().catch((error) => {
+					console.warn("Physics bootstrap failed.", error);
+					physicsState.backend = "PhysicsBootstrapFailed";
+					runtimeText.textContent = `${renderingBackend} / ${physicsState.backend}`;
+				});
+
+				const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 1.7, -12), scene);
+			camera.attachControl(canvas, true);
+			camera.applyGravity = false;
+			// 我们使用单独的不可见碰撞体处理碰撞移动，避免依赖 camera.moveWithCollisions()
+			camera.checkCollisions = false;
+			// Minecraft 移动速度约 0.1 方块/毫秒，调整为合理的游戏感觉
+			camera.speed = 0.038;
+			camera.minZ = 0.05;
+			camera.angularSensibility = 850; // 略快一点，避免拖滞感
+			// 更接近 Minecraft 玩家碰撞盒（宽、眼高、深）
+			camera.ellipsoid = new BABYLON.Vector3(0.6, 1.62, 0.6);
+
+			// 创建一个不可见的 player 碰撞体用于 moveWithCollisions
+			const playerHeight = 1.8; // Minecraft 玩家高度 1.8 方块
+			const player = BABYLON.MeshBuilder.CreateBox("playerCollider", { height: playerHeight, width: 0.6, depth: 0.6 }, scene);
+			player.position = new BABYLON.Vector3(camera.position.x, playerHeight / 2, camera.position.z);
+			player.checkCollisions = true;
+			player.isVisible = false;
+			// 添加碰撞边距以改善碰撞检测稳定性
+			player.ellipsoid = new BABYLON.Vector3(0.3, 0.9, 0.3);
+			const cameraEyeOffset = 1.62 - (playerHeight / 2);
+			// 将相机初始位置同步到 player 的头部高度
+			camera.position = new BABYLON.Vector3(player.position.x, player.position.y + cameraEyeOffset, player.position.z);
+			camera.keysUp = [87];
+			camera.keysDown = [83];
+			camera.keysLeft = [65];
+			camera.keysRight = [68];
+
+			const light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+			light.intensity = 1.0;
+			light.diffuse = new BABYLON.Color3(0.92, 0.96, 1);
+			light.groundColor = new BABYLON.Color3(0.38, 0.32, 0.22);
+
+			const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.35, -0.9, 0.25), scene);
+			sun.position = new BABYLON.Vector3(24, 32, -18);
+			sun.diffuse = new BABYLON.Color3(1.0, 0.98, 0.86);
+			sun.specular = new BABYLON.Color3(0.08, 0.08, 0.07);
+			sun.intensity = 1.45;
+
+			const shadowGenerator = new BABYLON.ShadowGenerator(1024, sun);
+			// 方块风格使用较硬的阴影（减少模糊）并启用 Poisson 取样以获得更稳定的像素化阴影
+			shadowGenerator.useBlurExponentialShadowMap = false;
+			shadowGenerator.usePoissonSampling = true;
+			shadowGenerator.blurKernel = 4;
+
+			const arenaSize = 60;
+
+			const skybox = BABYLON.MeshBuilder.CreateBox("skybox", { size: 400 }, scene);
+			const skyboxMat = new BABYLON.StandardMaterial("skyboxMat", scene);
+			skyboxMat.backFaceCulling = false;
+			skyboxMat.disableLighting = true;
+			skyboxMat.specularColor = BABYLON.Color3.Black();
+			skyboxMat.diffuseColor = new BABYLON.Color3(0.56, 0.8, 0.98);
+			skyboxMat.emissiveColor = new BABYLON.Color3(0.56, 0.8, 0.98);
+			skybox.material = skyboxMat;
+			skybox.infiniteDistance = true;
+			skybox.isPickable = false;
+
+				const floor = BABYLON.MeshBuilder.CreateGround("floor", { width: arenaSize, height: arenaSize, subdivisions: 2 }, scene);
+				floor.checkCollisions = true;
+				floor.receiveShadows = true;
+				floor.isPickable = true;
+				registerPhysics(floor, { shape: "mesh", mass: 0, friction: 0.95, restitution: 0.01 });
+
+			const floorMat = new BABYLON.StandardMaterial("floorMat", scene);
+			const floorTexture = new BABYLON.DynamicTexture("floorTexture", { width: 1024, height: 1024 }, scene, false);
+			const ctx = floorTexture.getContext();
+			ctx.fillStyle = "#74b44a";
+			ctx.fillRect(0, 0, 1024, 1024);
+			const tileSize = 32;
+			for (let gx = 0; gx < 32; gx++) {
+				for (let gy = 0; gy < 32; gy++) {
+					const x = gx * tileSize;
+					const y = gy * tileSize;
+					ctx.fillStyle = (gx + gy) % 2 === 0 ? "#78bb4d" : "#6eae46";
+					ctx.fillRect(x, y, tileSize, tileSize);
+					ctx.fillStyle = "rgba(150, 198, 95, 0.18)";
+					ctx.fillRect(x + 3, y + 3, tileSize - 6, 6);
+					ctx.fillStyle = "rgba(78, 114, 43, 0.2)";
+					ctx.fillRect(x, y + tileSize - 5, tileSize, 5);
+				}
+			}
+			ctx.strokeStyle = "rgba(69, 48, 24, 0.35)";
+			ctx.lineWidth = 2;
+			for (let i = 0; i <= 32; i++) {
+				const p = tileSize * i;
+				ctx.beginPath();
+				ctx.moveTo(p, 0);
+				ctx.lineTo(p, 1024);
+				ctx.stroke();
+				ctx.beginPath();
+				ctx.moveTo(0, p);
+				ctx.lineTo(1024, p);
+				ctx.stroke();
+			}
+			ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+			for (let i = 0; i < 140; i++) {
+				ctx.fillRect(Math.random() * 1024, Math.random() * 1024, 3, 3);
+			}
+			floorTexture.update(false);
+			floorTexture.uScale = 5;
+			floorTexture.vScale = 5;
+			floorMat.diffuseTexture = floorTexture;
+			floorMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+			floorMat.emissiveColor = new BABYLON.Color3(0.05, 0.08, 0.03);
+			floor.material = floorMat;
+
+				function makeWall(name, width, height, depth, x, y, z) {
+					const wall = BABYLON.MeshBuilder.CreateBox(name, { width, height, depth }, scene);
+					wall.position.set(x, y, z);
+					wall.checkCollisions = true;
+					wall.receiveShadows = true;
+				const mat = new BABYLON.StandardMaterial(name + "Mat", scene);
+				mat.diffuseColor = new BABYLON.Color3(0.08, 0.17, 0.23);
+					mat.emissiveColor = new BABYLON.Color3(0.02, 0.04, 0.05);
+					wall.material = mat;
+					shadowGenerator.addShadowCaster(wall);
+					registerPhysics(wall, { shape: "box", mass: 0, friction: 0.88, restitution: 0.02 });
+					return wall;
+				}
+
+			const boundary = 1.2;
+			makeWall("north", arenaSize, 6, boundary, 0, 3, arenaSize / 2);
+			makeWall("south", arenaSize, 6, boundary, 0, 3, -arenaSize / 2);
+			makeWall("east", boundary, 6, arenaSize, arenaSize / 2, 3, 0);
+			makeWall("west", boundary, 6, arenaSize, -arenaSize / 2, 3, 0);
+
+				function addPillar(x, z, height = 4) {
+				// 使用较方的柱子并启用平面着色以获得像素化效果
+				const pillar = BABYLON.MeshBuilder.CreateCylinder("pillar", { height, diameter: 1.8, tessellation: 10 }, scene);
+				pillar.position.set(x, height / 2, z);
+				pillar.checkCollisions = true;
+				const mat = new BABYLON.StandardMaterial("pillarMat", scene);
+				mat.diffuseColor = new BABYLON.Color3(0.12, 0.22, 0.28);
+				mat.specularColor = new BABYLON.Color3(0, 0, 0);
+				mat.emissiveColor = new BABYLON.Color3(0.03, 0.05, 0.06);
+				pillar.material = mat;
+					if (pillar.convertToFlatShadedMesh) pillar.convertToFlatShadedMesh();
+					shadowGenerator.addShadowCaster(pillar);
+					registerPhysics(pillar, { shape: "box", mass: 0, friction: 0.85, restitution: 0.03 });
+					return pillar;
+				}
+
+			[
+				[-12, -8], [12, -8], [-12, 8], [12, 8], [0, 0], [-5, 15], [5, -15]
+			].forEach(([x, z]) => addPillar(x, z));
+
+			for (let i = 0; i < 10; i++) {
+				const box = BABYLON.MeshBuilder.CreateBox(`crate-${i}`, {
+					width: 2 + Math.random() * 2,
+					height: 1.4 + Math.random() * 1.2,
+					depth: 1.8 + Math.random() * 2,
+				}, scene);
+				box.position.set((Math.random() - 0.5) * 42, 0, (Math.random() - 0.5) * 42);
+				box.position.y = box.getBoundingInfo().boundingBox.extendSize.y;
+				box.checkCollisions = true;
+				const mat = new BABYLON.StandardMaterial(`crateMat-${i}`, scene);
+				mat.diffuseColor = new BABYLON.Color3(0.35 + Math.random() * 0.15, 0.2 + Math.random() * 0.1, 0.1 + Math.random() * 0.07);
+				mat.specularColor = new BABYLON.Color3(0, 0, 0);
+				box.material = mat;
+					if (box.convertToFlatShadedMesh) box.convertToFlatShadedMesh();
+					shadowGenerator.addShadowCaster(box);
+					registerPhysics(box, { shape: "box", mass: 0, friction: 0.86, restitution: 0.02 });
+				}
+
+			function createFlatMaterial(name, color, emissive = null) {
+				const mat = new BABYLON.StandardMaterial(name, scene);
+				mat.diffuseColor = color;
+				mat.specularColor = BABYLON.Color3.Black();
+				mat.emissiveColor = emissive || color.scale(0.1);
+				return mat;
+			}
+
+			function createViewPart(name, dimensions, parent, position, material, rotation = null) {
+				const mesh = BABYLON.MeshBuilder.CreateBox(name, dimensions, scene);
+				mesh.parent = parent;
+				mesh.position.copyFrom(position);
+				if (rotation) mesh.rotation.copyFrom(rotation);
+				mesh.material = material;
+				mesh.isPickable = false;
+				mesh.receiveShadows = false;
+				if (mesh.convertToFlatShadedMesh) mesh.convertToFlatShadedMesh();
+				return mesh;
+			}
+
+			const viewRig = new BABYLON.TransformNode("viewRig", scene);
+			viewRig.parent = camera;
+			viewRig.position.set(0, -0.24, 0.8);
+
+			const weapon = new BABYLON.TransformNode("weapon", scene);
+			weapon.parent = viewRig;
+			weapon.position.set(0.32, -0.1, 0.05);
+			weapon.rotation.set(0.08, 0.16, 0.04);
+
+			const skinMat = createFlatMaterial("skinMat", new BABYLON.Color3(0.96, 0.82, 0.67), new BABYLON.Color3(0.12, 0.08, 0.05));
+			const sleeveMat = createFlatMaterial("sleeveMat", new BABYLON.Color3(0.12, 0.48, 0.78), new BABYLON.Color3(0.02, 0.06, 0.08));
+			const pantMat = createFlatMaterial("pantMat", new BABYLON.Color3(0.16, 0.24, 0.72), new BABYLON.Color3(0.02, 0.02, 0.08));
+			const bootMat = createFlatMaterial("bootMat", new BABYLON.Color3(0.22, 0.12, 0.08), new BABYLON.Color3(0.03, 0.02, 0.01));
+				const weaponMat = createFlatMaterial("weaponMat", new BABYLON.Color3(0.16, 0.18, 0.22), new BABYLON.Color3(0.03, 0.03, 0.04));
+				const weaponDarkMat = createFlatMaterial("weaponDarkMat", new BABYLON.Color3(0.09, 0.1, 0.12), new BABYLON.Color3(0.02, 0.02, 0.03));
+				const magMat = createFlatMaterial("magMat", new BABYLON.Color3(0.38, 0.24, 0.12), new BABYLON.Color3(0.05, 0.03, 0.01));
+				const lootMat = createFlatMaterial("lootMat", new BABYLON.Color3(0.72, 0.92, 0.48), new BABYLON.Color3(0.08, 0.12, 0.04));
+
+			const rightArmPivot = new BABYLON.TransformNode("rightArmPivot", scene);
+			rightArmPivot.parent = viewRig;
+			rightArmPivot.position.set(0.34, -0.1, 0.32);
+			const rightForearm = createViewPart("rightForearm", { width: 0.16, height: 0.42, depth: 0.16 }, rightArmPivot, new BABYLON.Vector3(0, -0.22, 0.02), sleeveMat);
+			const rightHand = createViewPart("rightHand", { width: 0.16, height: 0.16, depth: 0.16 }, rightArmPivot, new BABYLON.Vector3(0, -0.48, 0.08), skinMat);
+
+			const leftArmPivot = new BABYLON.TransformNode("leftArmPivot", scene);
+			leftArmPivot.parent = viewRig;
+			leftArmPivot.position.set(-0.18, -0.08, 0.4);
+			const leftForearm = createViewPart("leftForearm", { width: 0.16, height: 0.42, depth: 0.16 }, leftArmPivot, new BABYLON.Vector3(0, -0.22, 0.04), sleeveMat);
+			const leftHand = createViewPart("leftHand", { width: 0.16, height: 0.16, depth: 0.16 }, leftArmPivot, new BABYLON.Vector3(0, -0.48, 0.12), skinMat);
+
+			const leftLegPivot = new BABYLON.TransformNode("leftLegPivot", scene);
+			leftLegPivot.parent = viewRig;
+			leftLegPivot.position.set(-0.16, -0.68, 0.2);
+			const leftLeg = createViewPart("leftLeg", { width: 0.2, height: 0.62, depth: 0.2 }, leftLegPivot, new BABYLON.Vector3(0, -0.34, 0), pantMat);
+			const leftBoot = createViewPart("leftBoot", { width: 0.22, height: 0.12, depth: 0.28 }, leftLegPivot, new BABYLON.Vector3(0, -0.68, 0.04), bootMat);
+
+			const rightLegPivot = new BABYLON.TransformNode("rightLegPivot", scene);
+			rightLegPivot.parent = viewRig;
+			rightLegPivot.position.set(0.14, -0.68, 0.22);
+			const rightLeg = createViewPart("rightLeg", { width: 0.2, height: 0.62, depth: 0.2 }, rightLegPivot, new BABYLON.Vector3(0, -0.34, 0), pantMat);
+			const rightBoot = createViewPart("rightBoot", { width: 0.22, height: 0.12, depth: 0.28 }, rightLegPivot, new BABYLON.Vector3(0, -0.68, 0.04), bootMat);
+
+			const weaponBase = createViewPart("weaponBase", { width: 0.24, height: 0.18, depth: 0.5 }, weapon, new BABYLON.Vector3(0, 0, 0), weaponMat);
+			const weaponBarrel = createViewPart("weaponBarrel", { width: 0.08, height: 0.08, depth: 0.48 }, weapon, new BABYLON.Vector3(0.02, 0.03, 0.42), weaponDarkMat);
+			const weaponSight = createViewPart("weaponSight", { width: 0.08, height: 0.08, depth: 0.14 }, weapon, new BABYLON.Vector3(0.02, 0.12, 0.1), weaponDarkMat);
+			const weaponStock = createViewPart("weaponStock", { width: 0.16, height: 0.14, depth: 0.22 }, weapon, new BABYLON.Vector3(-0.03, -0.02, -0.24), weaponDarkMat);
+			const weaponGrip = createViewPart("weaponGrip", { width: 0.1, height: 0.24, depth: 0.14 }, weapon, new BABYLON.Vector3(-0.04, -0.2, -0.02), weaponDarkMat, new BABYLON.Vector3(0, 0, -0.28));
+
+			const magazine = new BABYLON.TransformNode("magazine", scene);
+			magazine.parent = weapon;
+			magazine.position.set(-0.02, -0.2, 0.06);
+			const magBody = createViewPart("magBody", { width: 0.1, height: 0.24, depth: 0.16 }, magazine, new BABYLON.Vector3(0, 0, 0), magMat);
+
+			const muzzle = BABYLON.MeshBuilder.CreateBox("muzzle", { width: 0.06, height: 0.06, depth: 0.06 }, scene);
+			muzzle.parent = weapon;
+			muzzle.position.set(0.02, 0.03, 0.72);
+			muzzle.isPickable = false;
+			const muzzleMat = new BABYLON.StandardMaterial("muzzleMat", scene);
+			muzzleMat.emissiveColor = new BABYLON.Color3(1, 0.8, 0.3);
+			muzzleMat.alpha = 0;
+			muzzle.material = muzzleMat;
+
+			const sparkTexture = new BABYLON.DynamicTexture("sparkTexture", { width: 64, height: 64 }, scene, false);
+			const sparkCtx = sparkTexture.getContext();
+			const sparkGradient = sparkCtx.createRadialGradient(32, 32, 2, 32, 32, 28);
+			sparkGradient.addColorStop(0, "rgba(255,255,255,1)");
+			sparkGradient.addColorStop(0.25, "rgba(255,236,160,0.95)");
+			sparkGradient.addColorStop(0.6, "rgba(124,247,212,0.55)");
+			sparkGradient.addColorStop(1, "rgba(255,255,255,0)");
+			sparkCtx.fillStyle = sparkGradient;
+			sparkCtx.fillRect(0, 0, 64, 64);
+			sparkTexture.update(false);
+
+			const uiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui");
+			const damageText = new BABYLON.GUI.TextBlock();
+			damageText.text = "";
+			damageText.color = "#ffffff";
+			damageText.fontSize = 42;
+			damageText.alpha = 0;
+			damageText.outlineColor = "#000000";
+			damageText.outlineWidth = 4;
+			uiTexture.addControl(damageText);
+
+			const hitMarker = new BABYLON.GUI.Ellipse();
+			hitMarker.width = "10px";
+			hitMarker.height = "10px";
+			hitMarker.thickness = 2;
+			hitMarker.color = "#7cf7d4";
+			hitMarker.alpha = 0;
+			uiTexture.addControl(hitMarker);
+
+			const weaponBob = { time: 0, recoil: 0, reload: 0, reloadKick: 0, moveBlend: 0, landingBounce: 0, sway: 0 };
+			const input = { reloading: false };
+			const moveState = { forward: false, back: false, left: false, right: false };
+			let jumpVelocity = 0;
+			let grounded = true;
+			let footstepTimer = 0;
+			let screenShake = 0;
+			const floorLevel = playerHeight / 2;
+
+			let health = 100;
+			let ammo = 30;
+			let reserve = 90;
+			let score = 0;
+			let wave = 1;
+			let paused = false;
+			let forcedDeltaMs = null;
+			const enemies = [];
+
+			function updateHUD() {
+				healthText.textContent = Math.max(0, Math.round(health));
+				ammoText.textContent = `${ammo} / ${reserve}`;
+				scoreText.textContent = score;
+				waveText.textContent = wave;
+				enemyCountText.textContent = enemies.filter((e) => e.alive).length;
+			}
+
+			function showMessage(text, color = "var(--muted)") {
+				message.textContent = text;
+				message.style.color = color;
+				clearTimeout(showMessage.timer);
+				showMessage.timer = setTimeout(() => {
+					message.textContent = "提示：优先击倒靠近你的敌人";
+					message.style.color = "var(--muted)";
+				}, 1800);
+			}
+
+			const audio = (() => {
+				let context = null;
+				let master = null;
+				const ensure = () => {
+					if (!context) {
+						context = new (window.AudioContext || window.webkitAudioContext)();
+						master = context.createGain();
+						master.gain.value = 0.18;
+						master.connect(context.destination);
+					}
+					if (context.state === "suspended") {
+						context.resume().catch(() => {});
+					}
+					return context;
+				};
+				const pulse = (freq, type, duration, gainValue, rampTo = 0.0001) => {
+					const ctx = ensure();
+					const osc = ctx.createOscillator();
+					const gain = ctx.createGain();
+					osc.type = type;
+					osc.frequency.value = freq;
+					gain.gain.value = gainValue;
+					osc.connect(gain);
+					gain.connect(master);
+					const now = ctx.currentTime;
+					gain.gain.setValueAtTime(gainValue, now);
+					gain.gain.exponentialRampToValueAtTime(rampTo, now + duration);
+					osc.start(now);
+					osc.stop(now + duration);
+				};
+				const noiseBurst = (duration, gainValue, highpass) => {
+					const ctx = ensure();
+					const buffer = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate * duration)), ctx.sampleRate);
+					const data = buffer.getChannelData(0);
+					for (let i = 0; i < data.length; i++) {
+						data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+					}
+					const source = ctx.createBufferSource();
+					const filter = ctx.createBiquadFilter();
+					filter.type = "highpass";
+					filter.frequency.value = highpass;
+					const gain = ctx.createGain();
+					source.buffer = buffer;
+					source.connect(filter);
+					filter.connect(gain);
+					gain.connect(master);
+					const now = ctx.currentTime;
+					gain.gain.setValueAtTime(gainValue, now);
+					gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+					source.start(now);
+					source.stop(now + duration);
+				};
+				return {
+					init() { ensure(); },
+					shoot() {
+						pulse(180, "square", 0.08, 0.08);
+						pulse(95, "sawtooth", 0.1, 0.04);
+						noiseBurst(0.06, 0.07, 500);
+					},
+					hit() { pulse(520, "triangle", 0.11, 0.055); },
+					reload() {
+						pulse(120, "sine", 0.18, 0.05);
+						setTimeout(() => pulse(240, "square", 0.06, 0.03), 90);
+					},
+					damage() {
+						pulse(72, "sawtooth", 0.12, 0.06);
+						noiseBurst(0.09, 0.04, 180);
+					},
+					jump() { pulse(260, "square", 0.08, 0.03); },
+					land() {
+						pulse(80, "triangle", 0.12, 0.05);
+						noiseBurst(0.07, 0.03, 120);
+					},
+					step(strength = 1) {
+						pulse(110, "triangle", 0.04, 0.018 * strength, 0.001);
+						noiseBurst(0.03, 0.01 * strength, 90);
+					},
+					empty() { pulse(410, "square", 0.05, 0.02); },
+				};
+			})();
+
+			function flashHitMarker() {
+				hitMarker.alpha = 1;
+				setTimeout(() => { hitMarker.alpha = 0; }, 80);
+			}
+
+			function flashDamage(value, color = "#ff6a6a") {
+				damageText.text = `-${value}`;
+				damageText.color = color;
+				damageText.alpha = 1;
+				setTimeout(() => { damageText.alpha = 0; }, 200);
+			}
+
+			function createShotTracer(start, end, color = new BABYLON.Color3(0.49, 0.97, 0.83)) {
+				const tracer = BABYLON.MeshBuilder.CreateLines("shotTracer", { points: [start, end] }, scene);
+				tracer.color = color;
+				setTimeout(() => tracer.dispose(), 45);
+			}
+
+				function createHitSparks(position) {
+					const emitter = BABYLON.MeshBuilder.CreateBox("sparkEmitter", { size: 0.01 }, scene);
+					emitter.isVisible = false;
+					emitter.position.copyFrom(position);
+
+				const sparks = new BABYLON.ParticleSystem("sparks", 28, scene);
+				sparks.particleTexture = sparkTexture;
+				sparks.emitter = emitter;
+				sparks.minEmitBox = new BABYLON.Vector3(0, 0, 0);
+				sparks.maxEmitBox = new BABYLON.Vector3(0, 0, 0);
+				sparks.color1 = new BABYLON.Color4(1, 0.98, 0.75, 1);
+				sparks.color2 = new BABYLON.Color4(0.49, 0.97, 0.83, 1);
+				sparks.colorDead = new BABYLON.Color4(0.2, 0.2, 0.2, 0);
+				sparks.minSize = 0.06;
+				sparks.maxSize = 0.16;
+				sparks.minLifeTime = 0.06;
+				sparks.maxLifeTime = 0.22;
+				sparks.emitRate = 900;
+				sparks.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+				sparks.gravity = new BABYLON.Vector3(0, -0.3, 0);
+				sparks.direction1 = new BABYLON.Vector3(-1, -0.2, -1);
+				sparks.direction2 = new BABYLON.Vector3(1, 0.6, 1);
+				sparks.minAngularSpeed = 0;
+				sparks.maxAngularSpeed = Math.PI;
+				sparks.minEmitPower = 1.2;
+				sparks.maxEmitPower = 4.2;
+				sparks.updateSpeed = 0.015;
+				sparks.start();
+
+					setTimeout(() => {
+						sparks.stop();
+						sparks.dispose();
+						emitter.dispose();
+					}, 120);
+				}
+
+				function spawnLootCubes(position, count = 4) {
+					if (!physicsState.enabled) return;
+					for (let i = 0; i < count; i++) {
+						const size = 0.18 + Math.random() * 0.08;
+						const cube = BABYLON.MeshBuilder.CreateBox(`loot-cube-${Date.now()}-${i}`, { size }, scene);
+						cube.material = lootMat;
+						cube.position.copyFrom(position);
+						cube.position.y += 0.22;
+						cube.isPickable = false;
+						shadowGenerator.addShadowCaster(cube);
+
+						const handle = registerPhysics(cube, {
+							shape: "box",
+							mass: 0.32,
+							friction: 0.72,
+							restitution: 0.28,
+							track: "dynamic",
+						});
+						const impulse = new BABYLON.Vector3(
+							(Math.random() - 0.5) * 0.9,
+							0.7 + Math.random() * 0.55,
+							(Math.random() - 0.5) * 0.9,
+						);
+						applyPhysicsImpulse(handle, impulse, cube.getAbsolutePosition());
+
+						setTimeout(() => {
+							disposePhysicsHandle(handle);
+							cube.dispose();
+						}, 3200 + Math.random() * 800);
+					}
+				}
+
+			function pickEnemyTarget(maxDistance = 120) {
+				const ray = new BABYLON.Ray(camera.position.clone(), camera.getForwardRay().direction, maxDistance);
+				const hit = scene.pickWithRay(ray, (mesh) => mesh && mesh.metadata && mesh.metadata.kind === "enemy");
+				if (!hit || !hit.hit || !hit.pickedMesh) return null;
+
+				// 如果点中了子部件，向上查找父节点，直到找到登记在 enemies 列表中的根 collider
+				let picked = hit.pickedMesh;
+				while (picked) {
+					const found = enemies.find((item) => item.alive && item.mesh === picked);
+					if (found) {
+						return {
+							enemy: found,
+							position: hit.pickedPoint ? hit.pickedPoint.clone() : picked.getAbsolutePosition().clone(),
+						};
+					}
+					picked = picked.parent;
+				}
+				return null;
+			}
+
+			async function loadObjAssets() {
+				return Promise.resolve();
+			}
+
+			function randomSpawnPosition() {
+				let x = 0;
+				let z = 0;
+				for (let attempts = 0; attempts < 20; attempts++) {
+					x = (Math.random() - 0.5) * 46;
+					z = (Math.random() - 0.5) * 46;
+					const distance = BABYLON.Vector3.Distance(new BABYLON.Vector3(x, 0, z), camera.position);
+					if (distance > 14) break;
+				}
+				return new BABYLON.Vector3(x, 0, z);
+			}
+
+			function createEnemy(index) {
+				const collider = BABYLON.MeshBuilder.CreateBox(`enemy-collider-${index}`, { height: 1.8, width: 0.7, depth: 0.55 }, scene);
+				collider.position = randomSpawnPosition();
+				collider.position.y = 0.9;
+				collider.checkCollisions = true;
+				collider.isVisible = false;
+				collider.isPickable = false;
+
+				const torsoPivot = new BABYLON.TransformNode(`enemy-${index}-torso-pivot`, scene);
+				torsoPivot.parent = collider;
+				torsoPivot.position.set(0, 0.35, 0);
+
+				const zombieSkinMat = createFlatMaterial(`enemySkinMat-${index}`, new BABYLON.Color3(0.45, 0.72, 0.33), new BABYLON.Color3(0.06, 0.1, 0.04));
+				const zombieShirtMat = createFlatMaterial(`enemyShirtMat-${index}`, new BABYLON.Color3(0.18, 0.46, 0.66), new BABYLON.Color3(0.03, 0.06, 0.08));
+				const zombiePantMat = createFlatMaterial(`enemyPantMat-${index}`, new BABYLON.Color3(0.34, 0.22, 0.58), new BABYLON.Color3(0.05, 0.03, 0.08));
+				const zombieEyeMat = createFlatMaterial(`enemyEyeMat-${index}`, new BABYLON.Color3(0.1, 0.08, 0.06), new BABYLON.Color3(0.02, 0.01, 0.01));
+
+				const body = createViewPart(`enemy-${index}-torso`, { width: 0.62, height: 0.78, depth: 0.32 }, torsoPivot, new BABYLON.Vector3(0, 0, 0), zombieShirtMat);
+				body.metadata = { kind: "enemy" };
+				body.isPickable = true;
+				shadowGenerator.addShadowCaster(body);
+
+				const head = createViewPart(`enemy-${index}-head`, { width: 0.56, height: 0.56, depth: 0.56 }, torsoPivot, new BABYLON.Vector3(0, 0.68, 0), zombieSkinMat);
+				head.metadata = { kind: "enemy" };
+				head.isPickable = true;
+				shadowGenerator.addShadowCaster(head);
+
+				const eyeLeft = createViewPart(`enemy-${index}-eye-left`, { width: 0.1, height: 0.08, depth: 0.04 }, head, new BABYLON.Vector3(-0.13, 0.06, 0.3), zombieEyeMat);
+				const eyeRight = createViewPart(`enemy-${index}-eye-right`, { width: 0.1, height: 0.08, depth: 0.04 }, head, new BABYLON.Vector3(0.13, 0.06, 0.3), zombieEyeMat);
+				eyeLeft.metadata = { kind: "enemy" };
+				eyeRight.metadata = { kind: "enemy" };
+				eyeLeft.isPickable = true;
+				eyeRight.isPickable = true;
+
+				const leftArmPivot = new BABYLON.TransformNode(`enemy-${index}-larm-pivot`, scene);
+				leftArmPivot.parent = torsoPivot;
+				leftArmPivot.position.set(-0.42, 0.24, 0);
+				const leftArm = createViewPart(`enemy-${index}-larm`, { width: 0.18, height: 0.72, depth: 0.18 }, leftArmPivot, new BABYLON.Vector3(0, -0.36, 0), zombieSkinMat);
+				leftArm.metadata = { kind: "enemy" };
+				leftArm.isPickable = true;
+				shadowGenerator.addShadowCaster(leftArm);
+
+				const rightArmPivot = new BABYLON.TransformNode(`enemy-${index}-rarm-pivot`, scene);
+				rightArmPivot.parent = torsoPivot;
+				rightArmPivot.position.set(0.42, 0.24, 0);
+				const rightArm = createViewPart(`enemy-${index}-rarm`, { width: 0.18, height: 0.72, depth: 0.18 }, rightArmPivot, new BABYLON.Vector3(0, -0.36, 0), zombieSkinMat);
+				rightArm.metadata = { kind: "enemy" };
+				rightArm.isPickable = true;
+				shadowGenerator.addShadowCaster(rightArm);
+
+				const leftLegPivot = new BABYLON.TransformNode(`enemy-${index}-lleg-pivot`, scene);
+				leftLegPivot.parent = collider;
+				leftLegPivot.position.set(-0.17, 0.42, 0);
+				const leftLeg = createViewPart(`enemy-${index}-lleg`, { width: 0.22, height: 0.78, depth: 0.22 }, leftLegPivot, new BABYLON.Vector3(0, -0.4, 0), zombiePantMat);
+				leftLeg.metadata = { kind: "enemy" };
+				leftLeg.isPickable = true;
+				shadowGenerator.addShadowCaster(leftLeg);
+
+				const rightLegPivot = new BABYLON.TransformNode(`enemy-${index}-rleg-pivot`, scene);
+				rightLegPivot.parent = collider;
+				rightLegPivot.position.set(0.17, 0.42, 0);
+				const rightLeg = createViewPart(`enemy-${index}-rleg`, { width: 0.22, height: 0.78, depth: 0.22 }, rightLegPivot, new BABYLON.Vector3(0, -0.4, 0), zombiePantMat);
+				rightLeg.metadata = { kind: "enemy" };
+				rightLeg.isPickable = true;
+				shadowGenerator.addShadowCaster(rightLeg);
+
+				const healthBar = new BABYLON.GUI.Rectangle(`enemyHealthBar-${index}`);
+				healthBar.width = "90px";
+				healthBar.height = "10px";
+				healthBar.cornerRadius = 4;
+				healthBar.thickness = 1;
+				healthBar.color = "rgba(255,255,255,0.35)";
+				healthBar.background = "rgba(0,0,0,0.55)";
+
+				const healthFill = new BABYLON.GUI.Rectangle(`enemyHealthFill-${index}`);
+				healthFill.width = "100%";
+				healthFill.height = 1;
+				healthFill.thickness = 0;
+				healthFill.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+				healthFill.background = "#7cf7d4";
+				healthBar.addControl(healthFill);
+
+				// 先将 control 添加到根级 UI，再链接到 mesh（linkWithMesh 要求 control 在根级）
+				uiTexture.addControl(healthBar);
+				healthBar.linkOffsetY = -55;
+				healthBar.linkWithMesh(collider);
+
+				return {
+					mesh: collider,
+					hp: 3,
+					maxHp: 3,
+					speed: 0.015 + Math.random() * 0.008,
+					alive: true,
+					hitCooldown: 0,
+					knockback: BABYLON.Vector3.Zero(),
+					healthBar,
+					healthFill,
+					animTime: Math.random() * Math.PI * 2,
+					head,
+					leftArmPivot,
+					rightArmPivot,
+					leftLegPivot,
+					rightLegPivot,
+					torsoPivot,
+				};
+			}
+
+			function spawnWave() {
+				// Minecraft 风格波次生成：每波增加 2-3 个敌人
+				const count = Math.max(2, 3 + Math.floor(wave * 1.5));
+				for (let i = 0; i < count; i++) {
+					enemies.push(createEnemy(enemies.length + 1));
+				}
+				showMessage(`第 ${wave} 波来袭`, "var(--warning)");
+			}
+
+			function muzzleFlash() {
+				muzzleMat.alpha = 1;
+				weapon.scaling.set(1.04, 1.04, 1.14);
+				weaponBob.recoil = 0.16;
+				weaponBob.reloadKick = Math.max(weaponBob.reloadKick, 0.1);
+				screenShake = Math.max(screenShake, 0.22);
+				setTimeout(() => {
+					muzzleMat.alpha = 0;
+					weapon.scaling.set(1, 1, 1);
+				}, 40);
+			}
+
+			function shoot() {
+				if (paused) return;
+				if (ammo <= 0) {
+					showMessage("弹药不足，按 R 装弹", "var(--warning)");
+					audio.empty();
+					return;
+				}
+				ammo -= 1;
+				audio.shoot();
+				muzzleFlash();
+				flashHitMarker();
+
+				const target = pickEnemyTarget();
+				const muzzleWorld = muzzle.getAbsolutePosition();
+				const tracerEnd = target
+					? target.position
+					: camera.position.add(camera.getForwardRay().direction.scale(42));
+				createShotTracer(muzzleWorld, tracerEnd);
+
+				if (target) {
+					target.enemy.hp -= 1;
+					const hitDir = target.enemy.mesh.position.subtract(camera.position);
+					hitDir.y = 0;
+					if (hitDir.lengthSquared() > 0.0001) {
+						hitDir.normalize();
+						target.enemy.knockback = hitDir.scale(0.24);
+					}
+					audio.hit();
+					flashDamage(1, "#7cf7d4");
+					createHitSparks(target.position);
+					target.enemy.healthFill.width = `${Math.max(0, target.enemy.hp / target.enemy.maxHp) * 100}%`;
+						if (target.enemy.hp <= 0) {
+							target.enemy.alive = false;
+							target.enemy.healthBar.dispose();
+							spawnLootCubes(target.enemy.mesh.getAbsolutePosition(), 5);
+							target.enemy.mesh.dispose();
+							score += 1;
+							showMessage("敌人已击倒", "var(--accent)");
+						}
+				} else {
+					createHitSparks(tracerEnd);
+				}
+
+				if (ammo === 0) {
+					showMessage("弹匣已空，按 R 装弹", "var(--warning)");
+				}
+				updateHUD();
+			}
+
+			function reload() {
+				if (input.reloading || ammo === 30 || reserve <= 0 || paused) return;
+				input.reloading = true;
+				weaponBob.reload = 1;
+				showMessage("正在装弹...", "var(--muted)");
+				audio.reload();
+				setTimeout(() => {
+					const need = 30 - ammo;
+					const take = Math.min(need, reserve);
+					ammo += take;
+					reserve -= take;
+					input.reloading = false;
+					weaponBob.reload = 0;
+					weaponBob.reloadKick = 0.12;
+					updateHUD();
+					showMessage("装弹完成", "var(--accent)");
+				}, 760);
+			}
+
+			function takeDamage(amount) {
+				health -= amount;
+				screenShake = Math.max(screenShake, 0.34);
+				audio.damage();
+				flashDamage(amount);
+				if (health <= 0) {
+					health = 0;
+					paused = true;
+					camera.detachControl();
+					centerHint.classList.remove("hidden");
+					centerHint.innerHTML = "<strong>任务失败</strong><br>刷新页面重新开始。";
+					showMessage("你被击倒了", "var(--danger)");
+				}
+				updateHUD();
+			}
+
+			function maybeNextWave() {
+				if (enemies.every((e) => !e.alive)) {
+					wave += 1;
+					spawnWave();
+					updateHUD();
+				}
+			}
+
+			function getFrameDeltaMs() {
+				return forcedDeltaMs == null ? engine.getDeltaTime() : forcedDeltaMs;
+			}
+
+			function updateViewModel(dt, movementAmount) {
+				const moving = movementAmount > 0.0001;
+				weaponBob.moveBlend += ((moving ? 1 : 0) - weaponBob.moveBlend) * Math.min(1, 0.15 * dt);
+				weaponBob.time += getFrameDeltaMs() * 0.015 * (0.35 + weaponBob.moveBlend * 1.85);
+				const swing = Math.sin(weaponBob.time);
+				const swingAbs = Math.abs(Math.cos(weaponBob.time));
+				const walkAmp = 0.18 * weaponBob.moveBlend;
+				const reloadBlend = input.reloading ? Math.min(1, weaponBob.reload) : Math.max(0, weaponBob.reload - 0.08 * dt);
+				weaponBob.reload = reloadBlend;
+				const shakeX = (Math.random() - 0.5) * screenShake * 0.05;
+				const shakeY = (Math.random() - 0.5) * screenShake * 0.035;
+				const shakeZ = screenShake * 0.03;
+
+				viewRig.position.x = Math.sin(weaponBob.time * 0.5) * 0.02 * weaponBob.moveBlend + shakeX;
+				viewRig.position.y = -0.24 - swingAbs * 0.06 * weaponBob.moveBlend + reloadBlend * 0.06 + weaponBob.landingBounce + shakeY;
+				viewRig.position.z = 0.8 - weaponBob.recoil * 0.55 - shakeZ;
+
+				weapon.position.x = 0.32 + swing * 0.035 * weaponBob.moveBlend + reloadBlend * 0.12;
+				weapon.position.y = -0.1 - swingAbs * 0.05 * weaponBob.moveBlend - reloadBlend * 0.18;
+				weapon.position.z = 0.05 - reloadBlend * 0.12;
+				weapon.rotation.x = 0.08 + swingAbs * 0.08 * weaponBob.moveBlend + reloadBlend * 0.42;
+				weapon.rotation.y = 0.16 + reloadBlend * 0.28;
+				weapon.rotation.z = 0.04 + swing * 0.045 * weaponBob.moveBlend + reloadBlend * 0.5 + shakeX * 2.2;
+
+				rightArmPivot.rotation.x = 1.2 - swing * walkAmp * 0.35 + reloadBlend * 0.22 + weaponBob.reloadKick * 0.3;
+				rightArmPivot.rotation.y = 0.3 - reloadBlend * 0.16;
+				rightArmPivot.rotation.z = -0.18;
+				leftArmPivot.rotation.x = 1.1 + swing * walkAmp * 0.55 + reloadBlend * 1.18;
+				leftArmPivot.rotation.y = -0.32 - reloadBlend * 0.55;
+				leftArmPivot.rotation.z = 0.12 - reloadBlend * 0.22;
+
+				leftLegPivot.rotation.x = swing * walkAmp;
+				rightLegPivot.rotation.x = -swing * walkAmp;
+				leftLegPivot.rotation.z = -0.03;
+				rightLegPivot.rotation.z = 0.03;
+
+				magazine.position.x = -0.02 + reloadBlend * 0.24;
+				magazine.position.y = -0.2 - reloadBlend * 0.28;
+				magazine.position.z = 0.06 - reloadBlend * 0.18;
+				magazine.rotation.z = reloadBlend * 1.05;
+
+				weaponBob.recoil = Math.max(0, weaponBob.recoil - 0.024 * dt);
+				weaponBob.reloadKick = Math.max(0, weaponBob.reloadKick - 0.03 * dt);
+				weaponBob.landingBounce *= Math.max(0, 1 - 0.18 * dt);
+				screenShake *= Math.max(0, 1 - 0.18 * dt);
+			}
+
+				function renderGameToText() {
+					return JSON.stringify({
+						mode: paused ? "paused" : "active",
+						runtime: {
+							renderer: renderingBackend,
+							physics: physicsState.backend,
+							physicsEnabled: physicsState.enabled,
+						},
+						coordinateSystem: "x right, y up, z forward from world origin",
+						player: {
+						x: Number(camera.position.x.toFixed(2)),
+						y: Number(camera.position.y.toFixed(2)),
+						z: Number(camera.position.z.toFixed(2)),
+						yaw: Number(camera.rotation.y.toFixed(2)),
+						health,
+						ammo,
+						reserve,
+						reloading: input.reloading,
+					},
+					wave,
+					score,
+					enemies: enemies.filter((enemy) => enemy.alive).map((enemy) => ({
+						x: Number(enemy.mesh.position.x.toFixed(2)),
+						y: Number(enemy.mesh.position.y.toFixed(2)),
+						z: Number(enemy.mesh.position.z.toFixed(2)),
+						hp: enemy.hp,
+					})),
+				});
+			}
+
+			window.render_game_to_text = renderGameToText;
+
+				function setupInput() {
+					const unlockAudio = () => audio.init();
+					let lastShootInputAt = 0;
+					let pointerLockFailed = false;
+					const shootInputDebounceMs = 65;
+					const isPointerLocked = () => document.pointerLockElement === canvas;
+					const canShootWithoutPointerLock = () => !canvas.requestPointerLock;
+					const canShootByInput = () => !paused && (isPointerLocked() || canShootWithoutPointerLock() || pointerLockFailed);
+					const triggerShoot = () => {
+						if (!canShootByInput()) return;
+						const now = performance.now();
+						if (now - lastShootInputAt < shootInputDebounceMs) return;
+						lastShootInputAt = now;
+						shoot();
+					};
+
+					canvas.addEventListener("click", async (event) => {
+						if (paused) return;
+						unlockAudio();
+						if (!isPointerLocked() && canvas.requestPointerLock) {
+							canvas.requestPointerLock();
+							centerHint.classList.add("hidden");
+						} else if (event.button === 0) {
+							triggerShoot();
+						}
+					});
+
+					document.addEventListener("pointerlockchange", () => {
+						const locked = document.pointerLockElement === canvas;
+						if (locked) pointerLockFailed = false;
+						if (!locked && !paused) {
+							centerHint.classList.remove("hidden");
+							centerHint.innerHTML = "点击屏幕进入战场，使用 WASD 移动，鼠标瞄准，左键射击，R 装弹。";
+						}
+					});
+
+					document.addEventListener("pointerlockerror", () => {
+						pointerLockFailed = true;
+						if (!paused) {
+							centerHint.classList.add("hidden");
+							showMessage("未能锁定鼠标，已切换为点击射击模式", "var(--warning)");
+						}
+					});
+
+					window.addEventListener("keydown", (event) => {
+						unlockAudio();
+						if (event.code === "KeyW") moveState.forward = true;
+						if (event.code === "KeyS") moveState.back = true;
+						if (event.code === "KeyA") moveState.left = true;
+						if (event.code === "KeyD") moveState.right = true;
+						if (event.code === "KeyR") {
+							reload();
+						}
+						if (event.code === "Space" && grounded && !paused) {
+							jumpVelocity = 0.42;
+							grounded = false;
+							audio.jump();
+							weaponBob.landingBounce = -0.04;
+						}
+						if (event.code === "Escape" && !paused) {
+							centerHint.classList.remove("hidden");
+						}
+					});
+
+					window.addEventListener("keyup", (event) => {
+						if (event.code === "KeyW") moveState.forward = false;
+						if (event.code === "KeyS") moveState.back = false;
+						if (event.code === "KeyA") moveState.left = false;
+						if (event.code === "KeyD") moveState.right = false;
+					});
+
+					document.addEventListener("mousedown", (event) => {
+						unlockAudio();
+						if (event.button === 0) {
+							triggerShoot();
+						}
+					});
+
+					canvas.addEventListener("touchstart", () => {
+						if (paused) return;
+						unlockAudio();
+						centerHint.classList.add("hidden");
+						triggerShoot();
+					}, { passive: true });
+				}
+
+			setupInput();
+			updateHUD();
+			await loadObjAssets();
+			
+			// 初始化：确保 player 立即与地面碰撞（大幅下落以确保到达地面）
+			player.moveWithCollisions(new BABYLON.Vector3(0, -10, 0));
+			if (player.position.y < floorLevel) {
+				player.position.y = floorLevel;
+			}
+			// 同步相机到 player 最终位置
+			camera.position.x = player.position.x;
+			camera.position.y = player.position.y + cameraEyeOffset;
+			camera.position.z = player.position.z;
+			
+			spawnWave();
+
+			scene.onBeforeRenderObservable.add(() => {
+				if (paused) return;
+				const dt = getFrameDeltaMs() / 16.666;
+				// 保持 eye 高一致
+				camera.ellipsoid.y = 1.62;
+
+				const moveVector = new BABYLON.Vector3(
+					(moveState.right ? 1 : 0) - (moveState.left ? 1 : 0),
+					0,
+					(moveState.forward ? 1 : 0) - (moveState.back ? 1 : 0),
+				);
+
+				// 计算水平移动（在水平面投影）
+				let horiz = new BABYLON.Vector3(0, 0, 0);
+				if (moveVector.lengthSquared() > 0) {
+					moveVector.normalize();
+					let forward = camera.getDirection(BABYLON.Axis.Z);
+					forward.y = 0;
+					forward.normalize();
+					let right = camera.getDirection(BABYLON.Axis.X);
+					right.y = 0;
+					right.normalize();
+					horiz = forward.scale(moveVector.z).add(right.scale(moveVector.x)).scale(camera.speed * dt);
+					// 限制水平移动距离以防止穿模
+					const horizLen = horiz.length();
+					if (horizLen > 0.22) {
+						horiz.scaleInPlace(0.22 / horizLen);
+					}
+				}
+
+				const wasGrounded = grounded;
+				jumpVelocity -= 0.07 * dt;
+				const vertical = new BABYLON.Vector3(0, jumpVelocity * dt, 0);
+				if (vertical.y < -0.3) vertical.y = -0.3;
+				if (vertical.y > 0.24) vertical.y = 0.24;
+
+				// 分离碰撞移动：先水平后垂直（更稳定）
+				if (horiz.lengthSquared() > 0) {
+					player.moveWithCollisions(horiz);
+				}
+				if (vertical.lengthSquared() > 0) {
+					player.moveWithCollisions(vertical);
+				}
+				// 同步相机到 player 上方（眼高偏移）
+				camera.position.x = player.position.x;
+				camera.position.z = player.position.z;
+				camera.position.y = player.position.y + cameraEyeOffset;
+
+				if (player.position.y <= floorLevel + 0.001) {
+					player.position.y = floorLevel;
+					camera.position.y = player.position.y + cameraEyeOffset;
+					if (!wasGrounded) {
+						audio.land();
+						weaponBob.landingBounce = 0.09;
+						screenShake = Math.max(screenShake, 0.16);
+					}
+					jumpVelocity = 0;
+					grounded = true;
+				} else {
+					grounded = false;
+				}
+
+				if (grounded && horiz.lengthSquared() > 0.0004) {
+					footstepTimer -= getFrameDeltaMs();
+					if (footstepTimer <= 0) {
+						audio.step(Math.min(1.2, 0.7 + horiz.length() * 8));
+						footstepTimer = input.reloading ? 360 : 280;
+					}
+				} else {
+					footstepTimer = 0;
+				}
+				updateViewModel(dt, horiz.length());
+
+				enemies.forEach((enemy) => {
+					if (!enemy.alive) return;
+					const delta = camera.position.subtract(enemy.mesh.position);
+					const distance = delta.length();
+					const direction = distance > 0.001 ? delta.scale(1 / distance) : BABYLON.Vector3.Zero();
+					enemy.mesh.lookAt(camera.position);
+					enemy.mesh.rotation.x = 0;
+					enemy.mesh.rotation.z = 0;
+					// 限制敌人每帧移动距离防止卡住
+					let moveDir = direction.scale(enemy.speed * dt);
+					const moveLen = moveDir.length();
+					if (moveLen > 0.08) {
+						moveDir.scaleInPlace(0.08 / moveLen);
+					}
+					if (moveLen > 0.001) {
+						enemy.mesh.moveWithCollisions(moveDir);
+					}
+					if (enemy.knockback.lengthSquared() > 0.0001) {
+						enemy.mesh.moveWithCollisions(enemy.knockback);
+						enemy.knockback.scaleInPlace(Math.max(0, 1 - 0.18 * dt));
+					}
+					enemy.animTime += getFrameDeltaMs() * 0.012 * (0.7 + Math.min(1.8, distance * 0.08));
+					const stride = Math.sin(enemy.animTime) * 0.52;
+					enemy.leftLegPivot.rotation.x = stride;
+					enemy.rightLegPivot.rotation.x = -stride;
+					enemy.leftArmPivot.rotation.x = Math.PI / 2 + 0.18 + stride * 0.45;
+					enemy.rightArmPivot.rotation.x = Math.PI / 2 + 0.18 - stride * 0.45;
+					enemy.leftArmPivot.rotation.z = 0.03;
+					enemy.rightArmPivot.rotation.z = -0.03;
+					enemy.head.rotation.y = Math.sin(enemy.animTime * 0.35) * 0.08;
+					enemy.torsoPivot.rotation.z = Math.sin(enemy.animTime) * 0.03;
+					enemy.healthBar.linkOffsetY = -55;
+
+					if (distance < 1.8) {
+						enemy.hitCooldown -= getFrameDeltaMs();
+						if (enemy.hitCooldown <= 0) {
+							enemy.hitCooldown = 650;
+							takeDamage(8 + Math.round(wave * 0.8));
+						}
+					}
+				});
+
+				maybeNextWave();
+				updateHUD();
+			});
+
+			window.advanceTime = async (ms) => {
+				const steps = Math.max(1, Math.round(ms / (1000 / 60)));
+				for (let i = 0; i < steps; i++) {
+					forcedDeltaMs = 1000 / 60;
+					scene.render();
+				}
+				forcedDeltaMs = null;
+			};
+
+			engine.runRenderLoop(() => {
+				forcedDeltaMs = null;
+				scene.render();
+			});
+
+			window.addEventListener("resize", () => engine.resize());
+
+				showMessage(`点击屏幕开始 · 渲染: ${renderingBackend} · 物理: ${physicsState.backend}`, "var(--accent)");
+				} catch (error) {
+					console.error("3D-FPS bootstrap failed:", error);
+					centerHint.classList.remove("hidden");
+					centerHint.innerHTML = "<strong>初始化失败</strong><br>请打开控制台查看错误日志。";
+					message.textContent = `错误: ${error && error.message ? error.message : "未知错误"}`;
+					message.style.color = "var(--danger)";
+				}
+}

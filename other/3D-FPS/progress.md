@@ -15,3 +15,7 @@ Original prompt: 任务有问题，行动的时候走路和我的世界里面不
 - Registered physics bodies for floor/walls/pillars/crates and added physics-driven loot cube debris on enemy death when physics backend is available.
 - Added runtime diagnostics to HUD (`引擎`) and `render_game_to_text` output so current renderer/physics backend can be inspected quickly.
 - Headless validation via Firefox screenshot confirms game boots/renders with WebGL fallback and status output; in this environment physics stayed in script-unavailable/booting fallback state.
+- Refactored project layout for modularity: third-party libraries moved to `lib/`, resources moved to `resource/`, and game scripts moved to `src/`.
+- Split inline JS from `index.html` into ES module files: `src/main.js` (entry) and `src/fps-game.js` (core gameplay logic).
+- Updated `index.html` script references to new `lib/` and `src/` paths.
+- Updated `README.md` to reflect new directory structure and runtime behavior.
