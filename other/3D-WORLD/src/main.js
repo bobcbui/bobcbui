@@ -1,0 +1,324 @@
+"use strict";
+
+var canvas = document.getElementById("gameCanvas");
+var engine = new BABYLON.Engine(canvas, true, {
+    preserveDrawingBuffer: true,
+    stencil: true,
+    antialias: true
+});
+var scene = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0.55, 0.78, 0.98, 1);
+scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+scene.fogDensity = 0.013;
+scene.collisionsEnabled = true;
+scene.skipPointerMovePicking = true;
+scene.gravity = new BABYLON.Vector3(0, -0.35, 0);
+
+var dom = {
+    healthText: document.getElementById("healthText"),
+    healthFill: document.getElementById("healthFill"),
+    ammoText: document.getElementById("ammoText"),
+    levelText: document.getElementById("levelText"),
+    abilityText: document.getElementById("abilityText"),
+    statusText: document.getElementById("statusText"),
+    reloadFill: document.getElementById("reloadFill"),
+    hotbar: document.getElementById("hotbar"),
+    inventoryPanel: document.getElementById("inventoryPanel"),
+    inventoryLoadout: document.getElementById("inventoryLoadout"),
+    inventoryEquipment: document.getElementById("inventoryEquipment"),
+    inventoryWorld: document.getElementById("inventoryWorld"),
+    inventoryAchievements: document.getElementById("inventoryAchievements"),
+    inventoryPet: document.getElementById("inventoryPet"),
+    pausePanel: document.getElementById("pausePanel"),
+    deathPanel: document.getElementById("deathPanel"),
+    resumeBtn: document.getElementById("resumeBtn"),
+    openInventoryBtn: document.getElementById("openInventoryBtn"),
+    closeInventoryBtn: document.getElementById("closeInventoryBtn"),
+    resumeFromInventoryBtn: document.getElementById("resumeFromInventoryBtn"),
+    respawnBtn: document.getElementById("respawnBtn"),
+    damageFlash: document.getElementById("damageFlash"),
+    toast: document.getElementById("toast"),
+    hitMarker: document.getElementById("hitMarker")
+};
+
+var CONFIG = {
+    seed: 27,
+    minWorldY: GAME_DATA.world.heightMin,
+    chunkSize: GAME_DATA.world.chunkSize,
+    activeChunkRadius: GAME_DATA.world.activeChunkRadius,
+    unloadChunkRadius: GAME_DATA.world.unloadChunkRadius,
+    playerHalfWidth: 0.38,
+    playerHalfHeight: 0.9,
+    playerSpeed: 6.6,
+    crouchMultiplier: 0.58,
+    jumpSpeed: 7.3,
+    gravity: -20,
+    mouseSensitivity: 0.0023,
+    enemySight: 18,
+    enemyAttackRange: 2.45
+};
+
+function createEmptySlotItem() {
+    return {
+        kind: "empty",
+        name: "Unarmed",
+        short: "Unarmed"
+    };
+}
+
+function createWeaponSlotItem(weaponId) {
+    var def = weaponDefs[weaponId];
+    return {
+        kind: "weapon",
+        weaponId: weaponId,
+        name: def ? def.label : weaponId,
+        short: def ? def.short : weaponId
+    };
+}
+
+function createAmmoState() {
+    var ammo = {};
+    Object.keys(GAME_DATA.weapons).forEach(function (weaponId) {
+        ammo[weaponId] = {
+            mag: 0,
+            reserve: 0
+        };
+    });
+    return ammo;
+}
+
+var weaponDefs = cloneData(GAME_DATA.weapons);
+
+var hotbar = [
+    createWeaponSlotItem("pistol"),
+    createEmptySlotItem(),
+    createEmptySlotItem(),
+    createEmptySlotItem()
+];
+
+var BLOCK_TYPES = {
+    grass: { label: "Grass", color: "#63b447", solid: true },
+    dirt: { label: "Dirt", color: "#8f6338", solid: true },
+    stone: { label: "Stone", color: "#7a8088", solid: true },
+    wood: { label: "Wood", color: "#9b6a3d", solid: true },
+    brick: { label: "Brick", color: "#bb654f", solid: true },
+    metal: { label: "Metal", color: "#95a6b5", solid: true },
+    sand: { label: "Sand", color: "#d7c27a", solid: true },
+    snow: { label: "Snow", color: "#eef8ff", solid: true },
+    glass: { label: "Glass", color: "#a4edff", solid: true, alpha: 0.45 },
+    leaf: { label: "Leaf", color: "#4f9350", solid: true, alpha: 0.92 }
+};
+
+var materials = {};
+var particleMaterials = {};
+var particles = [];
+var tracers = [];
+var pickups = [];
+var enemies = [];
+var hotbarEls = [];
+
+var state = {
+    started: false,
+    inventoryOpen: false,
+    dead: false,
+    toastTimer: 0,
+    hitMarkerTimer: 0,
+    damageFlashTimer: 0
+};
+
+var input = {
+    keys: {},
+    mouseButtons: { 0: false, 1: false, 2: false },
+    jumpQueued: false,
+    fireLatch: false
+};
+
+var world = {
+    blocks: new Map(),
+    columns: new Map(),
+    chunks: new Map(),
+    maxY: 10,
+    minY: CONFIG.minWorldY,
+    blockCount: 0,
+    currentChunkX: 0,
+    currentChunkZ: 0,
+    currentBiomeId: "meadow",
+    enemySerial: 0
+};
+
+var player = {
+    body: null,
+    yawNode: null,
+    pitchNode: null,
+    camera: null,
+    yaw: 0,
+    pitch: 0,
+    velocityY: 0,
+    health: 100,
+    maxHealth: 100,
+    stats: null,
+    slot: 0,
+    ammo: createAmmoState(),
+    primaryCooldown: 0,
+    secondaryCooldown: 0,
+    skillCooldown: 0,
+    burstCooldown: 0,
+    burstBuffTimer: 0,
+    burstDamageBoost: 0,
+    burstFireRateBoost: 0,
+    reloading: null,
+    reloadTimer: 0,
+    spawnPoint: new BABYLON.Vector3(0, 4, 0),
+    grounded: false
+};
+
+function ensureStarterLoadout() {
+    if (!hotbar[0] || hotbar[0].kind !== "weapon") {
+        hotbar[0] = createWeaponSlotItem("pistol");
+    }
+    if (player.ammo.pistol.mag <= 0 && player.ammo.pistol.reserve <= 0) {
+        player.ammo.pistol.mag = weaponDefs.pistol.magazine;
+        player.ammo.pistol.reserve = 24;
+    }
+}
+
+var viewModel = {
+    root: null,
+    arm: null,
+    models: {},
+    currentKey: "empty",
+    kick: 0,
+    bobPhase: 0,
+    muzzleTimer: 0,
+    aimBlend: 0
+};
+
+function vec3(x, y, z) {
+    return new BABYLON.Vector3(x, y, z);
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+function blockKey(x, y, z) {
+    return x + "|" + y + "|" + z;
+}
+
+function columnKey(x, z) {
+    return x + "|" + z;
+}
+
+function chunkKey(x, z) {
+    return x + "|" + z;
+}
+
+function fract(value) {
+    return value - Math.floor(value);
+}
+
+function hash2(x, z) {
+    return fract(Math.sin(x * 127.1 + z * 311.7 + CONFIG.seed * 13.17) * 43758.5453);
+}
+
+function smoothNoise(x, z) {
+    var x0 = Math.floor(x);
+    var z0 = Math.floor(z);
+    var fx = x - x0;
+    var fz = z - z0;
+    var v00 = hash2(x0, z0);
+    var v10 = hash2(x0 + 1, z0);
+    var v01 = hash2(x0, z0 + 1);
+    var v11 = hash2(x0 + 1, z0 + 1);
+    var ux = fx * fx * (3 - 2 * fx);
+    var uz = fz * fz * (3 - 2 * fz);
+    var nx0 = BABYLON.Scalar.Lerp(v00, v10, ux);
+    var nx1 = BABYLON.Scalar.Lerp(v01, v11, ux);
+    return BABYLON.Scalar.Lerp(nx0, nx1, uz);
+}
+
+function terrainHeight(x, z) {
+    var base = Math.sin(x * 0.18) * 2.1 + Math.cos(z * 0.16) * 1.9;
+    var ridge = smoothNoise(x * 0.12 + 20, z * 0.12 - 7) * 3.3;
+    var detail = smoothNoise(x * 0.38 - 50, z * 0.38 + 11) * 1.35;
+    var h = Math.floor(2 + base + ridge + detail);
+    if (Math.abs(x) <= 3 && Math.abs(z) <= 3) {
+        h = 2;
+    }
+    return clamp(h, 1, 8);
+}
+
+function isPointerLocked() {
+    return document.pointerLockElement === canvas;
+}
+
+function canControlGame() {
+    return isPointerLocked() && !state.inventoryOpen && !state.dead;
+}
+
+function currentHotbarItem() {
+    return hotbar[player.slot] || createEmptySlotItem();
+}
+
+function currentWeaponDef() {
+    var item = currentHotbarItem();
+    return item.kind === "weapon" ? weaponDefs[item.weaponId] : null;
+}
+
+function animateTimers(dt) {
+    state.toastTimer = Math.max(0, state.toastTimer - dt);
+    state.hitMarkerTimer = Math.max(0, state.hitMarkerTimer - dt);
+    state.damageFlashTimer = Math.max(0, state.damageFlashTimer - dt);
+}
+
+function runFrame() {
+    var dt = Math.min(engine.getDeltaTime() / 1000, 0.033);
+    animateTimers(dt);
+    updateParticles(dt);
+    updateTracers(dt);
+
+    if (!state.dead) {
+        updatePlayerMovement(dt);
+    }
+
+    updateWorldStreaming();
+    updatePickups(dt);
+
+    if (!state.dead) {
+        updateCombat(dt);
+        updateEnemies(dt);
+    }
+
+    updatePetCompanion(dt);
+    updateBlockHighlight();
+    updateHotbarUI();
+    updateInventoryUI();
+    updateHUD();
+    scene.render();
+}
+
+function bootstrapGame() {
+    ensureStarterLoadout();
+    ensureMaterialCatalog();
+    createSkyAndLights();
+    createPlayer();
+    initializeProgression();
+    generateWorld();
+    createViewModel();
+    ensurePetCompanion();
+    buildHotbarUI();
+    registerInput();
+    setSlot(0);
+    respawnPlayer();
+
+    engine.runRenderLoop(runFrame);
+    window.addEventListener("resize", function () {
+        engine.resize();
+    });
+}
+
+window.addEventListener("load", bootstrapGame);
