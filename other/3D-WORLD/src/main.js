@@ -7,9 +7,9 @@ var engine = new BABYLON.Engine(canvas, true, {
     antialias: true
 });
 var scene = new BABYLON.Scene(engine);
-scene.clearColor = new BABYLON.Color4(0.55, 0.78, 0.98, 1);
+scene.clearColor = new BABYLON.Color4(0.68, 0.84, 0.98, 1);
 scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
-scene.fogDensity = 0.013;
+scene.fogDensity = 0.012;
 scene.collisionsEnabled = true;
 scene.skipPointerMovePicking = true;
 scene.gravity = new BABYLON.Vector3(0, -0.35, 0);
@@ -45,6 +45,7 @@ var CONFIG = {
     seed: 27,
     minWorldY: GAME_DATA.world.heightMin,
     chunkSize: GAME_DATA.world.chunkSize,
+    chunkResolution: GAME_DATA.world.chunkResolution,
     activeChunkRadius: GAME_DATA.world.activeChunkRadius,
     unloadChunkRadius: GAME_DATA.world.unloadChunkRadius,
     playerHalfWidth: 0.38,
@@ -123,7 +124,8 @@ var state = {
     dead: false,
     toastTimer: 0,
     hitMarkerTimer: 0,
-    damageFlashTimer: 0
+    damageFlashTimer: 0,
+    spawnLockTimer: 0
 };
 
 var input = {
@@ -140,6 +142,8 @@ var world = {
     maxY: 10,
     minY: CONFIG.minWorldY,
     blockCount: 0,
+    terrainMeshCount: 0,
+    propCount: 0,
     currentChunkX: 0,
     currentChunkZ: 0,
     currentBiomeId: "meadow",
@@ -242,14 +246,27 @@ function smoothNoise(x, z) {
 }
 
 function terrainHeight(x, z) {
-    var base = Math.sin(x * 0.18) * 2.1 + Math.cos(z * 0.16) * 1.9;
-    var ridge = smoothNoise(x * 0.12 + 20, z * 0.12 - 7) * 3.3;
-    var detail = smoothNoise(x * 0.38 - 50, z * 0.38 + 11) * 1.35;
-    var h = Math.floor(2 + base + ridge + detail);
-    if (Math.abs(x) <= 3 && Math.abs(z) <= 3) {
-        h = 2;
+    var biome = getBiomeAt(x, z);
+    var ridge = Math.abs(Math.sin(x * 0.018) + Math.cos(z * 0.021)) * 2.8;
+    var broad = Math.sin(x * 0.03) * 1.8 + Math.cos(z * 0.026) * 1.7;
+    var hills = smoothNoise(x * 0.045 + 20, z * 0.045 - 7) * 5.9;
+    var detail = smoothNoise(x * 0.12 - 50, z * 0.12 + 11) * 0.65;
+    var valley = smoothNoise(x * 0.018 + 200, z * 0.018 - 120) * 2.0;
+    var h = 1.4 + ridge + broad + hills + detail - valley * 0.8;
+
+    if (biome.id === "forest") {
+        h += smoothNoise(x * 0.1 + 50, z * 0.1 - 40) * 1.25;
+    } else if (biome.id === "desert") {
+        h += Math.sin(x * 0.08 + z * 0.04) * 0.7;
+        h -= 0.9;
+    } else if (biome.id === "snow") {
+        h += smoothNoise(x * 0.05 - 30, z * 0.05 + 90) * 2.8;
+        h += 1.6;
     }
-    return clamp(h, 1, 8);
+
+    var spawnFlatten = clamp(1 - Math.sqrt(x * x + z * z) / 12, 0, 1);
+    h = lerp(h, 2.0, spawnFlatten);
+    return clamp(h, 0.1, 14.2);
 }
 
 function isPointerLocked() {
@@ -281,6 +298,11 @@ function runFrame() {
     updateParticles(dt);
     updateTracers(dt);
 
+    if (state.spawnLockTimer > 0) {
+        state.spawnLockTimer = Math.max(0, state.spawnLockTimer - dt);
+        snapPlayerToGround(2.2);
+    }
+
     if (!state.dead) {
         updatePlayerMovement(dt);
     }
@@ -307,15 +329,27 @@ function bootstrapGame() {
     createSkyAndLights();
     createPlayer();
     initializeProgression();
+    
+    // 强制生成地表
+    prepareSpawnZone();
     generateWorld();
+    
+    // 初始设置：站在地表之上的高空
+    var spawnHeight = getTerrainSurfaceHeight(0, 0);
+    player.body.position.set(0, spawnHeight + 20, 0); 
+    player.velocityY = 0;
+    
+    // 状态锁定：等待网格加载并修正位置
+    state.spawnLockTimer = 1.0; 
+    
     createViewModel();
     ensurePetCompanion();
     buildHotbarUI();
     registerInput();
     setSlot(0);
-    respawnPlayer();
-
+    
     engine.runRenderLoop(runFrame);
+    
     window.addEventListener("resize", function () {
         engine.resize();
     });

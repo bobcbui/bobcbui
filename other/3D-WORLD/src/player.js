@@ -213,11 +213,17 @@ function createPlayer() {
         height: 1.8,
         depth: 0.76
     }, scene);
-    player.body.isVisible = false;
+    // Show the body now that we are in 3rd person
+    player.body.isVisible = true; 
     player.body.isPickable = false;
     player.body.checkCollisions = true;
     player.body.ellipsoid = new BABYLON.Vector3(CONFIG.playerHalfWidth, CONFIG.playerHalfHeight, CONFIG.playerHalfWidth);
     player.body.ellipsoidOffset = BABYLON.Vector3.Zero();
+    
+    // Simple placeholder material for player body
+    var playerMat = new BABYLON.StandardMaterial("player-mat", scene);
+    playerMat.diffuseColor = new BABYLON.Color3(0.3, 0.6, 1.0);
+    player.body.material = playerMat;
 
     player.yawNode = new BABYLON.TransformNode("player-yaw", scene);
     player.pitchNode = new BABYLON.TransformNode("player-pitch", scene);
@@ -225,12 +231,15 @@ function createPlayer() {
     player.pitchNode.parent = player.yawNode;
     player.pitchNode.position.y = 0.56;
 
-    player.camera = new BABYLON.FreeCamera("camera", BABYLON.Vector3.Zero(), scene);
-    player.camera.parent = player.pitchNode;
-    player.camera.position.set(0, 0, 0);
-    player.camera.minZ = 0.05;
-    player.camera.maxZ = 180;
-    player.camera.fov = 1.12;
+    player.cameraRoot = new BABYLON.TransformNode("camera-root", scene);
+    player.cameraRoot.parent = player.pitchNode;
+    
+    player.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -4), scene);
+    player.camera.parent = player.cameraRoot;
+    player.camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+    player.camera.minZ = 0.1;
+    player.camera.maxZ = 800;
+    player.camera.fov = 0.85;
     player.camera.inputs.clear();
     scene.activeCamera = player.camera;
     player.body.position.copyFrom(player.spawnPoint);
@@ -238,8 +247,11 @@ function createPlayer() {
 
 function createViewModel() {
     viewModel.root = new BABYLON.TransformNode("view-root", scene);
-    viewModel.root.parent = player.camera;
-    viewModel.root.position.set(0.38, -0.36, 0.82);
+    // Position it relative to the player's body or yaw node instead of camera for 3rd person
+    viewModel.root.parent = player.yawNode; 
+    viewModel.root.position.set(0.12, 0.4, 0.2); 
+    // Scale it up a bit if it was designed for FP view
+    viewModel.root.scaling.set(1.1, 1.1, 1.1);
 
     viewModel.arm = BABYLON.MeshBuilder.CreateBox("view-arm", {
         width: 0.22,
@@ -348,16 +360,21 @@ function updateViewModel(dt, moveRatio) {
 
     var bobX = Math.sin(viewModel.bobPhase) * 0.03 * moveRatio;
     var bobY = Math.abs(Math.cos(viewModel.bobPhase)) * 0.02 * moveRatio;
-    var targetX = 0.38 + bobX - viewModel.aimBlend * 0.12;
-    var targetY = -0.36 - (crouching ? 0.1 : 0) + bobY + viewModel.kick * 0.06;
-    var targetZ = 0.82 - viewModel.aimBlend * 0.22 + viewModel.kick * 0.28;
+    
+    // In 3rd person, we want the "View Model" (which is now the player's weapon/arm)
+    // to follow the body's orientation and tilt with pitch slightly.
+    var targetX = 0.22 + bobX;
+    var targetY = 0.4 - (crouching ? 0.15 : 0) + bobY + viewModel.kick * 0.1;
+    var targetZ = 0.3 + viewModel.kick * 0.2;
 
-    viewModel.root.position.x = lerp(viewModel.root.position.x, targetX, dt * 12);
-    viewModel.root.position.y = lerp(viewModel.root.position.y, targetY, dt * 12);
-    viewModel.root.position.z = lerp(viewModel.root.position.z, targetZ, dt * 12);
-    viewModel.root.rotation.x = viewModel.kick * 0.35;
-    viewModel.root.rotation.y = viewModel.kick * 0.18;
-    viewModel.root.rotation.z = -viewModel.kick * 0.22;
+    viewModel.root.position.x = lerp(viewModel.root.position.x, targetX, dt * 10);
+    viewModel.root.position.y = lerp(viewModel.root.position.y, targetY, dt * 10);
+    viewModel.root.position.z = lerp(viewModel.root.position.z, targetZ, dt * 10);
+    
+    // Tilt the weapon root based on pitch
+    viewModel.root.rotation.x = player.pitch * 0.8 + viewModel.kick * 0.4;
+    viewModel.root.rotation.y = viewModel.kick * 0.1;
+    viewModel.root.rotation.z = -viewModel.kick * 0.2;
 
     Object.keys(viewModel.models).forEach(function (name) {
         var model = viewModel.models[name];
@@ -377,7 +394,7 @@ function pickCenterTarget(maxDistance, includeEnemies) {
         if (!mesh || !mesh.metadata) {
             return false;
         }
-        if (mesh.metadata.kind === "block") {
+        if (mesh.metadata.kind === "terrain") {
             return true;
         }
         return includeEnemies && mesh.metadata.kind === "enemyPart";
@@ -406,7 +423,7 @@ function updateBlockHighlight() {
 function isGrounded() {
     var ray = new BABYLON.Ray(player.body.position.clone(), BABYLON.Vector3.Down(), 0.96);
     var hit = scene.pickWithRay(ray, function (mesh) {
-        return !!(mesh && mesh.metadata && mesh.metadata.kind === "block");
+        return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
     }, false);
     return !!(hit && hit.hit && hit.distance <= 0.95);
 }
@@ -495,14 +512,48 @@ function respawnPlayer() {
         player.ammo.pistol.reserve = 24;
     }
     player.body.position.copyFrom(player.spawnPoint);
+    
+    // Position high and wait for terrain to settle
+    player.body.position.y = getTerrainSurfaceHeight(player.body.position.x, player.body.position.z) + 120;
     player.yaw = 0;
-    player.pitch = 0;
+    player.pitch = 0.25; // Slight downward look
     player.yawNode.rotation.y = 0;
-    player.pitchNode.rotation.x = 0;
+    player.pitchNode.rotation.x = 0.25;
+    
     setSlot(0);
     state.dead = false;
+    state.spawnLockTimer = 0.85; // Increased lock for stability
     dom.deathPanel.classList.add("hidden");
-    showToast("Respawned. Back in the frontier.", 1.8);
+    showToast("World synchronized. Character ready.", 2.2);
+}
+
+function snapPlayerToGround(extraHeight) {
+    if (!player.body || !scene) {
+        return false;
+    }
+
+    // Trace from high above to find the ground
+    var start = player.body.position.clone();
+    start.y = 120; // 从足够高的地方向下扫
+    var ray = new BABYLON.Ray(start, BABYLON.Vector3.Down(), 200);
+    
+    // 只拾取地形
+    var hit = scene.pickWithRay(ray, function (mesh) {
+        return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
+    }, false);
+
+    if (hit && hit.hit && hit.pickedPoint) {
+        // 发现地面，将玩家置于地面之上
+        player.body.position.y = hit.pickedPoint.y + CONFIG.playerHalfHeight + (extraHeight || 0.05);
+        player.velocityY = 0;
+        return true;
+    }
+
+    // 备选：使用数学高度函数
+    var surfaceY = getTerrainSurfaceHeight(player.body.position.x, player.body.position.z);
+    player.body.position.y = surfaceY + CONFIG.playerHalfHeight + (extraHeight || 0.05);
+    player.velocityY = 0;
+    return false;
 }
 
 function computeWeaponDamage(def, multiplier) {
@@ -553,7 +604,7 @@ function performRayAttack(range, damage, spread) {
         if (!mesh || !mesh.metadata) {
             return false;
         }
-        return mesh.metadata.kind === "block" || mesh.metadata.kind === "enemyPart";
+        return mesh.metadata.kind === "terrain" || mesh.metadata.kind === "enemyPart";
     }, false);
 
     var tracerEnd = tracerStart.add(direction.scale(range));
@@ -567,8 +618,8 @@ function performRayAttack(range, damage, spread) {
         if (pick.pickedMesh.metadata.kind === "enemyPart") {
             hitEnemy = true;
             damageEnemy(pick.pickedMesh.metadata.enemy, damage, pick.pickedPoint);
-        } else if (pick.pickedMesh.metadata.kind === "block") {
-            spawnBurst(pick.pickedPoint, BLOCK_TYPES[pick.pickedMesh.metadata.type].color, 6, 0.08, 3.4);
+        } else if (pick.pickedMesh.metadata.kind === "terrain") {
+            spawnBurst(pick.pickedPoint, getTerrainImpactColor(pick.pickedMesh), 6, 0.08, 3.4);
         }
     }
 
@@ -690,6 +741,13 @@ function updateCombat(dt) {
 }
 
 function updatePlayerMovement(dt) {
+    // 在锁定时间内，强制把玩家对齐到地表，并且不执行后续移动代码
+    if (state.spawnLockTimer > 0) {
+        snapPlayerToGround(0.05);
+        player.velocityY = 0;
+        return; 
+    }
+
     var groundedBefore = isGrounded();
     player.grounded = groundedBefore;
     if (groundedBefore && player.velocityY < 0) {
@@ -722,6 +780,14 @@ function updatePlayerMovement(dt) {
     displacement.y = player.velocityY * dt;
 
     var previous = player.body.position.clone();
+    
+    // 穿透防护：如果下一帧在地下，强制修正 y
+    var surfaceY = getTerrainSurfaceHeight(player.body.position.x + displacement.x, player.body.position.z + displacement.z);
+    if (player.body.position.y + displacement.y < surfaceY + 0.1) {
+        displacement.y = (surfaceY + CONFIG.playerHalfHeight) - player.body.position.y;
+        player.velocityY = 0;
+    }
+
     player.body.moveWithCollisions(displacement);
 
     var groundedAfter = isGrounded();
@@ -729,12 +795,28 @@ function updatePlayerMovement(dt) {
     if (groundedAfter && player.velocityY < 0) {
         player.velocityY = -0.01;
     }
-    if (player.body.position.y < -8) {
+    
+    // 虚空死亡判定
+    if (player.body.position.y < -30) {
         damagePlayer(999, "You fell out of the world.");
     }
 
     player.pitchNode.position.y = lerp(player.pitchNode.position.y, crouch ? 0.34 : 0.56, dt * 12);
-    player.camera.fov = lerp(player.camera.fov, currentWeaponDef() && input.mouseButtons[2] ? 0.92 : 1.12, dt * 10);
+    
+    // Smooth camera zoom
+    var isAiming = currentWeaponDef() && input.mouseButtons[2];
+    var targetCamZ = isAiming ? -1.8 : -4.5;
+    player.camera.position.z = lerp(player.camera.position.z, targetCamZ, dt * 6);
+    player.camera.fov = lerp(player.camera.fov, isAiming ? 0.75 : 0.85, dt * 10);
+
+    // Camera collision/occlusion check
+    var ray = new BABYLON.Ray(player.pitchNode.absolutePosition, player.camera.position.clone().normalize(), Math.abs(player.camera.position.z));
+    var pick = scene.pickWithRay(ray, function(mesh) {
+        return mesh && mesh.metadata && mesh.metadata.kind === "terrain";
+    });
+    if (pick && pick.hit) {
+        player.camera.position.z = -pick.distance + 0.2;
+    }
 
     var travelled = player.body.position.subtract(previous);
     var planarDistance = Math.sqrt(travelled.x * travelled.x + travelled.z * travelled.z);
@@ -812,6 +894,8 @@ function updateInventoryUI() {
     }).length;
     var worldLines = [];
     worldLines.push("<div class=\"inventory-line\"><span>Loaded Chunks</span><span>" + world.chunks.size + "</span></div>");
+    worldLines.push("<div class=\"inventory-line\"><span>Terrain Meshes</span><span>" + world.terrainMeshCount + "</span></div>");
+    worldLines.push("<div class=\"inventory-line\"><span>World Props</span><span>" + world.propCount + "</span></div>");
     worldLines.push("<div class=\"inventory-line\"><span>Biome</span><span>" + (GAME_DATA.biomes[world.currentBiomeId] ? GAME_DATA.biomes[world.currentBiomeId].name : "Unknown") + "</span></div>");
     worldLines.push("<div class=\"inventory-line\"><span>Explored Chunks</span><span>" + progression.metrics.chunksVisited + "</span></div>");
     worldLines.push("<div class=\"inventory-line\"><span>Discovered Biomes</span><span>" + progression.discoveredBiomes.size + "</span></div>");

@@ -170,7 +170,7 @@ function enemyHasLineOfSight(enemy) {
     direction.normalize();
     var ray = new BABYLON.Ray(from, direction, distance);
     var hit = scene.pickWithRay(ray, function (mesh) {
-        return !!(mesh && mesh.metadata && mesh.metadata.kind === "block");
+        return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
     }, false);
     return !(hit && hit.hit && hit.distance < distance - 0.05);
 }
@@ -181,7 +181,7 @@ function chooseEnemyPatrolTarget(enemy) {
         tries -= 1;
         var x = Math.round(enemy.home.x + (Math.random() - 0.5) * 8);
         var z = Math.round(enemy.home.z + (Math.random() - 0.5) * 8);
-        enemy.patrolTarget = vec3(x, getColumnTop(x, z) + 0.55, z);
+        enemy.patrolTarget = vec3(x, getTerrainSurfaceHeight(x, z) + 0.55, z);
         return;
     }
     enemy.patrolTarget = enemy.home.clone();
@@ -222,7 +222,7 @@ function respawnEnemy(enemy) {
     enemy.deadTimer = 0;
     enemy.root.rotation.setAll(0);
     enemy.root.position.copyFrom(enemy.home);
-    enemy.root.position.y = getColumnTop(Math.round(enemy.home.x), Math.round(enemy.home.z)) + 0.55;
+    enemy.root.position.y = getTerrainSurfaceHeight(enemy.home.x, enemy.home.z) + 0.55;
     enemy.skeleton.parts.forEach(function (part) {
         part.isPickable = true;
     });
@@ -345,14 +345,14 @@ function updateEnemies(dt) {
         if (speed > 0 && moveDir.lengthSquared() > 0) {
             var nextX = enemy.root.position.x + moveDir.x * speed * dt;
             var nextZ = enemy.root.position.z + moveDir.z * speed * dt;
-            var footY = Math.round(enemy.root.position.y + 0.45);
-            if (!hasBlockAt(Math.round(nextX), footY + 1, Math.round(nextZ))) {
+            var nextGround = getTerrainSurfaceHeight(nextX, nextZ) + 0.55;
+            if (Math.abs(nextGround - enemy.root.position.y) < 2.4) {
                 enemy.root.position.x = nextX;
                 enemy.root.position.z = nextZ;
             } else if (enemy.state === "patrol") {
                 chooseEnemyPatrolTarget(enemy);
             }
-            enemy.root.position.y = getColumnTop(Math.round(enemy.root.position.x), Math.round(enemy.root.position.z)) + 0.55;
+            enemy.root.position.y = getTerrainSurfaceHeight(enemy.root.position.x, enemy.root.position.z) + 0.55;
             enemy.root.rotation.y = Math.atan2(moveDir.x, moveDir.z);
         }
 

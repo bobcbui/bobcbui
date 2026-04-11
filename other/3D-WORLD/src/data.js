@@ -11,10 +11,12 @@ var RARITY_COLORS = {
 var GAME_DATA = {
     world: {
         title: "Voxel Realm Frontier",
-        chunkSize: 12,
+        chunkSize: 28,
+        chunkResolution: 28,
         activeChunkRadius: 1,
         unloadChunkRadius: 2,
-        heightMin: -2
+        heightMin: -6,
+        waterLevel: 1.55
     },
     biomes: {
         meadow: {
@@ -22,22 +24,28 @@ var GAME_DATA = {
             name: "Meadow",
             topBlock: "grass",
             subsurfaceBlock: "dirt",
-            treeChance: 0.04,
-            rockChance: 0.02,
+            treeChance: 0.015,
+            rockChance: 0.01,
             enemyScale: 1,
             pickupBias: ["food", "gear", "pistol"],
-            color: "#8fd96c"
+            color: "#8fd96c",
+            skyColor: "#9bd4ff",
+            fogColor: "#d7efff",
+            waterColor: "#74b9ff"
         },
         forest: {
             id: "forest",
             name: "Forest",
             topBlock: "grass",
             subsurfaceBlock: "dirt",
-            treeChance: 0.12,
-            rockChance: 0.015,
+            treeChance: 0.022,
+            rockChance: 0.012,
             enemyScale: 1.1,
             pickupBias: ["food", "gear", "rifle"],
-            color: "#4db86a"
+            color: "#4db86a",
+            skyColor: "#86c9ff",
+            fogColor: "#caebff",
+            waterColor: "#5ea8ff"
         },
         desert: {
             id: "desert",
@@ -45,21 +53,27 @@ var GAME_DATA = {
             topBlock: "sand",
             subsurfaceBlock: "sand",
             treeChance: 0,
-            rockChance: 0.05,
+            rockChance: 0.016,
             enemyScale: 1.2,
             pickupBias: ["food", "gear", "pistol"],
-            color: "#f0cf79"
+            color: "#f0cf79",
+            skyColor: "#ffd9a8",
+            fogColor: "#fff0d9",
+            waterColor: "#9fd8ff"
         },
         snow: {
             id: "snow",
             name: "Snowfield",
             topBlock: "snow",
             subsurfaceBlock: "stone",
-            treeChance: 0.025,
-            rockChance: 0.035,
+            treeChance: 0.01,
+            rockChance: 0.014,
             enemyScale: 1.25,
             pickupBias: ["food", "gear", "rifle"],
-            color: "#cfeaff"
+            color: "#cfeaff",
+            skyColor: "#cde6ff",
+            fogColor: "#eef7ff",
+            waterColor: "#96d8ff"
         }
     },
     weapons: {
