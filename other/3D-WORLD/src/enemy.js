@@ -72,6 +72,13 @@ function createEnemy(position, index, options) {
     var tier = opts.tier || 1;
     var root = new BABYLON.TransformNode("enemy-root-" + index, scene);
     root.position.copyFrom(position);
+    // Adjust root Y so the enemy's feet sit on the terrain. The parts are built around the root
+    // such that the lowest point is approximately root.y + 0.04; therefore set root.y = terrain - 0.04.
+    try {
+        var sampled = getTerrainSurfaceHeight(position.x, position.z);
+        root.position.y = sampled - 0.04;
+        console.debug("createEnemy: index=", index, "initial position=", position, "sampledTerrain=", sampled, "adjusted root.y=", root.position.y);
+    } catch (e) {}
     var enemySkinMat = materials.enemySkin.clone("enemy-skin-" + index);
     var enemySuitMat = materials.enemySuit.clone("enemy-suit-" + index);
     var enemyEyeMat = materials.enemyEye.clone("enemy-eye-" + index);
@@ -222,7 +229,10 @@ function respawnEnemy(enemy) {
     enemy.deadTimer = 0;
     enemy.root.rotation.setAll(0);
     enemy.root.position.copyFrom(enemy.home);
-    enemy.root.position.y = getTerrainSurfaceHeight(enemy.home.x, enemy.home.z) + 0.55;
+    var sampled = getTerrainSurfaceHeight(enemy.home.x, enemy.home.z);
+    // Keep enemy feet flush with terrain like above: root.y = terrain - 0.04
+    enemy.root.position.y = sampled - 0.04;
+    try { console.debug("respawnEnemy: id=", enemy.id, "home=", enemy.home, "sampled=", sampled, "finalY=", enemy.root.position.y); } catch (e) {}
     enemy.skeleton.parts.forEach(function (part) {
         part.isPickable = true;
     });
@@ -352,7 +362,12 @@ function updateEnemies(dt) {
             } else if (enemy.state === "patrol") {
                 chooseEnemyPatrolTarget(enemy);
             }
+            var prevPos = enemy.root.position.clone();
             enemy.root.position.y = getTerrainSurfaceHeight(enemy.root.position.x, enemy.root.position.z) + 0.55;
+            // If enemy didn't move in XZ despite intended movement, nudge up to escape
+            if (Math.abs(enemy.root.position.x - prevPos.x) < 0.001 && Math.abs(enemy.root.position.z - prevPos.z) < 0.001) {
+                enemy.root.position.y += 0.04;
+            }
             enemy.root.rotation.y = Math.atan2(moveDir.x, moveDir.z);
         }
 

@@ -249,17 +249,7 @@ var GAME_DATA = {
             metric: "skillsUsed",
             target: 10
         }
-    ],
-    pets: {
-        mossfox: {
-            id: "mossfox",
-            name: "Mossfox",
-            description: "A lively frontier companion that boosts pickup range and survival.",
-            stats: { maxHealth: 10, attack: 2, moveSpeed: 0.04, pickupRadius: 0.55 },
-            color: "#73c96d",
-            accent: "#f2e7c7"
-        }
-    }
+    ]
 };
 
 function cloneData(value) {

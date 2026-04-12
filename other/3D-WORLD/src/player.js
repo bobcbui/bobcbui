@@ -207,36 +207,126 @@ function grantWeaponPickup(weaponId) {
     }
 }
 
+function createPlayerAvatar() {
+    var skinMat = materials.enemySkin.clone("player-skin");
+    var coatMat = materials.weaponMid.clone("player-coat");
+    var trimMat = materials.weaponAccent.clone("player-trim");
+    var hairMat = materials.weaponDark.clone("player-hair");
+
+    var avatar = {
+        root: new BABYLON.TransformNode("player-avatar", scene),
+        torso: new BABYLON.TransformNode("player-avatar-torso", scene),
+        head: null,
+        leftArm: new BABYLON.TransformNode("player-avatar-larm", scene),
+        rightArm: new BABYLON.TransformNode("player-avatar-rarm", scene),
+        leftLeg: new BABYLON.TransformNode("player-avatar-lleg", scene),
+        rightLeg: new BABYLON.TransformNode("player-avatar-rleg", scene),
+        parts: [],
+        walkPhase: 0
+    };
+
+    avatar.root.parent = player.body;
+    avatar.torso.parent = avatar.root;
+    avatar.leftArm.parent = avatar.root;
+    avatar.rightArm.parent = avatar.root;
+    avatar.leftLeg.parent = avatar.root;
+    avatar.rightLeg.parent = avatar.root;
+
+    function makePart(name, size, parent, positionOffset, material) {
+        var part = BABYLON.MeshBuilder.CreateBox(name, size, scene);
+        part.parent = parent;
+        part.position.copyFrom(positionOffset);
+        part.material = material;
+        part.checkCollisions = false;
+        part.isPickable = false;
+        avatar.parts.push(part);
+        return part;
+    }
+
+    makePart("player-body-core", { width: 0.86, height: 1.08, depth: 0.48 }, avatar.torso, vec3(0, 1.38, 0), coatMat);
+    makePart("player-body-trim", { width: 0.9, height: 0.24, depth: 0.5 }, avatar.torso, vec3(0, 0.96, -0.01), trimMat);
+    avatar.head = makePart("player-head", { width: 0.62, height: 0.62, depth: 0.62 }, avatar.root, vec3(0, 2.23, 0), skinMat);
+    makePart("player-hair", { width: 0.68, height: 0.24, depth: 0.68 }, avatar.head, vec3(0, 0.21, 0.02), hairMat);
+    makePart("player-eye-left", { width: 0.08, height: 0.08, depth: 0.08 }, avatar.head, vec3(-0.12, 0.03, -0.31), materials.uiGlow);
+    makePart("player-eye-right", { width: 0.08, height: 0.08, depth: 0.08 }, avatar.head, vec3(0.12, 0.03, -0.31), materials.uiGlow);
+    makePart("player-arm-left", { width: 0.24, height: 0.9, depth: 0.24 }, avatar.leftArm, vec3(0, -0.42, 0), coatMat);
+    makePart("player-arm-right", { width: 0.24, height: 0.9, depth: 0.24 }, avatar.rightArm, vec3(0, -0.42, 0), coatMat);
+    makePart("player-leg-left", { width: 0.3, height: 0.96, depth: 0.3 }, avatar.leftLeg, vec3(0, -0.48, 0), hairMat);
+    makePart("player-leg-right", { width: 0.3, height: 0.96, depth: 0.3 }, avatar.rightLeg, vec3(0, -0.48, 0), hairMat);
+
+    avatar.leftArm.position.set(-0.58, 1.86, 0);
+    avatar.rightArm.position.set(0.58, 1.86, 0);
+    avatar.leftLeg.position.set(-0.2, 0.96, 0);
+    avatar.rightLeg.position.set(0.2, 0.96, 0);
+
+    player.avatar = avatar;
+}
+
+function updatePlayerAvatar(dt, moveRatio, crouching, aiming) {
+    if (!player.avatar) {
+        return;
+    }
+
+    var avatar = player.avatar;
+    var walkSpeed = player.grounded ? lerp(2.4, 10.5, clamp(moveRatio, 0, 1)) : 2.4;
+    avatar.walkPhase += dt * walkSpeed;
+
+    var swing = Math.sin(avatar.walkPhase) * 0.75 * clamp(moveRatio, 0, 1);
+    var armLift = aiming ? -0.45 : -0.12;
+    var crouchOffset = crouching ? -0.18 : 0;
+
+    avatar.root.position.y = lerp(avatar.root.position.y, crouchOffset, dt * 10);
+    avatar.torso.rotation.x = lerp(avatar.torso.rotation.x, (crouching ? 0.18 : 0) + (aiming ? -0.08 : 0), dt * 10);
+    avatar.head.rotation.x = lerp(avatar.head.rotation.x, -player.pitch * 0.35, dt * 8);
+    avatar.leftArm.rotation.x = lerp(avatar.leftArm.rotation.x, armLift + swing, dt * 10);
+    avatar.rightArm.rotation.x = lerp(avatar.rightArm.rotation.x, armLift - swing, dt * 10);
+    avatar.leftLeg.rotation.x = lerp(avatar.leftLeg.rotation.x, -swing, dt * 10);
+    avatar.rightLeg.rotation.x = lerp(avatar.rightLeg.rotation.x, swing, dt * 10);
+}
+
+function normalizeAngle(angle) {
+    while (angle > Math.PI) {
+        angle -= Math.PI * 2;
+    }
+    while (angle < -Math.PI) {
+        angle += Math.PI * 2;
+    }
+    return angle;
+}
+
 function createPlayer() {
     player.body = BABYLON.MeshBuilder.CreateBox("player-body", {
         width: 0.76,
         height: 1.8,
         depth: 0.76
     }, scene);
-    // Show the body now that we are in 3rd person
-    player.body.isVisible = true; 
+    player.body.isVisible = false;
     player.body.isPickable = false;
     player.body.checkCollisions = true;
     player.body.ellipsoid = new BABYLON.Vector3(CONFIG.playerHalfWidth, CONFIG.playerHalfHeight, CONFIG.playerHalfWidth);
     player.body.ellipsoidOffset = BABYLON.Vector3.Zero();
-    
-    // Simple placeholder material for player body
-    var playerMat = new BABYLON.StandardMaterial("player-mat", scene);
-    playerMat.diffuseColor = new BABYLON.Color3(0.3, 0.6, 1.0);
-    player.body.material = playerMat;
+    player.facingNode = new BABYLON.TransformNode("player-facing", scene);
+    player.facingNode.parent = player.body;
+    createPlayerAvatar();
+    player.avatar.root.parent = player.facingNode;
 
     player.yawNode = new BABYLON.TransformNode("player-yaw", scene);
     player.pitchNode = new BABYLON.TransformNode("player-pitch", scene);
     player.yawNode.parent = player.body;
     player.pitchNode.parent = player.yawNode;
-    player.pitchNode.position.y = 0.56;
+    player.pitchNode.position.y = CONFIG.cameraPivotHeight;
 
     player.cameraRoot = new BABYLON.TransformNode("camera-root", scene);
     player.cameraRoot.parent = player.pitchNode;
+    player.cameraRoot.position.y = CONFIG.cameraRootHeight;
+    player.cameraFocus = new BABYLON.TransformNode("camera-focus", scene);
+    player.cameraFocus.parent = player.pitchNode;
+    player.cameraFocus.position.set(0, CONFIG.cameraFocusHeight, CONFIG.cameraFocusForward);
     
-    player.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -4), scene);
+    player.camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(CONFIG.cameraShoulderX, 0, CONFIG.cameraFollowDistance), scene);
     player.camera.parent = player.cameraRoot;
-    player.camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+    player.camera.rotation.set(0, 0, 0);
+    player.camera.lockedTarget = null;
     player.camera.minZ = 0.1;
     player.camera.maxZ = 800;
     player.camera.fov = 0.85;
@@ -245,10 +335,71 @@ function createPlayer() {
     player.body.position.copyFrom(player.spawnPoint);
 }
 
+function getGroundClearance(extraHeight) {
+    return CONFIG.playerHalfHeight + (extraHeight === undefined ? 0.05 : extraHeight);
+}
+
+function getPlayerFootprintSurfaceHeight(x, z) {
+    var inset = CONFIG.playerHalfWidth * 0.82;
+    var offsets = [
+        [0, 0],
+        [inset, 0],
+        [-inset, 0],
+        [0, inset],
+        [0, -inset],
+        [inset, inset],
+        [inset, -inset],
+        [-inset, inset],
+        [-inset, -inset]
+    ];
+    var maxHeight = getTerrainSurfaceHeight(x, z);
+    for (var i = 0; i < offsets.length; i += 1) {
+        maxHeight = Math.max(maxHeight, getTerrainSurfaceHeight(x + offsets[i][0], z + offsets[i][1]));
+    }
+    return maxHeight;
+}
+
+function getGroundContactHeight(x, z) {
+    var sampledSurfaceY = getPlayerFootprintSurfaceHeight(x, z);
+    var start = new BABYLON.Vector3(x, Math.max(sampledSurfaceY + 8, 40), z);
+    var ray = new BABYLON.Ray(start, BABYLON.Vector3.Down(), 80);
+    var hit = scene.pickWithRay(ray, function (mesh) {
+        return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
+    }, false);
+
+    // Prefer the actual mesh hit if available — pickWithRay returns the real terrain geometry.
+    if (hit && hit.hit && hit.pickedPoint) {
+        return hit.pickedPoint.y;
+    }
+    return sampledSurfaceY;
+}
+
+function alignPlayerToSpawn(lockDuration) {
+    var surfaceY = getGroundContactHeight(player.spawnPoint.x, player.spawnPoint.z);
+    // Diagnostic log to help debug spawn alignment issues.
+    try {
+        console.debug("alignPlayerToSpawn: spawnPoint=", player.spawnPoint, "sampledSurfaceY=", surfaceY, "playerHalfHeight=", CONFIG.playerHalfHeight);
+        if (world && world.chunks) {
+            console.debug("alignPlayerToSpawn: chunks=", world.chunks.size, "terrainMeshCount=", world.terrainMeshCount);
+            var spawnChunk = world.chunks.get(chunkKey(0,0));
+            if (spawnChunk) {
+                console.debug("alignPlayerToSpawn: spawnChunk.terrainMesh=", !!spawnChunk.terrainMesh, spawnChunk.terrainMesh && spawnChunk.terrainMesh.name);
+            }
+        }
+    } catch (e) {
+        // ignore logging errors
+    }
+
+    player.body.position.set(player.spawnPoint.x, surfaceY + getGroundClearance(0), player.spawnPoint.z);
+    player.velocityY = 0;
+    // Use a shorter spawn lock and snap with zero extra clearance so the feet sit flush with terrain.
+    state.spawnLockTimer = lockDuration || 0.18;
+    snapPlayerToGround(0);
+}
+
 function createViewModel() {
     viewModel.root = new BABYLON.TransformNode("view-root", scene);
-    // Position it relative to the player's body or yaw node instead of camera for 3rd person
-    viewModel.root.parent = player.yawNode; 
+    viewModel.root.parent = player.facingNode;
     viewModel.root.position.set(0.12, 0.4, 0.2); 
     // Scale it up a bit if it was designed for FP view
     viewModel.root.scaling.set(1.1, 1.1, 1.1);
@@ -354,6 +505,7 @@ function updateViewModelSelection() {
 function updateViewModel(dt, moveRatio) {
     var crouching = !!(input.keys.ShiftLeft || input.keys.ShiftRight);
     var aim = currentWeaponDef() && input.mouseButtons[2] ? 1 : 0;
+    updatePlayerAvatar(dt, moveRatio, crouching, aim > 0.5);
     viewModel.aimBlend = lerp(viewModel.aimBlend, aim, dt * 9);
     viewModel.kick = lerp(viewModel.kick, 0, dt * 10);
     viewModel.bobPhase += dt * (moveRatio > 0.08 ? 7.6 : 2.2);
@@ -421,17 +573,27 @@ function updateBlockHighlight() {
 }
 
 function isGrounded() {
-    var ray = new BABYLON.Ray(player.body.position.clone(), BABYLON.Vector3.Down(), 0.96);
-    var hit = scene.pickWithRay(ray, function (mesh) {
-        return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
-    }, false);
-    return !!(hit && hit.hit && hit.distance <= 0.95);
+    var groundY = getGroundContactHeight(player.body.position.x, player.body.position.z);
+    var feetY = player.body.position.y - CONFIG.playerHalfHeight;
+    return feetY <= groundY + 0.08;
 }
 
-function blockIntersectsPlayer(x, y, z) {
-    return Math.abs(player.body.position.x - x) < CONFIG.playerHalfWidth + 0.5 &&
-        Math.abs(player.body.position.y - y) < CONFIG.playerHalfHeight + 0.5 &&
-        Math.abs(player.body.position.z - z) < CONFIG.playerHalfWidth + 0.5;
+function enforceGroundClearance(extraHeight) {
+    var surfaceY = getGroundContactHeight(player.body.position.x, player.body.position.z);
+    var minAllowedY = surfaceY + getGroundClearance(extraHeight);
+    var snapGap = player.body.position.y - minAllowedY;
+    if (player.body.position.y < minAllowedY) {
+        player.body.position.y = minAllowedY;
+        if (player.velocityY < 0) {
+            player.velocityY = 0;
+        }
+        return true;
+    }
+    if (player.velocityY <= 0 && snapGap < 0.18) {
+        player.body.position.y = minAllowedY;
+        return true;
+    }
+    return false;
 }
 
 function setSlot(index) {
@@ -511,20 +673,17 @@ function respawnPlayer() {
         player.ammo.pistol.mag = weaponDefs.pistol.magazine;
         player.ammo.pistol.reserve = 24;
     }
-    player.body.position.copyFrom(player.spawnPoint);
-    
-    // Position high and wait for terrain to settle
-    player.body.position.y = getTerrainSurfaceHeight(player.body.position.x, player.body.position.z) + 120;
+    alignPlayerToSpawn(0.35);
     player.yaw = 0;
-    player.pitch = 0.25; // Slight downward look
+    player.facingYaw = 0;
+    player.pitch = 0.25;
+    player.facingNode.rotation.y = 0;
     player.yawNode.rotation.y = 0;
     player.pitchNode.rotation.x = 0.25;
-    
     setSlot(0);
     state.dead = false;
-    state.spawnLockTimer = 0.85; // Increased lock for stability
     dom.deathPanel.classList.add("hidden");
-    showToast("World synchronized. Character ready.", 2.2);
+    showToast("Respawned. Back in the frontier.", 1.8);
 }
 
 function snapPlayerToGround(extraHeight) {
@@ -532,27 +691,41 @@ function snapPlayerToGround(extraHeight) {
         return false;
     }
 
-    // Trace from high above to find the ground
+    var targetX = player.body.position.x;
+    var targetZ = player.body.position.z;
+    var sampledSurfaceY = getGroundContactHeight(targetX, targetZ);
+    var clearance = getGroundClearance(extraHeight);
     var start = player.body.position.clone();
-    start.y = 120; // 从足够高的地方向下扫
+    start.y = Math.max(start.y + 4, 120);
     var ray = new BABYLON.Ray(start, BABYLON.Vector3.Down(), 200);
-    
-    // 只拾取地形
+
     var hit = scene.pickWithRay(ray, function (mesh) {
         return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
     }, false);
 
+    try {
+        console.debug("snapPlayerToGround: start=", start, "sampledSurfaceY=", sampledSurfaceY, "clearance=", clearance);
+        if (hit && hit.hit) {
+            console.debug("snapPlayerToGround: ray hit mesh=", hit.pickedMesh && hit.pickedMesh.name, "pickedPoint=", hit.pickedPoint, "distance=", hit.distance);
+        } else {
+            console.debug("snapPlayerToGround: ray did not hit terrain; using sampledSurfaceY");
+        }
+    } catch (e) {
+        // ignore
+    }
+
     if (hit && hit.hit && hit.pickedPoint) {
-        // 发现地面，将玩家置于地面之上
-        player.body.position.y = hit.pickedPoint.y + CONFIG.playerHalfHeight + (extraHeight || 0.05);
+        // Use the raycast picked point as authoritative for the visible terrain surface.
+        player.body.position.y = hit.pickedPoint.y + clearance;
         player.velocityY = 0;
+        try { console.debug("snapPlayerToGround: finalY=", player.body.position.y); } catch (e) {}
         return true;
     }
 
-    // 备选：使用数学高度函数
-    var surfaceY = getTerrainSurfaceHeight(player.body.position.x, player.body.position.z);
-    player.body.position.y = surfaceY + CONFIG.playerHalfHeight + (extraHeight || 0.05);
+    // Fallback to sampled procedural height when raycast doesn't hit.
+    player.body.position.y = sampledSurfaceY + clearance;
     player.velocityY = 0;
+    try { console.debug("snapPlayerToGround: finalY(no hit)=", player.body.position.y); } catch (e) {}
     return false;
 }
 
@@ -741,11 +914,13 @@ function updateCombat(dt) {
 }
 
 function updatePlayerMovement(dt) {
-    // 在锁定时间内，强制把玩家对齐到地表，并且不执行后续移动代码
     if (state.spawnLockTimer > 0) {
-        snapPlayerToGround(0.05);
+        state.spawnLockTimer = Math.max(0, state.spawnLockTimer - dt);
+        // During spawn lock, ensure we snap without extra clearance so the feet align precisely.
+        snapPlayerToGround(0);
         player.velocityY = 0;
-        return; 
+        updateViewModel(dt, 0);
+        return;
     }
 
     var groundedBefore = isGrounded();
@@ -766,29 +941,55 @@ function updatePlayerMovement(dt) {
         moveZ = (input.keys.KeyW ? 1 : 0) - (input.keys.KeyS ? 1 : 0);
     }
 
-    var forward = new BABYLON.Vector3(Math.sin(player.yaw), 0, Math.cos(player.yaw));
-    var right = new BABYLON.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
-    var move = forward.scale(moveZ).add(right.scale(moveX));
+    var cameraForward = new BABYLON.Vector3(Math.sin(player.yaw), 0, Math.cos(player.yaw));
+    var cameraRight = new BABYLON.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+    var move = cameraForward.scale(moveZ).add(cameraRight.scale(moveX));
     if (move.lengthSquared() > 1) {
         move.normalize();
     }
 
     var crouch = !!(input.keys.ShiftLeft || input.keys.ShiftRight);
     var moveBonus = player.stats ? player.stats.moveSpeed || 0 : 0;
-    var speed = CONFIG.playerSpeed * (1 + moveBonus) * (crouch ? CONFIG.crouchMultiplier : 1);
+    var speedScale = (moveZ < 0 && moveX === 0) ? 0.55 : 1;
+    var speed = CONFIG.playerSpeed * (1 + moveBonus) * (crouch ? CONFIG.crouchMultiplier : 1) * speedScale;
+
+    if (move.lengthSquared() > 0.0001 && !(moveZ < 0 && moveX === 0)) {
+        var targetFacingYaw = Math.atan2(move.x, move.z);
+        var yawDelta = normalizeAngle(targetFacingYaw - player.facingYaw);
+        player.facingYaw += yawDelta * Math.min(1, dt * 12);
+    }
+    player.facingNode.rotation.y = player.facingYaw;
+
     var displacement = move.scale(speed * dt);
     displacement.y = player.velocityY * dt;
 
     var previous = player.body.position.clone();
-    
-    // 穿透防护：如果下一帧在地下，强制修正 y
-    var surfaceY = getTerrainSurfaceHeight(player.body.position.x + displacement.x, player.body.position.z + displacement.z);
-    if (player.body.position.y + displacement.y < surfaceY + 0.1) {
-        displacement.y = (surfaceY + CONFIG.playerHalfHeight) - player.body.position.y;
+
+    var nextX = player.body.position.x + displacement.x;
+    var nextZ = player.body.position.z + displacement.z;
+    var surfaceY = getGroundContactHeight(nextX, nextZ);
+    var minAllowedY = surfaceY + getGroundClearance(0);
+    if (player.body.position.y + displacement.y < minAllowedY) {
+        displacement.y = minAllowedY - player.body.position.y;
         player.velocityY = 0;
     }
 
     player.body.moveWithCollisions(displacement);
+    var moved = player.body.position.subtract(previous);
+    // If player didn't move significantly in XZ when a move was requested, consider them stuck.
+    if ((Math.abs(displacement.x) > 0.001 || Math.abs(displacement.z) > 0.001) && Math.abs(moved.x) < 0.001 && Math.abs(moved.z) < 0.001) {
+        player.stuckCounter = (player.stuckCounter || 0) + 1;
+        var now = performance.now();
+        if (player.stuckCounter > 6 && now - (player.lastBlockedLogTime || 0) > 800) {
+            console.warn("Player appears stuck at", player.body.position, "attempted displacement", displacement);
+            player.lastBlockedLogTime = now;
+        }
+        // Try a small upward nudge to escape geometry (temporary unstuck)
+        player.body.position.y += 0.06;
+    } else {
+        player.stuckCounter = 0;
+    }
+    enforceGroundClearance(0);
 
     var groundedAfter = isGrounded();
     player.grounded = groundedAfter;
@@ -796,26 +997,41 @@ function updatePlayerMovement(dt) {
         player.velocityY = -0.01;
     }
     
-    // 虚空死亡判定
     if (player.body.position.y < -30) {
         damagePlayer(999, "You fell out of the world.");
     }
 
-    player.pitchNode.position.y = lerp(player.pitchNode.position.y, crouch ? 0.34 : 0.56, dt * 12);
-    
-    // Smooth camera zoom
+    player.pitchNode.position.y = lerp(
+        player.pitchNode.position.y,
+        crouch ? CONFIG.cameraPivotCrouchHeight : CONFIG.cameraPivotHeight,
+        dt * 12
+    );
+    player.cameraRoot.position.y = lerp(
+        player.cameraRoot.position.y,
+        crouch ? CONFIG.cameraRootCrouchHeight : CONFIG.cameraRootHeight,
+        dt * 12
+    );
     var isAiming = currentWeaponDef() && input.mouseButtons[2];
-    var targetCamZ = isAiming ? -1.8 : -4.5;
+    var targetCamZ = isAiming ? CONFIG.cameraAimDistance : CONFIG.cameraFollowDistance;
+    // Clamp target camera distances to configured min/max
+    targetCamZ = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, targetCamZ));
+    var targetCamX = isAiming ? CONFIG.cameraAimShoulderX : CONFIG.cameraShoulderX;
+    player.camera.position.x = lerp(player.camera.position.x, targetCamX, dt * 8);
     player.camera.position.z = lerp(player.camera.position.z, targetCamZ, dt * 6);
     player.camera.fov = lerp(player.camera.fov, isAiming ? 0.75 : 0.85, dt * 10);
 
-    // Camera collision/occlusion check
-    var ray = new BABYLON.Ray(player.pitchNode.absolutePosition, player.camera.position.clone().normalize(), Math.abs(player.camera.position.z));
+    var cameraPivot = player.cameraRoot.getAbsolutePosition();
+    var cameraOffset = player.camera.globalPosition.subtract(cameraPivot);
+    var cameraDistance = cameraOffset.length();
+    var ray = new BABYLON.Ray(cameraPivot, cameraOffset.scale(1 / Math.max(cameraDistance, 0.0001)), cameraDistance);
     var pick = scene.pickWithRay(ray, function(mesh) {
         return mesh && mesh.metadata && mesh.metadata.kind === "terrain";
     });
     if (pick && pick.hit) {
-        player.camera.position.z = -pick.distance + 0.2;
+        var safeDistance = Math.max(0, pick.distance - 0.2);
+        var retract = safeDistance / Math.max(cameraDistance, 0.0001);
+        player.camera.position.x *= retract;
+        player.camera.position.z *= retract;
     }
 
     var travelled = player.body.position.subtract(previous);
@@ -906,9 +1122,6 @@ function updateInventoryUI() {
     if (dom.inventoryAchievements) {
         dom.inventoryAchievements.innerHTML = buildAchievementSummaryLines();
     }
-    if (dom.inventoryPet) {
-        dom.inventoryPet.innerHTML = buildPetSummaryLines();
-    }
 }
 
 function buildHotbarUI() {
@@ -981,7 +1194,6 @@ function registerInput() {
 
     document.addEventListener("mousedown", function (event) {
         input.mouseButtons[event.button] = true;
-        state.started = true;
         audio.ensure();
         if (event.button === 0 && !isPointerLocked() && !state.inventoryOpen && !state.dead) {
             canvas.requestPointerLock();
@@ -1023,10 +1235,19 @@ function registerInput() {
         input.keys[event.code] = false;
     });
 
+    // Mouse wheel now controls camera follow distance (replace hotbar wheel behavior).
     window.addEventListener("wheel", function (event) {
         event.preventDefault();
-        var delta = event.deltaY > 0 ? 1 : -1;
-        setSlot(player.slot + delta);
+        // Normalize delta: positive means zoom out (more negative Z), negative means zoom in
+        var delta = event.deltaY > 0 ? -1 : 1;
+        // Change camera follow distance in steps, keep within configured bounds
+        var step = 0.8;
+        var newFollow = CONFIG.cameraFollowDistance + delta * step;
+        newFollow = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, newFollow));
+        CONFIG.cameraFollowDistance = newFollow;
+        // Also scale aim distance proportionally (so zoom in aim feels consistent)
+        var aimScale = 0.48; // keep aim noticeably closer
+        CONFIG.cameraAimDistance = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, newFollow * aimScale));
     }, { passive: false });
 
     dom.resumeBtn.addEventListener("click", function () {
