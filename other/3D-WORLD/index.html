@@ -401,14 +401,14 @@
             <div>`WASD` move, `Space` jump, `Shift` crouch</div>
             <div>Left mouse fire, right mouse aim, wheel / `1-4` switch slots</div>
             <div>`Q` weapon skill, `F` burst, `R` reload, `E` inventory</div>
-            <div>Explore forever-loading chunks, collect gear, feed your journey, and let your pet follow you</div>
+            <div>Explore forever-loading chunks, collect gear, and keep pushing deeper into the frontier</div>
         </div>
 
         <div id="inventoryPanel" class="modal panel hidden">
             <div class="modal-title">
                 <div>
                     <h2>Adventure Codex</h2>
-                    <p>Track weapons, equipment, achievements, biome progress, and your active companion.</p>
+                    <p>Track weapons, equipment, achievements, and biome progress.</p>
                 </div>
                 <button id="closeInventoryBtn" class="secondary">Close</button>
             </div>
@@ -417,7 +417,6 @@
                 <div class="card"><h3>Equipment</h3><div id="inventoryEquipment"></div></div>
                 <div class="card"><h3>World Info</h3><div id="inventoryWorld"></div></div>
                 <div class="card"><h3>Achievements</h3><div id="inventoryAchievements"></div></div>
-                <div class="card"><h3>Companion</h3><div id="inventoryPet"></div></div>
                 <div class="card"><h3>Objective</h3><p>Push outward through an endless voxel frontier, collect better gear, unlock achievements, and grow your combat build.</p></div>
             </div>
             <div class="actions">
@@ -433,8 +432,8 @@
                 </div>
             </div>
             <div class="grid-2">
-                <div class="card"><h3>Start Armed</h3><p>You begin with a rune pistol, starter gear, an active pet, and scalable action skills.</p></div>
-                <div class="card"><h3>Current Build</h3><p>This prototype now includes infinite chunk streaming, biome generation, gear drops, achievements, pet follow behavior, and weapon skills.</p></div>
+                <div class="card"><h3>Start Armed</h3><p>You begin with a rune pistol, starter gear, and scalable action skills.</p></div>
+                <div class="card"><h3>Current Build</h3><p>This prototype now includes infinite chunk streaming, biome generation, gear drops, achievements, and weapon skills.</p></div>
             </div>
             <div class="actions">
                 <button id="resumeBtn">Continue</button>
@@ -456,6 +455,7 @@
     </div>
 
     <script src="./src/data.js"></script>
+    <script src="./src/runtime.js"></script>
     <script src="./src/main.js"></script>
     <script src="./src/progression.js"></script>
     <script src="./src/world.js"></script>

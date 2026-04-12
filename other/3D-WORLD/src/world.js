@@ -19,6 +19,15 @@ function lerpColor(a, b, t) {
     );
 }
 
+function varyColor(hex, offset) {
+    var color = BABYLON.Color3.FromHexString(hex);
+    return new BABYLON.Color3(
+        clamp(color.r + offset, 0, 1),
+        clamp(color.g + offset, 0, 1),
+        clamp(color.b + offset, 0, 1)
+    );
+}
+
 function ensureMaterialCatalog() {
     Object.keys(BLOCK_TYPES).forEach(function (type) {
         materials[type] = makeMaterial("mat-" + type, BLOCK_TYPES[type].color, BLOCK_TYPES[type].alpha);
@@ -76,38 +85,21 @@ function createSkyAndLights() {
 }
 
 function getBiomeAt(x, z) {
-    var temperature = smoothNoise(x * 0.03 + 100, z * 0.03 - 45);
-    var moisture = smoothNoise(x * 0.03 - 80, z * 0.03 + 12);
-    if (temperature > 0.66 && moisture < 0.4) {
+    var blend = getBiomeBlend(x, z);
+    if (blend.desert >= blend.snow && blend.desert >= blend.forest && blend.desert >= blend.meadow) {
         return GAME_DATA.biomes.desert;
     }
-    if (temperature < 0.3) {
+    if (blend.snow >= blend.forest && blend.snow >= blend.meadow) {
         return GAME_DATA.biomes.snow;
     }
-    if (moisture > 0.58) {
+    if (blend.forest >= blend.meadow) {
         return GAME_DATA.biomes.forest;
     }
     return GAME_DATA.biomes.meadow;
 }
 
-function updateColumnHeight() {
-    return;
-}
-
 function getTerrainSurfaceHeight(x, z) {
     return terrainHeight(x, z);
-}
-
-function getColumnTop(x, z) {
-    return Math.floor(getTerrainSurfaceHeight(x, z));
-}
-
-function getBlockAt() {
-    return null;
-}
-
-function hasBlockAt() {
-    return false;
 }
 
 function getTerrainImpactColor(mesh) {
@@ -135,6 +127,17 @@ function createChunkRoot(chunk) {
     chunk.root = root;
 }
 
+function createTerrainNormal(worldX, worldZ, step) {
+    var sample = Math.max(step, 0.5);
+    var left = getTerrainSurfaceHeight(worldX - sample, worldZ);
+    var right = getTerrainSurfaceHeight(worldX + sample, worldZ);
+    var back = getTerrainSurfaceHeight(worldX, worldZ - sample);
+    var front = getTerrainSurfaceHeight(worldX, worldZ + sample);
+    var normal = new BABYLON.Vector3(left - right, sample * 2, back - front);
+    normal.normalize();
+    return normal;
+}
+
 function createTerrainMesh(chunk) {
     var subdivisions = CONFIG.chunkResolution;
     var step = CONFIG.chunkSize / subdivisions;
@@ -144,37 +147,8 @@ function createTerrainMesh(chunk) {
     var uvs = [];
     var colors = [];
 
-    function getTerrainColor(worldY) {
-        var biome = GAME_DATA.biomes[chunk.biomeId] || GAME_DATA.biomes.meadow;
-        var lowColor;
-        var midColor;
-        var highColor;
-
-        if (chunk.biomeId === "desert") {
-            lowColor = BABYLON.Color3.FromHexString("#d9bf79");
-            midColor = BABYLON.Color3.FromHexString("#ead593");
-            highColor = BABYLON.Color3.FromHexString("#fff0cf");
-        } else if (chunk.biomeId === "snow") {
-            lowColor = BABYLON.Color3.FromHexString("#8fb5c9");
-            midColor = BABYLON.Color3.FromHexString("#d1e6f2");
-            highColor = BABYLON.Color3.FromHexString("#f7fcff");
-        } else if (chunk.biomeId === "forest") {
-            lowColor = BABYLON.Color3.FromHexString("#406d46");
-            midColor = BABYLON.Color3.FromHexString("#77b56d");
-            highColor = BABYLON.Color3.FromHexString("#d6efc2");
-        } else {
-            lowColor = BABYLON.Color3.FromHexString("#5d8f59");
-            midColor = BABYLON.Color3.FromHexString(biome.color || "#8fd96c");
-            highColor = BABYLON.Color3.FromHexString("#eef6c8");
-        }
-
-        if (worldY < 1.3) {
-            return lerpColor(lowColor, midColor, clamp((worldY - 0.1) / 1.2, 0, 1));
-        }
-        if (worldY < 4.8) {
-            return lerpColor(midColor, highColor, clamp((worldY - 1.3) / 3.5, 0, 1));
-        }
-        return lerpColor(highColor, BABYLON.Color3.White(), clamp((worldY - 4.8) / 6.0, 0, 1));
+    function getTerrainColor() {
+        return BABYLON.Color3.FromHexString("#6ec16a");
     }
 
     for (var z = 0; z <= subdivisions; z += 1) {
@@ -184,9 +158,11 @@ function createTerrainMesh(chunk) {
             var worldX = chunk.root.position.x + localX;
             var worldZ = chunk.root.position.z + localZ;
             var worldY = getTerrainSurfaceHeight(worldX, worldZ);
+            var worldNormal = createTerrainNormal(worldX, worldZ, step);
             positions.push(localX, worldY, localZ);
+            normals.push(worldNormal.x, worldNormal.y, worldNormal.z);
             uvs.push(x / subdivisions, z / subdivisions);
-            var terrainColor = getTerrainColor(worldY);
+            var terrainColor = getTerrainColor();
             colors.push(terrainColor.r, terrainColor.g, terrainColor.b, 1);
         }
     }
@@ -198,12 +174,10 @@ function createTerrainMesh(chunk) {
             var i1 = i0 + 1;
             var i2 = i0 + stride;
             var i3 = i2 + 1;
-            indices.push(i0, i2, i1);
-            indices.push(i1, i2, i3);
+            indices.push(i0, i1, i2);
+            indices.push(i1, i3, i2);
         }
     }
-
-    BABYLON.VertexData.ComputeNormals(positions, indices, normals);
 
     var mesh = new BABYLON.Mesh("terrain-" + chunk.key, scene);
     var vertexData = new BABYLON.VertexData();
@@ -237,8 +211,8 @@ function createWaterMesh(chunk) {
         height: size,
         subdivisions: 1
     }, scene);
-    water.position.set(chunk.root.position.x + size * 0.5, GAME_DATA.world.waterLevel, chunk.root.position.z + size * 0.5);
     water.parent = chunk.root;
+    water.position.set(size * 0.5, GAME_DATA.world.waterLevel, size * 0.5);
     water.material = materials["water-" + chunk.biomeId] || materials["water-meadow"];
     water.isPickable = false;
     water.checkCollisions = false;
@@ -266,7 +240,10 @@ function createTree(localX, localZ, chunk, biome) {
         return;
     }
 
-    var trunkHeight = biome.id === "snow" ? 4.2 : 3.1 + hash2(worldX + 10, worldZ - 12) * 1.6;
+    var heightRoll = hash2(worldX + 10, worldZ - 12);
+    var crownRoll = hash2(worldX - 16, worldZ + 9);
+    var leafTintRoll = hash2(worldX + 22, worldZ + 14);
+    var trunkHeight = 3.1 + heightRoll * 1.9;
     var trunk = BABYLON.MeshBuilder.CreateCylinder("tree-trunk", {
         height: trunkHeight,
         diameterTop: 0.34,
@@ -277,14 +254,22 @@ function createTree(localX, localZ, chunk, biome) {
     trunk.material = materials.treeTrunk;
     registerPropMesh(trunk, chunk);
 
+    var crownBase = 2.45;
+    var crownWidth = crownBase + crownRoll * 0.9;
+    var crownHeight = crownWidth + 0.2 + leafTintRoll * 0.45;
+    var foliageBase = "#63b85f";
+    var leafMaterial = makeMaterial("tree-leaves-" + Math.floor(worldX) + "-" + Math.floor(worldZ), foliageBase);
+    leafMaterial.diffuseColor = varyColor(foliageBase, (leafTintRoll - 0.5) * 0.14);
+    leafMaterial.emissiveColor = leafMaterial.diffuseColor.scale(0.05);
+
     var leaves = BABYLON.MeshBuilder.CreateSphere("tree-leaves", {
-        diameterX: biome.id === "forest" ? 2.8 : 2.3,
-        diameterY: biome.id === "forest" ? 3.2 : 2.6,
-        diameterZ: biome.id === "forest" ? 2.8 : 2.3,
+        diameterX: crownWidth,
+        diameterY: crownHeight,
+        diameterZ: crownWidth,
         segments: 4
     }, scene);
     leaves.position.set(localX, groundY + trunkHeight + 0.9, localZ);
-    leaves.material = biome.id === "snow" ? materials.foliageSnow : (biome.id === "forest" ? materials.foliageForest : materials.foliageMeadow);
+    leaves.material = leafMaterial;
     registerPropMesh(leaves, chunk);
 }
 
@@ -373,7 +358,7 @@ function createChunk(chunkX, chunkZ) {
     return chunk;
 }
 
-function populateChunk(chunk, biome) {
+function populateChunk(chunk, currentBiome) {
     var isSpawnChunk = chunk.x === 0 && chunk.z === 0;
     if (isSpawnChunk) {
         createSpawnMarker(chunk);
@@ -383,20 +368,55 @@ function populateChunk(chunk, biome) {
         for (var lz = 2; lz < CONFIG.chunkSize - 2; lz += 1) {
             var worldX = chunk.root.position.x + lx;
             var worldZ = chunk.root.position.z + lz;
-            var roll = hash2(worldX * 1.17, worldZ * 1.13);
 
             if (Math.abs(worldX) <= 5 && Math.abs(worldZ) <= 5) {
                 continue;
             }
-            if (roll > 1 - biome.treeChance) {
-                createTree(lx, lz, chunk, biome);
-            } else if (roll > 1 - biome.treeChance - biome.rockChance) {
+
+            var blend = getBiomeBlend(worldX, worldZ);
+            var roll = hash2(worldX * 1.17, worldZ * 1.13);
+
+            // Calculate weighted probabilities for each biome
+            var treeChance = (GAME_DATA.biomes.meadow.treeChance * blend.meadow) +
+                             (GAME_DATA.biomes.forest.treeChance * blend.forest) +
+                             (GAME_DATA.biomes.desert.treeChance * blend.desert) +
+                             (GAME_DATA.biomes.snow.treeChance * blend.snow);
+
+            var rockChance = (GAME_DATA.biomes.meadow.rockChance * blend.meadow) +
+                             (GAME_DATA.biomes.forest.rockChance * blend.forest) +
+                             (GAME_DATA.biomes.desert.rockChance * blend.desert) +
+                             (GAME_DATA.biomes.snow.rockChance * blend.snow);
+
+            if (roll > 1 - treeChance) {
+                // Only tree-bearing biome weights should participate in tree style selection.
+                var meadowTreeWeight = blend.meadow * GAME_DATA.biomes.meadow.treeChance;
+                var forestTreeWeight = blend.forest * GAME_DATA.biomes.forest.treeChance;
+                var snowTreeWeight = blend.snow * GAME_DATA.biomes.snow.treeChance;
+                var totalTreeWeight = meadowTreeWeight + forestTreeWeight + snowTreeWeight;
+
+                if (totalTreeWeight <= 0) {
+                    continue;
+                }
+
+                var treeRoll = hash2(worldX * 0.91, worldZ * 0.83);
+                var selectedBiome = GAME_DATA.biomes.meadow;
+                var snowThreshold = snowTreeWeight / totalTreeWeight;
+                var forestThreshold = snowThreshold + forestTreeWeight / totalTreeWeight;
+
+                if (treeRoll < snowThreshold) {
+                    selectedBiome = GAME_DATA.biomes.snow;
+                } else if (treeRoll < forestThreshold) {
+                    selectedBiome = GAME_DATA.biomes.forest;
+                }
+
+                createTree(lx, lz, chunk, selectedBiome);
+            } else if (roll > 1 - treeChance - rockChance) {
                 createRock(lx, lz, chunk);
             }
         }
     }
 
-    populateChunkEntities(chunk, biome);
+    populateChunkEntities(chunk, currentBiome);
 }
 
 function chooseChunkPickupType(biome) {
@@ -518,18 +538,7 @@ function generateWorld() {
         }
     }
 
-    player.spawnPoint = new BABYLON.Vector3(spawnX, safeHeight + CONFIG.playerHalfHeight + 200, spawnZ);
-}
-
-function prepareSpawnZone() {
-    createChunk(0, 0);
-    createChunk(1, 0);
-    createChunk(-1, 0);
-    createChunk(0, 1);
-    createChunk(0, -1);
-    world.currentChunkX = 0;
-    world.currentChunkZ = 0;
-    world.currentBiomeId = getBiomeAt(0, 0).id;
+    player.spawnPoint = new BABYLON.Vector3(spawnX, safeHeight, spawnZ);
 }
 
 function updateWorldStreaming() {

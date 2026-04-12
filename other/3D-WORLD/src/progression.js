@@ -25,12 +25,7 @@ var progression = {
         boots: null,
         charm: null
     },
-    gearStash: [],
-    pet: {
-        activeId: "mossfox",
-        root: null,
-        bob: 0
-    }
+    gearStash: []
 };
 
 function buildEquipmentInstance(template, rarity) {
@@ -89,10 +84,6 @@ function createRandomEquipmentDrop() {
     return buildEquipmentInstance(template, pickWeightedRarity());
 }
 
-function getActivePetDef() {
-    return GAME_DATA.pets[progression.pet.activeId] || null;
-}
-
 function resolvePlayerStats() {
     var combined = {
         maxHealth: 100,
@@ -114,13 +105,6 @@ function resolvePlayerStats() {
             combined[key] = (combined[key] || 0) + item.stats[key];
         });
     });
-
-    var petDef = getActivePetDef();
-    if (petDef && petDef.stats) {
-        Object.keys(petDef.stats).forEach(function (key) {
-            combined[key] = (combined[key] || 0) + petDef.stats[key];
-        });
-    }
 
     combined.power = Math.round(
         combined.maxHealth * 0.4 +
@@ -318,63 +302,4 @@ function buildAchievementSummaryLines() {
     });
     lines.unshift("<div class=\"inventory-line\"><span>Unlocked</span><span>" + unlockedCount + " / " + (GAME_DATA.achievements || []).length + "</span></div>");
     return lines.join("");
-}
-
-function buildPetSummaryLines() {
-    var petDef = getActivePetDef();
-    if (!petDef) {
-        return "<div class=\"inventory-line\"><span>Pet</span><span>None</span></div>";
-    }
-    var lines = [];
-    lines.push("<div class=\"inventory-line\"><span>Name</span><span>" + petDef.name + "</span></div>");
-    lines.push("<div class=\"inventory-line\"><span>Role</span><span>Follow / Loot Assist</span></div>");
-    Object.keys(petDef.stats).forEach(function (key) {
-        lines.push("<div class=\"inventory-line\"><span>" + key + "</span><span>" + formatStatValue(key, petDef.stats[key]) + "</span></div>");
-    });
-    return lines.join("");
-}
-
-function ensurePetCompanion() {
-    if (progression.pet.root || !player.body) {
-        return;
-    }
-    var petDef = getActivePetDef();
-    if (!petDef) {
-        return;
-    }
-
-    var root = new BABYLON.TransformNode("pet-root", scene);
-    var body = BABYLON.MeshBuilder.CreateBox("pet-body", { width: 0.5, height: 0.42, depth: 0.74 }, scene);
-    body.parent = root;
-    body.material = makeMaterial("pet-body-mat", petDef.color);
-    body.isPickable = false;
-
-    var head = BABYLON.MeshBuilder.CreateBox("pet-head", { width: 0.38, height: 0.34, depth: 0.32 }, scene);
-    head.parent = root;
-    head.position.set(0, 0.12, 0.45);
-    head.material = makeMaterial("pet-head-mat", petDef.color);
-    head.isPickable = false;
-
-    var tail = BABYLON.MeshBuilder.CreateBox("pet-tail", { width: 0.12, height: 0.12, depth: 0.34 }, scene);
-    tail.parent = root;
-    tail.position.set(0, 0.04, -0.52);
-    tail.material = makeMaterial("pet-tail-mat", petDef.accent);
-    tail.isPickable = false;
-
-    progression.pet.root = root;
-}
-
-function updatePetCompanion(dt) {
-    if (!progression.pet.root || !player.body) {
-        return;
-    }
-    progression.pet.bob += dt * 3.2;
-    var target = player.body.position.add(new BABYLON.Vector3(-0.95, 0.28 + Math.sin(progression.pet.bob) * 0.12, -0.95));
-    progression.pet.root.position.x = lerp(progression.pet.root.position.x, target.x, dt * 4.2);
-    progression.pet.root.position.y = lerp(progression.pet.root.position.y, target.y, dt * 4.2);
-    progression.pet.root.position.z = lerp(progression.pet.root.position.z, target.z, dt * 4.2);
-
-    var toPlayer = player.body.position.subtract(progression.pet.root.position);
-    progression.pet.root.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);
-    progression.pet.root.setEnabled(!state.dead);
 }

@@ -28,7 +28,6 @@ var dom = {
     inventoryEquipment: document.getElementById("inventoryEquipment"),
     inventoryWorld: document.getElementById("inventoryWorld"),
     inventoryAchievements: document.getElementById("inventoryAchievements"),
-    inventoryPet: document.getElementById("inventoryPet"),
     pausePanel: document.getElementById("pausePanel"),
     deathPanel: document.getElementById("deathPanel"),
     resumeBtn: document.getElementById("resumeBtn"),
@@ -39,24 +38,6 @@ var dom = {
     damageFlash: document.getElementById("damageFlash"),
     toast: document.getElementById("toast"),
     hitMarker: document.getElementById("hitMarker")
-};
-
-var CONFIG = {
-    seed: 27,
-    minWorldY: GAME_DATA.world.heightMin,
-    chunkSize: GAME_DATA.world.chunkSize,
-    chunkResolution: GAME_DATA.world.chunkResolution,
-    activeChunkRadius: GAME_DATA.world.activeChunkRadius,
-    unloadChunkRadius: GAME_DATA.world.unloadChunkRadius,
-    playerHalfWidth: 0.38,
-    playerHalfHeight: 0.9,
-    playerSpeed: 6.6,
-    crouchMultiplier: 0.58,
-    jumpSpeed: 7.3,
-    gravity: -20,
-    mouseSensitivity: 0.0023,
-    enemySight: 18,
-    enemyAttackRange: 2.45
 };
 
 function createEmptySlotItem() {
@@ -75,17 +56,6 @@ function createWeaponSlotItem(weaponId) {
         name: def ? def.label : weaponId,
         short: def ? def.short : weaponId
     };
-}
-
-function createAmmoState() {
-    var ammo = {};
-    Object.keys(GAME_DATA.weapons).forEach(function (weaponId) {
-        ammo[weaponId] = {
-            mag: 0,
-            reserve: 0
-        };
-    });
-    return ammo;
 }
 
 var weaponDefs = cloneData(GAME_DATA.weapons);
@@ -118,62 +88,11 @@ var pickups = [];
 var enemies = [];
 var hotbarEls = [];
 
-var state = {
-    started: false,
-    inventoryOpen: false,
-    dead: false,
-    toastTimer: 0,
-    hitMarkerTimer: 0,
-    damageFlashTimer: 0,
-    spawnLockTimer: 0
-};
-
 var input = {
     keys: {},
     mouseButtons: { 0: false, 1: false, 2: false },
     jumpQueued: false,
     fireLatch: false
-};
-
-var world = {
-    blocks: new Map(),
-    columns: new Map(),
-    chunks: new Map(),
-    maxY: 10,
-    minY: CONFIG.minWorldY,
-    blockCount: 0,
-    terrainMeshCount: 0,
-    propCount: 0,
-    currentChunkX: 0,
-    currentChunkZ: 0,
-    currentBiomeId: "meadow",
-    enemySerial: 0
-};
-
-var player = {
-    body: null,
-    yawNode: null,
-    pitchNode: null,
-    camera: null,
-    yaw: 0,
-    pitch: 0,
-    velocityY: 0,
-    health: 100,
-    maxHealth: 100,
-    stats: null,
-    slot: 0,
-    ammo: createAmmoState(),
-    primaryCooldown: 0,
-    secondaryCooldown: 0,
-    skillCooldown: 0,
-    burstCooldown: 0,
-    burstBuffTimer: 0,
-    burstDamageBoost: 0,
-    burstFireRateBoost: 0,
-    reloading: null,
-    reloadTimer: 0,
-    spawnPoint: new BABYLON.Vector3(0, 4, 0),
-    grounded: false
 };
 
 function ensureStarterLoadout() {
@@ -209,14 +128,6 @@ function lerp(a, b, t) {
     return a + (b - a) * t;
 }
 
-function blockKey(x, y, z) {
-    return x + "|" + y + "|" + z;
-}
-
-function columnKey(x, z) {
-    return x + "|" + z;
-}
-
 function chunkKey(x, z) {
     return x + "|" + z;
 }
@@ -245,8 +156,43 @@ function smoothNoise(x, z) {
     return BABYLON.Scalar.Lerp(nx0, nx1, uz);
 }
 
+function smoothstep(edge0, edge1, value) {
+    var t = clamp((value - edge0) / Math.max(edge1 - edge0, 0.0001), 0, 1);
+    return t * t * (3 - 2 * t);
+}
+
+function getBiomeBlend(x, z) {
+    var temperature = smoothNoise(x * 0.03 + 100, z * 0.03 - 45);
+    var moisture = smoothNoise(x * 0.03 - 80, z * 0.03 + 12);
+    var desert = smoothstep(0.56, 0.76, temperature) * (1 - smoothstep(0.36, 0.52, moisture));
+    var snow = 1 - smoothstep(0.22, 0.38, temperature);
+    var forest = smoothstep(0.5, 0.7, moisture) * smoothstep(0.24, 0.46, temperature) * (1 - desert) * (1 - snow * 0.7);
+    var meadow = Math.max(0, 1 - desert - snow - forest);
+    var total = meadow + forest + desert + snow;
+
+    if (total <= 0.0001) {
+        return {
+            meadow: 1,
+            forest: 0,
+            desert: 0,
+            snow: 0,
+            temperature: temperature,
+            moisture: moisture
+        };
+    }
+
+    return {
+        meadow: meadow / total,
+        forest: forest / total,
+        desert: desert / total,
+        snow: snow / total,
+        temperature: temperature,
+        moisture: moisture
+    };
+}
+
 function terrainHeight(x, z) {
-    var biome = getBiomeAt(x, z);
+    var blend = getBiomeBlend(x, z);
     var ridge = Math.abs(Math.sin(x * 0.018) + Math.cos(z * 0.021)) * 2.8;
     var broad = Math.sin(x * 0.03) * 1.8 + Math.cos(z * 0.026) * 1.7;
     var hills = smoothNoise(x * 0.045 + 20, z * 0.045 - 7) * 5.9;
@@ -254,15 +200,9 @@ function terrainHeight(x, z) {
     var valley = smoothNoise(x * 0.018 + 200, z * 0.018 - 120) * 2.0;
     var h = 1.4 + ridge + broad + hills + detail - valley * 0.8;
 
-    if (biome.id === "forest") {
-        h += smoothNoise(x * 0.1 + 50, z * 0.1 - 40) * 1.25;
-    } else if (biome.id === "desert") {
-        h += Math.sin(x * 0.08 + z * 0.04) * 0.7;
-        h -= 0.9;
-    } else if (biome.id === "snow") {
-        h += smoothNoise(x * 0.05 - 30, z * 0.05 + 90) * 2.8;
-        h += 1.6;
-    }
+    h += smoothNoise(x * 0.1 + 50, z * 0.1 - 40) * 1.25 * blend.forest;
+    h += (Math.sin(x * 0.08 + z * 0.04) * 0.7 - 0.9) * blend.desert;
+    h += (smoothNoise(x * 0.05 - 30, z * 0.05 + 90) * 2.8 + 1.6) * blend.snow;
 
     var spawnFlatten = clamp(1 - Math.sqrt(x * x + z * z) / 12, 0, 1);
     h = lerp(h, 2.0, spawnFlatten);
@@ -298,11 +238,6 @@ function runFrame() {
     updateParticles(dt);
     updateTracers(dt);
 
-    if (state.spawnLockTimer > 0) {
-        state.spawnLockTimer = Math.max(0, state.spawnLockTimer - dt);
-        snapPlayerToGround(2.2);
-    }
-
     if (!state.dead) {
         updatePlayerMovement(dt);
     }
@@ -315,7 +250,6 @@ function runFrame() {
         updateEnemies(dt);
     }
 
-    updatePetCompanion(dt);
     updateBlockHighlight();
     updateHotbarUI();
     updateInventoryUI();
@@ -329,27 +263,14 @@ function bootstrapGame() {
     createSkyAndLights();
     createPlayer();
     initializeProgression();
-    
-    // 强制生成地表
-    prepareSpawnZone();
     generateWorld();
-    
-    // 初始设置：站在地表之上的高空
-    var spawnHeight = getTerrainSurfaceHeight(0, 0);
-    player.body.position.set(0, spawnHeight + 20, 0); 
-    player.velocityY = 0;
-    
-    // 状态锁定：等待网格加载并修正位置
-    state.spawnLockTimer = 1.0; 
-    
     createViewModel();
-    ensurePetCompanion();
     buildHotbarUI();
     registerInput();
     setSlot(0);
-    
+    respawnPlayer();
+
     engine.runRenderLoop(runFrame);
-    
     window.addEventListener("resize", function () {
         engine.resize();
     });
