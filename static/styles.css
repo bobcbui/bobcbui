@@ -2,6 +2,8 @@ html, body {
     height: 100%;
 }
 :root {
+    --header-shell-height: 68px;
+    --header-shell-height-mobile: 64px;
     --hero-title-line-height: 1.2;
     --hero-title-lines: 2;
     --hero-desc-line-height: 1.75;
@@ -50,6 +52,7 @@ footer {
 .hero-title {
     max-width: 720px;
     margin: 0 auto 14px;
+    /* Reserve two lines so async hero text does not shift the card after hydration. */
     min-height: calc(var(--hero-title-line-height) * 1em * var(--hero-title-lines));
     font-size: clamp(2.1rem, 5vw, 3.4rem);
     font-weight: 700;
@@ -60,6 +63,7 @@ footer {
 .hero-desc {
     max-width: 680px;
     margin: 0 auto;
+    /* Reserve two lines so async hero text does not shift the card after hydration. */
     min-height: calc(var(--hero-desc-line-height) * 1em * var(--hero-desc-lines));
     font-size: clamp(1rem, 2.6vw, 1.18rem);
     line-height: var(--hero-desc-line-height);
@@ -135,7 +139,7 @@ footer {
     justify-content: space-between;
     max-width:1200px;
     margin:0 auto;
-    min-height: 52px;
+    min-height: calc(var(--header-shell-height) - 16px);
     padding:8px 16px;
     gap:14px;
 }
@@ -239,7 +243,7 @@ footer {
 
 @media (max-width: 800px) {
     .site-header .header-inner {
-        min-height: 48px;
+        min-height: calc(var(--header-shell-height-mobile) - 16px);
         padding: 8px 12px;
         gap: 10px;
     }
@@ -371,7 +375,7 @@ footer {
 
 /* HTMX Placeholders to prevent layout shift */
 .site-header-placeholder {
-    min-height: 68px;
+    min-height: var(--header-shell-height);
     border-bottom: 1px solid #eaeaea;
     background: rgba(252, 252, 252, 0.96);
     display: block;
@@ -388,7 +392,7 @@ footer {
 
 @media (max-width: 800px) {
     .site-header-placeholder {
-        min-height: 64px;
+        min-height: var(--header-shell-height-mobile);
     }
 }
 
