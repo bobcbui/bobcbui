@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>赛博水军</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/htmx.min.js.js"></script>
+  <script src="/static/vue.global.min.js"></script>
+  <script src="/static/components/SiteHeader.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
 </head>
 <body>
-  <header>
-    <header class="site-header site-header-placeholder" hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></header>
-  </header>
-  <main>
-    <div id="content"></div>
-  </main>
-  <footer class="site-footer-placeholder" hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></footer>
+  <div id="app">
+    <site-header></site-header>
+    <main>
+      <div id="content"></div>
+    </main>
+  </div>
 
   <script type="text/markdown" id="md-content">
 # 赛博水军（内容与媒体运营支持）
@@ -40,6 +40,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
+    const { createApp } = Vue;
+    createApp({
+      components: { 'site-header': SiteHeader }
+    }).mount('#app');
     const md = document.getElementById('md-content').textContent;
     document.getElementById('content').innerHTML = marked.parse(md);
   </script>
