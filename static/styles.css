@@ -42,7 +42,7 @@ footer {
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
 }
 .hero-title {
-    max-width: 12ch;
+    max-width: 720px;
     margin: 0 auto 14px;
     min-height: calc(1.2em * 2);
     font-size: clamp(2.1rem, 5vw, 3.4rem);
@@ -263,7 +263,7 @@ footer {
         border-radius: 20px;
     }
     .hero-title {
-        min-height: calc(1.25em * 2);
+        min-height: calc(1.2em * 2);
     }
     .hero-desc {
         min-height: calc(1.75em * 2);
