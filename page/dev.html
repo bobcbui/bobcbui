@@ -3,50 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>牛马法宝</title>
+    <title>牛马法宝导航</title>
     <link rel="stylesheet" href="../static/styles.css">
     <script src="/static/components/SiteHeader.js"></script>
-    <style>pre{white-space:pre-wrap;}</style>
+    <style>
+        .dev-nav-shell {
+            min-height: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .dev-nav-page {
+            display: grid;
+            gap: 20px;
+        }
+
+        .dev-nav-intro,
+        .dev-nav-section {
+            background: var(--color-bg-elevated);
+            border-radius: 20px;
+            box-shadow: var(--shadow-sm);
+            box-sizing: border-box;
+        }
+
+        .dev-nav-intro {
+            padding: 24px;
+        }
+
+        .dev-nav-kicker {
+            margin: 0 0 10px;
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .dev-nav-title {
+            margin: 0 0 12px;
+            font-size: 1.25rem;
+            line-height: 1.35;
+            color: var(--color-primary);
+        }
+
+        .dev-nav-desc {
+            margin: 0;
+            color: var(--color-text-muted);
+            line-height: 1.7;
+        }
+
+        .dev-nav-section {
+            padding: 24px;
+        }
+
+        .dev-nav-section-head {
+            margin-bottom: 16px;
+        }
+
+        .dev-nav-heading {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+            color: var(--color-primary);
+        }
+
+        .dev-nav-subtitle {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        .dev-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .dev-nav-card {
+            display: block;
+            padding: 18px;
+            border-radius: 18px;
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            color: inherit;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .dev-nav-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+        .dev-nav-card-meta {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: var(--color-bg);
+            color: var(--color-text-muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .dev-nav-card-title {
+            margin: 12px 0 8px;
+            font-size: 1rem;
+            color: var(--color-primary);
+        }
+
+        .dev-nav-card-desc {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        @media (max-width: 540px) {
+            .dev-nav-intro,
+            .dev-nav-section {
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            .dev-nav-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <div id="app">
         <site-header></site-header>
         <main>
-            <div id="content"></div>
+            <div id="content" class="dev-nav-shell">
+                <div class="dev-nav-page">
+                    <section class="dev-nav-intro">
+                        <p class="dev-nav-kicker">Navigation</p>
+                        <h1 class="dev-nav-title">牛马法宝导航页</h1>
+                        <p class="dev-nav-desc">这个页面专门收纳 `tools` 和 `other` 目录里的入口。找在线小工具、实验项目和独立页面，都从这里直接进。</p>
+                    </section>
+
+                    <section class="dev-nav-section">
+                        <div class="dev-nav-section-head">
+                            <h2 class="dev-nav-heading">Tools</h2>
+                            <p class="dev-nav-subtitle">浏览器里直接能打开使用的小工具。</p>
+                        </div>
+                        <div class="dev-nav-grid">
+                            <a class="dev-nav-card" href="/tools/base64.html">
+                                <span class="dev-nav-card-meta">Tool</span>
+                                <h3 class="dev-nav-card-title">Base64 工具</h3>
+                                <p class="dev-nav-card-desc">支持文本、文件和图片的 Base64 编解码。</p>
+                            </a>
+                            <a class="dev-nav-card" href="/tools/json.html">
+                                <span class="dev-nav-card-meta">Tool</span>
+                                <h3 class="dev-nav-card-title">JSON 处理工具</h3>
+                                <p class="dev-nav-card-desc">格式化、压缩、排序、校验，一页里把 JSON 处理完。</p>
+                            </a>
+                            <a class="dev-nav-card" href="/tools/corn.html">
+                                <span class="dev-nav-card-meta">Tool</span>
+                                <h3 class="dev-nav-card-title">Cron 表达式工具</h3>
+                                <p class="dev-nav-card-desc">快速查看 Cron 表达式的运行时间和调度含义。</p>
+                            </a>
+                            <a class="dev-nav-card" href="/tools/date.html">
+                                <span class="dev-nav-card-meta">Tool</span>
+                                <h3 class="dev-nav-card-title">日期分析</h3>
+                                <p class="dev-nav-card-desc">查看公历、农历、节气和节日信息的日历工具。</p>
+                            </a>
+                            <a class="dev-nav-card" href="/tools/time.html">
+                                <span class="dev-nav-card-meta">Tool</span>
+                                <h3 class="dev-nav-card-title">时间工具</h3>
+                                <p class="dev-nav-card-desc">显示当前时间，并支持多种主题切换。</p>
+                            </a>
+                        </div>
+                    </section>
+
+                    <section class="dev-nav-section">
+                        <div class="dev-nav-section-head">
+                            <h2 class="dev-nav-heading">Other</h2>
+                            <p class="dev-nav-subtitle">放在 `other` 目录下的独立实验页和小项目。</p>
+                        </div>
+                        <div class="dev-nav-grid">
+                            <a class="dev-nav-card" href="/other/3d-word/">
+                                <span class="dev-nav-card-meta">Other</span>
+                                <h3 class="dev-nav-card-title">Voxel Realm Frontier</h3>
+                                <p class="dev-nav-card-desc">一个独立的 3D 实验项目入口，包含完整的运行页面。</p>
+                            </a>
+                            <a class="dev-nav-card" href="/other/super-bft/">
+                                <span class="dev-nav-card-meta">Other</span>
+                                <h3 class="dev-nav-card-title">Super BFT</h3>
+                                <p class="dev-nav-card-desc">预留的实验目录入口，当前可作为后续扩展的导航占位。</p>
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </div>
         </main>
     </div>
-
-    <script type="text/markdown" id="md-content">
-# 牛马法宝
-
-真正的好工具不一定高级，但一定能在你快崩的时候少补一刀。这里放一批打工人高频乱用的小玩意。
-
-## 常用工具
-
-- [Base64 编解码](/tools/base64.html)
-- [JSON 格式化与清理](/tools/json.html)
-- [Cron 表达式计算](/tools/corn.html)
-- [日期分析](/tools/date.html)
-- [时间工具](/tools/time.html)
-
-## 还能做什么
-
-- **需求拆解**：把“我想做个类似某某的东西”翻译成人类能执行的任务清单。
-- **小型开发**：内部工具、管理后台、落地页，什么不大不小就最爱找上门。
-- **老项目止痛**：先别谈信仰，先补日志、补文档、补一口阳气。
-
-## 做事方式
-
-1. 先问清楚到底要什么，避免做了半天发现大家想的不是一个玩意。
-2. 先搞出能跑的，再慢慢把它包装得像经过深思熟虑。
-3. 该留的文档和说明还是留，免得下一个接手的人当场破防。
-4. 能少折腾用户一点，就少给互联网增加一点心理阴影。
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-      const md = document.getElementById('md-content').textContent;
-      document.getElementById('content').innerHTML = marked.parse(md);
-    </script>
 </body>
 </html>

@@ -10,7 +10,7 @@
               <li><a href="/page/dev.html">牛马法宝</a></li>
               <li><a href="/page/counselor.html">ICU防丢指南</a></li>
               <li><a href="/page/outsource.html">在线卖身</a></li>
-              <li><a href="/page/e-commerce.html">破产电商</a></li>
+              <li><a href="/page/e-commerce.html">黑心云</a></li>
               <li><a href="/page/media.html">赛博水军</a></li>
               <li><a href="/page/about.html">关于牛马</a></li>
               <li><a href="/page/blog.html">摸鱼日记</a></li>
@@ -28,7 +28,7 @@
                 <li><a href="/page/dev.html">牛马法宝</a></li>
                 <li><a href="/page/counselor.html">ICU防丢指南</a></li>
                 <li><a href="/page/outsource.html">在线卖身</a></li>
-                <li><a href="/page/e-commerce.html">破产电商</a></li>
+                <li><a href="/page/e-commerce.html">黑心云</a></li>
                 <li><a href="/page/media.html">赛博水军</a></li>
                 <li><a href="/page/about.html">关于牛马</a></li>
                 <li><a href="/page/blog.html">摸鱼日记</a></li>
