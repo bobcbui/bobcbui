@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>卷王指南</title>
     <link rel="stylesheet" href="../static/styles.css">
-    <script src="/static/vue.global.min.js"></script>
     <script src="/static/components/SiteHeader.js"></script>
     <style>pre{white-space:pre-wrap;}</style>
 </head>
@@ -44,10 +43,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-      const { createApp } = Vue;
-      createApp({
-        components: { 'site-header': SiteHeader }
-      }).mount('#app');
       const md = document.getElementById('md-content').textContent;
       document.getElementById('content').innerHTML = marked.parse(md);
     </script>

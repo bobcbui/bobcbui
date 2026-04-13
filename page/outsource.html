@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>在线卖身</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/vue.global.min.js"></script>
   <script src="/static/components/SiteHeader.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
 </head>
@@ -18,7 +17,7 @@
   </div>
 
   <script type="text/markdown" id="md-content">
-# 在线卖身（外包服务）
+# 在线卖身
 
 名字虽然不体面，服务态度还是尽量体面。适合短期补位、赶节点、接手半成品，和那些大家嘴上说简单但谁都不想做的活。
 
@@ -43,10 +42,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    const { createApp } = Vue;
-    createApp({
-      components: { 'site-header': SiteHeader }
-    }).mount('#app');
     const md = document.getElementById('md-content').textContent;
     document.getElementById('content').innerHTML = marked.parse(md);
   </script>

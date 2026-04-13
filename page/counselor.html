@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ICU 防丢指南</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/vue.global.min.js"></script>
   <script src="/static/components/SiteHeader.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
 </head>
@@ -18,7 +17,7 @@
   </div>
 
   <script type="text/markdown" id="md-content">
-# ICU 防丢指南（技术急救台）
+# ICU 防丢指南
 
 当系统开始抽搐、日志开始吟唱、老板开始在群里发问号时，这里就是临时急救室。先止血，再决定是继续抢救还是体面送走。
 
@@ -38,10 +37,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    const { createApp } = Vue;
-    createApp({
-      components: { 'site-header': SiteHeader }
-    }).mount('#app');
     const md = document.getElementById('md-content').textContent;
     document.getElementById('content').innerHTML = marked.parse(md);
   </script>

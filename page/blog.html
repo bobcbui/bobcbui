@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>摸鱼日记</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/vue.global.min.js"></script>
   <script src="/static/components/SiteHeader.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
 </head>
@@ -18,7 +17,7 @@
   </div>
 
   <script type="text/markdown" id="md-content">
-# 摸鱼日记（Blog）
+# 摸鱼日记
 
 这里记一些上班不方便发朋友圈、下班又懒得写长文的碎碎念。技术含量不一定稳定，精神状态通常比较稳定地不太稳定。
 
@@ -40,10 +39,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    const { createApp } = Vue;
-    createApp({
-      components: { 'site-header': SiteHeader }
-    }).mount('#app');
     const md = document.getElementById('md-content').textContent;
     document.getElementById('content').innerHTML = marked.parse(md);
   </script>

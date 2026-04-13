@@ -1,6 +1,5 @@
-// Vue 3 Header Component
-const SiteHeader = {
-  template: `
+(() => {
+  const siteHeaderMarkup = `
     <header class="site-header">
       <div class="header-inner container">
         <a class="logo" href="/" aria-label="返回首页">牛马程序员</a>
@@ -39,5 +38,41 @@ const SiteHeader = {
         </div>
       </div>
     </header>
-  `
-};
+  `.trim();
+
+  function createSiteHeader() {
+    const template = document.createElement('template');
+    template.innerHTML = siteHeaderMarkup;
+    return template.content.firstElementChild;
+  }
+
+  function replaceSiteHeader(mountPoint) {
+    if (!(mountPoint instanceof HTMLElement)) {
+      return;
+    }
+
+    mountPoint.replaceWith(createSiteHeader());
+  }
+
+  function renderSiteHeaders() {
+    document.querySelectorAll('site-header').forEach((mountPoint) => {
+      replaceSiteHeader(mountPoint);
+    });
+  }
+
+  if ('customElements' in window && !window.customElements.get('site-header')) {
+    class SiteHeaderElement extends HTMLElement {
+      connectedCallback() {
+        replaceSiteHeader(this);
+      }
+    }
+
+    window.customElements.define('site-header', SiteHeaderElement);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderSiteHeaders, { once: true });
+  } else {
+    renderSiteHeaders();
+  }
+})();
