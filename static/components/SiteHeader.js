@@ -3,7 +3,7 @@ const SiteHeader = {
   template: `
     <header class="site-header">
       <div class="header-inner container">
-        <a class="logo" href="/">牛马程序员</a>
+        <a class="logo" href="/" aria-label="返回首页">牛马程序员</a>
         <div class="header-left">
           <nav class="center-nav desktop-nav" aria-label="主导航">
             <ul>
