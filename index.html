@@ -5,61 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>牛马程序员 - 人还没跑，站先搭好了</title>
     <link rel="stylesheet" href="static/styles.css">
-    <script src="/static/htmx.min.js.js"></script>
+    <script src="/static/vue.global.min.js"></script>
+    <script src="/static/components/SiteHeader.js"></script>
 </head>
 <body>
-    <header class="site-header site-header-placeholder" hx-get="/includes/header.html" hx-trigger="load" hx-swap="outerHTML"></header>
+    <div id="app">
+        <site-header></site-header>
 
-    <main>
-        <section class="hero-section">
-            <h1 id="hero-title" class="hero-title"></h1>
-            <h2 id="hero-desc" class="hero-desc"></h2>
-        </section>
+        <main>
+            <section class="hero-section">
+                <h1 class="hero-title">{{ heroTitle }}</h1>
+                <h2 class="hero-desc">{{ heroDesc }}</h2>
+            </section>
 
-        <section class="vp-features">
-            <a class="vp-feature" href="/page/study.html">
-                <h3 class="vp-feature-title">📖 卷王指南</h3>
-                <p class="vp-feature-description">学不学得会另说，气势一定要先卷起来。这里收录一批适合深夜自我感动的学习路线。</p>
-            </a>
-            <a class="vp-feature" href="/page/dev.html">
-                <h3 class="vp-feature-title">💻 牛马法宝</h3>
-                <p class="vp-feature-description">从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。</p>
-            </a>
-            <a class="vp-feature" href="/page/counselor.html">
-                <h3 class="vp-feature-title">🏥 ICU 防丢指南</h3>
-                <p class="vp-feature-description">系统快不行了先别哭，先插氧气。专治线上抽风、祖传项目和选型后悔症。</p>
-            </a>
-            <a class="vp-feature" href="/page/outsource.html">
-                <h3 class="vp-feature-title">🤝 在线卖身</h3>
-                <p class="vp-feature-description">哪里有脏活累活和没人接的锅，哪里就有新鲜出栏的技术牛马前来报到。</p>
-            </a>
-            <a class="vp-feature" href="/page/e-commerce.html">
-                <h3 class="vp-feature-title">💸 破产电商</h3>
-                <p class="vp-feature-description">别人晒战报，我们晒复盘。专注研究钱是怎么没的，以及下次能不能晚点没。</p>
-            </a>
-            <a class="vp-feature" href="/page/media.html">
-                <h3 class="vp-feature-title">🤖 赛博水军</h3>
-                <p class="vp-feature-description">粉丝可以没有，气势必须拉满。账号定位、内容节奏和排面建设一条龙瞎忙活。</p>
-            </a>
-        </section>
-    </main>
+            <section class="vp-features">
+                <a class="vp-feature" href="/page/study.html">
+                    <h3 class="vp-feature-title">📖 卷王指南</h3>
+                    <p class="vp-feature-description">学不学得会另说，气势一定要先卷起来。这里收录一批适合深夜自我感动的学习路线。</p>
+                </a>
+                <a class="vp-feature" href="/page/dev.html">
+                    <h3 class="vp-feature-title">💻 牛马法宝</h3>
+                    <p class="vp-feature-description">从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。</p>
+                </a>
+                <a class="vp-feature" href="/page/counselor.html">
+                    <h3 class="vp-feature-title">🏥 ICU 防丢指南</h3>
+                    <p class="vp-feature-description">系统快不行了先别哭，先插氧气。专治线上抽风、祖传项目和选型后悔症。</p>
+                </a>
+                <a class="vp-feature" href="/page/outsource.html">
+                    <h3 class="vp-feature-title">🤝 在线卖身</h3>
+                    <p class="vp-feature-description">哪里有脏活累活和没人接的锅，哪里就有新鲜出栏的技术牛马前来报到。</p>
+                </a>
+                <a class="vp-feature" href="/page/e-commerce.html">
+                    <h3 class="vp-feature-title">💸 破产电商</h3>
+                    <p class="vp-feature-description">别人晒战报，我们晒复盘。专注研究钱是怎么没的，以及下次能不能晚点没。</p>
+                </a>
+                <a class="vp-feature" href="/page/media.html">
+                    <h3 class="vp-feature-title">🤖 赛博水军</h3>
+                    <p class="vp-feature-description">粉丝可以没有，气势必须拉满。账号定位、内容节奏和排面建设一条龙瞎忙活。</p>
+                </a>
+            </section>
+        </main>
+    </div>
 
     <script>
-        (function(){
-            const array = [
-                {"title": "学 IT 改命，先改掉熬夜不写注释的命", "desc": "一个专门收留打工人、半吊子站长和深夜技术幻想家的赛博据点"},
-                {"title": "只要需求提得够离谱，方案就会显得很有创造力", "desc": "这里有学习笔记、摸鱼工具、项目急救和一些写着写着就破防的复盘"},
-                {"title": "不保证年薪百万，至少保证梗味纯正", "desc": "从卷王指南到破产电商，把技术人的苦中作乐尽量写得像回事"}
-            ];
-            const index = Math.floor(Math.random() * array.length);
-            const data = array[index];
-            const t = document.getElementById('hero-title');
-            const d = document.getElementById('hero-desc');
-            if(t) t.innerText = data.title;
-            if(d) d.innerText = data.desc;
-        })();
+        const { createApp } = Vue;
+        
+        createApp({
+            components: {
+                'site-header': SiteHeader
+            },
+            data() {
+                const array = [
+                    {"title": "学 IT 改命，先改掉熬夜不写注释的命", "desc": "一个专门收留打工人、半吊子站长和深夜技术幻想家的赛博据点"},
+                    {"title": "只要需求提得够离谱，方案就会显得很有创造力", "desc": "这里有学习笔记、摸鱼工具、项目急救和一些写着写着就破防的复盘"},
+                    {"title": "不保证年薪百万，至少保证梗味纯正", "desc": "从卷王指南到破产电商，把技术人的苦中作乐尽量写得像回事"}
+                ];
+                const index = Math.floor(Math.random() * array.length);
+                const data = array[index];
+                return {
+                    heroTitle: data.title,
+                    heroDesc: data.desc
+                };
+            }
+        }).mount('#app');
     </script>
-
-    <footer class="site-footer-placeholder" hx-get="/includes/footer.html" hx-trigger="load" hx-swap="outerHTML"></footer>
 </body>
 </html>
