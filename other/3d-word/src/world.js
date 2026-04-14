@@ -52,7 +52,6 @@ function ensureMaterialCatalog() {
     materials.pickupBlue = makeMaterial("pickup-blue", "#65c8ff");
     materials.pickupWood = makeMaterial("pickup-wood", "#8f6338");
     materials.pickupMetal = makeMaterial("pickup-metal", "#9aa8b6");
-    materials.pickupGear = makeMaterial("pickup-gear", "#ffd35d");
     materials.pickupSnow = makeMaterial("pickup-snow", "#d8f5ff");
     materials.treeTrunk = makeMaterial("tree-trunk", "#7a5532");
     materials.foliageForest = makeMaterial("foliage-forest", "#4f9350");
@@ -420,7 +419,7 @@ function populateChunk(chunk, currentBiome) {
 }
 
 function chooseChunkPickupType(biome) {
-    var pool = biome.pickupBias || ["food", "gear", "pistol"];
+    var pool = biome.pickupBias || ["food", "pistol"];
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -632,10 +631,6 @@ function createPickup(type, position, options) {
         makePart("pickup-rifle-stock", { width: 0.18, height: 0.12, depth: 0.12 }, vec3(-0.18, 0.06, 0), materials.weaponDark);
         makePart("pickup-rifle-body", { width: 0.52, height: 0.14, depth: 0.14 }, vec3(0.06, 0.06, 0), materials.weaponMid);
         makePart("pickup-rifle-mag", { width: 0.1, height: 0.22, depth: 0.1 }, vec3(0.02, -0.12, 0), materials.weaponAccent);
-    } else if (type === "gear") {
-        makePart("pickup-gear-core", { width: 0.44, height: 0.44, depth: 0.44 }, vec3(0, 0.06, 0), materials.pickupGear);
-        makePart("pickup-gear-base", { width: 0.78, height: 0.12, depth: 0.78 }, vec3(0, -0.28, 0), materials.weaponDark);
-        makePart("pickup-gear-gem", { width: 0.18, height: 0.18, depth: 0.18 }, vec3(0, 0.34, 0), materials.pickupBlue);
     } else {
         makePart("supply-core", { width: 0.62, height: 0.62, depth: 0.62 }, vec3(0, 0, 0), materials.pickupBlue);
         makePart("supply-base", { width: 0.9, height: 0.12, depth: 0.9 }, vec3(0, -0.32, 0), materials.weaponDark);
@@ -648,7 +643,7 @@ function createPickup(type, position, options) {
         bob: Math.random() * Math.PI * 2,
         active: true,
         respawnTimer: 0,
-        respawnDelay: type === "gear" ? 18 + Math.random() * 8 : 11 + Math.random() * 5,
+        respawnDelay: 11 + Math.random() * 5,
         pickupRadius: type === "food" ? 1.85 : 1.95,
         chunkKey: opts.chunkKey || null,
         biomeId: opts.biomeId || null
@@ -673,14 +668,10 @@ function collectPickup(pickup) {
 
     if (pickup.type === "food") {
         player.health = clamp(player.health + 22, 0, player.maxHealth);
-        showToast("Collected field rations. Health restored.", 1.8);
     } else if (pickup.type === "pistol" || pickup.type === "rifle") {
         grantWeaponPickup(pickup.type);
-    } else if (pickup.type === "gear") {
-        grantEquipmentDrop();
     } else {
         player.health = clamp(player.health + 12, 0, player.maxHealth);
-        showToast("Collected supplies.", 1.8);
     }
     registerPickupCollected();
     audio.playPickup();

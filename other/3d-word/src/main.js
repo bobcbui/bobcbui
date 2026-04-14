@@ -18,26 +18,13 @@ var dom = {
     healthText: document.getElementById("healthText"),
     healthFill: document.getElementById("healthFill"),
     ammoText: document.getElementById("ammoText"),
-    levelText: document.getElementById("levelText"),
-    abilityText: document.getElementById("abilityText"),
     statusText: document.getElementById("statusText"),
-    reloadFill: document.getElementById("reloadFill"),
     hotbar: document.getElementById("hotbar"),
-    inventoryPanel: document.getElementById("inventoryPanel"),
-    inventoryLoadout: document.getElementById("inventoryLoadout"),
-    inventoryEquipment: document.getElementById("inventoryEquipment"),
-    inventoryWorld: document.getElementById("inventoryWorld"),
-    inventoryAchievements: document.getElementById("inventoryAchievements"),
     pausePanel: document.getElementById("pausePanel"),
     deathPanel: document.getElementById("deathPanel"),
     resumeBtn: document.getElementById("resumeBtn"),
-    openInventoryBtn: document.getElementById("openInventoryBtn"),
-    closeInventoryBtn: document.getElementById("closeInventoryBtn"),
-    resumeFromInventoryBtn: document.getElementById("resumeFromInventoryBtn"),
     respawnBtn: document.getElementById("respawnBtn"),
-    damageFlash: document.getElementById("damageFlash"),
-    toast: document.getElementById("toast"),
-    hitMarker: document.getElementById("hitMarker")
+    damageFlash: document.getElementById("damageFlash")
 };
 
 function createEmptySlotItem() {
@@ -192,21 +179,7 @@ function getBiomeBlend(x, z) {
 }
 
 function terrainHeight(x, z) {
-    var blend = getBiomeBlend(x, z);
-    var ridge = Math.abs(Math.sin(x * 0.018) + Math.cos(z * 0.021)) * 2.8;
-    var broad = Math.sin(x * 0.03) * 1.8 + Math.cos(z * 0.026) * 1.7;
-    var hills = smoothNoise(x * 0.045 + 20, z * 0.045 - 7) * 5.9;
-    var detail = smoothNoise(x * 0.12 - 50, z * 0.12 + 11) * 0.65;
-    var valley = smoothNoise(x * 0.018 + 200, z * 0.018 - 120) * 2.0;
-    var h = 1.4 + ridge + broad + hills + detail - valley * 0.8;
-
-    h += smoothNoise(x * 0.1 + 50, z * 0.1 - 40) * 1.25 * blend.forest;
-    h += (Math.sin(x * 0.08 + z * 0.04) * 0.7 - 0.9) * blend.desert;
-    h += (smoothNoise(x * 0.05 - 30, z * 0.05 + 90) * 2.8 + 1.6) * blend.snow;
-
-    var spawnFlatten = clamp(1 - Math.sqrt(x * x + z * z) / 12, 0, 1);
-    h = lerp(h, 2.0, spawnFlatten);
-    return clamp(h, 0.1, 14.2);
+    return GAME_DATA.world.flatHeight;
 }
 
 function isPointerLocked() {
@@ -214,7 +187,7 @@ function isPointerLocked() {
 }
 
 function canControlGame() {
-    return isPointerLocked() && !state.inventoryOpen && !state.dead;
+    return isPointerLocked() && !state.dead;
 }
 
 function currentHotbarItem() {
@@ -227,8 +200,6 @@ function currentWeaponDef() {
 }
 
 function animateTimers(dt) {
-    state.toastTimer = Math.max(0, state.toastTimer - dt);
-    state.hitMarkerTimer = Math.max(0, state.hitMarkerTimer - dt);
     state.damageFlashTimer = Math.max(0, state.damageFlashTimer - dt);
 }
 
@@ -252,7 +223,6 @@ function runFrame() {
 
     updateBlockHighlight();
     updateHotbarUI();
-    updateInventoryUI();
     updateHUD();
     scene.render();
 }
