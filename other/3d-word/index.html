@@ -70,7 +70,7 @@
             position: absolute;
             top: 18px;
             left: 18px;
-            width: 260px;
+            width: 220px;
             padding: 14px;
         }
 
@@ -114,13 +114,7 @@
             background: linear-gradient(90deg, #ff6a5f, #ffb164);
         }
 
-        #reloadFill {
-            background: linear-gradient(90deg, #66d0ff, #c7f1ff);
-            width: 0%;
-        }
-
-        #crosshair,
-        #hitMarker {
+        #crosshair {
             position: absolute;
             left: 50%;
             top: 50%;
@@ -129,8 +123,7 @@
             transform: translate(-50%, -50%);
         }
 
-        #crosshair span,
-        #hitMarker span {
+        #crosshair span {
             position: absolute;
             display: block;
             border-radius: 999px;
@@ -157,28 +150,6 @@
         #crosshair .left { left: 0; }
         #crosshair .right { right: 0; }
 
-        #hitMarker {
-            opacity: 0;
-            transition: opacity 80ms linear, transform 80ms ease-out;
-        }
-
-        #hitMarker.visible {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.08);
-        }
-
-        #hitMarker span {
-            width: 11px;
-            height: 2px;
-            top: 16px;
-            background: rgba(255, 236, 187, 0.95);
-        }
-
-        #hitMarker .tl { left: -1px; transform: rotate(45deg); }
-        #hitMarker .tr { right: -1px; transform: rotate(-45deg); }
-        #hitMarker .bl { left: -1px; transform: rotate(-45deg); }
-        #hitMarker .br { right: -1px; transform: rotate(45deg); }
-
         #damageFlash {
             position: absolute;
             inset: 0;
@@ -186,26 +157,6 @@
             opacity: 0;
             transition: opacity 120ms linear;
         }
-
-        #toast {
-            position: absolute;
-            top: 26px;
-            left: 50%;
-            transform: translateX(-50%);
-            min-width: 180px;
-            max-width: 70vw;
-            padding: 10px 16px;
-            border-radius: 999px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-main);
-            background: rgba(8, 12, 18, 0.78);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            opacity: 0;
-            transition: opacity 180ms ease;
-        }
-
-        #toast.visible { opacity: 1; }
 
         #hotbar {
             position: absolute;
@@ -248,24 +199,6 @@
             color: var(--text-soft);
             line-height: 1.4;
             min-height: 31px;
-        }
-
-        #tips {
-            position: absolute;
-            right: 18px;
-            bottom: 18px;
-            width: 260px;
-            padding: 14px;
-            font-size: 12px;
-            line-height: 1.55;
-            color: var(--text-soft);
-        }
-
-        .tips-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 6px;
         }
 
         .modal {
@@ -372,13 +305,8 @@
             <div class="stat-row"><span>Health</span><strong id="healthText">100 / 100</strong></div>
             <div class="bar"><div id="healthFill" class="bar-fill"></div></div>
             <div class="stat-row"><span>Loadout</span><strong id="ammoText">Rune Pistol</strong></div>
-            <div class="stat-row"><span>Adventure</span><strong id="levelText">Lv. 1 | Power 0</strong></div>
-            <div class="stat-row"><span>Abilities</span><strong id="abilityText">Q Ready | F Ready</strong></div>
             <div class="stat-row"><span>Status</span><strong id="statusText">Click to start</strong></div>
-            <div class="bar"><div id="reloadFill" class="bar-fill"></div></div>
         </div>
-
-        <div id="toast"></div>
 
         <div id="crosshair">
             <span class="v top"></span>
@@ -387,57 +315,21 @@
             <span class="h right"></span>
         </div>
 
-        <div id="hitMarker">
-            <span class="tl"></span>
-            <span class="tr"></span>
-            <span class="bl"></span>
-            <span class="br"></span>
-        </div>
-
         <div id="damageFlash"></div>
-
-        <div id="tips" class="panel">
-            <div class="tips-title">Controls</div>
-            <div>`WASD` move, `Space` jump, `Shift` crouch</div>
-            <div>Left mouse fire, right mouse aim, wheel / `1-4` switch slots</div>
-            <div>`Q` weapon skill, `F` burst, `R` reload, `E` inventory</div>
-            <div>Explore forever-loading chunks, collect gear, and keep pushing deeper into the frontier</div>
-        </div>
-
-        <div id="inventoryPanel" class="modal panel hidden">
-            <div class="modal-title">
-                <div>
-                    <h2>Adventure Codex</h2>
-                    <p>Track weapons, equipment, achievements, and biome progress.</p>
-                </div>
-                <button id="closeInventoryBtn" class="secondary">Close</button>
-            </div>
-            <div class="grid-2">
-                <div class="card"><h3>Current Loadout</h3><div id="inventoryLoadout"></div></div>
-                <div class="card"><h3>Equipment</h3><div id="inventoryEquipment"></div></div>
-                <div class="card"><h3>World Info</h3><div id="inventoryWorld"></div></div>
-                <div class="card"><h3>Achievements</h3><div id="inventoryAchievements"></div></div>
-                <div class="card"><h3>Objective</h3><p>Push outward through an endless voxel frontier, collect better gear, unlock achievements, and grow your combat build.</p></div>
-            </div>
-            <div class="actions">
-                <button id="resumeFromInventoryBtn">Back to Fight</button>
-            </div>
-        </div>
 
         <div id="pausePanel" class="modal panel">
             <div class="modal-title">
                 <div>
                     <h2>Voxel Realm Frontier</h2>
-                    <p>Click the scene to lock the mouse and begin exploring the endless world. Press `Esc` to pause.</p>
+                    <p>Click the scene to lock the mouse and start. Controls: WASD move, Space jump, left mouse fire, R reload, 1-4 switch weapons.</p>
                 </div>
             </div>
             <div class="grid-2">
-                <div class="card"><h3>Start Armed</h3><p>You begin with a rune pistol, starter gear, and scalable action skills.</p></div>
-                <div class="card"><h3>Current Build</h3><p>This prototype now includes infinite chunk streaming, biome generation, gear drops, achievements, and weapon skills.</p></div>
+                <div class="card"><h3>Core Loop</h3><p>Move, shoot, reload, collect pickups, and survive the endless terrain.</p></div>
+                <div class="card"><h3>Simplified Build</h3><p>The extra inventory, achievements, and skill overlays have been removed to keep the prototype lighter.</p></div>
             </div>
             <div class="actions">
                 <button id="resumeBtn">Continue</button>
-                <button id="openInventoryBtn" class="secondary">Open Inventory</button>
             </div>
         </div>
 

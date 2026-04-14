@@ -43,10 +43,7 @@ var CONFIG = {
 };
 
 var state = {
-    inventoryOpen: false,
     dead: false,
-    toastTimer: 0,
-    hitMarkerTimer: 0,
     damageFlashTimer: 0,
     spawnLockTimer: 0
 };
@@ -79,12 +76,6 @@ var world = {
     slot: 0,
     ammo: createAmmoState(),
     primaryCooldown: 0,
-    secondaryCooldown: 0,
-    skillCooldown: 0,
-    burstCooldown: 0,
-    burstBuffTimer: 0,
-    burstDamageBoost: 0,
-    burstFireRateBoost: 0,
     reloading: null,
     reloadTimer: 0,
     spawnPoint: new BABYLON.Vector3(0, 4, 0),

@@ -193,11 +193,9 @@ function grantWeaponPickup(weaponId) {
 
     if (alreadyOwned) {
         ammo.reserve += reserveGain;
-        showToast("Picked up " + def.label + " ammo.", 1.8);
     } else {
         ammo.mag = def.magazine;
         ammo.reserve = Math.round(def.reserve * 0.5);
-        showToast("Picked up " + def.label + ".", 1.8);
     }
 
     if (!currentWeaponDef()) {
@@ -617,7 +615,6 @@ function startReload() {
     player.reloading = item.weaponId;
     player.reloadTimer = weapon.reloadTime;
     audio.playReload();
-    showToast("Reloading " + weapon.label + "...", 1.2);
 }
 
 function finishReload() {
@@ -644,9 +641,6 @@ function damagePlayer(amount, source) {
     player.health -= finalDamage;
     state.damageFlashTimer = 0.28;
     audio.playDamage();
-    if (source) {
-        showToast(source, 1.2);
-    }
     if (player.health <= 0) {
         player.health = 0;
         state.dead = true;
@@ -661,11 +655,6 @@ function respawnPlayer() {
     player.velocityY = 0;
     player.reloading = null;
     player.reloadTimer = 0;
-    player.skillCooldown = 0;
-    player.burstCooldown = 0;
-    player.burstBuffTimer = 0;
-    player.burstDamageBoost = 0;
-    player.burstFireRateBoost = 0;
     if (!hotbar[0] || hotbar[0].kind !== "weapon") {
         hotbar[0] = createWeaponSlotItem("pistol");
     }
@@ -683,7 +672,6 @@ function respawnPlayer() {
     setSlot(0);
     state.dead = false;
     dom.deathPanel.classList.add("hidden");
-    showToast("Respawned. Back in the frontier.", 1.8);
 }
 
 function snapPlayerToGround(extraHeight) {
@@ -731,16 +719,7 @@ function snapPlayerToGround(extraHeight) {
 
 function computeWeaponDamage(def, multiplier) {
     var stats = player.stats || {};
-    var damage = (def.damage + (stats.attack || 0)) * (multiplier || 1);
-    if (player.burstBuffTimer > 0) {
-        damage *= 1 + player.burstDamageBoost;
-    }
-    var critRate = stats.critRate || 0;
-    var critDamage = stats.critDamage || 0.5;
-    if (Math.random() < critRate) {
-        damage *= 1 + critDamage;
-    }
-    return Math.max(1, Math.round(damage));
+    return Math.max(1, Math.round((def.damage + (stats.attack || 0)) * (multiplier || 1)));
 }
 
 function getAimVectors() {
@@ -816,7 +795,7 @@ function fireWeapon() {
     }
 
     ammo.mag -= 1;
-    player.primaryCooldown = def.fireRate / (1 + player.burstFireRateBoost);
+    player.primaryCooldown = def.fireRate;
     viewModel.kick += def.recoil;
     viewModel.muzzleTimer = 0.05;
     audio.playShoot(item.weaponId);
@@ -827,68 +806,8 @@ function fireWeapon() {
     }
 }
 
-function useWeaponSkill() {
-    var weapon = currentWeaponDef();
-    if (!weapon || player.skillCooldown > 0 || player.reloading || !canControlGame()) {
-        return;
-    }
-    var skill = weapon.skill;
-    var haste = player.stats ? player.stats.skillHaste || 0 : 0;
-    player.skillCooldown = Math.max(1.5, skill.cooldown * (1 - haste));
-    registerSkillUsed();
-    audio.playShoot(currentHotbarItem().weaponId);
-    viewModel.kick += 0.2;
-    viewModel.muzzleTimer = 0.08;
-
-    if (currentHotbarItem().weaponId === "pistol") {
-        var pistolHit = performRayAttack(weapon.range + 8, computeWeaponDamage(weapon, skill.damageMultiplier), 0.01);
-        if (pistolHit.hitEnemy) {
-            player.health = clamp(player.health + skill.healOnHit, 0, player.maxHealth);
-        }
-    } else if (currentHotbarItem().weaponId === "rifle") {
-        for (var i = 0; i < skill.pellets; i += 1) {
-            performRayAttack(weapon.range, computeWeaponDamage(weapon, skill.damageMultiplier), skill.spread);
-        }
-    }
-
-    showToast(skill.label + " activated.", 1.4);
-}
-
-function useWeaponBurst() {
-    var weapon = currentWeaponDef();
-    if (!weapon || player.burstCooldown > 0 || !canControlGame()) {
-        return;
-    }
-    var burst = weapon.burst;
-    var haste = player.stats ? player.stats.skillHaste || 0 : 0;
-    player.burstCooldown = Math.max(4, burst.cooldown * (1 - haste * 0.5));
-    player.burstBuffTimer = burst.duration || 0;
-    player.burstDamageBoost = burst.damageBoost || 0;
-    player.burstFireRateBoost = burst.fireRateBoost || 0;
-    if (burst.healFlat) {
-        player.health = clamp(player.health + burst.healFlat, 0, player.maxHealth);
-    }
-    registerSkillUsed();
-    spawnBurst(player.body.position.add(vec3(0, 1.1, 0)), "#7ac8ff", 18, 0.12, 4.5);
-    showToast(burst.label + " unleashed.", 1.4);
-}
-
-function showToast(message, duration) {
-    dom.toast.textContent = message;
-    dom.toast.classList.add("visible");
-    state.toastTimer = duration || 1.6;
-}
-
 function updateCombat(dt) {
     player.primaryCooldown = Math.max(0, player.primaryCooldown - dt);
-    player.secondaryCooldown = Math.max(0, player.secondaryCooldown - dt);
-    player.skillCooldown = Math.max(0, player.skillCooldown - dt);
-    player.burstCooldown = Math.max(0, player.burstCooldown - dt);
-    player.burstBuffTimer = Math.max(0, player.burstBuffTimer - dt);
-    if (player.burstBuffTimer <= 0) {
-        player.burstDamageBoost = 0;
-        player.burstFireRateBoost = 0;
-    }
 
     if (player.reloading) {
         player.reloadTimer -= dt;
@@ -1042,10 +961,6 @@ function updatePlayerMovement(dt) {
     updateViewModel(dt, moveRatio);
 }
 
-function formatCooldown(seconds) {
-    return seconds > 0 ? seconds.toFixed(1) + "s" : "Ready";
-}
-
 function updateHUD() {
     resolvePlayerStats();
     var item = currentHotbarItem();
@@ -1059,69 +974,21 @@ function updateHUD() {
         dom.ammoText.textContent = "Unarmed";
     }
 
-    dom.levelText.textContent = "Lv. " + progression.level + " | Power " + (player.stats ? player.stats.power : 0);
-    dom.abilityText.textContent = "Q " + formatCooldown(player.skillCooldown) + " | F " + formatCooldown(player.burstCooldown);
-
     var aliveEnemies = enemies.filter(function (enemy) {
         return enemy.state !== "dead";
     }).length;
     var biome = GAME_DATA.biomes[world.currentBiomeId] || GAME_DATA.biomes.meadow;
-    var status = state.dead ? "Down" : (canControlGame() ? "Exploring" : (state.inventoryOpen ? "Inventory" : "Paused"));
-    dom.statusText.textContent = status + " | " + biome.name + " | Chunk " + world.currentChunkX + "," + world.currentChunkZ + " | Enemies " + aliveEnemies;
-
-    if (player.reloading) {
-        var def = weaponDefs[player.reloading];
-        var progress = 1 - clamp(player.reloadTimer / def.reloadTime, 0, 1);
-        dom.reloadFill.style.width = (progress * 100) + "%";
-    } else {
-        dom.reloadFill.style.width = "0%";
+    var status = state.dead ? "Down" : (canControlGame() ? "Exploring" : "Paused");
+    if (player.reloading && item.kind === "weapon") {
+        status += " | Reloading";
     }
-
-    dom.toast.classList.toggle("visible", state.toastTimer > 0);
-    dom.hitMarker.classList.toggle("visible", state.hitMarkerTimer > 0);
+    dom.statusText.textContent = status + " | Lv." + progression.level + " | " + biome.name + " | Enemies " + aliveEnemies;
     dom.damageFlash.style.opacity = String(clamp(state.damageFlashTimer / 0.28, 0, 1) * 0.9);
-    dom.pausePanel.classList.toggle("hidden", canControlGame() || state.inventoryOpen || state.dead);
-    dom.inventoryPanel.classList.toggle("hidden", !state.inventoryOpen);
+    dom.pausePanel.classList.toggle("hidden", canControlGame() || state.dead);
     dom.deathPanel.classList.toggle("hidden", !state.dead);
 }
 
 function updateInventoryUI() {
-    var item = currentHotbarItem();
-    var lines = [];
-    lines.push("<div class=\"inventory-line\"><span>Active Slot</span><span>" + (player.slot + 1) + " - " + item.short + "</span></div>");
-    lines.push("<div class=\"inventory-line\"><span>Adventure Lv.</span><span>" + progression.level + "</span></div>");
-    lines.push("<div class=\"inventory-line\"><span>Health</span><span>" + Math.round(player.health) + " / " + player.maxHealth + "</span></div>");
-    lines.push("<div class=\"inventory-line\"><span>Attack</span><span>" + Math.round((player.stats && player.stats.attack) || 0) + "</span></div>");
-    lines.push("<div class=\"inventory-line\"><span>Defense</span><span>" + Math.round((player.stats && player.stats.defense) || 0) + "</span></div>");
-    if (item.kind === "weapon") {
-        var ammo = player.ammo[item.weaponId];
-        lines.push("<div class=\"inventory-line\"><span>Ammo</span><span>" + ammo.mag + " / " + ammo.reserve + "</span></div>");
-        lines.push("<div class=\"inventory-line\"><span>Skill</span><span>" + weaponDefs[item.weaponId].skill.label + "</span></div>");
-        lines.push("<div class=\"inventory-line\"><span>Burst</span><span>" + weaponDefs[item.weaponId].burst.label + "</span></div>");
-    }
-    dom.inventoryLoadout.innerHTML = lines.join("");
-
-    if (dom.inventoryEquipment) {
-        dom.inventoryEquipment.innerHTML = buildEquipmentSummaryLines();
-    }
-
-    var aliveEnemies = enemies.filter(function (enemy) {
-        return enemy.state !== "dead";
-    }).length;
-    var worldLines = [];
-    worldLines.push("<div class=\"inventory-line\"><span>Loaded Chunks</span><span>" + world.chunks.size + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>Terrain Meshes</span><span>" + world.terrainMeshCount + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>World Props</span><span>" + world.propCount + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>Biome</span><span>" + (GAME_DATA.biomes[world.currentBiomeId] ? GAME_DATA.biomes[world.currentBiomeId].name : "Unknown") + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>Explored Chunks</span><span>" + progression.metrics.chunksVisited + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>Discovered Biomes</span><span>" + progression.discoveredBiomes.size + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>Active Enemies</span><span>" + aliveEnemies + "</span></div>");
-    worldLines.push("<div class=\"inventory-line\"><span>Ground Pickups</span><span>" + pickups.filter(function (pickup) { return pickup.active; }).length + "</span></div>");
-    dom.inventoryWorld.innerHTML = worldLines.join("");
-
-    if (dom.inventoryAchievements) {
-        dom.inventoryAchievements.innerHTML = buildAchievementSummaryLines();
-    }
 }
 
 function buildHotbarUI() {
@@ -1159,14 +1026,7 @@ function updateHotbarUI() {
 }
 
 function toggleInventory(forceValue) {
-    if (state.dead) {
-        return;
-    }
-    state.inventoryOpen = typeof forceValue === "boolean" ? forceValue : !state.inventoryOpen;
-    updateInventoryUI();
-    if (state.inventoryOpen && isPointerLocked()) {
-        document.exitPointerLock();
-    }
+    return forceValue;
 }
 
 function registerInput() {
@@ -1176,7 +1036,7 @@ function registerInput() {
 
     canvas.addEventListener("click", function () {
         audio.ensure();
-        if (!state.inventoryOpen && !state.dead && !isPointerLocked()) {
+        if (!state.dead && !isPointerLocked()) {
             canvas.requestPointerLock();
         }
     });
@@ -1195,7 +1055,7 @@ function registerInput() {
     document.addEventListener("mousedown", function (event) {
         input.mouseButtons[event.button] = true;
         audio.ensure();
-        if (event.button === 0 && !isPointerLocked() && !state.inventoryOpen && !state.dead) {
+        if (event.button === 0 && !isPointerLocked() && !state.dead) {
             canvas.requestPointerLock();
         }
     });
@@ -1214,18 +1074,11 @@ function registerInput() {
             input.jumpQueued = true;
             return;
         }
-        if (event.repeat && (event.code === "KeyE" || event.code === "KeyR" || event.code === "KeyQ" || event.code === "KeyF" || /^Digit[1-4]$/.test(event.code))) {
+        if (event.repeat && (event.code === "KeyR" || /^Digit[1-4]$/.test(event.code))) {
             return;
         }
-        if (event.code === "KeyE") {
-            event.preventDefault();
-            toggleInventory();
-        } else if (event.code === "KeyR") {
+        if (event.code === "KeyR") {
             startReload();
-        } else if (event.code === "KeyQ") {
-            useWeaponSkill();
-        } else if (event.code === "KeyF") {
-            useWeaponBurst();
         } else if (/^Digit[1-4]$/.test(event.code)) {
             setSlot(parseInt(event.code.replace("Digit", ""), 10) - 1);
         }
@@ -1251,20 +1104,6 @@ function registerInput() {
     }, { passive: false });
 
     dom.resumeBtn.addEventListener("click", function () {
-        toggleInventory(false);
-        canvas.requestPointerLock();
-    });
-
-    dom.openInventoryBtn.addEventListener("click", function () {
-        toggleInventory(true);
-    });
-
-    dom.closeInventoryBtn.addEventListener("click", function () {
-        toggleInventory(false);
-    });
-
-    dom.resumeFromInventoryBtn.addEventListener("click", function () {
-        toggleInventory(false);
         canvas.requestPointerLock();
     });
 

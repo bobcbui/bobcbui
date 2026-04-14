@@ -210,12 +210,7 @@ function killEnemy(enemy) {
     registerEnemyDefeat();
 
     var dropRoll = Math.random();
-    if (dropRoll > 0.82) {
-        createPickup("gear", enemy.root.position.add(vec3(0, 0.9, 0)), {
-            chunkKey: enemy.chunkKey,
-            biomeId: enemy.biomeId
-        });
-    } else if (dropRoll > 0.5) {
+    if (dropRoll > 0.5) {
         createPickup(Math.random() > 0.5 ? "food" : "pistol", enemy.root.position.add(vec3(0, 0.9, 0)), {
             chunkKey: enemy.chunkKey,
             biomeId: enemy.biomeId
@@ -266,7 +261,6 @@ function damageEnemy(enemy, amount, point) {
     }
     enemy.health -= amount;
     enemy.flashTimer = 0.16;
-    state.hitMarkerTimer = 0.11;
     updateEnemyHealthBar(enemy);
     spawnBurst(point || enemy.root.position.add(vec3(0, 1.6, 0)), "#ffc57a", 5, 0.09, 3.8);
     audio.playHit();
