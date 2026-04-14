@@ -97,13 +97,15 @@ export function grantWeaponPickup(weaponId) {
     const slotIndex = ensureWeaponSlot(weaponId);
     const def = weaponDefs[weaponId];
     const ammo = player.ammo[weaponId];
-    const reserveGain = Math.max(12, Math.round(def.magazine * 2));
-    const alreadyOwned = ammo.mag > 0 || ammo.reserve > 0;
-    if (alreadyOwned) {
-        ammo.reserve += reserveGain;
-    } else {
-        ammo.mag = def.magazine;
-        ammo.reserve = Math.round(def.reserve * 0.5);
+    if (def.magazine > 0) {
+        const reserveGain = Math.max(6, Math.round(def.magazine * 1.5));
+        const alreadyOwned = ammo.mag > 0 || ammo.reserve > 0;
+        if (alreadyOwned) {
+            ammo.reserve += reserveGain;
+        } else {
+            ammo.mag = def.magazine;
+            ammo.reserve = Math.max(0, def.reserve - def.magazine);
+        }
     }
     if (!currentWeaponDef()) {
         setSlot(slotIndex);
@@ -303,9 +305,17 @@ function castOverdriveSkill() {
 // ── Player Avatar ───────────────────────────────────────────
 function createPlayerAvatar() {
     const skinMat = materials.enemySkin.clone("player-skin");
-    const coatMat = materials.weaponMid.clone("player-coat");
-    const trimMat = materials.weaponAccent.clone("player-trim");
+    const shirtMat = materials.weaponMid.clone("player-shirt");
+    const pantsMat = materials.weaponDark.clone("player-pants");
+    const accentMat = materials.weaponAccent.clone("player-accent");
     const hairMat = materials.weaponDark.clone("player-hair");
+
+    shirtMat.diffuseColor = new BABYLON.Color3(0.2, 0.45, 0.92);
+    shirtMat.emissiveColor = shirtMat.diffuseColor.scale(0.06);
+    pantsMat.diffuseColor = new BABYLON.Color3(0.16, 0.2, 0.32);
+    pantsMat.emissiveColor = pantsMat.diffuseColor.scale(0.05);
+    accentMat.diffuseColor = new BABYLON.Color3(0.98, 0.76, 0.3);
+    accentMat.emissiveColor = accentMat.diffuseColor.scale(0.08);
 
     const avatar = {
         root: new BABYLON.TransformNode("player-avatar", scene),
@@ -315,8 +325,10 @@ function createPlayerAvatar() {
         rightArm: new BABYLON.TransformNode("player-avatar-rarm", scene),
         leftLeg: new BABYLON.TransformNode("player-avatar-lleg", scene),
         rightLeg: new BABYLON.TransformNode("player-avatar-rleg", scene),
+        weaponMount: new BABYLON.TransformNode("player-weapon-mount", scene),
+        weaponModels: {},
         parts: [],
-        walkPhase: 0
+        walkPhase: Math.random() * Math.PI * 2
     };
 
     avatar.root.parent = player.body;
@@ -325,6 +337,7 @@ function createPlayerAvatar() {
     avatar.rightArm.parent = avatar.root;
     avatar.leftLeg.parent = avatar.root;
     avatar.rightLeg.parent = avatar.root;
+    avatar.weaponMount.parent = avatar.rightArm;
 
     function makePart(name, size, parent, posOffset, mat) {
         const part = BABYLON.MeshBuilder.CreateBox(name, size, scene);
@@ -337,42 +350,142 @@ function createPlayerAvatar() {
         return part;
     }
 
-    makePart("player-body-core", { width: 0.86, height: 1.08, depth: 0.48 }, avatar.torso, vec3(0, 1.38, 0), coatMat);
-    makePart("player-body-trim", { width: 0.9, height: 0.24, depth: 0.5 }, avatar.torso, vec3(0, 0.96, -0.01), trimMat);
-    avatar.head = makePart("player-head", { width: 0.62, height: 0.62, depth: 0.62 }, avatar.root, vec3(0, 2.23, 0), skinMat);
-    makePart("player-hair", { width: 0.68, height: 0.24, depth: 0.68 }, avatar.head, vec3(0, 0.21, 0.02), hairMat);
-    makePart("player-eye-left", { width: 0.08, height: 0.08, depth: 0.08 }, avatar.head, vec3(-0.12, 0.03, -0.31), materials.uiGlow);
-    makePart("player-eye-right", { width: 0.08, height: 0.08, depth: 0.08 }, avatar.head, vec3(0.12, 0.03, -0.31), materials.uiGlow);
-    makePart("player-arm-left", { width: 0.24, height: 0.9, depth: 0.24 }, avatar.leftArm, vec3(0, -0.42, 0), coatMat);
-    makePart("player-arm-right", { width: 0.24, height: 0.9, depth: 0.24 }, avatar.rightArm, vec3(0, -0.42, 0), coatMat);
-    makePart("player-leg-left", { width: 0.3, height: 0.96, depth: 0.3 }, avatar.leftLeg, vec3(0, -0.48, 0), hairMat);
-    makePart("player-leg-right", { width: 0.3, height: 0.96, depth: 0.3 }, avatar.rightLeg, vec3(0, -0.48, 0), hairMat);
+    makePart("player-chest", { width: 1.04, height: 1.02, depth: 0.54 }, avatar.torso, vec3(0, 1.42, 0), shirtMat);
+    makePart("player-waist", { width: 0.96, height: 0.18, depth: 0.5 }, avatar.torso, vec3(0, 0.92, 0), accentMat);
+    avatar.head = makePart("player-head", { width: 0.74, height: 0.74, depth: 0.74 }, avatar.root, vec3(0, 2.26, 0), skinMat);
+    makePart("player-hair", { width: 0.8, height: 0.18, depth: 0.8 }, avatar.head, vec3(0, 0.28, 0.02), hairMat);
+    makePart("player-eye-left", { width: 0.08, height: 0.08, depth: 0.08 }, avatar.head, vec3(-0.14, 0.02, -0.36), materials.uiGlow);
+    makePart("player-eye-right", { width: 0.08, height: 0.08, depth: 0.08 }, avatar.head, vec3(0.14, 0.02, -0.36), materials.uiGlow);
+    makePart("player-arm-left", { width: 0.32, height: 0.96, depth: 0.32 }, avatar.leftArm, vec3(0, -0.48, 0), shirtMat);
+    makePart("player-arm-right", { width: 0.32, height: 0.96, depth: 0.32 }, avatar.rightArm, vec3(0, -0.48, 0), shirtMat);
+    makePart("player-hand-left", { width: 0.28, height: 0.24, depth: 0.28 }, avatar.leftArm, vec3(0, -1.04, 0), skinMat);
+    makePart("player-hand-right", { width: 0.28, height: 0.24, depth: 0.28 }, avatar.rightArm, vec3(0, -1.04, 0), skinMat);
+    makePart("player-leg-left", { width: 0.34, height: 1.04, depth: 0.34 }, avatar.leftLeg, vec3(0, -0.52, 0), pantsMat);
+    makePart("player-leg-right", { width: 0.34, height: 1.04, depth: 0.34 }, avatar.rightLeg, vec3(0, -0.52, 0), pantsMat);
+    makePart("player-foot-left", { width: 0.36, height: 0.18, depth: 0.44 }, avatar.leftLeg, vec3(0, -1.14, 0.02), accentMat);
+    makePart("player-foot-right", { width: 0.36, height: 0.18, depth: 0.44 }, avatar.rightLeg, vec3(0, -1.14, 0.02), accentMat);
 
-    avatar.leftArm.position.set(-0.58, 1.86, 0);
-    avatar.rightArm.position.set(0.58, 1.86, 0);
-    avatar.leftLeg.position.set(-0.2, 0.96, 0);
-    avatar.rightLeg.position.set(0.2, 0.96, 0);
+    avatar.leftArm.position.set(-0.8, 1.86, 0);
+    avatar.rightArm.position.set(0.8, 1.86, 0);
+    avatar.leftLeg.position.set(-0.26, 1, 0);
+    avatar.rightLeg.position.set(0.26, 1, 0);
+    avatar.weaponMount.position.set(0, -0.5, 0.28);
+    avatar.weaponMount.rotation.set(0.2, 0.1, -0.28);
+
+    function buildEmptyWeapon() {
+        const root = new BABYLON.TransformNode("player-empty-weapon", scene);
+        root.parent = avatar.weaponMount;
+        return root;
+    }
+
+    function buildSwordWeapon() {
+        const root = new BABYLON.TransformNode("player-sword-weapon", scene);
+        root.parent = avatar.weaponMount;
+        const grip = BABYLON.MeshBuilder.CreateBox("player-sword-grip", { width: 0.12, height: 0.36, depth: 0.12 }, scene);
+        grip.parent = root; grip.position.set(0, -0.22, 0); grip.material = materials.weaponDark; grip.isPickable = false;
+        const guard = BABYLON.MeshBuilder.CreateBox("player-sword-guard", { width: 0.42, height: 0.08, depth: 0.14 }, scene);
+        guard.parent = root; guard.position.set(0, -0.02, 0); guard.material = accentMat; guard.isPickable = false;
+        const blade = BABYLON.MeshBuilder.CreateBox("player-sword-blade", { width: 0.12, height: 1.05, depth: 0.1 }, scene);
+        blade.parent = root; blade.position.set(0, 0.54, 0); blade.material = materials.pickupWhite; blade.isPickable = false;
+        return root;
+    }
+
+    function buildBowWeapon() {
+        const root = new BABYLON.TransformNode("player-bow-weapon", scene);
+        root.parent = avatar.weaponMount;
+        const body = BABYLON.MeshBuilder.CreateBox("player-bow-body", { width: 0.1, height: 1.02, depth: 0.1 }, scene);
+        body.parent = root; body.position.set(0, 0, 0); body.material = materials.weaponDark; body.isPickable = false;
+        const top = BABYLON.MeshBuilder.CreateBox("player-bow-top", { width: 0.36, height: 0.1, depth: 0.1 }, scene);
+        top.parent = root; top.position.set(0.14, 0.4, 0); top.material = materials.weaponMid; top.isPickable = false;
+        const bottom = BABYLON.MeshBuilder.CreateBox("player-bow-bottom", { width: 0.36, height: 0.1, depth: 0.1 }, scene);
+        bottom.parent = root; bottom.position.set(0.14, -0.4, 0); bottom.material = materials.weaponMid; bottom.isPickable = false;
+        const arrow = BABYLON.MeshBuilder.CreateBox("player-bow-arrow", { width: 0.64, height: 0.05, depth: 0.05 }, scene);
+        arrow.parent = root; arrow.position.set(0.22, 0, 0); arrow.material = materials.pickupWhite; arrow.isPickable = false;
+        return root;
+    }
+
+    avatar.weaponModels.empty = buildEmptyWeapon();
+    avatar.weaponModels.bow = buildBowWeapon();
+    avatar.weaponModels.sword = buildSwordWeapon();
 
     player.avatar = avatar;
+    updateAvatarWeaponSelection();
+}
+
+function updateAvatarWeaponSelection() {
+    if (!player.avatar || !player.avatar.weaponModels) return;
+    const item = currentHotbarItem();
+    const key = item.kind === "weapon" ? item.weaponId : "empty";
+    Object.keys(player.avatar.weaponModels).forEach(name => {
+        player.avatar.weaponModels[name].setEnabled(name === key);
+    });
 }
 
 function updatePlayerAvatar(dt, moveRatio, crouching, aiming) {
     if (!player.avatar) return;
     const avatar = player.avatar;
-    const walkSpeed = player.grounded ? lerp(2.4, 10.5, clamp(moveRatio, 0, 1)) : 2.4;
+    const walkSpeed = player.grounded ? lerp(2.6, 10.8, clamp(moveRatio, 0, 1)) : 2.4;
     avatar.walkPhase += dt * walkSpeed;
+    player.attackAnimTimer = Math.max(0, player.attackAnimTimer - dt);
 
-    const swing = Math.sin(avatar.walkPhase) * 0.75 * clamp(moveRatio, 0, 1);
-    const armLift = aiming ? -0.45 : -0.12;
+    const swing = Math.sin(avatar.walkPhase) * 0.82 * clamp(moveRatio, 0, 1);
     const crouchOffset = crouching ? -0.18 : 0;
+    const item = currentHotbarItem();
+    const weaponId = item.kind === "weapon" ? item.weaponId : "empty";
+    const attackDuration = Math.max(0.0001, player.attackAnimDuration || 0.0001);
+    const attackProgress = player.attackAnimTimer > 0 ? 1 - player.attackAnimTimer / attackDuration : 0;
+    const attackPulse = player.attackAnimTimer > 0 ? Math.sin(attackProgress * Math.PI) : 0;
+
+    let torsoPitch = crouching ? 0.16 : 0;
+    let torsoYaw = 0;
+    let leftArmX = 0.04 + swing;
+    let rightArmX = -0.04 - swing;
+    let leftArmZ = -0.06;
+    let rightArmZ = 0.06;
+    let headPitch = -player.pitch * 0.22;
+    let weaponPos = vec3(0, -0.5, 0.28);
+    let weaponRot = vec3(0.2, 0.1, -0.28);
+
+    if (weaponId === "bow") {
+        torsoPitch += -0.04;
+        torsoYaw = 0.12;
+        leftArmX = -0.68 + attackPulse * 0.16;
+        rightArmX = -0.38 - attackPulse * 0.56;
+        leftArmZ = -0.18;
+        rightArmZ = 0.16;
+        weaponPos = vec3(-0.02, -0.34, 0.34);
+        weaponRot = vec3(0.08, Math.PI * 0.5, -0.08);
+    } else if (weaponId === "sword") {
+        torsoPitch += attackPulse * 0.12;
+        torsoYaw = attackPulse * 0.36;
+        leftArmX = 0.1 + swing * 0.7;
+        rightArmX = -0.24 - swing * 0.5 - attackPulse * 1.75;
+        leftArmZ = -0.04;
+        rightArmZ = 0.18;
+        weaponPos = vec3(0, -0.48, 0.22);
+        weaponRot = vec3(0.55 + attackPulse * 0.92, 0.12, -0.34);
+    } else if (player.attackAnimStyle === "fist") {
+        torsoYaw = attackPulse * 0.24;
+        rightArmX = -0.18 - attackPulse * 1.4;
+        leftArmX = 0.08 + swing * 0.7;
+    }
 
     avatar.root.position.y = lerp(avatar.root.position.y, crouchOffset, dt * 10);
-    avatar.torso.rotation.x = lerp(avatar.torso.rotation.x, (crouching ? 0.18 : 0) + (aiming ? -0.08 : 0), dt * 10);
-    avatar.head.rotation.x = lerp(avatar.head.rotation.x, -player.pitch * 0.35, dt * 8);
-    avatar.leftArm.rotation.x = lerp(avatar.leftArm.rotation.x, armLift + swing, dt * 10);
-    avatar.rightArm.rotation.x = lerp(avatar.rightArm.rotation.x, armLift - swing, dt * 10);
+    avatar.torso.rotation.x = lerp(avatar.torso.rotation.x, torsoPitch + (aiming ? -0.05 : 0), dt * 10);
+    avatar.torso.rotation.y = lerp(avatar.torso.rotation.y, torsoYaw, dt * 10);
+    avatar.head.rotation.x = lerp(avatar.head.rotation.x, headPitch, dt * 8);
+    avatar.leftArm.rotation.x = lerp(avatar.leftArm.rotation.x, leftArmX, dt * 12);
+    avatar.rightArm.rotation.x = lerp(avatar.rightArm.rotation.x, rightArmX, dt * 12);
+    avatar.leftArm.rotation.z = lerp(avatar.leftArm.rotation.z, leftArmZ, dt * 12);
+    avatar.rightArm.rotation.z = lerp(avatar.rightArm.rotation.z, rightArmZ, dt * 12);
     avatar.leftLeg.rotation.x = lerp(avatar.leftLeg.rotation.x, -swing, dt * 10);
     avatar.rightLeg.rotation.x = lerp(avatar.rightLeg.rotation.x, swing, dt * 10);
+    avatar.weaponMount.position.x = lerp(avatar.weaponMount.position.x, weaponPos.x, dt * 12);
+    avatar.weaponMount.position.y = lerp(avatar.weaponMount.position.y, weaponPos.y, dt * 12);
+    avatar.weaponMount.position.z = lerp(avatar.weaponMount.position.z, weaponPos.z, dt * 12);
+    avatar.weaponMount.rotation.x = lerp(avatar.weaponMount.rotation.x, weaponRot.x, dt * 12);
+    avatar.weaponMount.rotation.y = lerp(avatar.weaponMount.rotation.y, weaponRot.y, dt * 12);
+    avatar.weaponMount.rotation.z = lerp(avatar.weaponMount.rotation.z, weaponRot.z, dt * 12);
 }
 
 // ── Player Body ─────────────────────────────────────────────
@@ -505,6 +618,7 @@ function startReload() {
     const item = currentHotbarItem();
     if (item.kind !== "weapon") return;
     const weapon = weaponDefs[item.weaponId];
+    if (!weapon || weapon.magazine <= 0) return;
     const ammo = player.ammo[item.weaponId];
     if (player.reloading || ammo.reserve <= 0 || ammo.mag >= weapon.magazine) return;
     player.reloading = item.weaponId;
@@ -516,6 +630,11 @@ function finishReload() {
     if (!player.reloading) return;
     const weaponId = player.reloading;
     const weapon = weaponDefs[weaponId];
+    if (!weapon || weapon.magazine <= 0) {
+        player.reloading = null;
+        player.reloadTimer = 0;
+        return;
+    }
     const ammo = player.ammo[weaponId];
     const need = weapon.magazine - ammo.mag;
     const taken = Math.min(need, ammo.reserve);
@@ -548,6 +667,9 @@ function respawnPlayer() {
     player.velocityY = 0;
     player.reloading = null;
     player.reloadTimer = 0;
+    player.attackAnimTimer = 0;
+    player.attackAnimDuration = 0;
+    player.attackAnimStyle = "idle";
     ensureStarterLoadout();
     alignPlayerToSpawn(0.35);
     player.yaw = 0;
@@ -582,47 +704,50 @@ export function createViewModel() {
         return root;
     }
 
-    function buildPistolModel() {
-        const root = new BABYLON.TransformNode("pistol-model", scene);
+    function buildBowModel() {
+        const root = new BABYLON.TransformNode("bow-model", scene);
         root.parent = viewModel.root;
-        const grip = BABYLON.MeshBuilder.CreateBox("pistol-grip", { width: 0.18, height: 0.56, depth: 0.16 }, scene);
-        grip.parent = root; grip.position.set(0.18, -0.08, 0.18); grip.rotation.z = -0.22;
-        grip.material = materials.weaponDark; grip.isPickable = false;
-        const body = BABYLON.MeshBuilder.CreateBox("pistol-body", { width: 0.68, height: 0.22, depth: 0.22 }, scene);
-        body.parent = root; body.position.set(0.34, 0.14, 0.22);
-        body.material = materials.weaponMid; body.isPickable = false;
-        const muzzle = BABYLON.MeshBuilder.CreateBox("pistol-muzzle", { width: 0.12, height: 0.12, depth: 0.12 }, scene);
-        muzzle.parent = root; muzzle.position.set(0.72, 0.14, 0.22);
+        const body = BABYLON.MeshBuilder.CreateBox("bow-body", { width: 0.1, height: 1.02, depth: 0.1 }, scene);
+        body.parent = root; body.position.set(0.22, 0.08, 0.22);
+        body.material = materials.weaponDark; body.isPickable = false;
+        const top = BABYLON.MeshBuilder.CreateBox("bow-top", { width: 0.34, height: 0.1, depth: 0.1 }, scene);
+        top.parent = root; top.position.set(0.36, 0.48, 0.22);
+        top.material = materials.weaponMid; top.isPickable = false;
+        const bottom = BABYLON.MeshBuilder.CreateBox("bow-bottom", { width: 0.34, height: 0.1, depth: 0.1 }, scene);
+        bottom.parent = root; bottom.position.set(0.36, -0.32, 0.22);
+        bottom.material = materials.weaponMid; bottom.isPickable = false;
+        const arrow = BABYLON.MeshBuilder.CreateBox("bow-arrow", { width: 0.74, height: 0.05, depth: 0.05 }, scene);
+        arrow.parent = root; arrow.position.set(0.48, 0.08, 0.22);
+        arrow.material = materials.pickupWhite; arrow.isPickable = false;
+        const muzzle = BABYLON.MeshBuilder.CreateBox("bow-flash", { width: 0.08, height: 0.08, depth: 0.08 }, scene);
+        muzzle.parent = root; muzzle.position.set(0.88, 0.08, 0.22);
         muzzle.material = materials.uiGlow; muzzle.isVisible = false; muzzle.isPickable = false;
         root.metadata = { muzzle };
         return root;
     }
 
-    function buildRifleModel() {
-        const root = new BABYLON.TransformNode("rifle-model", scene);
+    function buildSwordModel() {
+        const root = new BABYLON.TransformNode("sword-model", scene);
         root.parent = viewModel.root;
-        const stock = BABYLON.MeshBuilder.CreateBox("rifle-stock", { width: 0.3, height: 0.22, depth: 0.22 }, scene);
-        stock.parent = root; stock.position.set(0.02, 0.03, 0.22);
-        stock.material = materials.weaponDark; stock.isPickable = false;
-        const body = BABYLON.MeshBuilder.CreateBox("rifle-body", { width: 0.8, height: 0.22, depth: 0.22 }, scene);
-        body.parent = root; body.position.set(0.46, 0.06, 0.22);
-        body.material = materials.weaponMid; body.isPickable = false;
-        const barrel = BABYLON.MeshBuilder.CreateBox("rifle-barrel", { width: 0.72, height: 0.12, depth: 0.12 }, scene);
-        barrel.parent = root; barrel.position.set(0.92, 0.08, 0.22);
-        barrel.material = materials.weaponDark; barrel.isPickable = false;
-        const magazine = BABYLON.MeshBuilder.CreateBox("rifle-magazine", { width: 0.16, height: 0.4, depth: 0.16 }, scene);
-        magazine.parent = root; magazine.position.set(0.42, -0.2, 0.22); magazine.rotation.z = 0.1;
-        magazine.material = materials.weaponAccent; magazine.isPickable = false;
-        const muzzle = BABYLON.MeshBuilder.CreateBox("rifle-muzzle", { width: 0.12, height: 0.12, depth: 0.12 }, scene);
-        muzzle.parent = root; muzzle.position.set(1.25, 0.08, 0.22);
+        const grip = BABYLON.MeshBuilder.CreateBox("sword-grip", { width: 0.12, height: 0.34, depth: 0.12 }, scene);
+        grip.parent = root; grip.position.set(0.18, -0.18, 0.18);
+        grip.material = materials.weaponDark; grip.isPickable = false;
+        const guard = BABYLON.MeshBuilder.CreateBox("sword-guard", { width: 0.42, height: 0.08, depth: 0.14 }, scene);
+        guard.parent = root; guard.position.set(0.18, 0.02, 0.18);
+        guard.material = materials.weaponAccent; guard.isPickable = false;
+        const blade = BABYLON.MeshBuilder.CreateBox("sword-blade", { width: 0.12, height: 1.06, depth: 0.1 }, scene);
+        blade.parent = root; blade.position.set(0.18, 0.62, 0.18);
+        blade.material = materials.pickupWhite; blade.isPickable = false;
+        const muzzle = BABYLON.MeshBuilder.CreateBox("sword-flash", { width: 0.1, height: 0.1, depth: 0.1 }, scene);
+        muzzle.parent = root; muzzle.position.set(0.18, 1.08, 0.18);
         muzzle.material = materials.uiGlow; muzzle.isVisible = false; muzzle.isPickable = false;
         root.metadata = { muzzle };
         return root;
     }
 
     viewModel.models.empty = buildEmptyModel();
-    viewModel.models.pistol = buildPistolModel();
-    viewModel.models.rifle = buildRifleModel();
+    viewModel.models.bow = buildBowModel();
+    viewModel.models.sword = buildSwordModel();
     updateViewModelSelection();
 }
 
@@ -633,6 +758,7 @@ function updateViewModelSelection() {
     Object.keys(viewModel.models).forEach(name => {
         viewModel.models[name].setEnabled(name === key);
     });
+    updateAvatarWeaponSelection();
 }
 
 function updateViewModel(dt, moveRatio) {
@@ -692,6 +818,12 @@ function computeWeaponDamage(def, multiplier) {
     return Math.max(1, Math.round((def.damage + (stats.attack || 0)) * (multiplier || 1)));
 }
 
+function startAttackAnimation(style, duration) {
+    player.attackAnimStyle = style || "idle";
+    player.attackAnimDuration = duration || 0.2;
+    player.attackAnimTimer = duration || 0.2;
+}
+
 function getAimVectors() {
     const forward = player.camera.getForwardRay(1).direction.clone().normalize();
     const right = player.camera.getDirection(BABYLON.Axis.X).normalize();
@@ -699,16 +831,51 @@ function getAimVectors() {
     return { forward, right, up };
 }
 
-function getTracerStart(vectors) {
-    return player.camera.globalPosition
-        .add(vectors.forward.scale(0.75))
-        .add(vectors.right.scale(0.34))
-        .add(vectors.up.scale(-0.2));
+function getFacingForwardVector() {
+    return new BABYLON.Vector3(Math.sin(player.facingYaw), 0, Math.cos(player.facingYaw)).normalize();
 }
 
-function performRayAttack(range, damage, spread) {
+function getAttackOrigin(vectors) {
+    if (state.cameraMode !== "first" && player.avatar && player.avatar.weaponMount) {
+        const origin = player.avatar.weaponMount.getAbsolutePosition();
+        if (origin) return origin.clone();
+    }
+    const baseVectors = vectors || getAimVectors();
+    return player.body.position.add(vec3(0, 1.35, 0))
+        .add(baseVectors.right.scale(0.32))
+        .add(baseVectors.forward.scale(0.42));
+}
+
+function getTracerStart(vectors) {
+    return getAttackOrigin(vectors)
+        .add(vectors.forward.scale(0.24))
+        .add(vectors.up.scale(0.04));
+}
+
+function findBestEnemyTarget(origin, direction, range, minDot) {
+    let best = null;
+    let bestScore = -Infinity;
+    enemies.forEach(enemy => {
+        if (!enemy || enemy.state === "dead") return;
+        const point = enemy.root.position.add(vec3(0, 1.45, 0));
+        const toTarget = point.subtract(origin);
+        const distance = toTarget.length();
+        if (distance > range) return;
+        const targetDirection = toTarget.scale(1 / Math.max(distance, 0.0001));
+        const dot = BABYLON.Vector3.Dot(targetDirection, direction);
+        if (dot < minDot) return;
+        const score = dot * 4 - distance * 0.08;
+        if (score > bestScore) {
+            bestScore = score;
+            best = { enemy, point };
+        }
+    });
+    return best;
+}
+
+function performRayAttack(range, damage, spread, originOverride, directionOverride) {
     const vectors = getAimVectors();
-    let direction = vectors.forward.clone();
+    let direction = directionOverride ? directionOverride.clone() : vectors.forward.clone();
     if (spread) {
         direction = direction
             .add(vectors.right.scale((Math.random() - 0.5) * spread))
@@ -716,7 +883,7 @@ function performRayAttack(range, damage, spread) {
             .normalize();
     }
 
-    const tracerStart = getTracerStart(vectors);
+    const tracerStart = originOverride ? originOverride.clone() : getTracerStart(vectors);
     const ray = new BABYLON.Ray(tracerStart, direction, range);
     const pick = scene.pickWithRay(ray, mesh => {
         if (!mesh || !mesh.metadata) return false;
@@ -740,31 +907,61 @@ function performRayAttack(range, damage, spread) {
     return { hitEnemy, hit: pick && pick.hit };
 }
 
-function fireWeapon() {
-    const item = currentHotbarItem();
-    if (item.kind !== "weapon" || player.reloading) return;
-    const def = weaponDefs[item.weaponId];
-    const ammo = player.ammo[item.weaponId];
+function performBowAttack(def) {
+    if (!def || player.reloading) return false;
+    const ammo = player.ammo[def.id];
     if (ammo.mag <= 0) {
-        audio.playDry();
-        startReload();
-        return;
+        if (ammo.reserve > 0) {
+            startReload();
+        } else {
+            audio.playDry();
+            setStatusHint("Out of arrows", 1.2);
+        }
+        return false;
     }
+
     ammo.mag -= 1;
     player.primaryCooldown = def.fireRate;
     viewModel.kick += def.recoil;
     viewModel.muzzleTimer = 0.05;
-    audio.playShoot(item.weaponId);
-    performRayAttack(def.range, computeWeaponDamage(def, 1), 0);
+    startAttackAnimation("bow", 0.28);
+    audio.playShoot(def.id);
+
+    const vectors = getAimVectors();
+    let direction = vectors.forward.clone();
+    direction.y = clamp(direction.y, -0.22, 0.18);
+    direction.normalize();
+    const origin = getTracerStart(vectors);
+
+    const target = findBestEnemyTarget(origin, direction, def.range, 0.34) ||
+        findBestEnemyTarget(player.body.position.add(vec3(0, 1.3, 0)), getFacingForwardVector(), def.range, -0.02);
+
+    const result = target
+        ? performRayAttack(def.range, computeWeaponDamage(def, 1), 0, origin, target.point.subtract(origin).normalize())
+        : performRayAttack(def.range, computeWeaponDamage(def, 1), 0.012, origin, direction);
+
+    spawnBurst(origin.add(direction.scale(0.36)), "#fff0c4", 5, 0.05, 2.8);
+
     if (ammo.mag <= 0 && ammo.reserve > 0) startReload();
+    return result.hitEnemy;
 }
 
-function performMeleeAttack() {
+function spawnSlashEffect(origin, forward, colorHex) {
+    const side = new BABYLON.Vector3(forward.z, 0, -forward.x).normalize();
+    const center = origin.add(forward.scale(1.1)).add(vec3(0, 0.95, 0));
+    spawnBurst(center, colorHex, 9, 0.08, 3.2);
+    spawnBurst(center.add(side.scale(0.45)), "#fff4d6", 5, 0.05, 2.3);
+    spawnBurst(center.add(side.scale(-0.45)), "#fff4d6", 5, 0.05, 2.3);
+}
+
+function performMeleeAttack(def) {
+    const usingWeapon = !!def;
     const stats = player.stats || {};
-    const damage = Math.max(1, 5 + (stats.attack || 0));
-    const range = 2.5;
+    const damage = usingWeapon ? computeWeaponDamage(def, 1) : Math.max(1, 6 + (stats.attack || 0));
+    const range = usingWeapon ? Math.max(2.9, def.range) : 2.5;
+    const minDot = usingWeapon ? -0.06 : 0.15;
     const center = player.body.position.clone();
-    const forward = new BABYLON.Vector3(Math.sin(player.facingYaw), 0, Math.cos(player.facingYaw));
+    const forward = getFacingForwardVector();
     let hitCount = 0;
     enemies.forEach(enemy => {
         if (!enemy || enemy.state === "dead") return;
@@ -774,14 +971,19 @@ function performMeleeAttack() {
         if (dist > range) return;
         if (dist > 0.1) {
             const dot = BABYLON.Vector3.Dot(toEnemy.normalize(), forward);
-            if (dot < 0.3) return;
+            if (dot < minDot) return;
         }
         hitCount++;
         damageEnemy(enemy, damage, enemy.root.position.add(vec3(0, 1.4, 0)));
     });
-    player.primaryCooldown = 0.6;
-    spawnBurst(center.add(forward.scale(1.2)).add(vec3(0, 1, 0)), "#ffcc66", 6, 0.06, 2.5);
-    audio.playDry();
+
+    player.primaryCooldown = usingWeapon ? def.fireRate : 0.6;
+    viewModel.kick += usingWeapon ? def.recoil : 0.04;
+    startAttackAnimation(usingWeapon ? def.id : "fist", usingWeapon ? 0.32 : 0.26);
+    spawnSlashEffect(center, forward, usingWeapon ? "#aee4ff" : "#ffcc66");
+    if (usingWeapon) audio.playSwing();
+    else audio.playDry();
+    return hitCount > 0;
 }
 
 export function updateCombat(dt) {
@@ -795,13 +997,14 @@ export function updateCombat(dt) {
     if (input.keys.KeyE && player.primaryCooldown <= 0) {
         const weapon = currentWeaponDef();
         if (weapon) {
-            if (weapon.auto || !input.fireLatch) {
-                fireWeapon();
+            if (!input.fireLatch) {
+                if (weapon.family === "bow") performBowAttack(weapon);
+                else performMeleeAttack(weapon);
                 input.fireLatch = true;
             }
         } else {
             if (!input.fireLatch) {
-                performMeleeAttack();
+                performMeleeAttack(null);
                 input.fireLatch = true;
             }
         }
@@ -957,8 +1160,11 @@ export function updateHUD() {
     dom.healthFill.style.width = (player.health / player.maxHealth * 100) + "%";
 
     if (item.kind === "weapon") {
+        const def = weaponDefs[item.weaponId];
         const ammo = player.ammo[item.weaponId];
-        dom.ammoText.textContent = weaponDefs[item.weaponId].label + "  " + ammo.mag + " / " + ammo.reserve;
+        dom.ammoText.textContent = def.family === "bow"
+            ? def.label + "  " + ammo.mag + " / " + ammo.reserve
+            : def.label + "  Melee";
     } else {
         dom.ammoText.textContent = "Fist (E)";
     }
@@ -967,7 +1173,7 @@ export function updateHUD() {
     const biome = GAME_DATA.biomes[world.currentBiomeId] || GAME_DATA.biomes.meadow;
     const perspective = state.cameraMode === "first" ? "FP" : "TP";
     let status = state.dead ? "Down" : "Exploring";
-    if (player.reloading && item.kind === "weapon") status += " | Reloading";
+    if (player.reloading && item.kind === "weapon" && weaponDefs[item.weaponId].magazine > 0) status += " | Reloading";
     if (progression.activeBuff.timer > 0) status += " | Buff " + Math.ceil(progression.activeBuff.timer) + "s";
     if (state.statusHint) status += " | " + state.statusHint;
     dom.statusText.textContent = status + " | Lv." + progression.level + " | " + biome.name +
@@ -1006,8 +1212,9 @@ function updateHotbarUI() {
         el.classList.toggle("active", index === player.slot);
         let meta = "";
         if (item.kind === "weapon") {
+            const def = weaponDefs[item.weaponId];
             const ammo = player.ammo[item.weaponId];
-            meta = ammo.mag + " / " + ammo.reserve;
+            meta = def.family === "bow" ? (ammo.mag + " / " + ammo.reserve) : "Melee";
         } else {
             meta = "Fist";
         }
