@@ -24,7 +24,15 @@ var dom = {
     deathPanel: document.getElementById("deathPanel"),
     resumeBtn: document.getElementById("resumeBtn"),
     respawnBtn: document.getElementById("respawnBtn"),
-    damageFlash: document.getElementById("damageFlash")
+    damageFlash: document.getElementById("damageFlash"),
+    openInventoryBtn: document.getElementById("openInventoryBtn"),
+    openSettingsBtn: document.getElementById("openSettingsBtn"),
+    inventoryPanel: document.getElementById("inventoryPanel"),
+    settingsPanel: document.getElementById("settingsPanel"),
+    closeInventoryBtn: document.getElementById("closeInventoryBtn"),
+    closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+    inventoryContent: document.getElementById("inventoryContent"),
+    settingsContent: document.getElementById("settingsContent")
 };
 
 function createEmptySlotItem() {
@@ -179,7 +187,24 @@ function getBiomeBlend(x, z) {
 }
 
 function terrainHeight(x, z) {
-    return GAME_DATA.world.flatHeight;
+    var blend = getBiomeBlend(x, z);
+    var macro = smoothNoise(x * 0.0045, z * 0.0045) * 2 - 1;
+    var ridge = Math.abs(smoothNoise(x * 0.018 + 180, z * 0.018 - 240) * 2 - 1);
+    var detail = smoothNoise(x * 0.065 - 90, z * 0.065 + 120) * 2 - 1;
+
+    var meadowHeight = GAME_DATA.world.flatHeight + macro * 1.7 + detail * 0.55;
+    var forestHeight = GAME_DATA.world.flatHeight + 0.7 + macro * 2.1 + detail * 0.75;
+    var desertHeight = GAME_DATA.world.flatHeight - 0.35 + macro * 0.8 + ridge * 1.85 + detail * 0.35;
+    var snowHeight = GAME_DATA.world.flatHeight + 1.4 + macro * 3 + ridge * 1.25 + detail * 1.05;
+
+    var height = meadowHeight * blend.meadow +
+        forestHeight * blend.forest +
+        desertHeight * blend.desert +
+        snowHeight * blend.snow;
+
+    var valley = (smoothNoise(x * 0.011 + 420, z * 0.011 - 370) * 2 - 1) * 0.55;
+    height += valley;
+    return clamp(height, GAME_DATA.world.heightMin, 18);
 }
 
 function isPointerLocked() {
@@ -187,7 +212,7 @@ function isPointerLocked() {
 }
 
 function canControlGame() {
-    return isPointerLocked() && !state.dead;
+    return isPointerLocked() && !state.dead && !state.inventoryOpen && !state.settingsOpen;
 }
 
 function currentHotbarItem() {
@@ -201,11 +226,20 @@ function currentWeaponDef() {
 
 function animateTimers(dt) {
     state.damageFlashTimer = Math.max(0, state.damageFlashTimer - dt);
+    if (state.statusHintTimer > 0) {
+        state.statusHintTimer = Math.max(0, state.statusHintTimer - dt);
+        if (state.statusHintTimer <= 0) {
+            state.statusHint = "";
+        }
+    }
 }
 
 function runFrame() {
     var dt = Math.min(engine.getDeltaTime() / 1000, 0.033);
     animateTimers(dt);
+    if (typeof updateProgressionSystems === "function") {
+        updateProgressionSystems(dt);
+    }
     updateParticles(dt);
     updateTracers(dt);
 

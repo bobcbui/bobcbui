@@ -45,7 +45,12 @@ var CONFIG = {
 var state = {
     dead: false,
     damageFlashTimer: 0,
-    spawnLockTimer: 0
+    spawnLockTimer: 0,
+    inventoryOpen: false,
+    settingsOpen: false,
+    cameraMode: "third",
+    statusHint: "",
+    statusHintTimer: 0
 };
 
 var world = {
@@ -58,7 +63,7 @@ var world = {
     enemySerial: 0
 };
 
-    var player = {
+var player = {
     body: null,
     facingNode: null,
     yawNode: null,
@@ -79,7 +84,6 @@ var world = {
     reloading: null,
     reloadTimer: 0,
     spawnPoint: new BABYLON.Vector3(0, 4, 0),
-    grounded: false
-    ,stuckCounter: 0
-    ,lastBlockedLogTime: 0
+    grounded: false,
+    stuckCounter: 0
 };
