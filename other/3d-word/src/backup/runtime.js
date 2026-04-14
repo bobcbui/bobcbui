@@ -1,14 +1,17 @@
-import { GAME_DATA } from "./data.js";
+"use strict";
 
 function createAmmoState() {
-    const ammo = {};
-    for (const weaponId of Object.keys(GAME_DATA.weapons)) {
-        ammo[weaponId] = { mag: 0, reserve: 0 };
-    }
+    var ammo = {};
+    Object.keys(GAME_DATA.weapons).forEach(function (weaponId) {
+        ammo[weaponId] = {
+            mag: 0,
+            reserve: 0
+        };
+    });
     return ammo;
 }
 
-export const CONFIG = {
+var CONFIG = {
     seed: 27,
     minWorldY: GAME_DATA.world.heightMin,
     chunkSize: GAME_DATA.world.chunkSize,
@@ -39,7 +42,7 @@ export const CONFIG = {
     enemyAttackRange: 2.45
 };
 
-export const state = {
+var state = {
     dead: false,
     damageFlashTimer: 0,
     spawnLockTimer: 0,
@@ -50,7 +53,7 @@ export const state = {
     statusHintTimer: 0
 };
 
-export const world = {
+var world = {
     chunks: new Map(),
     terrainMeshCount: 0,
     propCount: 0,
@@ -60,7 +63,7 @@ export const world = {
     enemySerial: 0
 };
 
-export const player = {
+var player = {
     body: null,
     facingNode: null,
     yawNode: null,
@@ -82,9 +85,5 @@ export const player = {
     reloadTimer: 0,
     spawnPoint: new BABYLON.Vector3(0, 4, 0),
     grounded: false,
-    stuckCounter: 0,
-    moveTarget: null,
-    avatar: null
+    stuckCounter: 0
 };
-
-export { createAmmoState };
