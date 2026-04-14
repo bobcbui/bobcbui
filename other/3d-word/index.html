@@ -213,6 +213,10 @@
             pointer-events: auto;
         }
 
+        .modal-wide {
+            width: min(860px, calc(100vw - 24px));
+        }
+
         .modal.hidden { display: none; }
 
         .modal-title {
@@ -293,6 +297,18 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
         }
+
+        .mini-btn {
+            padding: 7px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .muted {
+            color: var(--text-soft);
+            font-size: 12px;
+        }
     </style>
     <script src="./lib/babylon.js"></script>
 </head>
@@ -315,21 +331,25 @@
             <span class="h right"></span>
         </div>
 
+        <div id="hotbar"></div>
+
         <div id="damageFlash"></div>
 
         <div id="pausePanel" class="modal panel">
             <div class="modal-title">
                 <div>
                     <h2>Voxel Realm Frontier</h2>
-                    <p>Click the scene to lock the mouse and start. Controls: WASD move, Space jump, left mouse fire, R reload, 1-4 switch weapons.</p>
+                    <p>Click scene to lock mouse and start. Controls: WASD move, Space jump, LMB fire, RMB aim, R reload, wheel/1-4 slots, Q/F skills, Z/X potions, E backpack, O settings, V perspective, Alt+wheel zoom.</p>
                 </div>
             </div>
             <div class="grid-2">
                 <div class="card"><h3>Core Loop</h3><p>Move, shoot, reload, collect pickups, and survive the endless terrain.</p></div>
-                <div class="card"><h3>Simplified Build</h3><p>The extra inventory, achievements, and skill overlays have been removed to keep the prototype lighter.</p></div>
+                <div class="card"><h3>RPG Layer</h3><p>Open backpack to manage gear, upgrade skills with books, and track quests. Bosses can drop rare progression loot.</p></div>
             </div>
             <div class="actions">
                 <button id="resumeBtn">Continue</button>
+                <button id="openInventoryBtn" class="secondary">Backpack (E)</button>
+                <button id="openSettingsBtn" class="secondary">Settings (O)</button>
             </div>
         </div>
 
@@ -343,6 +363,28 @@
             <div class="actions">
                 <button id="respawnBtn">Respawn</button>
             </div>
+        </div>
+
+        <div id="inventoryPanel" class="modal modal-wide panel hidden">
+            <div class="modal-title">
+                <div>
+                    <h2>Backpack & Progression</h2>
+                    <p>Manage equipment, skills, potions, and quest growth. Hotkeys: E close, Q/F skills, Z/X potions.</p>
+                </div>
+                <button id="closeInventoryBtn" class="secondary">Close</button>
+            </div>
+            <div id="inventoryContent" class="grid-2"></div>
+        </div>
+
+        <div id="settingsPanel" class="modal panel hidden">
+            <div class="modal-title">
+                <div>
+                    <h2>Settings</h2>
+                    <p>Switch perspective and tune controls. Hotkeys: O close, V switch camera mode.</p>
+                </div>
+                <button id="closeSettingsBtn" class="secondary">Close</button>
+            </div>
+            <div id="settingsContent" class="grid-2"></div>
         </div>
     </div>
 

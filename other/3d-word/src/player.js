@@ -205,6 +205,238 @@ function grantWeaponPickup(weaponId) {
     }
 }
 
+function isAnyOverlayOpen() {
+    return !!(state.inventoryOpen || state.settingsOpen);
+}
+
+function closeOverlayPanels() {
+    state.inventoryOpen = false;
+    state.settingsOpen = false;
+}
+
+function toggleInventoryPanel(forceValue) {
+    var nextValue = typeof forceValue === "boolean" ? forceValue : !state.inventoryOpen;
+    state.inventoryOpen = nextValue;
+    if (nextValue) {
+        state.settingsOpen = false;
+        input.mouseButtons[0] = false;
+        input.mouseButtons[1] = false;
+        input.mouseButtons[2] = false;
+        input.fireLatch = false;
+        if (typeof document.exitPointerLock === "function") {
+            document.exitPointerLock();
+        }
+        updateInventoryUI();
+    }
+}
+
+function toggleSettingsPanel(forceValue) {
+    var nextValue = typeof forceValue === "boolean" ? forceValue : !state.settingsOpen;
+    state.settingsOpen = nextValue;
+    if (nextValue) {
+        state.inventoryOpen = false;
+        input.mouseButtons[0] = false;
+        input.mouseButtons[1] = false;
+        input.mouseButtons[2] = false;
+        input.fireLatch = false;
+        if (typeof document.exitPointerLock === "function") {
+            document.exitPointerLock();
+        }
+        updateSettingsUI();
+    }
+}
+
+function toggleCameraMode(forceMode) {
+    if (forceMode === "first" || forceMode === "third") {
+        state.cameraMode = forceMode;
+    } else {
+        state.cameraMode = state.cameraMode === "third" ? "first" : "third";
+    }
+    setStatusHint(state.cameraMode === "third" ? "Camera: Third-person" : "Camera: First-person", 1.6);
+    updateSettingsUI();
+}
+
+function getEquipmentStatText(item) {
+    if (!item || !item.stats) {
+        return "No bonuses";
+    }
+    var lines = [];
+    if (item.stats.maxHealth) {
+        lines.push("HP +" + item.stats.maxHealth);
+    }
+    if (item.stats.attack) {
+        lines.push("ATK +" + item.stats.attack);
+    }
+    if (item.stats.defense) {
+        lines.push("DEF +" + item.stats.defense);
+    }
+    if (item.stats.moveSpeed) {
+        lines.push("SPD +" + Math.round(item.stats.moveSpeed * 100) + "%");
+    }
+    if (item.stats.pickupRadius) {
+        lines.push("Loot +" + item.stats.pickupRadius.toFixed(2));
+    }
+    return lines.join(" | ") || "No bonuses";
+}
+
+function updateInventoryUI() {
+    if (!dom.inventoryContent) {
+        return;
+    }
+
+    var healPotions = progression.potionBag.heal || 0;
+    var buffPotions = progression.potionBag.buff || 0;
+    var buffTimer = progression.activeBuff.timer > 0 ? Math.ceil(progression.activeBuff.timer) + "s" : "inactive";
+
+    var skillsHtml = Object.keys(progression.skills).map(function (skillId) {
+        var skill = progression.skills[skillId];
+        var upgradeCost = getSkillUpgradeCost(skillId);
+        var cooldown = skill.cooldown > 0 ? skill.cooldown.toFixed(1) + "s" : "Ready";
+        var canUpgrade = skill.level < skill.maxLevel;
+        return "<div class=\"inventory-line\">" +
+            "<div><strong>" + skill.name + " Lv." + skill.level + "</strong><br><span>" + cooldown + "</span></div>" +
+            "<div>" + (canUpgrade
+                ? "<button class=\"secondary mini-btn\" data-action=\"upgrade-skill\" data-skill-id=\"" + skillId + "\">Upgrade (" + upgradeCost + " book)</button>"
+                : "<span class=\"muted\">MAX</span>") +
+            "</div>" +
+            "</div>";
+    }).join("");
+
+    var equipmentSlots = Object.keys(progression.equipment).map(function (slot) {
+        var equipped = progression.equipment[slot];
+        return "<div class=\"inventory-line\">" +
+            "<div><strong>" + slot.toUpperCase() + "</strong><br><span>" + (equipped ? equipped.name : "Empty") + "</span></div>" +
+            "<div>" + (equipped
+                ? "<button class=\"secondary mini-btn\" data-action=\"unequip-slot\" data-slot=\"" + slot + "\">Unequip</button>"
+                : "<span class=\"muted\">-</span>") +
+            "</div>" +
+            "</div>";
+    }).join("");
+
+    var bagItems = progression.equipmentBag.length
+        ? progression.equipmentBag.map(function (item) {
+            return "<div class=\"inventory-line\">" +
+                "<div><strong>" + item.name + "</strong><br><span>" + getEquipmentStatText(item) + "</span></div>" +
+                "<div><button class=\"secondary mini-btn\" data-action=\"equip-item\" data-item-id=\"" + item.id + "\">Equip</button></div>" +
+                "</div>";
+        }).join("")
+        : "<p class=\"muted\">No spare equipment yet.</p>";
+
+    var questsHtml = Object.keys(progression.quests).map(function (questId) {
+        var quest = progression.quests[questId];
+        return "<div class=\"inventory-line\">" +
+            "<div><strong>" + quest.label + " Lv." + quest.level + "</strong><br><span>" + quest.progress + " / " + quest.target + "</span></div>" +
+            "<div><span class=\"muted\">+" + quest.rewardXp + " XP</span></div>" +
+            "</div>";
+    }).join("");
+
+    dom.inventoryContent.innerHTML =
+        "<div class=\"card\">" +
+        "<h3>Resources</h3>" +
+        "<p>Gold: <strong>" + progression.gold + "</strong> | Skill Books: <strong>" + progression.skillBooks + "</strong></p>" +
+        "<div class=\"actions\">" +
+        "<button class=\"secondary mini-btn\" data-action=\"use-heal\">Recovery Potion x" + healPotions + "</button>" +
+        "<button class=\"secondary mini-btn\" data-action=\"use-buff\">Battle Tonic x" + buffPotions + "</button>" +
+        "</div>" +
+        "<p>Active Buff: " + buffTimer + "</p>" +
+        "</div>" +
+        "<div class=\"card\">" +
+        "<h3>Skills</h3>" +
+        skillsHtml +
+        "</div>" +
+        "<div class=\"card\">" +
+        "<h3>Equipped</h3>" +
+        equipmentSlots +
+        "</div>" +
+        "<div class=\"card\">" +
+        "<h3>Equipment Bag</h3>" +
+        bagItems +
+        "</div>" +
+        "<div class=\"card\">" +
+        "<h3>Quest Board</h3>" +
+        questsHtml +
+        "</div>";
+}
+
+function updateSettingsUI() {
+    if (!dom.settingsContent) {
+        return;
+    }
+    var modeLabel = state.cameraMode === "third" ? "Third-person" : "First-person";
+    dom.settingsContent.innerHTML =
+        "<div class=\"card\">" +
+        "<h3>Perspective</h3>" +
+        "<p>Current: <strong>" + modeLabel + "</strong></p>" +
+        "<div class=\"actions\"><button class=\"secondary mini-btn\" data-action=\"toggle-camera\">Switch Perspective (V)</button></div>" +
+        "</div>" +
+        "<div class=\"card\">" +
+        "<h3>Mouse Sensitivity</h3>" +
+        "<p>Value: <strong>" + CONFIG.mouseSensitivity.toFixed(4) + "</strong></p>" +
+        "<div class=\"actions\">" +
+        "<button class=\"secondary mini-btn\" data-action=\"sens-down\">-</button>" +
+        "<button class=\"secondary mini-btn\" data-action=\"sens-up\">+</button>" +
+        "</div>" +
+        "</div>";
+}
+
+function castShockwaveSkill() {
+    var skill = progression.skills.shockwave;
+    if (!skill) {
+        return false;
+    }
+    if (skill.cooldown > 0) {
+        setStatusHint("Shockwave cooldown: " + skill.cooldown.toFixed(1) + "s", 1.2);
+        return false;
+    }
+
+    var radius = 3.6 + skill.level * 0.8;
+    var damage = 20 + skill.level * 7 + (player.stats ? Math.round(player.stats.attack * 0.9) : 0);
+    var center = player.body.position.clone();
+    var hitCount = 0;
+    enemies.forEach(function (enemy) {
+        if (!enemy || enemy.state === "dead") {
+            return;
+        }
+        var dx = enemy.root.position.x - center.x;
+        var dz = enemy.root.position.z - center.z;
+        if (dx * dx + dz * dz <= radius * radius) {
+            hitCount += 1;
+            damageEnemy(enemy, damage, enemy.root.position.add(vec3(0, 1.4, 0)));
+        }
+    });
+
+    spawnBurst(center.add(vec3(0, 1, 0)), "#6ec8ff", 20, 0.12, 5.2);
+    triggerSkillCooldown("shockwave", Math.max(1.2, skill.baseCooldown - (skill.level - 1) * 0.65));
+    setStatusHint("Shockwave cast" + (hitCount ? " (" + hitCount + " hits)" : ""), 1.6);
+    return true;
+}
+
+function castOverdriveSkill() {
+    var skill = progression.skills.overdrive;
+    if (!skill) {
+        return false;
+    }
+    if (skill.cooldown > 0) {
+        setStatusHint("Overdrive cooldown: " + skill.cooldown.toFixed(1) + "s", 1.2);
+        return false;
+    }
+
+    var duration = 5 + skill.level * 1.4;
+    progression.activeBuff.name = "Overdrive";
+    progression.activeBuff.timer = Math.max(progression.activeBuff.timer, duration);
+    progression.activeBuff.attack = Math.max(progression.activeBuff.attack, 3 + skill.level * 2);
+    progression.activeBuff.defense = Math.max(progression.activeBuff.defense, 1 + skill.level);
+    progression.activeBuff.moveSpeed = Math.max(progression.activeBuff.moveSpeed, 0.08 + skill.level * 0.03);
+    progression.activeBuff.pickupRadius = Math.max(progression.activeBuff.pickupRadius, 0.15 + skill.level * 0.05);
+    progression.activeBuff.maxHealth = Math.max(progression.activeBuff.maxHealth, 4 + skill.level * 2);
+    resolvePlayerStats();
+
+    triggerSkillCooldown("overdrive", Math.max(2.4, skill.baseCooldown - (skill.level - 1) * 0.8));
+    spawnBurst(player.body.position.add(vec3(0, 1.1, 0)), "#ffd27f", 18, 0.13, 4.6);
+    setStatusHint("Overdrive active for " + Math.round(duration) + "s", 1.8);
+    return true;
+}
+
 function createPlayerAvatar() {
     var skinMat = materials.enemySkin.clone("player-skin");
     var coatMat = materials.weaponMid.clone("player-coat");
@@ -374,20 +606,6 @@ function getGroundContactHeight(x, z) {
 
 function alignPlayerToSpawn(lockDuration) {
     var surfaceY = getGroundContactHeight(player.spawnPoint.x, player.spawnPoint.z);
-    // Diagnostic log to help debug spawn alignment issues.
-    try {
-        console.debug("alignPlayerToSpawn: spawnPoint=", player.spawnPoint, "sampledSurfaceY=", surfaceY, "playerHalfHeight=", CONFIG.playerHalfHeight);
-        if (world && world.chunks) {
-            console.debug("alignPlayerToSpawn: chunks=", world.chunks.size, "terrainMeshCount=", world.terrainMeshCount);
-            var spawnChunk = world.chunks.get(chunkKey(0,0));
-            if (spawnChunk) {
-                console.debug("alignPlayerToSpawn: spawnChunk.terrainMesh=", !!spawnChunk.terrainMesh, spawnChunk.terrainMesh && spawnChunk.terrainMesh.name);
-            }
-        }
-    } catch (e) {
-        // ignore logging errors
-    }
-
     player.body.position.set(player.spawnPoint.x, surfaceY + getGroundClearance(0), player.spawnPoint.z);
     player.velocityY = 0;
     // Use a shorter spawn lock and snap with zero extra clearance so the feet sit flush with terrain.
@@ -644,6 +862,7 @@ function damagePlayer(amount, source) {
     if (player.health <= 0) {
         player.health = 0;
         state.dead = true;
+        closeOverlayPanels();
         document.exitPointerLock();
         dom.deathPanel.classList.remove("hidden");
     }
@@ -671,6 +890,7 @@ function respawnPlayer() {
     player.pitchNode.rotation.x = 0.25;
     setSlot(0);
     state.dead = false;
+    closeOverlayPanels();
     dom.deathPanel.classList.add("hidden");
 }
 
@@ -691,29 +911,16 @@ function snapPlayerToGround(extraHeight) {
         return !!(mesh && mesh.metadata && mesh.metadata.kind === "terrain");
     }, false);
 
-    try {
-        console.debug("snapPlayerToGround: start=", start, "sampledSurfaceY=", sampledSurfaceY, "clearance=", clearance);
-        if (hit && hit.hit) {
-            console.debug("snapPlayerToGround: ray hit mesh=", hit.pickedMesh && hit.pickedMesh.name, "pickedPoint=", hit.pickedPoint, "distance=", hit.distance);
-        } else {
-            console.debug("snapPlayerToGround: ray did not hit terrain; using sampledSurfaceY");
-        }
-    } catch (e) {
-        // ignore
-    }
-
     if (hit && hit.hit && hit.pickedPoint) {
         // Use the raycast picked point as authoritative for the visible terrain surface.
         player.body.position.y = hit.pickedPoint.y + clearance;
         player.velocityY = 0;
-        try { console.debug("snapPlayerToGround: finalY=", player.body.position.y); } catch (e) {}
         return true;
     }
 
     // Fallback to sampled procedural height when raycast doesn't hit.
     player.body.position.y = sampledSurfaceY + clearance;
     player.velocityY = 0;
-    try { console.debug("snapPlayerToGround: finalY(no hit)=", player.body.position.y); } catch (e) {}
     return false;
 }
 
@@ -898,11 +1105,6 @@ function updatePlayerMovement(dt) {
     // If player didn't move significantly in XZ when a move was requested, consider them stuck.
     if ((Math.abs(displacement.x) > 0.001 || Math.abs(displacement.z) > 0.001) && Math.abs(moved.x) < 0.001 && Math.abs(moved.z) < 0.001) {
         player.stuckCounter = (player.stuckCounter || 0) + 1;
-        var now = performance.now();
-        if (player.stuckCounter > 6 && now - (player.lastBlockedLogTime || 0) > 800) {
-            console.warn("Player appears stuck at", player.body.position, "attempted displacement", displacement);
-            player.lastBlockedLogTime = now;
-        }
         // Try a small upward nudge to escape geometry (temporary unstuck)
         player.body.position.y += 0.06;
     } else {
@@ -920,37 +1122,58 @@ function updatePlayerMovement(dt) {
         damagePlayer(999, "You fell out of the world.");
     }
 
+    var firstPerson = state.cameraMode === "first";
+    if (player.avatar && player.avatar.root) {
+        player.avatar.root.setEnabled(!firstPerson);
+    }
+    if (viewModel.root) {
+        viewModel.root.setEnabled(firstPerson);
+    }
+
+    var targetPivotHeight = firstPerson
+        ? (crouch ? 1.1 : 1.36)
+        : (crouch ? CONFIG.cameraPivotCrouchHeight : CONFIG.cameraPivotHeight);
+    var targetRootHeight = firstPerson
+        ? 0.02
+        : (crouch ? CONFIG.cameraRootCrouchHeight : CONFIG.cameraRootHeight);
+
     player.pitchNode.position.y = lerp(
         player.pitchNode.position.y,
-        crouch ? CONFIG.cameraPivotCrouchHeight : CONFIG.cameraPivotHeight,
+        targetPivotHeight,
         dt * 12
     );
     player.cameraRoot.position.y = lerp(
         player.cameraRoot.position.y,
-        crouch ? CONFIG.cameraRootCrouchHeight : CONFIG.cameraRootHeight,
+        targetRootHeight,
         dt * 12
     );
     var isAiming = currentWeaponDef() && input.mouseButtons[2];
-    var targetCamZ = isAiming ? CONFIG.cameraAimDistance : CONFIG.cameraFollowDistance;
+    var targetCamZ = firstPerson
+        ? (isAiming ? -0.05 : -0.08)
+        : (isAiming ? CONFIG.cameraAimDistance : CONFIG.cameraFollowDistance);
     // Clamp target camera distances to configured min/max
-    targetCamZ = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, targetCamZ));
-    var targetCamX = isAiming ? CONFIG.cameraAimShoulderX : CONFIG.cameraShoulderX;
+    if (!firstPerson) {
+        targetCamZ = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, targetCamZ));
+    }
+    var targetCamX = firstPerson ? 0 : (isAiming ? CONFIG.cameraAimShoulderX : CONFIG.cameraShoulderX);
     player.camera.position.x = lerp(player.camera.position.x, targetCamX, dt * 8);
     player.camera.position.z = lerp(player.camera.position.z, targetCamZ, dt * 6);
-    player.camera.fov = lerp(player.camera.fov, isAiming ? 0.75 : 0.85, dt * 10);
+    player.camera.fov = lerp(player.camera.fov, isAiming ? 0.75 : (firstPerson ? 0.9 : 0.85), dt * 10);
 
-    var cameraPivot = player.cameraRoot.getAbsolutePosition();
-    var cameraOffset = player.camera.globalPosition.subtract(cameraPivot);
-    var cameraDistance = cameraOffset.length();
-    var ray = new BABYLON.Ray(cameraPivot, cameraOffset.scale(1 / Math.max(cameraDistance, 0.0001)), cameraDistance);
-    var pick = scene.pickWithRay(ray, function(mesh) {
-        return mesh && mesh.metadata && mesh.metadata.kind === "terrain";
-    });
-    if (pick && pick.hit) {
-        var safeDistance = Math.max(0, pick.distance - 0.2);
-        var retract = safeDistance / Math.max(cameraDistance, 0.0001);
-        player.camera.position.x *= retract;
-        player.camera.position.z *= retract;
+    if (!firstPerson) {
+        var cameraPivot = player.cameraRoot.getAbsolutePosition();
+        var cameraOffset = player.camera.globalPosition.subtract(cameraPivot);
+        var cameraDistance = cameraOffset.length();
+        var ray = new BABYLON.Ray(cameraPivot, cameraOffset.scale(1 / Math.max(cameraDistance, 0.0001)), cameraDistance);
+        var pick = scene.pickWithRay(ray, function(mesh) {
+            return mesh && mesh.metadata && mesh.metadata.kind === "terrain";
+        });
+        if (pick && pick.hit) {
+            var safeDistance = Math.max(0, pick.distance - 0.2);
+            var retract = safeDistance / Math.max(cameraDistance, 0.0001);
+            player.camera.position.x *= retract;
+            player.camera.position.z *= retract;
+        }
     }
 
     var travelled = player.body.position.subtract(previous);
@@ -978,17 +1201,33 @@ function updateHUD() {
         return enemy.state !== "dead";
     }).length;
     var biome = GAME_DATA.biomes[world.currentBiomeId] || GAME_DATA.biomes.meadow;
+    var perspective = state.cameraMode === "first" ? "FP" : "TP";
     var status = state.dead ? "Down" : (canControlGame() ? "Exploring" : "Paused");
     if (player.reloading && item.kind === "weapon") {
         status += " | Reloading";
     }
-    dom.statusText.textContent = status + " | Lv." + progression.level + " | " + biome.name + " | Enemies " + aliveEnemies;
+    if (progression.activeBuff.timer > 0) {
+        status += " | Buff " + Math.ceil(progression.activeBuff.timer) + "s";
+    }
+    if (state.statusHint) {
+        status += " | " + state.statusHint;
+    }
+    dom.statusText.textContent = status + " | Lv." + progression.level + " | " + biome.name + " | Enemies " + aliveEnemies + " | " + perspective + " | Gold " + progression.gold + " | Books " + progression.skillBooks;
     dom.damageFlash.style.opacity = String(clamp(state.damageFlashTimer / 0.28, 0, 1) * 0.9);
-    dom.pausePanel.classList.toggle("hidden", canControlGame() || state.dead);
+    dom.pausePanel.classList.toggle("hidden", canControlGame() || state.dead || state.inventoryOpen || state.settingsOpen);
     dom.deathPanel.classList.toggle("hidden", !state.dead);
-}
-
-function updateInventoryUI() {
+    if (dom.inventoryPanel) {
+        dom.inventoryPanel.classList.toggle("hidden", !state.inventoryOpen || state.dead);
+    }
+    if (dom.settingsPanel) {
+        dom.settingsPanel.classList.toggle("hidden", !state.settingsOpen || state.dead);
+    }
+    if (state.inventoryOpen) {
+        updateInventoryUI();
+    }
+    if (state.settingsOpen) {
+        updateSettingsUI();
+    }
 }
 
 function buildHotbarUI() {
@@ -1025,10 +1264,6 @@ function updateHotbarUI() {
     });
 }
 
-function toggleInventory(forceValue) {
-    return forceValue;
-}
-
 function registerInput() {
     document.addEventListener("contextmenu", function (event) {
         event.preventDefault();
@@ -1036,6 +1271,9 @@ function registerInput() {
 
     canvas.addEventListener("click", function () {
         audio.ensure();
+        if (isAnyOverlayOpen()) {
+            return;
+        }
         if (!state.dead && !isPointerLocked()) {
             canvas.requestPointerLock();
         }
@@ -1053,6 +1291,9 @@ function registerInput() {
     });
 
     document.addEventListener("mousedown", function (event) {
+        if (isAnyOverlayOpen()) {
+            return;
+        }
         input.mouseButtons[event.button] = true;
         audio.ensure();
         if (event.button === 0 && !isPointerLocked() && !state.dead) {
@@ -1069,16 +1310,47 @@ function registerInput() {
 
     document.addEventListener("keydown", function (event) {
         input.keys[event.code] = true;
+        if (event.code === "Escape" && isAnyOverlayOpen()) {
+            closeOverlayPanels();
+            return;
+        }
         if (event.code === "Space") {
             event.preventDefault();
             input.jumpQueued = true;
             return;
         }
-        if (event.repeat && (event.code === "KeyR" || /^Digit[1-4]$/.test(event.code))) {
+        if (event.repeat && (event.code === "KeyR" || /^Digit[1-4]$/.test(event.code) || /^Key[QFEOZXV]$/.test(event.code))) {
+            return;
+        }
+        if (event.code === "KeyE") {
+            toggleInventoryPanel();
+            return;
+        }
+        if (event.code === "KeyO") {
+            toggleSettingsPanel();
+            return;
+        }
+        if (event.code === "KeyV") {
+            toggleCameraMode();
+            return;
+        }
+        if (event.code === "KeyZ") {
+            useHealingPotion();
+            return;
+        }
+        if (event.code === "KeyX") {
+            useBuffPotion();
+            return;
+        }
+        if (!canControlGame()) {
             return;
         }
         if (event.code === "KeyR") {
             startReload();
+        } else if (event.code === "KeyQ") {
+            castShockwaveSkill();
+        } else if (event.code === "KeyF") {
+            castOverdriveSkill();
         } else if (/^Digit[1-4]$/.test(event.code)) {
             setSlot(parseInt(event.code.replace("Digit", ""), 10) - 1);
         }
@@ -1088,26 +1360,98 @@ function registerInput() {
         input.keys[event.code] = false;
     });
 
-    // Mouse wheel now controls camera follow distance (replace hotbar wheel behavior).
     window.addEventListener("wheel", function (event) {
+        if (!canControlGame()) {
+            return;
+        }
         event.preventDefault();
-        // Normalize delta: positive means zoom out (more negative Z), negative means zoom in
-        var delta = event.deltaY > 0 ? -1 : 1;
-        // Change camera follow distance in steps, keep within configured bounds
-        var step = 0.8;
-        var newFollow = CONFIG.cameraFollowDistance + delta * step;
-        newFollow = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, newFollow));
-        CONFIG.cameraFollowDistance = newFollow;
-        // Also scale aim distance proportionally (so zoom in aim feels consistent)
-        var aimScale = 0.48; // keep aim noticeably closer
-        CONFIG.cameraAimDistance = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, newFollow * aimScale));
+        var wheelDirection = event.deltaY > 0 ? 1 : -1;
+        if (event.altKey) {
+            var zoomStep = 0.8;
+            var newFollow = CONFIG.cameraFollowDistance - wheelDirection * zoomStep;
+            newFollow = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, newFollow));
+            CONFIG.cameraFollowDistance = newFollow;
+            var aimScale = 0.48;
+            CONFIG.cameraAimDistance = Math.max(CONFIG.cameraMinDistance, Math.min(CONFIG.cameraMaxDistance, newFollow * aimScale));
+            return;
+        }
+        setSlot(player.slot + wheelDirection);
     }, { passive: false });
 
-    dom.resumeBtn.addEventListener("click", function () {
-        canvas.requestPointerLock();
-    });
+    if (dom.resumeBtn) {
+        dom.resumeBtn.addEventListener("click", function () {
+            closeOverlayPanels();
+            canvas.requestPointerLock();
+        });
+    }
 
-    dom.respawnBtn.addEventListener("click", function () {
-        respawnPlayer();
-    });
+    if (dom.respawnBtn) {
+        dom.respawnBtn.addEventListener("click", function () {
+            respawnPlayer();
+        });
+    }
+
+    if (dom.openInventoryBtn) {
+        dom.openInventoryBtn.addEventListener("click", function () {
+            toggleInventoryPanel(true);
+        });
+    }
+
+    if (dom.openSettingsBtn) {
+        dom.openSettingsBtn.addEventListener("click", function () {
+            toggleSettingsPanel(true);
+        });
+    }
+
+    if (dom.closeInventoryBtn) {
+        dom.closeInventoryBtn.addEventListener("click", function () {
+            toggleInventoryPanel(false);
+        });
+    }
+
+    if (dom.closeSettingsBtn) {
+        dom.closeSettingsBtn.addEventListener("click", function () {
+            toggleSettingsPanel(false);
+        });
+    }
+
+    if (dom.inventoryContent) {
+        dom.inventoryContent.addEventListener("click", function (event) {
+            var button = event.target.closest("button[data-action]");
+            if (!button) {
+                return;
+            }
+            var action = button.getAttribute("data-action");
+            if (action === "use-heal") {
+                useHealingPotion();
+            } else if (action === "use-buff") {
+                useBuffPotion();
+            } else if (action === "upgrade-skill") {
+                upgradeSkill(button.getAttribute("data-skill-id"));
+            } else if (action === "equip-item") {
+                equipEquipment(button.getAttribute("data-item-id"));
+            } else if (action === "unequip-slot") {
+                unequipEquipment(button.getAttribute("data-slot"));
+            }
+            updateInventoryUI();
+        });
+    }
+
+    if (dom.settingsContent) {
+        dom.settingsContent.addEventListener("click", function (event) {
+            var button = event.target.closest("button[data-action]");
+            if (!button) {
+                return;
+            }
+            var action = button.getAttribute("data-action");
+            if (action === "toggle-camera") {
+                toggleCameraMode();
+            } else if (action === "sens-up") {
+                CONFIG.mouseSensitivity = clamp(CONFIG.mouseSensitivity + 0.0002, 0.0008, 0.006);
+            } else if (action === "sens-down") {
+                CONFIG.mouseSensitivity = clamp(CONFIG.mouseSensitivity - 0.0002, 0.0008, 0.006);
+            }
+            updateSettingsUI();
+        });
+    }
 }

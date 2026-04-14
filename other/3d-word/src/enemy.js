@@ -1,5 +1,9 @@
 "use strict";
 
+function enemyGroundToRootY(surfaceY) {
+    return surfaceY - 0.04;
+}
+
 function ensureEnemyBarMaterials() {
     if (!materials.enemyBarBack) {
         materials.enemyBarBack = new BABYLON.StandardMaterial("enemy-bar-back", scene);
@@ -70,18 +74,21 @@ function updateEnemyHealthBar(enemy) {
 function createEnemy(position, index, options) {
     var opts = options || {};
     var tier = opts.tier || 1;
+    var isBoss = !!opts.isBoss;
     var root = new BABYLON.TransformNode("enemy-root-" + index, scene);
     root.position.copyFrom(position);
-    // Adjust root Y so the enemy's feet sit on the terrain. The parts are built around the root
-    // such that the lowest point is approximately root.y + 0.04; therefore set root.y = terrain - 0.04.
-    try {
-        var sampled = getTerrainSurfaceHeight(position.x, position.z);
-        root.position.y = sampled - 0.04;
-        console.debug("createEnemy: index=", index, "initial position=", position, "sampledTerrain=", sampled, "adjusted root.y=", root.position.y);
-    } catch (e) {}
+    root.position.y = enemyGroundToRootY(getTerrainSurfaceHeight(position.x, position.z));
+    if (isBoss) {
+        root.scaling = new BABYLON.Vector3(1.36, 1.36, 1.36);
+    }
     var enemySkinMat = materials.enemySkin.clone("enemy-skin-" + index);
     var enemySuitMat = materials.enemySuit.clone("enemy-suit-" + index);
     var enemyEyeMat = materials.enemyEye.clone("enemy-eye-" + index);
+    if (isBoss) {
+        enemySuitMat.diffuseColor = new BABYLON.Color3(0.5, 0.25, 0.2);
+        enemySuitMat.emissiveColor = enemySuitMat.diffuseColor.scale(0.08);
+        enemyEyeMat.emissiveColor = new BABYLON.Color3(1, 0.55, 0.2);
+    }
 
     var skeleton = {
         root: root,
@@ -125,19 +132,26 @@ function createEnemy(position, index, options) {
     skeleton.leftLeg.position.set(-0.2, 0.95, 0);
     skeleton.rightLeg.position.set(0.2, 0.95, 0);
 
+    var healthPool = 56 + tier * 7;
+    if (isBoss) {
+        healthPool = Math.round(healthPool * 3.1);
+    }
+
     var enemy = {
         id: index,
         root: root,
         skeleton: skeleton,
         chunkKey: opts.chunkKey || null,
         biomeId: opts.biomeId || "meadow",
+        isBoss: isBoss,
         tier: tier,
-        health: 56 + tier * 7,
-        maxHealth: 56 + tier * 7,
+        health: healthPool,
+        maxHealth: healthPool,
         home: position.clone(),
         patrolTarget: position.clone(),
         state: "patrol",
-        speed: 2.05 + Math.min(1.1, tier * 0.03),
+        speed: (isBoss ? 1.8 : 2.05) + Math.min(1.1, tier * 0.03),
+        attackDamage: (isBoss ? 15 : 8) + tier * (isBoss ? 0.35 : 0.2),
         attackCooldown: 0.8,
         senseTimer: 0,
         seesPlayer: false,
@@ -188,7 +202,7 @@ function chooseEnemyPatrolTarget(enemy) {
         tries -= 1;
         var x = Math.round(enemy.home.x + (Math.random() - 0.5) * 8);
         var z = Math.round(enemy.home.z + (Math.random() - 0.5) * 8);
-        enemy.patrolTarget = vec3(x, getTerrainSurfaceHeight(x, z) + 0.55, z);
+        enemy.patrolTarget = vec3(x, enemyGroundToRootY(getTerrainSurfaceHeight(x, z)), z);
         return;
     }
     enemy.patrolTarget = enemy.home.clone();
@@ -207,13 +221,53 @@ function killEnemy(enemy) {
     updateEnemyHealthBar(enemy);
     spawnBurst(enemy.root.position.add(vec3(0, 1.5, 0)), "#ff7d73", 14, 0.12, 4.6);
     audio.playEnemyDown();
-    registerEnemyDefeat();
+    registerEnemyDefeat(enemy);
+
+    if (enemy.isBoss) {
+        if (Math.random() < 0.72) {
+            createPickup("skillBook", enemy.root.position.add(vec3(0, 0.9, 0)), {
+                chunkKey: enemy.chunkKey,
+                biomeId: enemy.biomeId,
+                respawn: false
+            });
+        }
+        if (Math.random() < 0.82 && typeof createRandomEquipment === "function") {
+            createPickup("gear", enemy.root.position.add(vec3(0.6, 0.9, 0)), {
+                chunkKey: enemy.chunkKey,
+                biomeId: enemy.biomeId,
+                respawn: false,
+                payload: createRandomEquipment(enemy.tier + 1, true)
+            });
+        }
+        if (Math.random() < 0.64) {
+            createPickup(Math.random() > 0.5 ? "healPotion" : "buffPotion", enemy.root.position.add(vec3(-0.6, 0.9, 0)), {
+                chunkKey: enemy.chunkKey,
+                biomeId: enemy.biomeId,
+                respawn: false
+            });
+        }
+        return;
+    }
 
     var dropRoll = Math.random();
-    if (dropRoll > 0.5) {
+    if (dropRoll > 0.55) {
         createPickup(Math.random() > 0.5 ? "food" : "pistol", enemy.root.position.add(vec3(0, 0.9, 0)), {
             chunkKey: enemy.chunkKey,
-            biomeId: enemy.biomeId
+            biomeId: enemy.biomeId,
+            respawn: false
+        });
+    } else if (dropRoll > 0.38) {
+        createPickup(Math.random() > 0.5 ? "healPotion" : "buffPotion", enemy.root.position.add(vec3(0, 0.9, 0)), {
+            chunkKey: enemy.chunkKey,
+            biomeId: enemy.biomeId,
+            respawn: false
+        });
+    } else if (dropRoll > 0.26 && typeof createRandomEquipment === "function") {
+        createPickup("gear", enemy.root.position.add(vec3(0, 0.9, 0)), {
+            chunkKey: enemy.chunkKey,
+            biomeId: enemy.biomeId,
+            respawn: false,
+            payload: createRandomEquipment(enemy.tier, false)
         });
     }
 }
@@ -225,9 +279,7 @@ function respawnEnemy(enemy) {
     enemy.root.rotation.setAll(0);
     enemy.root.position.copyFrom(enemy.home);
     var sampled = getTerrainSurfaceHeight(enemy.home.x, enemy.home.z);
-    // Keep enemy feet flush with terrain like above: root.y = terrain - 0.04
-    enemy.root.position.y = sampled - 0.04;
-    try { console.debug("respawnEnemy: id=", enemy.id, "home=", enemy.home, "sampled=", sampled, "finalY=", enemy.root.position.y); } catch (e) {}
+    enemy.root.position.y = enemyGroundToRootY(sampled);
     enemy.skeleton.parts.forEach(function (part) {
         part.isPickable = true;
     });
@@ -342,24 +394,25 @@ function updateEnemies(dt) {
                 enemy.state = "chase";
             } else if (enemy.attackCooldown <= 0) {
                 enemy.attackCooldown = 0.92;
-                damagePlayer(8 + enemy.tier * 0.2, "Enemy strike landed");
+                damagePlayer(enemy.attackDamage || (8 + enemy.tier * 0.2), enemy.isBoss ? "Boss strike landed" : "Enemy strike landed");
             }
         }
 
         if (speed > 0 && moveDir.lengthSquared() > 0) {
+            var previousX = enemy.root.position.x;
+            var previousZ = enemy.root.position.z;
             var nextX = enemy.root.position.x + moveDir.x * speed * dt;
             var nextZ = enemy.root.position.z + moveDir.z * speed * dt;
-            var nextGround = getTerrainSurfaceHeight(nextX, nextZ) + 0.55;
-            if (Math.abs(nextGround - enemy.root.position.y) < 2.4) {
+            var nextGroundY = getTerrainSurfaceHeight(nextX, nextZ);
+            var nextRootY = enemyGroundToRootY(nextGroundY);
+            if (Math.abs(nextRootY - enemy.root.position.y) < 2.4) {
                 enemy.root.position.x = nextX;
                 enemy.root.position.z = nextZ;
             } else if (enemy.state === "patrol") {
                 chooseEnemyPatrolTarget(enemy);
             }
-            var prevPos = enemy.root.position.clone();
-            enemy.root.position.y = getTerrainSurfaceHeight(enemy.root.position.x, enemy.root.position.z) + 0.55;
-            // If enemy didn't move in XZ despite intended movement, nudge up to escape
-            if (Math.abs(enemy.root.position.x - prevPos.x) < 0.001 && Math.abs(enemy.root.position.z - prevPos.z) < 0.001) {
+            enemy.root.position.y = enemyGroundToRootY(getTerrainSurfaceHeight(enemy.root.position.x, enemy.root.position.z));
+            if (Math.abs(enemy.root.position.x - previousX) < 0.001 && Math.abs(enemy.root.position.z - previousZ) < 0.001) {
                 enemy.root.position.y += 0.04;
             }
             enemy.root.rotation.y = Math.atan2(moveDir.x, moveDir.z);

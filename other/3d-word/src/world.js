@@ -1,5 +1,7 @@
 "use strict";
 
+var biomeTerrainColors = {};
+
 function makeMaterial(name, hex, alpha) {
     var material = new BABYLON.StandardMaterial(name, scene);
     material.diffuseColor = BABYLON.Color3.FromHexString(hex);
@@ -9,23 +11,6 @@ function makeMaterial(name, hex, alpha) {
         material.alpha = alpha;
     }
     return material;
-}
-
-function lerpColor(a, b, t) {
-    return new BABYLON.Color3(
-        lerp(a.r, b.r, t),
-        lerp(a.g, b.g, t),
-        lerp(a.b, b.b, t)
-    );
-}
-
-function varyColor(hex, offset) {
-    var color = BABYLON.Color3.FromHexString(hex);
-    return new BABYLON.Color3(
-        clamp(color.r + offset, 0, 1),
-        clamp(color.g + offset, 0, 1),
-        clamp(color.b + offset, 0, 1)
-    );
 }
 
 function ensureMaterialCatalog() {
@@ -38,6 +23,7 @@ function ensureMaterialCatalog() {
         materials["terrain-" + biomeId] = makeMaterial("terrain-" + biomeId, biome.color);
         materials["terrain-" + biomeId].specularColor = BABYLON.Color3.Black();
         materials["terrain-" + biomeId].useVertexColor = true;
+        biomeTerrainColors[biomeId] = BABYLON.Color3.FromHexString(biome.color);
     });
 
     materials.enemySkin = makeMaterial("enemy-skin", "#d6b28b");
@@ -50,6 +36,9 @@ function ensureMaterialCatalog() {
     materials.pickupRed = makeMaterial("pickup-red", "#ff6a66");
     materials.pickupWhite = makeMaterial("pickup-white", "#f4f7fb");
     materials.pickupBlue = makeMaterial("pickup-blue", "#65c8ff");
+    materials.pickupGreen = makeMaterial("pickup-green", "#63d48f");
+    materials.pickupPurple = makeMaterial("pickup-purple", "#b08cff");
+    materials.pickupGold = makeMaterial("pickup-gold", "#f3cf6f");
     materials.pickupWood = makeMaterial("pickup-wood", "#8f6338");
     materials.pickupMetal = makeMaterial("pickup-metal", "#9aa8b6");
     materials.pickupSnow = makeMaterial("pickup-snow", "#d8f5ff");
@@ -137,6 +126,33 @@ function createTerrainNormal(worldX, worldZ, step) {
     return normal;
 }
 
+function getBlendedBiomeColor(blend) {
+    var meadow = biomeTerrainColors.meadow || BABYLON.Color3.FromHexString(GAME_DATA.biomes.meadow.color);
+    var forest = biomeTerrainColors.forest || BABYLON.Color3.FromHexString(GAME_DATA.biomes.forest.color);
+    var desert = biomeTerrainColors.desert || BABYLON.Color3.FromHexString(GAME_DATA.biomes.desert.color);
+    var snow = biomeTerrainColors.snow || BABYLON.Color3.FromHexString(GAME_DATA.biomes.snow.color);
+    return new BABYLON.Color3(
+        meadow.r * blend.meadow + forest.r * blend.forest + desert.r * blend.desert + snow.r * blend.snow,
+        meadow.g * blend.meadow + forest.g * blend.forest + desert.g * blend.desert + snow.g * blend.snow,
+        meadow.b * blend.meadow + forest.b * blend.forest + desert.b * blend.desert + snow.b * blend.snow
+    );
+}
+
+function createTerrainVertexColor(blend, worldY, worldNormal) {
+    var base = getBlendedBiomeColor(blend);
+    var slope = clamp(worldNormal.y, 0, 1);
+    var altitude = clamp((worldY - GAME_DATA.world.waterLevel + 1.5) / 10, 0, 1);
+    var shade = lerp(0.72, 1.08, slope) * lerp(0.94, 1.07, altitude);
+    if (worldY < GAME_DATA.world.waterLevel + 0.4) {
+        shade *= 0.84;
+    }
+    return new BABYLON.Color3(
+        clamp(base.r * shade, 0, 1),
+        clamp(base.g * shade, 0, 1),
+        clamp(base.b * shade, 0, 1)
+    );
+}
+
 function createTerrainMesh(chunk) {
     var subdivisions = CONFIG.chunkResolution;
     var step = CONFIG.chunkSize / subdivisions;
@@ -146,10 +162,6 @@ function createTerrainMesh(chunk) {
     var uvs = [];
     var colors = [];
 
-    function getTerrainColor() {
-        return BABYLON.Color3.FromHexString("#6ec16a");
-    }
-
     for (var z = 0; z <= subdivisions; z += 1) {
         for (var x = 0; x <= subdivisions; x += 1) {
             var localX = x * step;
@@ -158,10 +170,11 @@ function createTerrainMesh(chunk) {
             var worldZ = chunk.root.position.z + localZ;
             var worldY = getTerrainSurfaceHeight(worldX, worldZ);
             var worldNormal = createTerrainNormal(worldX, worldZ, step);
+            var blend = getBiomeBlend(worldX, worldZ);
             positions.push(localX, worldY, localZ);
             normals.push(worldNormal.x, worldNormal.y, worldNormal.z);
             uvs.push(x / subdivisions, z / subdivisions);
-            var terrainColor = getTerrainColor();
+            var terrainColor = createTerrainVertexColor(blend, worldY, worldNormal);
             colors.push(terrainColor.r, terrainColor.g, terrainColor.b, 1);
         }
     }
@@ -256,10 +269,12 @@ function createTree(localX, localZ, chunk, biome) {
     var crownBase = 2.45;
     var crownWidth = crownBase + crownRoll * 0.9;
     var crownHeight = crownWidth + 0.2 + leafTintRoll * 0.45;
-    var foliageBase = "#63b85f";
-    var leafMaterial = makeMaterial("tree-leaves-" + Math.floor(worldX) + "-" + Math.floor(worldZ), foliageBase);
-    leafMaterial.diffuseColor = varyColor(foliageBase, (leafTintRoll - 0.5) * 0.14);
-    leafMaterial.emissiveColor = leafMaterial.diffuseColor.scale(0.05);
+    var leafMaterial = materials.foliageMeadow;
+    if (biome && biome.id === "forest") {
+        leafMaterial = materials.foliageForest;
+    } else if (biome && biome.id === "snow") {
+        leafMaterial = materials.foliageSnow;
+    }
 
     var leaves = BABYLON.MeshBuilder.CreateSphere("tree-leaves", {
         diameterX: crownWidth,
@@ -268,6 +283,7 @@ function createTree(localX, localZ, chunk, biome) {
         segments: 4
     }, scene);
     leaves.position.set(localX, groundY + trunkHeight + 0.9, localZ);
+    leaves.rotation.y = hash2(worldX - 3, worldZ + 11) * Math.PI;
     leaves.material = leafMaterial;
     registerPropMesh(leaves, chunk);
 }
@@ -418,8 +434,20 @@ function populateChunk(chunk, currentBiome) {
     populateChunkEntities(chunk, currentBiome);
 }
 
-function chooseChunkPickupType(biome) {
-    var pool = biome.pickupBias || ["food", "pistol"];
+function chooseChunkPickupType(biome, distance) {
+    var pool = (biome.pickupBias || ["food", "pistol"]).slice();
+    if (distance >= 1) {
+        pool.push("healPotion");
+    }
+    if (distance >= 2) {
+        pool.push("buffPotion");
+    }
+    if (distance >= 3 && Math.random() < 0.14) {
+        return "gear";
+    }
+    if (distance >= 4 && Math.random() < 0.08) {
+        return "skillBook";
+    }
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -431,6 +459,8 @@ function populateChunkEntities(chunk, biome) {
     var distance = Math.abs(chunk.x) + Math.abs(chunk.z);
     var enemyCount = distance === 0 ? 1 : Math.min(2, Math.max(1, Math.round(biome.enemyScale)));
     var pickupCount = distance === 0 ? 2 : 1;
+    var bossChance = distance >= 2 ? Math.min(0.16 + distance * 0.025, 0.42) : 0;
+    var shouldSpawnBoss = Math.random() < bossChance;
 
     for (var i = 0; i < enemyCount; i += 1) {
         var ex = chunk.root.position.x + 4 + Math.random() * (CONFIG.chunkSize - 8);
@@ -446,15 +476,33 @@ function populateChunkEntities(chunk, biome) {
         });
     }
 
+    if (shouldSpawnBoss) {
+        var bx = chunk.root.position.x + 4 + Math.random() * (CONFIG.chunkSize - 8);
+        var bz = chunk.root.position.z + 4 + Math.random() * (CONFIG.chunkSize - 8);
+        var bossPos = vec3(bx, getTerrainSurfaceHeight(bx, bz) + 0.55, bz);
+        createEnemy(bossPos, world.enemySerial++, {
+            chunkKey: chunk.key,
+            biomeId: chunk.biomeId,
+            tier: Math.max(2, progression.level + distance + 2),
+            isBoss: true
+        });
+    }
+
     for (var p = 0; p < pickupCount; p += 1) {
         var px = chunk.root.position.x + 3 + Math.random() * (CONFIG.chunkSize - 6);
         var pz = chunk.root.position.z + 3 + Math.random() * (CONFIG.chunkSize - 6);
         if (Math.abs(px) <= 4 && Math.abs(pz) <= 4) {
             continue;
         }
-        createPickup(chooseChunkPickupType(biome), vec3(px, getTerrainSurfaceHeight(px, pz) + 1.15, pz), {
+        var pickupType = chooseChunkPickupType(biome, distance);
+        var pickupPayload = null;
+        if (pickupType === "gear" && typeof createRandomEquipment === "function") {
+            pickupPayload = createRandomEquipment(Math.max(1, progression.level + distance), false);
+        }
+        createPickup(pickupType, vec3(px, getTerrainSurfaceHeight(px, pz) + 1.15, pz), {
             chunkKey: chunk.key,
-            biomeId: chunk.biomeId
+            biomeId: chunk.biomeId,
+            payload: pickupPayload
         });
     }
 }
@@ -624,6 +672,15 @@ function createPickup(type, position, options) {
     if (type === "food") {
         makePart("food-body", { width: 0.52, height: 0.52, depth: 0.52 }, vec3(0, 0, 0), materials.pickupRed);
         makePart("food-leaf", { width: 0.12, height: 0.18, depth: 0.12 }, vec3(0.1, 0.28, 0), materials.foliageMeadow);
+    } else if (type === "healPotion") {
+        makePart("heal-pot-body", { width: 0.32, height: 0.52, depth: 0.32 }, vec3(0, 0, 0), materials.pickupRed);
+        makePart("heal-pot-cap", { width: 0.18, height: 0.14, depth: 0.18 }, vec3(0, 0.34, 0), materials.pickupWhite);
+    } else if (type === "buffPotion") {
+        makePart("buff-pot-body", { width: 0.32, height: 0.52, depth: 0.32 }, vec3(0, 0, 0), materials.pickupGreen);
+        makePart("buff-pot-cap", { width: 0.18, height: 0.14, depth: 0.18 }, vec3(0, 0.34, 0), materials.pickupWhite);
+    } else if (type === "skillBook") {
+        makePart("skill-book-cover", { width: 0.5, height: 0.08, depth: 0.36 }, vec3(0, 0, 0), materials.pickupPurple);
+        makePart("skill-book-pages", { width: 0.44, height: 0.06, depth: 0.28 }, vec3(0, 0.05, 0), materials.pickupWhite);
     } else if (type === "pistol") {
         makePart("pickup-pistol-grip", { width: 0.12, height: 0.34, depth: 0.1 }, vec3(-0.1, -0.04, 0), materials.weaponDark);
         makePart("pickup-pistol-body", { width: 0.44, height: 0.14, depth: 0.14 }, vec3(0.08, 0.1, 0), materials.weaponMid);
@@ -631,6 +688,9 @@ function createPickup(type, position, options) {
         makePart("pickup-rifle-stock", { width: 0.18, height: 0.12, depth: 0.12 }, vec3(-0.18, 0.06, 0), materials.weaponDark);
         makePart("pickup-rifle-body", { width: 0.52, height: 0.14, depth: 0.14 }, vec3(0.06, 0.06, 0), materials.weaponMid);
         makePart("pickup-rifle-mag", { width: 0.1, height: 0.22, depth: 0.1 }, vec3(0.02, -0.12, 0), materials.weaponAccent);
+    } else if (type === "gear") {
+        makePart("gear-case-core", { width: 0.56, height: 0.4, depth: 0.56 }, vec3(0, 0, 0), materials.pickupGold);
+        makePart("gear-case-band", { width: 0.62, height: 0.1, depth: 0.62 }, vec3(0, 0.12, 0), materials.pickupMetal);
     } else {
         makePart("supply-core", { width: 0.62, height: 0.62, depth: 0.62 }, vec3(0, 0, 0), materials.pickupBlue);
         makePart("supply-base", { width: 0.9, height: 0.12, depth: 0.9 }, vec3(0, -0.32, 0), materials.weaponDark);
@@ -644,9 +704,11 @@ function createPickup(type, position, options) {
         active: true,
         respawnTimer: 0,
         respawnDelay: 11 + Math.random() * 5,
+        respawnEnabled: opts.respawn !== false,
         pickupRadius: type === "food" ? 1.85 : 1.95,
         chunkKey: opts.chunkKey || null,
-        biomeId: opts.biomeId || null
+        biomeId: opts.biomeId || null,
+        payload: opts.payload || null
     };
     pickups.push(pickup);
     if (pickup.chunkKey && world.chunks.has(pickup.chunkKey)) {
@@ -668,6 +730,20 @@ function collectPickup(pickup) {
 
     if (pickup.type === "food") {
         player.health = clamp(player.health + 22, 0, player.maxHealth);
+    } else if (pickup.type === "healPotion") {
+        addPotionToBag("heal", 1);
+    } else if (pickup.type === "buffPotion") {
+        addPotionToBag("buff", 1);
+    } else if (pickup.type === "skillBook") {
+        progression.skillBooks += 1;
+        setStatusHint("Skill book acquired.", 1.8);
+    } else if (pickup.type === "gear") {
+        if (!pickup.payload && typeof createRandomEquipment === "function") {
+            pickup.payload = createRandomEquipment(Math.max(1, progression.level), false);
+        }
+        if (pickup.payload) {
+            addEquipmentToBag(pickup.payload);
+        }
     } else if (pickup.type === "pistol" || pickup.type === "rifle") {
         grantWeaponPickup(pickup.type);
     } else {
@@ -681,6 +757,11 @@ function updatePickups(dt) {
     for (var i = 0; i < pickups.length; i += 1) {
         var pickup = pickups[i];
         if (!pickup.active) {
+            if (!pickup.respawnEnabled) {
+                disposePickup(pickup);
+                i -= 1;
+                continue;
+            }
             pickup.respawnTimer -= dt;
             if (pickup.respawnTimer <= 0) {
                 pickup.active = true;

@@ -98,6 +98,41 @@ var GAME_DATA = {
             recoil: 0.08,
             auto: true
         }
+    },
+    skills: {
+        shockwave: {
+            id: "shockwave",
+            name: "Shockwave",
+            baseCooldown: 8.2,
+            maxLevel: 5
+        },
+        overdrive: {
+            id: "overdrive",
+            name: "Overdrive",
+            baseCooldown: 16.5,
+            maxLevel: 5
+        }
+    },
+    potions: {
+        heal: {
+            id: "heal",
+            label: "Recovery Potion",
+            healAmount: 42
+        },
+        buff: {
+            id: "buff",
+            label: "Battle Tonic",
+            duration: 12
+        }
+    },
+    equipment: {
+        slots: ["helmet", "armor", "boots", "relic"],
+        rarities: [
+            { id: "common", label: "Common", weight: 56, power: 1 },
+            { id: "rare", label: "Rare", weight: 28, power: 1.28 },
+            { id: "epic", label: "Epic", weight: 12, power: 1.62 },
+            { id: "legendary", label: "Legendary", weight: 4, power: 2.05 }
+        ]
     }
 };
 
