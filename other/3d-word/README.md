@@ -1,353 +1,297 @@
 # 3D-WORLD
 
-`Babylon.js` 第一/第三人称可切换的无限开放世界动作原型。
+`Babylon.js` 第三人称无限开放世界动作原型，类似激战2 的操作方式，包含基础的地形、角色控制、战斗和成长系统。
 
-当前仓库不是完整 MMO，也不是通用引擎模板，而是一个以“世界流式生成 + 第三人称战斗探索”为核心的前端原型。
-
-## 项目状态
-
-当前已实现：
+## 项目目标：
 
 - 无限 `Chunk` 流式加载
-- 平滑高度场地形
-- 第一/第三人称切换、相机瞄准缩放
+- 平滑的地形坡度
+- 第三人称，操作方式类似激战2
 - 地表吸附与基础防穿模保护
 - 敌人、Boss、掉落、装备、任务成长
-- 手枪 / 步枪战斗循环
+- 弓箭、近战武器、技能、药剂
 - 技能系统、技能书升级
 - 恢复药剂与增益药剂
 - 背包与设置面板
 
-当前已移除：
-
-- 宠物数据
-- 宠物跟随逻辑
-- 宠物属性加成
-- 宠物 UI
-
 ## 运行
 
-这是纯前端项目，需要本地静态服务器运行。
-
-示例：
+纯前端项目，需要本地静态服务器：
 
 ```bash
 npx serve .
 ```
 
-启动后访问本地地址即可。
+启动后在浏览器打开本地地址即可。
 
 ## 操作
 
-- `WASD` 移动
-- `Space` 跳跃
-- `Shift` 蹲下
-- 鼠标移动控制镜头
-- 左键射击
-- 右键瞄准
-- 滚轮 / `1-4` 切换槽位
-- `Alt + 滚轮` 调整第三人称镜头距离
-- `R` 换弹
-- `Q` 震荡波技能
-- `F` Overdrive 技能
-- `Z` 使用恢复药剂
-- `X` 使用增益药剂
-- `E` 打开背包
-- `O` 打开设置
-- `V` 切换第一/第三人称
+| 按键 | 功能 |
+|---|---|
+| `WASD` | 移动 |
+| `Space` | 跳跃 |
+| `Shift` | 蹲下 |
+| 鼠标移动 | 控制镜头 |
+| 左键 | 射击 |
+| 右键 | 瞄准（缩放视角） |
+| 滚轮 / `1-4` | 切换热栏槽位 |
+| `Alt + 滚轮` | 调整第三人称镜头距离 |
+| `R` | 换弹 |
+| `Q` | Shockwave 震荡波技能 |
+| `F` | Overdrive 强化技能 |
+| `Z` | 使用恢复药剂 |
+| `X` | 使用增益药剂 |
+| `E` | 打开背包 |
+| `O` | 打开设置 |
 
-当前第三人称控制规则：
+第三人称控制规则：
 
 - 镜头朝向和角色朝向分离
 - 角色朝实际移动方向转身
 - 纯 `S` 为慢速后退
 
-## 重构回归清单
-
-每次调整核心脚本后，建议至少手工回归以下流程一次：
-
-- 启动项目后能正常进入场景，点击画面可以锁定鼠标
-- `WASD` 移动、`Space` 跳跃、`Shift` 蹲下都正常
-- 鼠标移动能控制第三人称镜头，右键瞄准会缩放视角
-- 左键可以正常射击，命中敌人或地形时有反馈
-- 武器打空后可自动 / 手动 `R` 换弹
-- 滚轮与 `1-4` 可以切换槽位
-- `Alt + 滚轮` 可以调整第三人称镜头远近
-- `Q` / `F` 技能可以释放并进入冷却
-- `Z` / `X` 药剂可以消耗并生效
-- `E` 背包可管理装备、技能升级与任务进度
-- `O` 设置可切换视角与鼠标灵敏度
-- 敌人会巡逻、发现玩家后追击并造成伤害
-- Boss 有概率掉落技能书，技能书可用于升级技能
-- 拾取物可以收集，武器 / 食物 / 装备 / 药剂奖励正常生效
-- 死亡面板出现后可以复活，角色回到出生点
-- 走出当前区域后会触发 `Chunk` 加载与远处区块卸载
-
-## 目录
+## 目录结构
 
 ```text
-index.html
+index.html            页面结构 / HUD / 热栏 / 暂停与死亡面板 / 脚本加载
 README.md
 lib/
+  babylon.js          Babylon.js 引擎
+  babylon.gui.min.js
+  babylonjs.loaders.min.js
+model/                3D 模型资源（architecture / role / weapon）
 src/
-  data.js
-  runtime.js
-  main.js
-  world.js
-  enemy.js
-  progression.js
-  player.js
+  data.js             静态数据：世界参数、生物群系、武器、装备、技能、药剂
+  runtime.js          共享运行时对象：CONFIG / state / world / player
+  main.js             引擎初始化、主循环、噪声函数、热栏逻辑
+  world.js            材质、地形网格、Chunk 流式加载/卸载、树木岩石拾取物
+  enemy.js            敌人生成、巡逻/追击/攻击/死亡 AI、血条
+  progression.js      等级经验、装备掉落穿戴、技能升级、任务、药剂增益
+  player.js           碰撞体/模型、相机、输入、移动贴地防穿模、战斗、HUD
 ```
 
-## 脚本职责
+## 脚本加载顺序与依赖
 
-### `index.html`
+项目使用全局脚本（非 ES Module），加载顺序：
 
-- 页面结构和 DOM 容器
-- HUD / 热栏 / 暂停 / 死亡面板
-- 脚本加载入口
+```
+lib/babylon.js → data.js → runtime.js → main.js → progression.js → world.js → enemy.js → player.js
+```
 
-### `src/data.js`
+依赖方向：
 
-- 静态数据源
-- 世界参数
-- 生物群系参数
-- 武器数据
-- 装备模板
-- 成就定义
+- `data.js` 提供 `GAME_DATA` 静态配置
+- `runtime.js` 提供 `CONFIG`、`state`、`world`、`player` 全局运行时对象
+- `main.js` 初始化引擎/场景，提供 `terrainHeight()`、`vec3()`、`clamp()` 等工具函数
+- `world.js` / `player.js` / `enemy.js` / `progression.js` 共同消费上述全局变量
 
-### `src/runtime.js`
+修改时注意跨文件依赖和加载顺序。
 
-- 共享运行时配置 `CONFIG`
-- 全局状态对象 `state` / `world` / `player`
-- 运行时初始化辅助函数
+## 核心全局对象
 
-### `src/main.js`
+### `GAME_DATA`
 
-- Babylon 引擎与场景初始化
-- 主循环 `runFrame()`
-- 热栏与基础运行时工具
-- 高度噪声与 `terrainHeight()`
+静态数据源，定义在 `data.js`，包含：
 
-### `src/world.js`
+- `world`：Chunk 尺寸、高度范围、水面高度
+- `biomes`：四种生物群系（Meadow / Forest / Desert / Snow）的颜色、树木与岩石概率、敌人缩放
+- `weapons`：Rune Pistol（半自动手枪）、Storm Rifle（全自动步枪）
+- `skills`：Shockwave（近身范围）、Overdrive（短时强化）
+- `potions`：Recovery Potion（恢复）、Battle Tonic（增益）
+- `equipment`：四个装备槽（helmet / armor / boots / relic），四级稀有度
 
-- 材质目录初始化
-- 地形网格构建
-- `Chunk` 创建 / 卸载 / 流式更新
-- 树木、岩石、拾取物、出生点标记
+### `CONFIG`
 
-### `src/player.js`
+运行时常量，定义在 `runtime.js`，包含：
 
-- 玩家碰撞体和可见模型
-- 第三人称相机
-- 第一/第三人称切换
-- 输入处理
-- 移动、跳跃、贴地、防穿模
-- 武器射击、命中反馈、换弹、技能释放
-- HUD / 热栏 / 背包 / 设置 UI 更新
-
-### `src/enemy.js`
-
-- 敌人生成
-- 巡逻 / 追击 / 攻击 / 死亡
-- 敌人血条
-
-### `src/progression.js`
-
-- 玩家属性汇总
-- 装备评分、掉落与穿戴
-- 技能、技能书与冷却
-- 任务升级与奖励
-- 药剂与临时增益
-
-## 脚本加载关系
-
-当前项目仍然使用全局脚本，不是 ES Module。
-
-这意味着：
-
-- 文件之间通过全局变量和全局函数协作
-- 加载顺序必须正确
-- 修改时要注意跨文件依赖
-
-典型依赖方向：
-
-- `data.js` 提供静态配置
-- `runtime.js` 提供共享运行时对象和配置
-- `main.js` 提供场景初始化和通用函数
-- `world.js` / `player.js` / `enemy.js` / `progression.js` 共同消费这些全局对象
-
-## 核心对象
+- 地形参数：种子、Chunk 尺寸/分辨率、加载/卸载半径
+- 玩家参数：碰撞盒尺寸、速度、跳跃、重力
+- 相机参数：灵敏度、枢轴高度、跟随距离、瞄准距离、距离范围
+- 敌人参数：视野距离、攻击范围
 
 ### `state`
 
-运行时 UI 与流程状态。
+UI 与流程状态：
 
-典型内容：
-
-- 是否死亡
-- 伤害闪屏计时
-- 出生锁定计时
-- 提示文本计时
-- 背包 / 设置开关
-- 当前视角模式
+- 死亡标志、伤害闪屏计时、出生锁定计时
+- 提示文本与计时、背包/设置面板开关
+- 当前视角模式（`"third"`）
 
 ### `player`
 
-玩家运行时数据。
+玩家运行时数据：
 
-典型内容：
-
-- `body` 碰撞体
-- `facingNode` 角色朝向节点
-- `yawNode` / `pitchNode` 镜头节点
-- 武器与弹药状态
-- 冷却时间
-- 生命值与派生属性
+- `body`：碰撞体
+- `facingNode` / `yawNode` / `pitchNode`：朝向与镜头节点
+- `camera` / `cameraRoot` / `cameraFocus`：相机系统
+- 武器弹药 `ammo`、冷却、换弹状态
+- 生命值、出生点、接地状态
 
 ### `world`
 
-世界流式状态。
+世界流式状态：
 
-典型内容：
-
-- 已加载 `Chunk`
-- 当前区块坐标
-- 地形与道具数量统计
+- `chunks`：已加载 Chunk（Map）
+- 当前区块坐标与生物群系 ID
+- 地形/道具计数、敌人序号
 
 ### `progression`
 
-成长系统状态。
+成长系统状态：
 
-- 等级与经验
-- 金币与技能书
-- 装备栏与背包
+- 等级、经验、金币、技能书
+- 装备栏与背包、装备序号
 - 技能等级与冷却
-- 任务等级与进度
-- 药剂库存与增益状态
-- 统计指标
+- 三条任务线（Bounty Hunt / Field Supplies / Frontier Cartography）
+- 药剂库存与临时增益
+- 统计指标（击杀、拾取、距离、区块探索）
 
-## 当前渲染与地形实现
+## 地形实现
 
-当前地形不是传统方块堆叠，而是高度场网格：
+高度场网格，不是方块堆叠：
 
-1. `terrainHeight(x, z)` 生成高度
-2. `world.js` 根据高度场拼接 chunk mesh
-3. 顶点法线直接按高度差采样计算
-4. 顶点色目前统一为单一绿色
+1. `terrainHeight(x, z)` 基于多层噪声叠加与生物群系混合输出高度
+2. `getBiomeBlend(x, z)` 按坐标哈希计算四种群系权重
+3. `createTerrainMesh()` 逐顶点采样高度，计算法线与顶点色
+4. 顶点色根据群系混合、高度和法线着色，支持坡面棕色渐变
+5. 存在水面层 `createWaterMesh()`，高度为 `waterLevel`
 
-树木当前策略：
+树木/岩石根据群系概率随机散布，树高和树冠尺寸随机，叶色按群系变化。
 
-- 树样式统一
-- 树高随机
-- 树冠尺寸随机
-- 叶色轻微随机
+## 角色与相机
 
-## 当前角色与相机实现
+玩家由两层组成：
 
-当前玩家由两层组成：
+1. 隐形碰撞盒 `player.body`（`moveWithCollisions()` 驱动）
+2. 可见方块人模型 `player.avatar`（头、躯干、四肢，程序摆动动画）
 
-1. 隐形碰撞盒 `player.body`
-2. 可见方块人模型 `player.avatar`
+朝向系统：
 
-朝向系统分离为：
+- `facingNode`：角色身体朝向（朝移动方向转身）
+- `yawNode` / `pitchNode`：镜头水平/俯仰（独立于角色）
 
-- `facingNode`: 角色身体朝向
-- `yawNode`: 镜头水平朝向
-- `pitchNode`: 镜头俯仰
+相机支持：
 
-这样镜头旋转不会直接带动角色转身。
-
-相机当前支持：
-
-- 跟随视角
-- 瞄准缩放
+- 第三人称跟随（肩部偏移）
+- 瞄准缩放（右键拉近）
 - 地形遮挡回推
-- 更高的镜头观察点
+- `Alt + 滚轮` 调整远近
 
-## 当前地表与碰撞策略
+## 地表碰撞与防穿模
 
-玩家贴地不只依赖 Babylon 的 `moveWithCollisions()`。
+不只依赖 `moveWithCollisions()`，组合策略：
 
-当前组合是：
+1. 水平移动用 `moveWithCollisions()`
+2. `getPlayerFootprintSurfaceHeight()`：脚底 9 点采样获取局部最高地表
+3. `getGroundContactHeight()`：从上方向下发射射线获取 mesh 命中高度
+4. `enforceGroundClearance()`：每帧净空修正，防止陷入地形
+5. `snapPlayerToGround()`：强制贴地
 
-1. 玩家水平移动仍使用 `moveWithCollisions()`
-2. 使用脚底 9 点采样获取局部最高地表
-3. 再从上方向下发射射线获取真实 mesh 命中高度
-4. 每帧执行净空修正，防止陷入地形
+## 战斗系统
 
-这套逻辑主要分布在 `src/player.js`：
+- 左键普攻（射线检测命中）
+- 右键瞄准（视角缩放）
+- 自动/手动换弹
+- `Q` Shockwave：近身范围 AOE，带冷却
+- `F` Overdrive：短时强化，带冷却
+- 装备属性影响攻击力和防御力
+- 命中产生弹道示踪（tracer）和粒子爆发
+- 音效通过 Web Audio API 合成
 
-- `getPlayerFootprintSurfaceHeight()`
-- `getGroundContactHeight()`
-- `enforceGroundClearance()`
-- `snapPlayerToGround()`
+## 敌人 AI
 
-## 当前战斗结构
+- 每个 Chunk 生成敌人，可标记为 Boss（放大模型）
+- 三状态：巡逻 → 追击 → 攻击
+- 视野距离内检测玩家，有视线判定 `enemyHasLineOfSight()`
+- 死亡后延迟重生，Boss 有概率掉落技能书
+- 血条面板（billboard 朝向玩家）
 
-战斗仍是原型阶段，结构偏轻量：
+## 成长系统
 
-- 左键普攻
-- 右键瞄准
-- 自动 / 手动换弹
-- `Q` 近身范围技能
-- `F` 短时强化技能
-- 装备和属性会影响数值
+- 击杀/拾取/探索积累经验，升级提升基础属性
+- 四装备槽，随机掉落装备带稀有度和随机属性
+- 两个主动技能可用技能书升级（降低冷却/增强效果）
+- 三条可循环任务（击杀 / 收集 / 探索），完成后升级目标量
+- 恢复药剂回血，增益药剂临时提升攻击/防御/移速等
 
-主要逻辑集中在：
+## 回归测试清单
 
-- `src/player.js`
-- `src/progression.js`
-- `src/data.js`
+每次改动后建议手工验证：
 
-## 当前已知限制
+- [ ] 启动后正常进入场景，点击画面锁定鼠标
+- [ ] `WASD` 移动、`Space` 跳跃、`Shift` 蹲下
+- [ ] 鼠标控制镜头，右键瞄准缩放
+- [ ] 左键射击，命中敌人/地形有反馈
+- [ ] 弹尽自动/手动 `R` 换弹
+- [ ] 滚轮与 `1-4` 切换槽位
+- [ ] `Alt + 滚轮` 调整镜头远近
+- [ ] `Q` / `F` 技能释放并进入冷却
+- [ ] `Z` / `X` 药剂消耗生效
+- [ ] `E` 背包管理装备、技能升级、任务进度
+- [ ] `O` 设置切换视角与鼠标灵敏度
+- [ ] 敌人巡逻 → 追击 → 攻击
+- [ ] Boss 掉落技能书，技能书可升级技能
+- [ ] 拾取物正常收集，奖励生效
+- [ ] 死亡面板 → 复活 → 回到出生点
+- [ ] 走出区域触发 Chunk 加载/卸载
 
-- 仍然使用全局脚本，模块边界较弱
-- 第三人称操作手感还在调
-- 陡坡和极端边缘地形仍可能需要进一步修正
-- 地形碰撞仍依赖 Babylon mesh picking + 自定义高度逻辑
-- 角色动画仍是程序摆动，不是真正骨骼动画
+## 关键函数索引
 
-## 修改代码时的建议
+### 地形
 
-### 地形相关
+| 函数 | 文件 | 作用 |
+|---|---|---|
+| `terrainHeight()` | `main.js` | 噪声叠加生成高度 |
+| `getBiomeBlend()` | `main.js` | 计算群系权重 |
+| `createTerrainMesh()` | `world.js` | 构建 Chunk 地形网格 |
+| `createWaterMesh()` | `world.js` | 构建水面 |
+| `populateChunk()` | `world.js` | 散布树木/岩石/拾取物 |
+| `createTree()` | `world.js` | 创建树木 |
 
-优先检查：
+### 玩家
 
-- `terrainHeight()`
-- `createTerrainMesh()`
-- `populateChunk()`
-- `createTree()`
+| 函数 | 文件 | 作用 |
+|---|---|---|
+| `createPlayer()` | `player.js` | 初始化碰撞体与相机 |
+| `createPlayerAvatar()` | `player.js` | 构建方块人模型 |
+| `updatePlayerMovement()` | `player.js` | 每帧移动与贴地 |
+| `registerInput()` | `player.js` | 绑定键鼠事件 |
+| `updateViewModel()` | `player.js` | 更新武器视图模型 |
+| `fireWeapon()` | `player.js` | 射击与命中检测 |
 
-### 玩家控制相关
+### 碰撞
 
-优先检查：
+| 函数 | 文件 | 作用 |
+|---|---|---|
+| `getPlayerFootprintSurfaceHeight()` | `player.js` | 9 点采样地表高度 |
+| `getGroundContactHeight()` | `player.js` | 射线检测 mesh 高度 |
+| `enforceGroundClearance()` | `player.js` | 每帧净空修正 |
+| `snapPlayerToGround()` | `player.js` | 强制贴地 |
 
-- `createPlayer()`
-- `updatePlayerMovement()`
-- `registerInput()`
-- `updateViewModel()`
+### 成长
 
-### 穿模相关
+| 函数 | 文件 | 作用 |
+|---|---|---|
+| `resolvePlayerStats()` | `progression.js` | 汇总玩家属性 |
+| `createRandomEquipment()` | `progression.js` | 随机生成装备 |
+| `upgradeSkill()` | `progression.js` | 技能书升级技能 |
+| `advanceQuest()` | `progression.js` | 推进任务进度 |
+| `useHealingPotion()` | `progression.js` | 使用恢复药剂 |
+| `useBuffPotion()` | `progression.js` | 使用增益药剂 |
 
-优先检查：
+## 已知限制
 
-- `getGroundContactHeight()`
-- `enforceGroundClearance()`
-- `snapPlayerToGround()`
+- 全局脚本架构，模块边界弱
+- 第三人称操作手感仍在调整
+- 陡坡和极端地形边缘仍可能穿模
+- 地形碰撞依赖 Babylon mesh picking + 自定义高度逻辑
+- 角色动画为程序摆动，非骨骼动画
+- 音效为 Web Audio 合成，无真实音频资源
 
 ## 后续重构方向
 
-建议下一阶段优先做：
-
-1. 把全局脚本拆成模块
-2. 分离渲染层和玩法层
-3. 把玩家控制器做成独立模块
-4. 把 chunk 管理和地形采样抽离为世界系统
-5. 增加更稳定的角色动画与状态机
-
-## 当前定位
-
-更准确的项目描述是：
-
-`Babylon.js 第三人称无限开放世界动作原型`
+1. 全局脚本迁移至 ES Module
+2. 分离渲染层与玩法层
+3. 玩家控制器独立模块化
+4. Chunk 管理与地形采样抽离为世界系统
+5. 引入骨骼动画与状态机

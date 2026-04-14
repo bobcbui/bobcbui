@@ -42,7 +42,7 @@
             height: 100%;
             display: block;
             touch-action: none;
-            cursor: grab;
+            cursor: crosshair;
             background: radial-gradient(circle at top, #99d2ff 0%, #5b95d0 45%, #1a2738 100%);
         }
 
@@ -348,7 +348,7 @@
             </div>
             <div class="actions">
                 <button id="resumeBtn">Continue</button>
-                <button id="openInventoryBtn" class="secondary">Backpack (I)</button>
+                <button id="openInventoryBtn" class="secondary">Backpack (E)</button>
                 <button id="openSettingsBtn" class="secondary">Settings (O)</button>
             </div>
         </div>
@@ -369,7 +369,7 @@
             <div class="modal-title">
                 <div>
                     <h2>Backpack & Progression</h2>
-                    <p>Manage equipment, skills, potions, and quest growth. Hotkeys: I close, Q/F skills, Z/X potions, E attack.</p>
+                    <p>Manage equipment, skills, potions, and quest growth. Hotkeys: E close, Q/F skills, Z/X potions.</p>
                 </div>
                 <button id="closeInventoryBtn" class="secondary">Close</button>
             </div>
@@ -388,6 +388,12 @@
         </div>
     </div>
 
-    <script type="module" src="./src/main.js"></script>
+    <script src="./src/data.js"></script>
+    <script src="./src/runtime.js"></script>
+    <script src="./src/main.js"></script>
+    <script src="./src/progression.js"></script>
+    <script src="./src/world.js"></script>
+    <script src="./src/enemy.js"></script>
+    <script src="./src/player.js"></script>
 </body>
 </html>

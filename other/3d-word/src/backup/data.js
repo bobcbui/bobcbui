@@ -1,4 +1,6 @@
-﻿export const GAME_DATA = {
+"use strict";
+
+var GAME_DATA = {
     world: {
         title: "Voxel Realm Frontier",
         chunkSize: 28,
@@ -134,6 +136,6 @@
     }
 };
 
-export function cloneData(value) {
+function cloneData(value) {
     return JSON.parse(JSON.stringify(value));
 }
