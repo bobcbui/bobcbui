@@ -386,7 +386,7 @@ function populateChunk(chunk, currentBiome) {
 }
 
 function chooseChunkPickupType(biome, distance) {
-    const pool = (biome.pickupBias || ["food", "pistol"]).slice();
+    const pool = (biome.pickupBias || ["food", "bow"]).slice();
     if (distance >= 1) pool.push("healPotion");
     if (distance >= 2) pool.push("buffPotion");
     if (distance >= 3 && Math.random() < 0.14) return "gear";
@@ -580,13 +580,15 @@ export function createPickup(type, position, options) {
     } else if (type === "skillBook") {
         makePart("skill-book-cover", { width: 0.5, height: 0.08, depth: 0.36 }, vec3(0, 0, 0), materials.pickupPurple);
         makePart("skill-book-pages", { width: 0.44, height: 0.06, depth: 0.28 }, vec3(0, 0.05, 0), materials.pickupWhite);
-    } else if (type === "pistol") {
-        makePart("pickup-pistol-grip", { width: 0.12, height: 0.34, depth: 0.1 }, vec3(-0.1, -0.04, 0), materials.weaponDark);
-        makePart("pickup-pistol-body", { width: 0.44, height: 0.14, depth: 0.14 }, vec3(0.08, 0.1, 0), materials.weaponMid);
-    } else if (type === "rifle") {
-        makePart("pickup-rifle-stock", { width: 0.18, height: 0.12, depth: 0.12 }, vec3(-0.18, 0.06, 0), materials.weaponDark);
-        makePart("pickup-rifle-body", { width: 0.52, height: 0.14, depth: 0.14 }, vec3(0.06, 0.06, 0), materials.weaponMid);
-        makePart("pickup-rifle-mag", { width: 0.1, height: 0.22, depth: 0.1 }, vec3(0.02, -0.12, 0), materials.weaponAccent);
+    } else if (type === "bow") {
+        makePart("pickup-bow-body", { width: 0.12, height: 0.86, depth: 0.12 }, vec3(0, 0, 0), materials.weaponDark);
+        makePart("pickup-bow-top", { width: 0.34, height: 0.12, depth: 0.12 }, vec3(0.12, 0.34, 0), materials.weaponMid);
+        makePart("pickup-bow-bottom", { width: 0.34, height: 0.12, depth: 0.12 }, vec3(0.12, -0.34, 0), materials.weaponMid);
+        makePart("pickup-arrow", { width: 0.56, height: 0.06, depth: 0.06 }, vec3(0.18, 0, 0), materials.pickupWhite);
+    } else if (type === "sword") {
+        makePart("pickup-sword-blade", { width: 0.12, height: 0.86, depth: 0.12 }, vec3(0, 0.16, 0), materials.pickupWhite);
+        makePart("pickup-sword-guard", { width: 0.42, height: 0.08, depth: 0.14 }, vec3(0, -0.22, 0), materials.weaponAccent);
+        makePart("pickup-sword-grip", { width: 0.12, height: 0.34, depth: 0.12 }, vec3(0, -0.46, 0), materials.weaponDark);
     } else if (type === "gear") {
         makePart("gear-case-core", { width: 0.56, height: 0.4, depth: 0.56 }, vec3(0, 0, 0), materials.pickupGold);
         makePart("gear-case-band", { width: 0.62, height: 0.1, depth: 0.62 }, vec3(0, 0.12, 0), materials.pickupMetal);
@@ -632,7 +634,7 @@ function collectPickup(pickup) {
     } else if (pickup.type === "gear") {
         if (!pickup.payload) pickup.payload = createRandomEquipment(Math.max(1, progression.level), false);
         if (pickup.payload) addEquipmentToBag(pickup.payload);
-    } else if (pickup.type === "pistol" || pickup.type === "rifle") {
+    } else if (pickup.type === "bow" || pickup.type === "sword") {
         if (_grantWeaponPickup) _grantWeaponPickup(pickup.type);
     } else {
         player.health = clamp(player.health + 12, 0, player.maxHealth);

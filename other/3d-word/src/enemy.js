@@ -204,7 +204,7 @@ function killEnemy(enemy) {
 
     const dropRoll = Math.random();
     if (dropRoll > 0.55) {
-        createPickup(Math.random() > 0.5 ? "food" : "pistol", enemy.root.position.add(vec3(0, 0.9, 0)), {
+        createPickup(Math.random() > 0.5 ? "food" : (Math.random() > 0.45 ? "bow" : "sword"), enemy.root.position.add(vec3(0, 0.9, 0)), {
             chunkKey: enemy.chunkKey, biomeId: enemy.biomeId, respawn: false
         });
     } else if (dropRoll > 0.38) {

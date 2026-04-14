@@ -83,7 +83,7 @@ export const viewModel = {
 
 // ── Hotbar helpers ──────────────────────────────────────────
 export function createEmptySlotItem() {
-    return { kind: "empty", name: "Unarmed", short: "Unarmed" };
+    return { kind: "empty", name: "Fist", short: "Fist" };
 }
 
 export function createWeaponSlotItem(weaponId) {
@@ -97,19 +97,23 @@ export function createWeaponSlotItem(weaponId) {
 }
 
 export const hotbar = [
-    createWeaponSlotItem("pistol"),
+    createWeaponSlotItem("bow"),
+    createWeaponSlotItem("sword"),
     createEmptySlotItem(),
     createEmptySlotItem(),
     createEmptySlotItem()
 ];
 
 export function ensureStarterLoadout() {
-    if (!hotbar[0] || hotbar[0].kind !== "weapon") {
-        hotbar[0] = createWeaponSlotItem("pistol");
+    if (!hotbar[0] || hotbar[0].kind !== "weapon" || hotbar[0].weaponId !== "bow") {
+        hotbar[0] = createWeaponSlotItem("bow");
     }
-    if (player.ammo.pistol.mag <= 0 && player.ammo.pistol.reserve <= 0) {
-        player.ammo.pistol.mag = weaponDefs.pistol.magazine;
-        player.ammo.pistol.reserve = 24;
+    if (!hotbar[1] || hotbar[1].kind !== "weapon" || hotbar[1].weaponId !== "sword") {
+        hotbar[1] = createWeaponSlotItem("sword");
+    }
+    if (player.ammo.bow.mag <= 0 && player.ammo.bow.reserve <= 0) {
+        player.ammo.bow.mag = weaponDefs.bow.magazine;
+        player.ammo.bow.reserve = weaponDefs.bow.reserve;
     }
 }
 
@@ -271,8 +275,17 @@ export const audio = {
         source.start();
     },
     playShoot(weaponId) {
-        if (weaponId === "rifle") this.pulse(180, 0.06, 0.032, "sawtooth", 110);
-        else this.pulse(240, 0.07, 0.03, "square", 130);
+        if (weaponId === "bow") {
+            this.pulse(520, 0.025, 0.013, "triangle", 180);
+            this.noise(0.025, 0.0025);
+            return;
+        }
+        if (weaponId === "sword") {
+            this.pulse(320, 0.04, 0.014, "sawtooth", 160);
+            this.noise(0.02, 0.002);
+            return;
+        }
+        this.pulse(240, 0.07, 0.03, "square", 130);
     },
     playHit() { this.pulse(560, 0.04, 0.018, "triangle", 360); },
     playBlock() { this.pulse(190, 0.05, 0.014, "square", 120); },
@@ -286,6 +299,10 @@ export const audio = {
         this.pulse(360, 0.05, 0.01, "square", 260);
     },
     playDry() { this.pulse(110, 0.04, 0.01, "square", 70); },
+    playSwing() {
+        this.pulse(280, 0.05, 0.012, "triangle", 170);
+        this.noise(0.02, 0.002);
+    },
     playEnemyDown() { this.pulse(210, 0.08, 0.018, "triangle", 100); }
 };
 
