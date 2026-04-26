@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voxel Realm Frontier</title>
+    <title>修仙开放世界原型</title>
     <style>
         :root {
             color-scheme: dark;
@@ -26,7 +26,10 @@
         body {
             width: 100%;
             height: 100%;
+            min-width: 100%;
+            min-height: 100%;
             margin: 0;
+            padding: 0;
             overflow: hidden;
             background: #090d14;
             color: var(--text-main);
@@ -38,8 +41,10 @@
         }
 
         #gameCanvas {
-            width: 100%;
-            height: 100%;
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
             display: block;
             touch-action: none;
             cursor: grab;
@@ -163,12 +168,16 @@
             left: 50%;
             bottom: 18px;
             transform: translateX(-50%);
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(8, minmax(56px, 84px));
             gap: 8px;
+            width: min(calc(100vw - 24px), 728px);
+            justify-content: center;
         }
 
         .slot {
-            width: 84px;
+            width: 100%;
+            min-width: 0;
             padding: 8px 8px 10px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(7, 10, 15, 0.72);
@@ -192,6 +201,7 @@
             font-size: 13px;
             font-weight: 700;
             margin-bottom: 6px;
+            overflow-wrap: anywhere;
         }
 
         .slot-meta {
@@ -199,6 +209,28 @@
             color: var(--text-soft);
             line-height: 1.4;
             min-height: 31px;
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 640px) {
+            #hotbar {
+                grid-template-columns: repeat(8, minmax(38px, 1fr));
+                gap: 4px;
+                bottom: 10px;
+            }
+
+            .slot {
+                padding: 6px 4px 7px;
+            }
+
+            .slot-name {
+                font-size: 11px;
+            }
+
+            .slot-meta,
+            .slot-index {
+                font-size: 10px;
+            }
         }
 
         .modal {
@@ -310,26 +342,21 @@
             font-size: 12px;
         }
     </style>
-    <script src="./lib/babylon.js"></script>
+    <script src="lib/phaser.min.js"></script>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
 
     <div class="ui-layer">
         <div id="stats" class="panel">
-            <div class="stats-title">Voxel Realm Frontier</div>
-            <div class="stat-row"><span>Health</span><strong id="healthText">100 / 100</strong></div>
+            <div class="stats-title">修仙开放世界</div>
+            <div class="stat-row"><span>生命</span><strong id="healthText">100 / 100</strong></div>
             <div class="bar"><div id="healthFill" class="bar-fill"></div></div>
-            <div class="stat-row"><span>Loadout</span><strong id="ammoText">Hunter Bow  8 / 32</strong></div>
-            <div class="stat-row"><span>Status</span><strong id="statusText">Click to start</strong></div>
+            <div class="stat-row"><span>热栏</span><strong id="ammoText">技能</strong></div>
+            <div class="stat-row"><span>状态</span><strong id="statusText">点击开始</strong></div>
         </div>
 
-        <div id="crosshair">
-            <span class="v top"></span>
-            <span class="v bottom"></span>
-            <span class="h left"></span>
-            <span class="h right"></span>
-        </div>
+        <!-- crosshair removed -->
 
         <div id="hotbar"></div>
 
@@ -338,40 +365,40 @@
         <div id="pausePanel" class="modal panel">
             <div class="modal-title">
                 <div>
-                    <h2>Voxel Realm Frontier</h2>
-                    <p>Controls: WASD move, Space jump, LMB drag camera, RMB move, E attack, R reload bow, wheel/1-4 slots, Q/F skills, Z/X potions, I backpack, O settings, V perspective.</p>
+                    <h2>修仙开放世界</h2>
+                    <p>操作说明：按住左键移动到光标位置，右键在地图上放置标记。Q / W / E / R 为技能按键，自动攻击会对周围敌人造成伤害，1-4 为消耗品快捷键，G 打开背包。</p>
                 </div>
             </div>
             <div class="grid-2">
-                <div class="card"><h3>Core Loop</h3><p>Move, fire arrows, slash with your sword, collect pickups, and survive the endless terrain.</p></div>
-                <div class="card"><h3>RPG Layer</h3><p>Open backpack to manage gear, upgrade skills with books, and track quests. Bosses can drop rare progression loot.</p></div>
+                <div class="card"><h3>核心循环</h3><p>鼠标移动角色，释放技能，拾取道具，击败敌人并获取经验与资源。</p></div>
+                <div class="card"><h3>进阶系统</h3><p>管理背包、提升技能等级并使用技能书或丹药增强角色能力。Boss 有概率掉落稀有装备。</p></div>
             </div>
             <div class="actions">
-                <button id="resumeBtn">Continue</button>
-                <button id="openInventoryBtn" class="secondary">Backpack (I)</button>
-                <button id="openSettingsBtn" class="secondary">Settings (O)</button>
+                <button id="resumeBtn">继续</button>
+                <button id="openInventoryBtn" class="secondary">背包 (I)</button>
+                <button id="openSettingsBtn" class="secondary">设置 (O)</button>
             </div>
         </div>
 
         <div id="deathPanel" class="modal panel hidden">
             <div class="modal-title">
                 <div>
-                    <h2>You Are Down</h2>
-                    <p>Respawn at the center platform and continue with your current loadout.</p>
+                    <h2>你已被击倒</h2>
+                    <p>将在中心复活并继续使用当前装备与热栏。</p>
                 </div>
             </div>
             <div class="actions">
-                <button id="respawnBtn">Respawn</button>
+                <button id="respawnBtn">重生</button>
             </div>
         </div>
 
         <div id="inventoryPanel" class="modal modal-wide panel hidden">
             <div class="modal-title">
                 <div>
-                    <h2>Backpack & Progression</h2>
-                    <p>Manage equipment, skills, potions, and quest growth. Hotkeys: I close, Q/F skills, Z/X potions, E attack.</p>
+                    <h2>背包与进阶</h2>
+                    <p>管理装备、技能与丹药。热键：G 关闭，Q/W/E/R 技能，1-4 使用物品。</p>
                 </div>
-                <button id="closeInventoryBtn" class="secondary">Close</button>
+                <button id="closeInventoryBtn" class="secondary">关闭</button>
             </div>
             <div id="inventoryContent" class="grid-2"></div>
         </div>
@@ -379,15 +406,401 @@
         <div id="settingsPanel" class="modal panel hidden">
             <div class="modal-title">
                 <div>
-                    <h2>Settings</h2>
-                    <p>Switch perspective and tune controls. Hotkeys: O close, V switch camera mode.</p>
+                    <h2>设置</h2>
+                    <p>切换视角并调整控制参数。热键：O 关闭，V 切换视角。</p>
                 </div>
-                <button id="closeSettingsBtn" class="secondary">Close</button>
+                <button id="closeSettingsBtn" class="secondary">关闭</button>
             </div>
             <div id="settingsContent" class="grid-2"></div>
         </div>
     </div>
 
-    <script type="module" src="./src/main.js"></script>
+    <script type="module">
+// ---- Begin inlined src files (Phaser 2D conversion) ----
+
+// Minimal Phaser-based 2D prototype preserving HUD/Hotbar
+const GAME_DATA = {
+    weapons: {
+        bow: { id: "bow", label: "Hunter Bow", short: "Bow", damage: 22, range: 300, fireRate: 0.52, magazine: 8, reserve: 32, reloadTime: 1.15, recoil: 0.09, infiniteAmmo: true, auto: false },
+        sword: { id: "sword", label: "大宝剑", short: "大宝剑", damage: 28, range: 36, fireRate: 0.62, magazine: 0, reserve: 0, reloadTime: 0, recoil: 0.08, auto: false }
+    },
+    skills: {
+        bow: { id: "bow", name: "弓术·连射", baseCooldown: 6.0, maxLevel: 3 },
+        thunder: { id: "thunder", name: "玄雷术", baseCooldown: 10.0, maxLevel: 3 },
+        swordQi: { id: "swordQi", name: "剑气斩", baseCooldown: 7.0, maxLevel: 3 },
+        whirlwind: { id: "whirlwind", name: "飓风术", baseCooldown: 12.0, maxLevel: 2 },
+        shockwave: { id: "shockwave", name: "Shockwave", baseCooldown: 8.2, maxLevel: 5 },
+        overdrive: { id: "overdrive", name: "Overdrive", baseCooldown: 16.5, maxLevel: 5 }
+    },
+    potions: { heal: { id: "heal", label: "Recovery Potion", healAmount: 42 }, buff: { id: "buff", label: "Battle Tonic", duration: 12 } },
+    world: { title: "修仙开放世界" }
+};
+
+function cloneData(v){ return JSON.parse(JSON.stringify(v)); }
+const weaponDefs = cloneData(GAME_DATA.weapons);
+
+// DOM references (reuse existing HUD markup)
+const dom = {
+    healthText: document.getElementById("healthText"),
+    healthFill: document.getElementById("healthFill"),
+    ammoText: document.getElementById("ammoText"),
+    statusText: document.getElementById("statusText"),
+    hotbar: document.getElementById("hotbar"),
+    pausePanel: document.getElementById("pausePanel"),
+    deathPanel: document.getElementById("deathPanel"),
+    resumeBtn: document.getElementById("resumeBtn"),
+    respawnBtn: document.getElementById("respawnBtn"),
+    damageFlash: document.getElementById("damageFlash"),
+    openInventoryBtn: document.getElementById("openInventoryBtn"),
+    openSettingsBtn: document.getElementById("openSettingsBtn"),
+    inventoryPanel: document.getElementById("inventoryPanel"),
+    settingsPanel: document.getElementById("settingsPanel"),
+    closeInventoryBtn: document.getElementById("closeInventoryBtn"),
+    closeSettingsBtn: document.getElementById("closeSettingsBtn"),
+    inventoryContent: document.getElementById("inventoryContent"),
+    settingsContent: document.getElementById("settingsContent")
+};
+
+const progression = { level:1, xp:0, xpToNext:3, gold:0, skillBooks:0, potionBag:{}, skills:{}, activeBuff:{ name:"", timer:0, attack:0, defense:0, moveSpeed:0, pickupRadius:0, maxHealth:0 }, equipmentSerial:1, equipmentBag:[], equipment:{ helmet:null, armor:null, boots:null, relic:null }, quests:{}, metrics:{ chunksVisited:0, enemiesDefeated:0, pickupsCollected:0, distanceTravelled:0 } };
+function createDefaultPotionBag(){ return { heal:2, buff:1 }; }
+function createDefaultSkills(){ const skills = {}; for(const id of Object.keys(GAME_DATA.skills||{})){ const def = GAME_DATA.skills[id]; skills[id] = { id, name:def.name, level:1, maxLevel:def.maxLevel||5, baseCooldown:def.baseCooldown||8, cooldown:0 }; } return skills; }
+progression.skills = createDefaultSkills();
+progression.potionBag = createDefaultPotionBag();
+
+const hotbar = [
+    { kind:"action", key:"Q", skillId:"bow", name:"弓箭", meta:"单体" },
+    { kind:"action", key:"W", skillId:"thunder", name:"雷霆", meta:"范围" },
+    { kind:"action", key:"E", skillId:"swordQi", name:"剑气", meta:"武器" },
+    { kind:"action", key:"R", skillId:"whirlwind", name:"飓风", meta:"爆发" },
+    { kind:"consumable", key:"1", slotIndex:0 },
+    { kind:"consumable", key:"2", slotIndex:1 },
+    { kind:"consumable", key:"3", slotIndex:2 },
+    { kind:"consumable", key:"4", slotIndex:3 }
+];
+
+const playerState = { health:100, maxHealth:100, speed:220, attackPower:18, attackCooldown:0.6, attackRadius:160, autoAttack:true, lastAttack:0, consumableSlots:["heal","buff","heal","buff"], spawnPoint:{x:0,y:0}, dead:false };
+function resolvePlayerStats(){ playerState.maxHealth = 100 + Math.max(0,progression.level-1)*4 + (progression.activeBuff.maxHealth||0); if (playerState.health>playerState.maxHealth) playerState.health = playerState.maxHealth; }
+resolvePlayerStats();
+
+// Hotbar UI
+const hotbarEls = [];
+function buildHotbarUI(){ hotbarEls.length=0; if(!dom.hotbar) return; dom.hotbar.innerHTML=''; hotbar.forEach((item,i)=>{ const el=document.createElement('div'); el.className='slot panel'; const key=item.key||String(i+1); el.innerHTML="<div class=\"slot-index\">"+key+"</div><div class=\"slot-name\">"+(item.name||'')+"</div><div class=\"slot-meta\"></div>"; dom.hotbar.appendChild(el); hotbarEls.push(el); }); updateHotbarUI(); }
+function updateHotbarUI(){
+    if(!hotbarEls.length) return;
+    hotbarEls.forEach((el,i)=>{
+        const item = hotbar[i];
+        // only mark active when explicitly selected; default is no selection
+        el.classList.toggle('active', i === state.hotbarSelected);
+        const nameEl = el.querySelector('.slot-name');
+        let meta = '';
+        if(item.kind === 'action'){
+            const skillId = item.skillId;
+            let cd = 0;
+            if(skillId && progression.skills[skillId]) cd = progression.skills[skillId].cooldown || 0;
+            if(nameEl) nameEl.textContent = item.name || (progression.skills[skillId] ? progression.skills[skillId].name : '');
+            if(cd > 0){ meta = '冷却 ' + cd.toFixed(1) + 's'; } else { meta = item.meta || ''; }
+        } else if(item.kind === 'consumable'){
+            const type = playerState.consumableSlots[item.slotIndex];
+            const count = type ? (progression.potionBag[type] || 0) : 0;
+            if(nameEl) nameEl.textContent = (type === 'heal' ? '丹药' : (type === 'buff' ? '增益' : '空位'));
+            meta = type ? 'x' + count : '';
+        } else {
+            if(nameEl) nameEl.textContent = item.name || '';
+            meta = '';
+        }
+        el.querySelector('.slot-meta').textContent = meta;
+    });
+}
+
+// Phaser scene
+class MainScene extends Phaser.Scene {
+    constructor(){ super({ key:'main' }); }
+    preload(){
+        const g = this.make.graphics({x:0,y:0,add:false});
+        // player (green circle)
+        g.fillStyle(0x6de27a,1); g.fillCircle(16,16,14); g.generateTexture('player',32,32); g.clear();
+        // enemy (red circle)
+        g.fillStyle(0xff6a66,1); g.fillCircle(12,12,10); g.generateTexture('enemy',24,24); g.clear();
+        // potion (blue)
+        g.fillStyle(0x65c8ff,1); g.fillCircle(8,8,6); g.generateTexture('potion',16,16); g.clear();
+        // arrow (simple brown rectangle)
+        g.fillStyle(0x8b5a2b,1); g.fillRect(0,4,20,4); g.generateTexture('arrow',20,12); g.clear();
+        // chest (brown box with lighter lid)
+        g.fillStyle(0xac6f29,1); g.fillRect(0,0,18,14); g.fillStyle(0xffd58b,0.6); g.fillRect(3,2,12,6); g.generateTexture('chest',18,14); g.clear();
+
+        // bolt (lightning shard)
+        g.fillStyle(0x9be9ff,1); g.fillRect(0,0,8,24); g.generateTexture('bolt',8,24); g.clear();
+        // swordQi (斩击投射)
+        g.fillStyle(0xd9f1ff,1); g.fillRect(0,4,28,6); g.generateTexture('swordQi',28,14); g.clear();
+        // whirlwind effect (semi-transparent ring)
+        g.fillStyle(0xa2e0ff,0.16); g.fillCircle(32,32,30); g.generateTexture('whirl',64,64); g.clear();
+
+        g.destroy();
+    }
+    create(){
+        this.cameras.main.setBackgroundColor('#0f1720');
+        this.worldSize = { width:2000, height:2000 };
+        this.physics.world.setBounds(0,0,this.worldSize.width,this.worldSize.height);
+
+        this.player = this.physics.add.sprite(this.worldSize.width/2, this.worldSize.height/2, 'player');
+        this.player.setCollideWorldBounds(true);
+        this.player.health = playerState.health; this.player.maxHealth = playerState.maxHealth; this.player.speed = playerState.speed;
+        playerState.spawnPoint.x = this.player.x; playerState.spawnPoint.y = this.player.y;
+
+        this.cameras.main.startFollow(this.player);
+
+        this.enemies = this.physics.add.group();
+        this.pickups = this.physics.add.group();
+        // arrows group for ranged attacks
+        this.arrows = this.physics.add.group();
+
+        // arrows hitting enemies
+        this.physics.add.overlap(this.arrows, this.enemies, (arrow, en) => { this.onArrowHit(arrow, en); }, null, this);
+        // skill projectiles (swordQi etc.) hitting enemies
+        this.skillProjectiles = this.physics.add.group();
+        this.physics.add.overlap(this.skillProjectiles, this.enemies, (proj, en) => { this.onSkillHit(proj, en); }, null, this);
+
+        for(let i=0;i<8;i++) this.spawnEnemyAt(Phaser.Math.Between(100,this.worldSize.width-100), Phaser.Math.Between(100,this.worldSize.height-100));
+
+        this.physics.add.overlap(this.player, this.pickups, (p, pick)=>{ this.collectPickup(pick); }, null, this);
+
+        this.isMoving=false; this.moveTarget = new Phaser.Math.Vector2(this.player.x,this.player.y);
+        this.input.on('pointerdown',(pointer)=>{ const btn = pointer.event.button; if(btn===0){ this.isMoving=true; this.moveTarget.set(pointer.worldX,pointer.worldY); } else if(btn===2){ this.placeMarker(pointer.worldX,pointer.worldY); } });
+        this.input.on('pointerup',(pointer)=>{ if(pointer.event.button===0) this.isMoving=false; });
+        this.input.on('pointermove',(pointer)=>{ if(this.isMoving) this.moveTarget.set(pointer.worldX,pointer.worldY); });
+        this.input.mouse.disableContextMenu();
+
+        this.keys = this.input.keyboard.addKeys('Q,W,E,R,ONE,TWO,THREE,FOUR,G,I,O,V');
+
+        buildHotbarUI();
+        // bind skill hotkeys
+        this.input.keyboard.on('keydown-Q', ()=>{ this.tryUseSkill('bow'); });
+        this.input.keyboard.on('keydown-W', ()=>{ this.tryUseSkill('thunder'); });
+        this.input.keyboard.on('keydown-E', ()=>{ this.tryUseSkill('swordQi'); });
+        this.input.keyboard.on('keydown-R', ()=>{ this.tryUseSkill('whirlwind'); });
+        this.lastAutoAttack = 0;
+        this.lastPlayerAttack = 0;
+
+        this.physics.add.overlap(this.player, this.enemies, (pl,en)=>{ const now = this.time.now; if(!en.getData('lastHitTime') || now - en.getData('lastHitTime') > 800){ en.setData('lastHitTime', now); this.applyPlayerDamage(5 + (en.getData('tier')||0)*2); } });
+
+        if(dom.resumeBtn) dom.resumeBtn.addEventListener('click', ()=>{ dom.pausePanel.classList.toggle('hidden', true); });
+        if(dom.respawnBtn) dom.respawnBtn.addEventListener('click', ()=>{ this.respawnPlayer(); });
+        if(dom.openInventoryBtn) dom.openInventoryBtn.addEventListener('click', ()=>{ this.toggleInventory(); });
+        if(dom.closeInventoryBtn) dom.closeInventoryBtn.addEventListener('click', ()=>{ this.toggleInventory(false); });
+        if(dom.openSettingsBtn) dom.openSettingsBtn.addEventListener('click', ()=>{ this.toggleSettings(); });
+        if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', ()=>{ this.toggleSettings(false); });
+
+        this.updateHUD(0);
+    }
+    onArrowHit(arrow, en){
+        if(!arrow || !arrow.active) return;
+        arrow.destroy();
+        if(!en || en.getData('dead')) return;
+        const dmg = arrow.getData('damage') || playerState.attackPower;
+        this.damageEnemy(en, dmg);
+    }
+
+    shootArrowAt(targetX, targetY, damageMultiplier = 1){
+        const arrow = this.arrows.create(this.player.x, this.player.y, 'arrow');
+        arrow.setDepth(1);
+        if(arrow.body) arrow.body.allowGravity = false;
+        const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, targetX, targetY);
+        const speed = 520;
+        this.physics.velocityFromRotation(angle, speed, arrow.body.velocity);
+        arrow.rotation = angle;
+        const baseDamage = playerState.attackPower + (progression.activeBuff.attack || 0);
+        arrow.setData('damage', Math.max(1, Math.round(baseDamage * (damageMultiplier||1))));
+        // destroy arrow after 1.6s to avoid lingering
+        this.time.delayedCall(1600, ()=>{ if(arrow && arrow.active) arrow.destroy(); });
+    }
+
+    // generalized damage handler (spawn chest and bookkeeping)
+    damageEnemy(en, dmg){
+        if(!en || en.getData('dead')) return;
+        const hp = en.getData('health') - (dmg || 0);
+        en.setData('health', hp);
+        if(hp <= 0){
+            en.setData('dead', true);
+            const ex = en.x, ey = en.y;
+            const wasBoss = !!en.getData('isBoss');
+            en.destroy();
+            const xpAmt = wasBoss ? 6 : 3;
+            const goldAmt = wasBoss ? 20 : 8;
+            const chest = this.pickups.create(ex, ey, 'chest');
+            chest.setImmovable(true);
+            chest.setData('type', 'chest');
+            chest.setData('xp', xpAmt);
+            chest.setData('gold', goldAmt);
+            setStatusHint('敌人掉落宝箱', 1.6);
+            registerEnemyDefeat({ isBoss: wasBoss });
+        }
+    }
+
+    onSkillHit(proj, en){
+        if(proj && proj.active) proj.destroy();
+        if(!en || en.getData('dead')) return;
+        const dmg = (proj && proj.getData) ? (proj.getData('damage') || playerState.attackPower) : playerState.attackPower;
+        this.damageEnemy(en, dmg);
+    }
+
+    tryUseSkill(skillId){
+        if(playerState.dead){ setStatusHint('无法使用：已死亡',1.2); return; }
+        const sk = progression.skills[skillId];
+        if(!sk){ setStatusHint('技能不存在',1.2); return; }
+        if(sk.cooldown && sk.cooldown > 0){ setStatusHint('技能冷却中',1.0); return; }
+        sk.cooldown = sk.baseCooldown || 3;
+        switch(skillId){
+            case 'bow': this.castBowSkill(); break;
+            case 'thunder': this.castThunderSkill(); break;
+            case 'swordQi': this.castSwordQiSkill(); break;
+            case 'whirlwind': this.castWhirlwindSkill(); break;
+            default: setStatusHint('未知技能',1.0); break;
+        }
+    }
+
+    castBowSkill(){
+        const ptr = this.input.activePointer || { worldX: this.player.x + 80, worldY: this.player.y };
+        const tx = ptr.worldX || (this.player.x + 80);
+        const ty = ptr.worldY || this.player.y;
+        const angleCenter = Phaser.Math.Angle.Between(this.player.x,this.player.y,tx,ty);
+        const offsets = [-0.14, 0, 0.14];
+        offsets.forEach(o=>{ const ang = angleCenter + o; const tx2 = this.player.x + Math.cos(ang)*800; const ty2 = this.player.y + Math.sin(ang)*800; this.shootArrowAt(tx2, ty2, 1.6); });
+        setStatusHint('弓箭·连射',1.2);
+    }
+
+    castThunderSkill(){
+        const ptr = this.input.activePointer || { worldX: this.player.x, worldY: this.player.y };
+        const tx = ptr.worldX || this.player.x;
+        const ty = ptr.worldY || this.player.y;
+        const radius = 120;
+        const dmg = Math.round((playerState.attackPower * 2.2) + (progression.activeBuff.attack || 0));
+        this.enemies.children.iterate((en)=>{ if(!en || en.getData('dead')) return; const dx = en.x - tx; const dy = en.y - ty; if(dx*dx + dy*dy <= radius*radius) this.damageEnemy(en, dmg); });
+        const bolt = this.add.sprite(tx, ty, 'bolt').setDepth(3); bolt.setScale(1.8); this.time.delayedCall(420, ()=>{ if(bolt) bolt.destroy(); });
+        setStatusHint('玄雷术',1.6);
+    }
+
+    castSwordQiSkill(){
+        const ptr = this.input.activePointer || { worldX: this.player.x + 48, worldY: this.player.y };
+        const tx = ptr.worldX || (this.player.x + 48);
+        const ty = ptr.worldY || this.player.y;
+        const proj = this.skillProjectiles.create(this.player.x, this.player.y, 'swordQi');
+        proj.setDepth(2);
+        if(proj.body) proj.body.allowGravity = false;
+        const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, tx, ty);
+        const speed = 480;
+        this.physics.velocityFromRotation(angle, speed, proj.body.velocity);
+        proj.rotation = angle;
+        proj.setData('damage', Math.round(playerState.attackPower * 1.9));
+        this.time.delayedCall(900, ()=>{ if(proj && proj.active) proj.destroy(); });
+        setStatusHint('剑气斩',1.4);
+    }
+
+    castWhirlwindSkill(){
+        const radius = 100;
+        const dmg = Math.round(playerState.attackPower * 1.6);
+        const hits = [];
+        this.enemies.children.iterate((en)=>{ if(!en || en.getData('dead')) return; const dx = en.x - this.player.x; const dy = en.y - this.player.y; if(dx*dx + dy*dy <= radius*radius) hits.push(en); });
+        hits.forEach(en=> this.damageEnemy(en, dmg));
+        const ring = this.add.circle(this.player.x, this.player.y, radius, 0x9ef7c8, 0.12).setDepth(0);
+        this.tweens.add({ targets: ring, alpha: 0, scale: 1.6, duration: 520, onComplete: ()=> ring.destroy() });
+        setStatusHint('飓风术',1.6);
+    }
+    spawnEnemyAt(x,y){ const enemy = this.enemies.create(x,y,'enemy'); enemy.setCollideWorldBounds(true); enemy.setVelocity(0,0); enemy.setData('health', 18 + Phaser.Math.Between(0,10)); enemy.setData('speed', 30 + Phaser.Math.Between(10,30)); enemy.setData('attack', 6); enemy.setData('tier',1); enemy.setData('dead',false); }
+    placeMarker(x,y){ if(this.marker) this.marker.destroy(); this.marker = this.add.circle(x,y,8,0xffffff,0.6); setTimeout(()=>{ if(this.marker){ this.marker.destroy(); this.marker = null; }},1500); }
+    collectPickup(pick){
+        if(!pick) return;
+        const type = pick.getData('type') || 'potion';
+        if(type === 'potion'){
+            pick.destroy();
+            progression.potionBag.heal = (progression.potionBag.heal||0) + 1;
+            setStatusHint('获得丹药',1.6);
+            registerPickupCollected();
+        } else if(type === 'chest'){
+            const xp = pick.getData('xp') || 0;
+            const gold = pick.getData('gold') || 0;
+            pick.destroy();
+            if(xp) grantXP(xp);
+            if(gold) grantGold(gold);
+            setStatusHint(`打开宝箱：经验+${xp} 金币+${gold}`, 2.2);
+            registerPickupCollected();
+        } else {
+            pick.destroy();
+            registerPickupCollected();
+        }
+    }
+    applyPlayerDamage(amount){ playerState.health = Math.max(0, playerState.health - amount); this.player.health = playerState.health; stateDamageFlash(0.28); if(playerState.health<=0 && !playerState.dead){ playerState.dead=true; dom.deathPanel.classList.toggle('hidden', false); setStatusHint('你已被击倒',2.4); } }
+    respawnPlayer(){ playerState.health = playerState.maxHealth; playerState.dead = false; this.player.setPosition(playerState.spawnPoint.x, playerState.spawnPoint.y); dom.deathPanel.classList.toggle('hidden', true); setStatusHint('重生成功',1.6); }
+    toggleInventory(force){ state.inventoryOpen = force===undefined ? !state.inventoryOpen : !!force; if(dom.inventoryPanel) dom.inventoryPanel.classList.toggle('hidden', !state.inventoryOpen); }
+    toggleSettings(force){ state.settingsOpen = force===undefined ? !state.settingsOpen : !!force; if(dom.settingsPanel) dom.settingsPanel.classList.toggle('hidden', !state.settingsOpen); }
+    update(time,delta){ const dt = delta/1000;
+        if(this.isMoving){ const dir = new Phaser.Math.Vector2(this.moveTarget.x - this.player.x, this.moveTarget.y - this.player.y); const dist = Math.max(0.0001, dir.length()); if(dist>6){ dir.scale(this.player.speed / dist); this.player.setVelocity(dir.x, dir.y); } else { this.player.setVelocity(0,0); } registerTravelDistance((this.player.body.speed||0)*dt); } else { this.player.setVelocity(0,0); }
+
+        this.enemies.children.iterate((en)=>{ if(!en || en.getData('dead')) return; this.physics.moveToObject(en, this.player, en.getData('speed')); const dx = en.x - this.player.x; const dy = en.y - this.player.y; const d2 = dx*dx + dy*dy; if(d2 < (90*90)){ if(time - this.lastAutoAttack > 700){ this.applyPlayerDamage(en.getData('attack')||4); this.lastAutoAttack = time; } } });
+
+        // 自动弓箭攻击：寻找最近目标并发射箭矢
+        if(playerState.autoAttack && time - this.lastPlayerAttack >= playerState.attackCooldown*1000){
+            const radius = playerState.attackRadius || 160;
+            const radiusSq = radius * radius;
+            let target = null;
+            let bestDist = Number.MAX_VALUE;
+            this.enemies.children.iterate((en)=>{
+                if(!en || en.getData('dead')) return;
+                const dx = en.x - this.player.x; const dy = en.y - this.player.y; const d2 = dx*dx + dy*dy;
+                if(d2 <= radiusSq && d2 < bestDist){ bestDist = d2; target = en; }
+            });
+            if(target){
+                this.shootArrowAt(target.x, target.y);
+                this.lastPlayerAttack = time;
+            }
+        }
+
+        if(this.enemies.countActive(true) < 6 && Math.random() < 0.01){ this.spawnEnemyAt(Phaser.Math.Between(100,this.worldSize.width-100), Phaser.Math.Between(100,this.worldSize.height-100)); }
+
+        animateTimers(dt); updateProgressionSystems(dt); this.updateHUD(dt);
+    }
+    updateHUD(dt){
+        resolvePlayerStats();
+        dom.healthText.textContent = Math.round(playerState.health) + ' / ' + Math.round(playerState.maxHealth);
+        dom.healthFill.style.width = (playerState.health / playerState.maxHealth * 100) + '%';
+        dom.ammoText.textContent = '技能 · 自动攻击';
+        const aliveEnemies = this.enemies.countActive(true);
+        const perspective = '2D';
+        let status = playerState.dead ? '倒下' : '探索中';
+        if(progression.activeBuff.timer > 0) status += ' | 增益 ' + Math.ceil(progression.activeBuff.timer) + '秒';
+        if(state.statusHint) status += ' | ' + state.statusHint;
+        dom.statusText.textContent = status + ' | 等级 ' + progression.level + ' | 敌人 ' + aliveEnemies + ' | ' + perspective + ' | 金币 ' + progression.gold + ' | 技能书 ' + progression.skillBooks;
+        dom.damageFlash.style.opacity = String(clamp(state.damageFlashTimer / 0.28, 0, 1) * 0.9);
+        dom.pausePanel.classList.toggle('hidden', true);
+        dom.deathPanel.classList.toggle('hidden', !playerState.dead);
+        if(dom.inventoryPanel) dom.inventoryPanel.classList.toggle('hidden', !state.inventoryOpen || playerState.dead);
+        if(dom.settingsPanel) dom.settingsPanel.classList.toggle('hidden', !state.settingsOpen || playerState.dead);
+        updateHotbarUI();
+    }
+}
+
+// Shared state & helpers
+const state = { damageFlashTimer:0, statusHint:'', statusHintTimer:0, inventoryOpen:false, settingsOpen:false, hotbarSelected: -1 };
+function animateTimers(dt){ state.damageFlashTimer = Math.max(0, state.damageFlashTimer - dt); if(state.statusHintTimer > 0){ state.statusHintTimer = Math.max(0, state.statusHintTimer - dt); if(state.statusHintTimer <= 0) state.statusHint = ''; } }
+function updateProgressionSystems(dt){ for(const id of Object.keys(progression.skills)) progression.skills[id].cooldown = Math.max(0, progression.skills[id].cooldown - dt); if(progression.activeBuff.timer > 0){ progression.activeBuff.timer = Math.max(0, progression.activeBuff.timer - dt); if(progression.activeBuff.timer <= 0){ progression.activeBuff.name=''; progression.activeBuff.attack=0; progression.activeBuff.defense=0; progression.activeBuff.moveSpeed=0; progression.activeBuff.pickupRadius=0; progression.activeBuff.maxHealth=0; resolvePlayerStats(); setStatusHint('增益结束',1.4); } } }
+function setStatusHint(text,duration){ state.statusHint = text||''; state.statusHintTimer = Math.max(0,duration||0); }
+function registerTravelDistance(d){ if(d>0.001) progression.metrics.distanceTravelled += d; }
+function registerPickupCollected(){ progression.metrics.pickupsCollected += 1; }
+function registerEnemyDefeat(enemy){ progression.metrics.enemiesDefeated += 1; }
+function grantXP(amount){ if(!amount) return; progression.xp += amount; while(progression.xp >= progression.xpToNext){ progression.xp -= progression.xpToNext; progression.level += 1; progression.xpToNext = Math.min(progression.xpToNext + 1, 12); setStatusHint('升级！等级 ' + progression.level, 2.2); resolvePlayerStats(); } }
+function grantGold(amount){ if(!amount) return; progression.gold += Math.max(0, Math.round(amount)); }
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function stateDamageFlash(time){ state.damageFlashTimer = Math.max(state.damageFlashTimer, time || 0); }
+
+// bootstrap Phaser
+window.addEventListener('load', ()=>{
+    buildHotbarUI();
+    const canvas = document.getElementById('gameCanvas');
+    const config = { type: Phaser.CANVAS, canvas, width: window.innerWidth, height: window.innerHeight, backgroundColor: '#0f1720', physics: { default:'arcade', arcade:{ gravity:{x:0,y:0}, debug:false } }, scene:[MainScene], scale:{ mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.CENTER_BOTH } };
+    const game = new Phaser.Game(config);
+    window.addEventListener('resize', ()=>{ game.scale.resize(window.innerWidth, window.innerHeight); });
+});
+
+// ---- End inlined src files (Phaser) ----
+    </script>
 </body>
 </html>
