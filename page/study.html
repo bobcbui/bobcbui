@@ -12,39 +12,35 @@
     <div id="app">
         <site-header></site-header>
         <main>
-            <div id="content"></div>
+            <div id="content">
+                <h1>卷王指南</h1>
+
+                <p>这里收留所有“想学点东西改变人生，结果先改成了熬夜作息”的朋友。内容主打一个边学边骂，边卷边记。</p>
+
+                <h2>当前整理中的方向</h2>
+
+                <ul>
+                    <li><strong>Java</strong>：从语法、框架到部署，慢慢走向“看得懂报错但不一定解决得了”。</li>
+                    <li><strong>Python</strong>：脚本自动化、数据处理和各种“这个能不能顺手写一下”的万能杂活。</li>
+                    <li><strong>AI 编程</strong>：研究怎么把 AI 变成靠谱助手，而不是高级随机建议生成器。</li>
+                </ul>
+
+                <h2>先用得上的内容</h2>
+
+                <ul>
+                    <li><a href="/page/dev.html">牛马法宝：常用开发工具</a></li>
+                    <li><a href="/tools/json.html">JSON 工具</a></li>
+                    <li><a href="/tools/date.html">日期分析</a></li>
+                    <li><a href="/tools/time.html">时间工具</a></li>
+                </ul>
+
+                <h2>备注</h2>
+
+                <p>长文内容还在慢慢填，毕竟白天要打工，晚上还要假装自己是在主动学习而不是焦虑自救。</p>
+
+                <p>如果你也在纠结学什么、怎么学、学完能不能少挨两顿骂，可以先看看<a href="about.html">关于牛马</a>。</p>
+            </div>
         </main>
     </div>
-
-    <script type="text/markdown" id="md-content">
-# 卷王指南
-
-这里收留所有“想学点东西改变人生，结果先改成了熬夜作息”的朋友。内容主打一个边学边骂，边卷边记。
-
-## 当前整理中的方向
-
-- **Java**：从语法、框架到部署，慢慢走向“看得懂报错但不一定解决得了”。
-- **Python**：脚本自动化、数据处理和各种“这个能不能顺手写一下”的万能杂活。
-- **AI 编程**：研究怎么把 AI 变成靠谱助手，而不是高级随机建议生成器。
-
-## 先用得上的内容
-
-- [牛马法宝：常用开发工具](/page/dev.html)
-- [JSON 工具](/tools/json.html)
-- [日期分析](/tools/date.html)
-- [时间工具](/tools/time.html)
-
-## 备注
-
-长文内容还在慢慢填，毕竟白天要打工，晚上还要假装自己是在主动学习而不是焦虑自救。
-
-如果你也在纠结学什么、怎么学、学完能不能少挨两顿骂，可以先看看[关于牛马](about.html)。
-    </script>
-
-    <script src="../static/lib/marked.min.js"></script>
-    <script>
-      const md = document.getElementById('md-content').textContent;
-      document.getElementById('content').innerHTML = marked.parse(md);
-    </script>
 </body>
 </html>

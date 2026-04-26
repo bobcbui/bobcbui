@@ -12,33 +12,29 @@
   <div id="app">
     <site-header></site-header>
     <main>
-      <div id="content"></div>
+      <div id="content">
+        <h1>ICU 防丢指南</h1>
+
+        <p>当系统开始抽搐、日志开始吟唱、老板开始在群里发问号时，这里就是临时急救室。先止血，再决定是继续抢救还是体面送走。</p>
+
+        <h2>常见服务</h2>
+
+        <ul>
+          <li><strong>代码体检</strong>：看看项目是亚健康、重症监护，还是已经靠玄学维持运行。</li>
+          <li><strong>事故止血</strong>：先把线上按住，别让它继续在凌晨两点给人上强度。</li>
+          <li><strong>选型对焦</strong>：避免用屠龙刀削苹果，也避免拿便签纸搭微服务。</li>
+          <li><strong>交接兜底</strong>：帮后来的人看懂前人留下的谜语和历史遗迹。</li>
+        </ul>
+
+        <h2>交付方式</h2>
+
+        <ul>
+          <li>一份“到底烂在哪”的问题清单</li>
+          <li>一份“先救哪块比较不容易猝死”的改造路线图</li>
+          <li>必要时补文档、补说明、补一点技术心理安慰</li>
+        </ul>
+      </div>
     </main>
   </div>
-
-  <script type="text/markdown" id="md-content">
-# ICU 防丢指南
-
-当系统开始抽搐、日志开始吟唱、老板开始在群里发问号时，这里就是临时急救室。先止血，再决定是继续抢救还是体面送走。
-
-## 常见服务
-
-- **代码体检**：看看项目是亚健康、重症监护，还是已经靠玄学维持运行。
-- **事故止血**：先把线上按住，别让它继续在凌晨两点给人上强度。
-- **选型对焦**：避免用屠龙刀削苹果，也避免拿便签纸搭微服务。
-- **交接兜底**：帮后来的人看懂前人留下的谜语和历史遗迹。
-
-## 交付方式
-
-- 一份“到底烂在哪”的问题清单
-- 一份“先救哪块比较不容易猝死”的改造路线图
-- 必要时补文档、补说明、补一点技术心理安慰
-  </script>
-
-  <script src="../static/lib/marked.min.js"></script>
-  <script>
-    const md = document.getElementById('md-content').textContent;
-    document.getElementById('content').innerHTML = marked.parse(md);
-  </script>
 </body>
 </html>
