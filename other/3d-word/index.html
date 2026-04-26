@@ -362,24 +362,6 @@
 
         <div id="damageFlash"></div>
 
-        <div id="pausePanel" class="modal panel">
-            <div class="modal-title">
-                <div>
-                    <h2>修仙开放世界</h2>
-                    <p>操作说明：按住左键移动到光标位置，右键在地图上放置标记。Q / W / E / R 为技能按键，自动攻击会对周围敌人造成伤害，1-4 为消耗品快捷键，G 打开背包。</p>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="card"><h3>核心循环</h3><p>鼠标移动角色，释放技能，拾取道具，击败敌人并获取经验与资源。</p></div>
-                <div class="card"><h3>进阶系统</h3><p>管理背包、提升技能等级并使用技能书或丹药增强角色能力。Boss 有概率掉落稀有装备。</p></div>
-            </div>
-            <div class="actions">
-                <button id="resumeBtn">继续</button>
-                <button id="openInventoryBtn" class="secondary">背包 (I)</button>
-                <button id="openSettingsBtn" class="secondary">设置 (O)</button>
-            </div>
-        </div>
-
         <div id="deathPanel" class="modal panel hidden">
             <div class="modal-title">
                 <div>
@@ -392,27 +374,7 @@
             </div>
         </div>
 
-        <div id="inventoryPanel" class="modal modal-wide panel hidden">
-            <div class="modal-title">
-                <div>
-                    <h2>背包与进阶</h2>
-                    <p>管理装备、技能与丹药。热键：G 关闭，Q/W/E/R 技能，1-4 使用物品。</p>
-                </div>
-                <button id="closeInventoryBtn" class="secondary">关闭</button>
-            </div>
-            <div id="inventoryContent" class="grid-2"></div>
-        </div>
-
-        <div id="settingsPanel" class="modal panel hidden">
-            <div class="modal-title">
-                <div>
-                    <h2>设置</h2>
-                    <p>切换视角并调整控制参数。热键：O 关闭，V 切换视角。</p>
-                </div>
-                <button id="closeSettingsBtn" class="secondary">关闭</button>
-            </div>
-            <div id="settingsContent" class="grid-2"></div>
-        </div>
+        <!-- inventory and settings panels removed for simplicity -->
     </div>
 
     <script type="module">
@@ -446,19 +408,9 @@ const dom = {
     ammoText: document.getElementById("ammoText"),
     statusText: document.getElementById("statusText"),
     hotbar: document.getElementById("hotbar"),
-    pausePanel: document.getElementById("pausePanel"),
     deathPanel: document.getElementById("deathPanel"),
-    resumeBtn: document.getElementById("resumeBtn"),
     respawnBtn: document.getElementById("respawnBtn"),
-    damageFlash: document.getElementById("damageFlash"),
-    openInventoryBtn: document.getElementById("openInventoryBtn"),
-    openSettingsBtn: document.getElementById("openSettingsBtn"),
-    inventoryPanel: document.getElementById("inventoryPanel"),
-    settingsPanel: document.getElementById("settingsPanel"),
-    closeInventoryBtn: document.getElementById("closeInventoryBtn"),
-    closeSettingsBtn: document.getElementById("closeSettingsBtn"),
-    inventoryContent: document.getElementById("inventoryContent"),
-    settingsContent: document.getElementById("settingsContent")
+    damageFlash: document.getElementById("damageFlash")
 };
 
 const progression = { level:1, xp:0, xpToNext:3, gold:0, skillBooks:0, potionBag:{}, skills:{}, activeBuff:{ name:"", timer:0, attack:0, defense:0, moveSpeed:0, pickupRadius:0, maxHealth:0 }, equipmentSerial:1, equipmentBag:[], equipment:{ helmet:null, armor:null, boots:null, relic:null }, quests:{}, metrics:{ chunksVisited:0, enemiesDefeated:0, pickupsCollected:0, distanceTravelled:0 } };
@@ -519,8 +471,8 @@ class MainScene extends Phaser.Scene {
         const g = this.make.graphics({x:0,y:0,add:false});
         // player (green circle)
         g.fillStyle(0x6de27a,1); g.fillCircle(16,16,14); g.generateTexture('player',32,32); g.clear();
-        // enemy (red circle)
-        g.fillStyle(0xff6a66,1); g.fillCircle(12,12,10); g.generateTexture('enemy',24,24); g.clear();
+        // beast / 妖兽 (red circle)
+        g.fillStyle(0xff6a66,1); g.fillCircle(12,12,10); g.generateTexture('beast',24,24); g.clear();
         // potion (blue)
         g.fillStyle(0x65c8ff,1); g.fillCircle(8,8,6); g.generateTexture('potion',16,16); g.clear();
         // arrow (simple brown rectangle)
@@ -564,6 +516,12 @@ class MainScene extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.pickups, (p, pick)=>{ this.collectPickup(pick); }, null, this);
 
+        // wave / 兽潮 系统
+        this.waveNumber = 0;
+        this.waveDelay = 10; // seconds before next wave when area clear
+        this.waveTimer = 0;
+        this.wavePending = false;
+
         this.isMoving=false; this.moveTarget = new Phaser.Math.Vector2(this.player.x,this.player.y);
         this.input.on('pointerdown',(pointer)=>{ const btn = pointer.event.button; if(btn===0){ this.isMoving=true; this.moveTarget.set(pointer.worldX,pointer.worldY); } else if(btn===2){ this.placeMarker(pointer.worldX,pointer.worldY); } });
         this.input.on('pointerup',(pointer)=>{ if(pointer.event.button===0) this.isMoving=false; });
@@ -583,12 +541,7 @@ class MainScene extends Phaser.Scene {
 
         this.physics.add.overlap(this.player, this.enemies, (pl,en)=>{ const now = this.time.now; if(!en.getData('lastHitTime') || now - en.getData('lastHitTime') > 800){ en.setData('lastHitTime', now); this.applyPlayerDamage(5 + (en.getData('tier')||0)*2); } });
 
-        if(dom.resumeBtn) dom.resumeBtn.addEventListener('click', ()=>{ dom.pausePanel.classList.toggle('hidden', true); });
         if(dom.respawnBtn) dom.respawnBtn.addEventListener('click', ()=>{ this.respawnPlayer(); });
-        if(dom.openInventoryBtn) dom.openInventoryBtn.addEventListener('click', ()=>{ this.toggleInventory(); });
-        if(dom.closeInventoryBtn) dom.closeInventoryBtn.addEventListener('click', ()=>{ this.toggleInventory(false); });
-        if(dom.openSettingsBtn) dom.openSettingsBtn.addEventListener('click', ()=>{ this.toggleSettings(); });
-        if(dom.closeSettingsBtn) dom.closeSettingsBtn.addEventListener('click', ()=>{ this.toggleSettings(false); });
 
         this.updateHUD(0);
     }
@@ -614,7 +567,7 @@ class MainScene extends Phaser.Scene {
         this.time.delayedCall(1600, ()=>{ if(arrow && arrow.active) arrow.destroy(); });
     }
 
-    // generalized damage handler (spawn chest and bookkeeping)
+    // generalized damage handler: grant XP/gold directly and occasional potion drop
     damageEnemy(en, dmg){
         if(!en || en.getData('dead')) return;
         const hp = en.getData('health') - (dmg || 0);
@@ -626,13 +579,18 @@ class MainScene extends Phaser.Scene {
             en.destroy();
             const xpAmt = wasBoss ? 6 : 3;
             const goldAmt = wasBoss ? 20 : 8;
-            const chest = this.pickups.create(ex, ey, 'chest');
-            chest.setImmovable(true);
-            chest.setData('type', 'chest');
-            chest.setData('xp', xpAmt);
-            chest.setData('gold', goldAmt);
-            setStatusHint('敌人掉落宝箱', 1.6);
+            grantXP(xpAmt);
+            grantGold(goldAmt);
+            setStatusHint(`获得经验+${xpAmt} 金币+${goldAmt}`, 1.6);
             registerEnemyDefeat({ isBoss: wasBoss });
+            // small chance to drop a potion
+            if(Math.random() < 0.25){
+                const px = Phaser.Math.Between(ex-12, ex+12);
+                const py = Phaser.Math.Between(ey-12, ey+12);
+                const p = this.pickups.create(px, py, 'potion');
+                p.setImmovable(true);
+                p.setData('type', 'potion');
+            }
         }
     }
 
@@ -705,7 +663,34 @@ class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: ring, alpha: 0, scale: 1.6, duration: 520, onComplete: ()=> ring.destroy() });
         setStatusHint('飓风术',1.6);
     }
-    spawnEnemyAt(x,y){ const enemy = this.enemies.create(x,y,'enemy'); enemy.setCollideWorldBounds(true); enemy.setVelocity(0,0); enemy.setData('health', 18 + Phaser.Math.Between(0,10)); enemy.setData('speed', 30 + Phaser.Math.Between(10,30)); enemy.setData('attack', 6); enemy.setData('tier',1); enemy.setData('dead',false); }
+    spawnEnemyAt(x,y,isBoss=false,tier=1){
+        const en = this.enemies.create(x,y,'beast');
+        en.setCollideWorldBounds(true);
+        en.setVelocity(0,0);
+        const baseHealth = isBoss ? (40 + Phaser.Math.Between(0,22)) : (18 + Phaser.Math.Between(0,10) + Math.max(0,(tier-1))*6);
+        en.setData('health', baseHealth);
+        en.setData('speed', 30 + Phaser.Math.Between(10,30) + Math.max(0,(tier-1))*8);
+        en.setData('attack', 6 + Math.max(0,(tier-1))*2 + (isBoss?4:0));
+        en.setData('tier', Math.max(1,tier));
+        if(isBoss) en.setData('isBoss', true);
+        en.setData('dead', false);
+    }
+
+    spawnWave(waveNum){
+        const count = Math.min(3 + waveNum * 2, 28);
+        for(let i=0;i<count;i++){
+            const edge = Phaser.Math.Between(0,3);
+            let x,y;
+            if(edge===0){ x = Phaser.Math.Between(0,this.worldSize.width); y = -24; }
+            else if(edge===1){ x = Phaser.Math.Between(0,this.worldSize.width); y = this.worldSize.height + 24; }
+            else if(edge===2){ x = -24; y = Phaser.Math.Between(0,this.worldSize.height); }
+            else { x = this.worldSize.width + 24; y = Phaser.Math.Between(0,this.worldSize.height); }
+            const isBoss = (waveNum % 5 === 0 && i === 0);
+            const tier = Math.min(1 + Math.floor(waveNum/3), 5);
+            this.spawnEnemyAt(x,y,isBoss,tier);
+        }
+        setStatusHint('兽潮来袭：第 ' + waveNum + ' 波', 2.6);
+    }
     placeMarker(x,y){ if(this.marker) this.marker.destroy(); this.marker = this.add.circle(x,y,8,0xffffff,0.6); setTimeout(()=>{ if(this.marker){ this.marker.destroy(); this.marker = null; }},1500); }
     collectPickup(pick){
         if(!pick) return;
@@ -715,14 +700,6 @@ class MainScene extends Phaser.Scene {
             progression.potionBag.heal = (progression.potionBag.heal||0) + 1;
             setStatusHint('获得丹药',1.6);
             registerPickupCollected();
-        } else if(type === 'chest'){
-            const xp = pick.getData('xp') || 0;
-            const gold = pick.getData('gold') || 0;
-            pick.destroy();
-            if(xp) grantXP(xp);
-            if(gold) grantGold(gold);
-            setStatusHint(`打开宝箱：经验+${xp} 金币+${gold}`, 2.2);
-            registerPickupCollected();
         } else {
             pick.destroy();
             registerPickupCollected();
@@ -730,8 +707,7 @@ class MainScene extends Phaser.Scene {
     }
     applyPlayerDamage(amount){ playerState.health = Math.max(0, playerState.health - amount); this.player.health = playerState.health; stateDamageFlash(0.28); if(playerState.health<=0 && !playerState.dead){ playerState.dead=true; dom.deathPanel.classList.toggle('hidden', false); setStatusHint('你已被击倒',2.4); } }
     respawnPlayer(){ playerState.health = playerState.maxHealth; playerState.dead = false; this.player.setPosition(playerState.spawnPoint.x, playerState.spawnPoint.y); dom.deathPanel.classList.toggle('hidden', true); setStatusHint('重生成功',1.6); }
-    toggleInventory(force){ state.inventoryOpen = force===undefined ? !state.inventoryOpen : !!force; if(dom.inventoryPanel) dom.inventoryPanel.classList.toggle('hidden', !state.inventoryOpen); }
-    toggleSettings(force){ state.settingsOpen = force===undefined ? !state.settingsOpen : !!force; if(dom.settingsPanel) dom.settingsPanel.classList.toggle('hidden', !state.settingsOpen); }
+    // Inventory and settings removed to simplify UI
     update(time,delta){ const dt = delta/1000;
         if(this.isMoving){ const dir = new Phaser.Math.Vector2(this.moveTarget.x - this.player.x, this.moveTarget.y - this.player.y); const dist = Math.max(0.0001, dir.length()); if(dist>6){ dir.scale(this.player.speed / dist); this.player.setVelocity(dir.x, dir.y); } else { this.player.setVelocity(0,0); } registerTravelDistance((this.player.body.speed||0)*dt); } else { this.player.setVelocity(0,0); }
 
@@ -754,6 +730,27 @@ class MainScene extends Phaser.Scene {
             }
         }
 
+        // 兽潮逻辑：当场上没有妖兽时开始倒计时，倒计时结束则触发下一波
+        const alive = this.enemies.countActive(true);
+        if(alive === 0){
+            if(!this.wavePending){
+                this.wavePending = true;
+                this.waveTimer = 0;
+                setStatusHint('休整中：准备下一波',1.8);
+            } else {
+                this.waveTimer += dt;
+                if(this.waveTimer >= this.waveDelay){
+                    this.waveNumber = (this.waveNumber || 0) + 1;
+                    this.spawnWave(this.waveNumber);
+                    this.wavePending = false;
+                    this.waveTimer = 0;
+                }
+            }
+        } else {
+            if(this.wavePending){ this.wavePending = false; this.waveTimer = 0; }
+        }
+
+        // 保留少量随机刷新以增加开放世界感
         if(this.enemies.countActive(true) < 6 && Math.random() < 0.01){ this.spawnEnemyAt(Phaser.Math.Between(100,this.worldSize.width-100), Phaser.Math.Between(100,this.worldSize.height-100)); }
 
         animateTimers(dt); updateProgressionSystems(dt); this.updateHUD(dt);
@@ -768,18 +765,18 @@ class MainScene extends Phaser.Scene {
         let status = playerState.dead ? '倒下' : '探索中';
         if(progression.activeBuff.timer > 0) status += ' | 增益 ' + Math.ceil(progression.activeBuff.timer) + '秒';
         if(state.statusHint) status += ' | ' + state.statusHint;
-        dom.statusText.textContent = status + ' | 等级 ' + progression.level + ' | 敌人 ' + aliveEnemies + ' | ' + perspective + ' | 金币 ' + progression.gold + ' | 技能书 ' + progression.skillBooks;
+        let waveInfo = '';
+        if(this.waveNumber && this.waveNumber > 0) waveInfo = ' | 波 ' + this.waveNumber;
+        if(this.wavePending) waveInfo += ' (下一波 ' + Math.max(0, Math.ceil(this.waveDelay - this.waveTimer)) + 's)';
+        dom.statusText.textContent = status + waveInfo + ' | 等级 ' + progression.level + ' | 妖兽 ' + aliveEnemies + ' | ' + perspective + ' | 金币 ' + progression.gold + ' | 技能书 ' + progression.skillBooks;
         dom.damageFlash.style.opacity = String(clamp(state.damageFlashTimer / 0.28, 0, 1) * 0.9);
-        dom.pausePanel.classList.toggle('hidden', true);
         dom.deathPanel.classList.toggle('hidden', !playerState.dead);
-        if(dom.inventoryPanel) dom.inventoryPanel.classList.toggle('hidden', !state.inventoryOpen || playerState.dead);
-        if(dom.settingsPanel) dom.settingsPanel.classList.toggle('hidden', !state.settingsOpen || playerState.dead);
         updateHotbarUI();
     }
 }
 
 // Shared state & helpers
-const state = { damageFlashTimer:0, statusHint:'', statusHintTimer:0, inventoryOpen:false, settingsOpen:false, hotbarSelected: -1 };
+const state = { damageFlashTimer:0, statusHint:'', statusHintTimer:0, hotbarSelected: -1 };
 function animateTimers(dt){ state.damageFlashTimer = Math.max(0, state.damageFlashTimer - dt); if(state.statusHintTimer > 0){ state.statusHintTimer = Math.max(0, state.statusHintTimer - dt); if(state.statusHintTimer <= 0) state.statusHint = ''; } }
 function updateProgressionSystems(dt){ for(const id of Object.keys(progression.skills)) progression.skills[id].cooldown = Math.max(0, progression.skills[id].cooldown - dt); if(progression.activeBuff.timer > 0){ progression.activeBuff.timer = Math.max(0, progression.activeBuff.timer - dt); if(progression.activeBuff.timer <= 0){ progression.activeBuff.name=''; progression.activeBuff.attack=0; progression.activeBuff.defense=0; progression.activeBuff.moveSpeed=0; progression.activeBuff.pickupRadius=0; progression.activeBuff.maxHealth=0; resolvePlayerStats(); setStatusHint('增益结束',1.4); } } }
 function setStatusHint(text,duration){ state.statusHint = text||''; state.statusHintTimer = Math.max(0,duration||0); }
