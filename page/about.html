@@ -12,34 +12,30 @@
   <div id="app">
     <site-header></site-header>
     <main>
-      <div id="content"></div>
+      <div id="content">
+        <h1>关于牛马</h1>
+
+        <p>这里不是成功学展厅，这里更像打工人深夜临时搭出来的赛博草台班子。我们一边写笔记、一边做工具、一边接点活，顺便互相提醒不要被需求折磨到失去人形。</p>
+
+        <h2>这里在做什么</h2>
+
+        <ul>
+          <li>把踩过的坑写下来，免得下次还能精准再踩一遍。</li>
+          <li>把顺手的小工具放站里，争取少切两个网页。</li>
+          <li>给那些“能不能帮忙看看”的祖传项目临时续一口命。</li>
+        </ul>
+
+        <h2>小小厂训</h2>
+
+        <ul>
+          <li>能讲人话，就别装架构仙人。</li>
+          <li>能先跑起来，就别先写三十页宏伟蓝图。</li>
+          <li>吹牛可以，交付还是得真交。</li>
+        </ul>
+
+        <p>如果你也在被 Bug、需求、排期和群消息连环殴打，欢迎来这里抱团取暖。</p>
+      </div>
     </main>
   </div>
-
-  <script type="text/markdown" id="md-content">
-# 关于牛马
-
-这里不是成功学展厅，这里更像打工人深夜临时搭出来的赛博草台班子。我们一边写笔记、一边做工具、一边接点活，顺便互相提醒不要被需求折磨到失去人形。
-
-## 这里在做什么
-
-- 把踩过的坑写下来，免得下次还能精准再踩一遍。
-- 把顺手的小工具放站里，争取少切两个网页。
-- 给那些“能不能帮忙看看”的祖传项目临时续一口命。
-
-## 小小厂训
-
-- 能讲人话，就别装架构仙人。
-- 能先跑起来，就别先写三十页宏伟蓝图。
-- 吹牛可以，交付还是得真交。
-
-如果你也在被 Bug、需求、排期和群消息连环殴打，欢迎来这里抱团取暖。
-  </script>
-
-  <script src="../static/lib/marked.min.js"></script>
-  <script>
-    const md = document.getElementById('md-content').textContent;
-    document.getElementById('content').innerHTML = marked.parse(md);
-  </script>
 </body>
 </html>

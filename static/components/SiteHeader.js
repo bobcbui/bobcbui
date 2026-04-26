@@ -18,9 +18,12 @@
           </nav>
           <details class="mobile-nav">
             <summary aria-label="打开导航菜单">
-              <span></span>
-              <span></span>
-              <span></span>
+              <span class="mobile-nav-icon" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+              <span class="mobile-nav-label">菜单</span>
             </summary>
             <nav class="center-nav mobile-nav-panel" aria-label="移动端主导航">
               <ul>
