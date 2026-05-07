@@ -1,803 +1,218 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙开放世界原型</title>
-    <style>
-        :root {
-            color-scheme: dark;
-            --panel-bg: rgba(8, 12, 18, 0.84);
-            --panel-border: rgba(255, 255, 255, 0.14);
-            --panel-accent: rgba(255, 255, 255, 0.08);
-            --text-main: #f4f7fb;
-            --text-soft: rgba(244, 247, 251, 0.72);
-            --good: #6de27a;
-            --warn: #ffd866;
-            --bad: #ff7d73;
-            --blue: #7ac8ff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>九天仙途 - 文字修仙世界</title>
+<style>
+:root {
+  --panel-bg: rgba(6, 10, 20, 0.88);
+  --panel-border: rgba(255,255,255,0.10);
+  --text: #e8edf5;
+  --text-dim: rgba(232,237,245,0.6);
+  --gold: #ffd866;
+  --hp: #ff6a5f;
+  --qi: #65c8ff;
+  --xp: #6de27a;
+  --rare: #b388ff;
+    --btn: linear-gradient(180deg,#9ee0ff,#6dbef1);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { width:100%;height:100%;overflow:hidden;background:#060d16;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
+#gameCanvas { position:fixed;inset:0;display:block;touch-action:none;background:#0a1320; }
+.ui-layer { position:fixed;inset:0;pointer-events:none; }
+.panel { background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;backdrop-filter:blur(12px); }
+.hidden { display:none!important; }
 
-        * {
-            box-sizing: border-box;
-        }
+/* Top HUD */
+#hud { position:absolute;top:10px;left:10px;width:240px;padding:12px; }
+#hud .realm { font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px; }
+#hud .realm-sub { font-size:11px;color:var(--text-dim);margin-bottom:6px; }
+#hud .bar-wrap { display:flex;align-items:center;gap:6px;margin-bottom:4px; }
+#hud .bar-wrap .label { font-size:11px;width:20px;text-align:right; }
+#hud .bar-bg { flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden; }
+#hud .bar-fill { height:100%;width:100%;transition:width .1s linear;border-radius:999px; }
+#hud .bar-text { font-size:10px;min-width:58px;text-align:right;color:var(--text-dim); }
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            min-width: 100%;
-            min-height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #090d14;
-            color: var(--text-main);
-            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-        }
+/* Cultivation orb */
+#cult-orb { position:absolute;top:50%;left:50%;width:80px;height:80px;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:0;transition:opacity .3s; }
+#cult-orb.show { opacity:1; }
 
-        body {
-            user-select: none;
-        }
+/* Zone label */
+#zone-label { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:900;pointer-events:none;opacity:0;transition:opacity .6s;text-shadow:0 0 30px rgba(0,0,0,.8);letter-spacing:4px; }
+#zone-label.show { opacity:.3; }
 
-        #gameCanvas {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            touch-action: none;
-            cursor: grab;
-            background: radial-gradient(circle at top, #99d2ff 0%, #5b95d0 45%, #1a2738 100%);
-        }
+/* Bottom hotbar */
+#hotbar { position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:grid;grid-template-columns:repeat(8,minmax(48px,72px));gap:5px;width:min(calc(100vw - 16px),620px);justify-content:center; }
+.slot { padding:5px 4px 6px;border:1px solid rgba(255,255,255,0.08);background:rgba(7,10,18,0.7);border-radius:8px;text-align:center;transition:.12s;pointer-events:auto;cursor:pointer; }
+.slot:hover { border-color:rgba(255,255,255,0.2); }
+.slot.active { transform:translateY(-4px);border-color:var(--gold);background:rgba(40,30,10,0.7); }
+.slot .k { font-size:10px;color:var(--text-dim); }
+.slot .n { font-size:12px;font-weight:700;margin:2px 0; }
+.slot .m { font-size:10px;color:var(--text-dim);min-height:15px; }
+.slot.cd .m { color:var(--hp); }
+.slot.no-qi .m { color:var(--qi); }
 
-        .ui-layer {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-        }
+/* Status msg */
+#status { position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .2s;text-shadow:0 0 12px rgba(0,0,0,.9);white-space:nowrap; }
+#status.show { opacity:1; }
 
-        .panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            box-shadow: inset 0 0 0 1px var(--panel-accent), 0 18px 48px rgba(0, 0, 0, 0.28);
-            backdrop-filter: blur(14px);
-        }
+/* Modal - Character */
+.modal-overlay { position:absolute;inset:0;pointer-events:none;z-index:10; }
+.modal-overlay.show { pointer-events:auto; }
+.modal-overlay>.bg { position:absolute;inset:0;background:rgba(0,0,0,.5); }
+.modal-box { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);overflow-y:auto;padding:16px;pointer-events:auto; }
+.modal-box h2 { font-size:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center; }
+.modal-box h2 .close { cursor:pointer;font-size:22px;color:var(--text-dim);padding:0 6px; }
+.modal-box h2 .close:hover { color:var(--text); }
 
-        #stats,
-        #tips,
-        .slot,
-        .modal {
-            border-radius: 14px;
-        }
+.modal-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px; }
+.eq-slot { padding:10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06); }
+.eq-slot .lbl { font-size:11px;color:var(--text-dim);margin-bottom:4px; }
+.eq-slot .val { font-size:13px; }
+.eq-slot .empty { color:var(--text-dim);font-style:italic;font-size:12px; }
 
-        #stats {
-            position: absolute;
-            top: 18px;
-            left: 18px;
-            width: 220px;
-            padding: 14px;
-        }
+.inv-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;max-height:200px;overflow-y:auto; }
+.inv-item { padding:6px 4px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);text-align:center;cursor:pointer;font-size:11px;pointer-events:auto; }
+.inv-item .in { font-weight:700; }
+.inv-item .im { font-size:10px;color:var(--text-dim); }
+.inv-item.equipped { border-color:var(--gold); }
 
-        .stats-title {
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--blue);
-            margin-bottom: 10px;
-        }
+.rarity-common { color:#aab; }
+.rarity-uncommon { color:#6de27a; }
+.rarity-rare { color:#65c8ff; }
+.rarity-epic { color:#b388ff; }
+.rarity-legendary { color:#ffd866; }
+.rarity-mythic { color:#ff6a5f; }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
+/* Buttons */
+.btn { pointer-events:auto;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;color:#060d16;background:var(--btn);cursor:pointer;display:inline-flex;align-items:center;gap:6px; }
+.btn-sm { padding:5px 10px;font-size:12px;border-radius:8px; }
+.btn-sec { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--text); }
+.btn-gold { background:linear-gradient(180deg,#ffd866,#f0b800);color:#1a1200; }
 
-        .stat-row span:first-child {
-            color: var(--text-soft);
-        }
+.flex { display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
+.flex-between { display:flex;justify-content:space-between;align-items:center; }
+.mt8 { margin-top:8px; }
+.mb8 { margin-bottom:8px; }
+.gap4 { gap:4px; }
 
-        .bar {
-            width: 100%;
-            height: 10px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
+/* Breakthrough */
+#breakthrough-overlay { position:absolute;inset:0;z-index:20;pointer-events:none; }
+#breakthrough-overlay.show { pointer-events:auto; }
+#breakthrough-overlay .bg { position:absolute;inset:0;background:rgba(0,0,0,.7); }
+#breakthrough-box { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(400px,calc(100vw - 24px));padding:24px;text-align:center;pointer-events:auto; }
+#breakthrough-box h2 { font-size:22px;margin-bottom:8px; }
+#breakthrough-box p { font-size:14px;color:var(--text-dim);margin-bottom:16px; }
+#breakthrough-box .chance { font-size:28px;font-weight:900;margin-bottom:12px; }
 
-        .bar-fill {
-            height: 100%;
-            width: 100%;
-            transition: width 120ms linear;
-        }
+/* Loot popup */
+#loot-popup { position:absolute;bottom:90px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;pointer-events:none;font-size:13px;opacity:0;transition:opacity .3s;white-space:nowrap; }
+#loot-popup.show { opacity:1; }
 
-        #healthFill {
-            background: linear-gradient(90deg, #ff6a5f, #ffb164);
-        }
+/* Mini-particles */
+.particle { position:fixed;pointer-events:none;border-radius:50%; }
 
-        #crosshair {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 34px;
-            height: 34px;
-            transform: translate(-50%, -50%);
-        }
-
-        #crosshair span {
-            position: absolute;
-            display: block;
-            border-radius: 999px;
-        }
-
-        #crosshair span {
-            background: rgba(255, 255, 255, 0.94);
-        }
-
-        #crosshair .v {
-            width: 2px;
-            height: 11px;
-            left: 16px;
-        }
-
-        #crosshair .h {
-            width: 11px;
-            height: 2px;
-            top: 16px;
-        }
-
-        #crosshair .top { top: 0; }
-        #crosshair .bottom { bottom: 0; }
-        #crosshair .left { left: 0; }
-        #crosshair .right { right: 0; }
-
-        #damageFlash {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, rgba(255, 90, 90, 0) 0%, rgba(255, 90, 90, 0.12) 54%, rgba(255, 74, 74, 0.42) 100%);
-            opacity: 0;
-            transition: opacity 120ms linear;
-        }
-
-        #hotbar {
-            position: absolute;
-            left: 50%;
-            bottom: 18px;
-            transform: translateX(-50%);
-            display: grid;
-            grid-template-columns: repeat(8, minmax(56px, 84px));
-            gap: 8px;
-            width: min(calc(100vw - 24px), 728px);
-            justify-content: center;
-        }
-
-        .slot {
-            width: 100%;
-            min-width: 0;
-            padding: 8px 8px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(7, 10, 15, 0.72);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-            transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
-        }
-
-        .slot.active {
-            transform: translateY(-8px);
-            border-color: rgba(122, 200, 255, 0.92);
-            background: rgba(21, 33, 49, 0.94);
-        }
-
-        .slot-index {
-            font-size: 11px;
-            color: var(--text-soft);
-            margin-bottom: 6px;
-        }
-
-        .slot-name {
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            overflow-wrap: anywhere;
-        }
-
-        .slot-meta {
-            font-size: 11px;
-            color: var(--text-soft);
-            line-height: 1.4;
-            min-height: 31px;
-            overflow-wrap: anywhere;
-        }
-
-        @media (max-width: 640px) {
-            #hotbar {
-                grid-template-columns: repeat(8, minmax(38px, 1fr));
-                gap: 4px;
-                bottom: 10px;
-            }
-
-            .slot {
-                padding: 6px 4px 7px;
-            }
-
-            .slot-name {
-                font-size: 11px;
-            }
-
-            .slot-meta,
-            .slot-index {
-                font-size: 10px;
-            }
-        }
-
-        .modal {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: min(560px, calc(100vw - 32px));
-            max-height: calc(100vh - 32px);
-            overflow: auto;
-            transform: translate(-50%, -50%);
-            padding: 18px;
-            pointer-events: auto;
-        }
-
-        .modal-wide {
-            width: min(860px, calc(100vw - 24px));
-        }
-
-        .modal.hidden { display: none; }
-
-        .modal-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-
-        .modal-title h2 {
-            margin: 0;
-            font-size: 20px;
-        }
-
-        .modal-title p {
-            margin: 4px 0 0;
-            color: var(--text-soft);
-            font-size: 13px;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .card {
-            padding: 14px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .card h3 {
-            margin: 0 0 8px;
-            font-size: 14px;
-            color: var(--blue);
-        }
-
-        .card p,
-        .card li,
-        .inventory-line {
-            font-size: 13px;
-            color: var(--text-soft);
-            line-height: 1.6;
-        }
-
-        .inventory-line {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 8px 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            pointer-events: auto;
-            border: 0;
-            border-radius: 12px;
-            padding: 11px 16px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #071018;
-            background: linear-gradient(180deg, #9ee0ff, #6dbef1);
-            cursor: pointer;
-        }
-
-        button.secondary {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .mini-btn {
-            padding: 7px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .muted {
-            color: var(--text-soft);
-            font-size: 12px;
-        }
-    </style>
-    <script src="lib/phaser.min.js"></script>
+@media(max-width:500px) {
+  #hud { width:180px;padding:8px; }
+  #hud .bar-text { font-size:9px;min-width:45px; }
+  #hotbar { grid-template-columns:repeat(8,minmax(36px,1fr));gap:3px; }
+  .slot .n { font-size:10px; }
+  .slot .k,.slot .m { font-size:9px; }
+}
+</style>
+<script src="lib/phaser.min.js"></script>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+<canvas id="gameCanvas"></canvas>
 
-    <div class="ui-layer">
-        <div id="stats" class="panel">
-            <div class="stats-title">修仙开放世界</div>
-            <div class="stat-row"><span>生命</span><strong id="healthText">100 / 100</strong></div>
-            <div class="bar"><div id="healthFill" class="bar-fill"></div></div>
-            <div class="stat-row"><span>热栏</span><strong id="ammoText">技能</strong></div>
-            <div class="stat-row"><span>状态</span><strong id="statusText">点击开始</strong></div>
-        </div>
-
-        <!-- crosshair removed -->
-
-        <div id="hotbar"></div>
-
-        <div id="damageFlash"></div>
-
-        <div id="deathPanel" class="modal panel hidden">
-            <div class="modal-title">
-                <div>
-                    <h2>你已被击倒</h2>
-                    <p>将在中心复活并继续使用当前装备与热栏。</p>
-                </div>
-            </div>
-            <div class="actions">
-                <button id="respawnBtn">重生</button>
-            </div>
-        </div>
-
-        <!-- inventory and settings panels removed for simplicity -->
+<div class="ui-layer">
+  <!-- HUD -->
+  <div id="hud" class="panel">
+    <div class="flex-between">
+      <div><span class="realm" id="realmText">凡体</span><span class="realm-sub" id="realmStageText">初期</span></div>
+      <div><span class="realm-sub" id="levelText">Lv.1</span></div>
     </div>
+    <div class="bar-wrap"><span class="label" style="color:var(--hp)">●</span><div class="bar-bg"><div id="hpFill" class="bar-fill" style="background:linear-gradient(90deg,var(--hp),#ffb164)"></div></div><span class="bar-text" id="hpText">100/100</span></div>
+    <div class="bar-wrap"><span class="label" style="color:var(--qi)">◆</span><div class="bar-bg"><div id="qiFill" class="bar-fill" style="background:linear-gradient(90deg,var(--qi),#9be9ff)"></div></div><span class="bar-text" id="qiText">50/50</span></div>
+    <div class="bar-wrap"><span class="label" style="color:var(--xp)">★</span><div class="bar-bg"><div id="xpFill" class="bar-fill" style="background:linear-gradient(90deg,var(--xp),#9effa0)"></div></div><span class="bar-text" id="xpText">0/10</span></div>
+    <div class="flex-between mt8" style="font-size:11px;color:var(--text-dim);">
+      <span>灵石 <strong id="moneyText" style="color:var(--gold)">0</strong></span>
+      <span>杀敌 <strong id="killText">0</strong></span>
+    </div>
+  </div>
 
-    <script type="module">
-// ---- Begin inlined src files (Phaser 2D conversion) ----
+  <!-- Zone label -->
+  <div id="zone-label">灵溪村</div>
 
-// Minimal Phaser-based 2D prototype preserving HUD/Hotbar
-const GAME_DATA = {
-    weapons: {
-        bow: { id: "bow", label: "Hunter Bow", short: "Bow", damage: 22, range: 300, fireRate: 0.52, magazine: 8, reserve: 32, reloadTime: 1.15, recoil: 0.09, infiniteAmmo: true, auto: false },
-        sword: { id: "sword", label: "大宝剑", short: "大宝剑", damage: 28, range: 36, fireRate: 0.62, magazine: 0, reserve: 0, reloadTime: 0, recoil: 0.08, auto: false }
-    },
-    skills: {
-        bow: { id: "bow", name: "弓术·连射", baseCooldown: 6.0, maxLevel: 3 },
-        thunder: { id: "thunder", name: "玄雷术", baseCooldown: 10.0, maxLevel: 3 },
-        swordQi: { id: "swordQi", name: "剑气斩", baseCooldown: 7.0, maxLevel: 3 },
-        whirlwind: { id: "whirlwind", name: "飓风术", baseCooldown: 12.0, maxLevel: 2 },
-        shockwave: { id: "shockwave", name: "Shockwave", baseCooldown: 8.2, maxLevel: 5 },
-        overdrive: { id: "overdrive", name: "Overdrive", baseCooldown: 16.5, maxLevel: 5 }
-    },
-    potions: { heal: { id: "heal", label: "Recovery Potion", healAmount: 42 }, buff: { id: "buff", label: "Battle Tonic", duration: 12 } },
-    world: { title: "修仙开放世界" }
-};
+  <!-- Status -->
+  <div id="status">消息</div>
 
-function cloneData(v){ return JSON.parse(JSON.stringify(v)); }
-const weaponDefs = cloneData(GAME_DATA.weapons);
+  <!-- Loot popup -->
+  <div id="loot-popup" class="panel"></div>
 
-// DOM references (reuse existing HUD markup)
-const dom = {
-    healthText: document.getElementById("healthText"),
-    healthFill: document.getElementById("healthFill"),
-    ammoText: document.getElementById("ammoText"),
-    statusText: document.getElementById("statusText"),
-    hotbar: document.getElementById("hotbar"),
-    deathPanel: document.getElementById("deathPanel"),
-    respawnBtn: document.getElementById("respawnBtn"),
-    damageFlash: document.getElementById("damageFlash")
-};
+  <!-- Hotbar -->
+  <div id="hotbar"></div>
 
-const progression = { level:1, xp:0, xpToNext:3, gold:0, skillBooks:0, potionBag:{}, skills:{}, activeBuff:{ name:"", timer:0, attack:0, defense:0, moveSpeed:0, pickupRadius:0, maxHealth:0 }, equipmentSerial:1, equipmentBag:[], equipment:{ helmet:null, armor:null, boots:null, relic:null }, quests:{}, metrics:{ chunksVisited:0, enemiesDefeated:0, pickupsCollected:0, distanceTravelled:0 } };
-function createDefaultPotionBag(){ return { heal:2, buff:1 }; }
-function createDefaultSkills(){ const skills = {}; for(const id of Object.keys(GAME_DATA.skills||{})){ const def = GAME_DATA.skills[id]; skills[id] = { id, name:def.name, level:1, maxLevel:def.maxLevel||5, baseCooldown:def.baseCooldown||8, cooldown:0 }; } return skills; }
-progression.skills = createDefaultSkills();
-progression.potionBag = createDefaultPotionBag();
+  <!-- Character Panel -->
+  <div id="charPanel" class="modal-overlay hidden">
+    <div class="bg" onclick="toggleCharPanel()"></div>
+    <div class="modal-box panel">
+      <h2><span>📜 角色面板</span><span class="close" onclick="toggleCharPanel()">✕</span></h2>
+      <div class="modal-grid">
+        <div class="eq-slot"><div class="lbl">境界</div><div class="val" id="cpRealm">凡体</div></div>
+        <div class="eq-slot"><div class="lbl">等级</div><div class="val" id="cpLevel">1</div></div>
+        <div class="eq-slot"><div class="lbl">攻击</div><div class="val" id="cpAtk">10</div></div>
+        <div class="eq-slot"><div class="lbl">防御</div><div class="val" id="cpDef">5</div></div>
+        <div class="eq-slot"><div class="lbl">生命</div><div class="val" id="cpHP">100</div></div>
+        <div class="eq-slot"><div class="lbl">灵力</div><div class="val" id="cpQi">50</div></div>
+      </div>
+      <h3 style="font-size:14px;margin-bottom:6px;">⚔️ 装备</h3>
+      <div class="modal-grid" id="eqGrid">
+        <div class="eq-slot" data-slot="weapon"><div class="lbl">武器</div><div class="val empty" id="eq-weapon">空</div></div>
+        <div class="eq-slot" data-slot="helmet"><div class="lbl">头盔</div><div class="val empty" id="eq-helmet">空</div></div>
+        <div class="eq-slot" data-slot="armor"><div class="lbl">衣服</div><div class="val empty" id="eq-armor">空</div></div>
+        <div class="eq-slot" data-slot="boots"><div class="lbl">鞋子</div><div class="val empty" id="eq-boots">空</div></div>
+        <div class="eq-slot" data-slot="ring"><div class="lbl">戒指</div><div class="val empty" id="eq-ring">空</div></div>
+        <div class="eq-slot" data-slot="amulet"><div class="lbl">项链</div><div class="val empty" id="eq-amulet">空</div></div>
+      </div>
+      <h3 style="font-size:14px;margin-bottom:6px;">🎒 背包 (<span id="invCount">0</span>/30)</h3>
+      <div class="inv-grid" id="invGrid"></div>
+      <div class="flex mt8">
+        <button class="btn btn-sm btn-sec" onclick="toggleCharPanel()">关闭</button>
+      </div>
+    </div>
+  </div>
 
-const hotbar = [
-    { kind:"action", key:"Q", skillId:"bow", name:"弓箭", meta:"单体" },
-    { kind:"action", key:"W", skillId:"thunder", name:"雷霆", meta:"范围" },
-    { kind:"action", key:"E", skillId:"swordQi", name:"剑气", meta:"武器" },
-    { kind:"action", key:"R", skillId:"whirlwind", name:"飓风", meta:"爆发" },
-    { kind:"consumable", key:"1", slotIndex:0 },
-    { kind:"consumable", key:"2", slotIndex:1 },
-    { kind:"consumable", key:"3", slotIndex:2 },
-    { kind:"consumable", key:"4", slotIndex:3 }
-];
+  <!-- Breakthrough modal -->
+  <div id="breakthrough-overlay">
+    <div class="bg" onclick="cancelBreakthrough()"></div>
+    <div id="breakthrough-box" class="panel hidden">
+      <h2 id="btTitle">突破!</h2>
+      <p id="btDesc">准备迎接天劫</p>
+      <div class="chance" id="btChance">90%</div>
+      <div class="flex" style="justify-content:center;">
+        <button class="btn btn-gold" id="btBtn" onclick="doBreakthrough()">突破!</button>
+        <button class="btn btn-sec" onclick="cancelBreakthrough()">再等等</button>
+      </div>
+    </div>
+  </div>
 
-const playerState = { health:100, maxHealth:100, speed:220, attackPower:18, attackCooldown:0.6, attackRadius:160, autoAttack:true, lastAttack:0, consumableSlots:["heal","buff","heal","buff"], spawnPoint:{x:0,y:0}, dead:false };
-function resolvePlayerStats(){ playerState.maxHealth = 100 + Math.max(0,progression.level-1)*4 + (progression.activeBuff.maxHealth||0); if (playerState.health>playerState.maxHealth) playerState.health = playerState.maxHealth; }
-resolvePlayerStats();
+  <!-- Death modal -->
+  <div id="deathModal" class="modal-overlay hidden">
+    <div class="bg"></div>
+    <div class="modal-box panel" style="text-align:center;max-width:320px;">
+      <h2 style="color:var(--hp);justify-content:center;">💀 道殒</h2>
+      <p style="color:var(--text-dim);margin-bottom:16px;">修行之路多坎坷，重整旗鼓再战！</p>
+      <button class="btn btn-gold" id="respawnBtn">重生</button>
+    </div>
+  </div>
 
-// Hotbar UI
-const hotbarEls = [];
-function buildHotbarUI(){ hotbarEls.length=0; if(!dom.hotbar) return; dom.hotbar.innerHTML=''; hotbar.forEach((item,i)=>{ const el=document.createElement('div'); el.className='slot panel'; const key=item.key||String(i+1); el.innerHTML="<div class=\"slot-index\">"+key+"</div><div class=\"slot-name\">"+(item.name||'')+"</div><div class=\"slot-meta\"></div>"; dom.hotbar.appendChild(el); hotbarEls.push(el); }); updateHotbarUI(); }
-function updateHotbarUI(){
-    if(!hotbarEls.length) return;
-    hotbarEls.forEach((el,i)=>{
-        const item = hotbar[i];
-        // only mark active when explicitly selected; default is no selection
-        el.classList.toggle('active', i === state.hotbarSelected);
-        const nameEl = el.querySelector('.slot-name');
-        let meta = '';
-        if(item.kind === 'action'){
-            const skillId = item.skillId;
-            let cd = 0;
-            if(skillId && progression.skills[skillId]) cd = progression.skills[skillId].cooldown || 0;
-            if(nameEl) nameEl.textContent = item.name || (progression.skills[skillId] ? progression.skills[skillId].name : '');
-            if(cd > 0){ meta = '冷却 ' + cd.toFixed(1) + 's'; } else { meta = item.meta || ''; }
-        } else if(item.kind === 'consumable'){
-            const type = playerState.consumableSlots[item.slotIndex];
-            const count = type ? (progression.potionBag[type] || 0) : 0;
-            if(nameEl) nameEl.textContent = (type === 'heal' ? '丹药' : (type === 'buff' ? '增益' : '空位'));
-            meta = type ? 'x' + count : '';
-        } else {
-            if(nameEl) nameEl.textContent = item.name || '';
-            meta = '';
-        }
-        el.querySelector('.slot-meta').textContent = meta;
-    });
-}
+  <!-- Save notification -->
+  <div id="damageFlash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(circle,rgba(255,90,90,0)0%,rgba(255,90,90,0.12)50%,rgba(255,50,50,0.35)100%);z-index:3;"></div>
+  <div id="saveNotif" style="position:absolute;top:10px;right:10px;font-size:12px;color:var(--text-dim);pointer-events:none;opacity:0;transition:.3s;">已存档</div>
+</div>
 
-// Phaser scene
-class MainScene extends Phaser.Scene {
-    constructor(){ super({ key:'main' }); }
-    preload(){
-        const g = this.make.graphics({x:0,y:0,add:false});
-        // player (green circle)
-        g.fillStyle(0x6de27a,1); g.fillCircle(16,16,14); g.generateTexture('player',32,32); g.clear();
-        // beast / 妖兽 (red circle)
-        g.fillStyle(0xff6a66,1); g.fillCircle(12,12,10); g.generateTexture('beast',24,24); g.clear();
-        // potion (blue)
-        g.fillStyle(0x65c8ff,1); g.fillCircle(8,8,6); g.generateTexture('potion',16,16); g.clear();
-        // arrow (simple brown rectangle)
-        g.fillStyle(0x8b5a2b,1); g.fillRect(0,4,20,4); g.generateTexture('arrow',20,12); g.clear();
-        // chest (brown box with lighter lid)
-        g.fillStyle(0xac6f29,1); g.fillRect(0,0,18,14); g.fillStyle(0xffd58b,0.6); g.fillRect(3,2,12,6); g.generateTexture('chest',18,14); g.clear();
-
-        // bolt (lightning shard)
-        g.fillStyle(0x9be9ff,1); g.fillRect(0,0,8,24); g.generateTexture('bolt',8,24); g.clear();
-        // swordQi (斩击投射)
-        g.fillStyle(0xd9f1ff,1); g.fillRect(0,4,28,6); g.generateTexture('swordQi',28,14); g.clear();
-        // whirlwind effect (semi-transparent ring)
-        g.fillStyle(0xa2e0ff,0.16); g.fillCircle(32,32,30); g.generateTexture('whirl',64,64); g.clear();
-
-        g.destroy();
-    }
-    create(){
-        this.cameras.main.setBackgroundColor('#0f1720');
-        this.worldSize = { width:2000, height:2000 };
-        this.physics.world.setBounds(0,0,this.worldSize.width,this.worldSize.height);
-
-        this.player = this.physics.add.sprite(this.worldSize.width/2, this.worldSize.height/2, 'player');
-        this.player.setCollideWorldBounds(true);
-        this.player.health = playerState.health; this.player.maxHealth = playerState.maxHealth; this.player.speed = playerState.speed;
-        playerState.spawnPoint.x = this.player.x; playerState.spawnPoint.y = this.player.y;
-
-        this.cameras.main.startFollow(this.player);
-
-        this.enemies = this.physics.add.group();
-        this.pickups = this.physics.add.group();
-        // arrows group for ranged attacks
-        this.arrows = this.physics.add.group();
-
-        // arrows hitting enemies
-        this.physics.add.overlap(this.arrows, this.enemies, (arrow, en) => { this.onArrowHit(arrow, en); }, null, this);
-        // skill projectiles (swordQi etc.) hitting enemies
-        this.skillProjectiles = this.physics.add.group();
-        this.physics.add.overlap(this.skillProjectiles, this.enemies, (proj, en) => { this.onSkillHit(proj, en); }, null, this);
-
-        for(let i=0;i<8;i++) this.spawnEnemyAt(Phaser.Math.Between(100,this.worldSize.width-100), Phaser.Math.Between(100,this.worldSize.height-100));
-
-        this.physics.add.overlap(this.player, this.pickups, (p, pick)=>{ this.collectPickup(pick); }, null, this);
-
-        // wave / 兽潮 系统
-        this.waveNumber = 0;
-        this.waveDelay = 10; // seconds before next wave when area clear
-        this.waveTimer = 0;
-        this.wavePending = false;
-
-        this.isMoving=false; this.moveTarget = new Phaser.Math.Vector2(this.player.x,this.player.y);
-        this.input.on('pointerdown',(pointer)=>{ const btn = pointer.event.button; if(btn===0){ this.isMoving=true; this.moveTarget.set(pointer.worldX,pointer.worldY); } else if(btn===2){ this.placeMarker(pointer.worldX,pointer.worldY); } });
-        this.input.on('pointerup',(pointer)=>{ if(pointer.event.button===0) this.isMoving=false; });
-        this.input.on('pointermove',(pointer)=>{ if(this.isMoving) this.moveTarget.set(pointer.worldX,pointer.worldY); });
-        this.input.mouse.disableContextMenu();
-
-        this.keys = this.input.keyboard.addKeys('Q,W,E,R,ONE,TWO,THREE,FOUR,G,I,O,V');
-
-        buildHotbarUI();
-        // bind skill hotkeys
-        this.input.keyboard.on('keydown-Q', ()=>{ this.tryUseSkill('bow'); });
-        this.input.keyboard.on('keydown-W', ()=>{ this.tryUseSkill('thunder'); });
-        this.input.keyboard.on('keydown-E', ()=>{ this.tryUseSkill('swordQi'); });
-        this.input.keyboard.on('keydown-R', ()=>{ this.tryUseSkill('whirlwind'); });
-        this.lastAutoAttack = 0;
-        this.lastPlayerAttack = 0;
-
-        this.physics.add.overlap(this.player, this.enemies, (pl,en)=>{ const now = this.time.now; if(!en.getData('lastHitTime') || now - en.getData('lastHitTime') > 800){ en.setData('lastHitTime', now); this.applyPlayerDamage(5 + (en.getData('tier')||0)*2); } });
-
-        if(dom.respawnBtn) dom.respawnBtn.addEventListener('click', ()=>{ this.respawnPlayer(); });
-
-        this.updateHUD(0);
-    }
-    onArrowHit(arrow, en){
-        if(!arrow || !arrow.active) return;
-        arrow.destroy();
-        if(!en || en.getData('dead')) return;
-        const dmg = arrow.getData('damage') || playerState.attackPower;
-        this.damageEnemy(en, dmg);
-    }
-
-    shootArrowAt(targetX, targetY, damageMultiplier = 1){
-        const arrow = this.arrows.create(this.player.x, this.player.y, 'arrow');
-        arrow.setDepth(1);
-        if(arrow.body) arrow.body.allowGravity = false;
-        const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, targetX, targetY);
-        const speed = 520;
-        this.physics.velocityFromRotation(angle, speed, arrow.body.velocity);
-        arrow.rotation = angle;
-        const baseDamage = playerState.attackPower + (progression.activeBuff.attack || 0);
-        arrow.setData('damage', Math.max(1, Math.round(baseDamage * (damageMultiplier||1))));
-        // destroy arrow after 1.6s to avoid lingering
-        this.time.delayedCall(1600, ()=>{ if(arrow && arrow.active) arrow.destroy(); });
-    }
-
-    // generalized damage handler: grant XP/gold directly and occasional potion drop
-    damageEnemy(en, dmg){
-        if(!en || en.getData('dead')) return;
-        const hp = en.getData('health') - (dmg || 0);
-        en.setData('health', hp);
-        if(hp <= 0){
-            en.setData('dead', true);
-            const ex = en.x, ey = en.y;
-            const wasBoss = !!en.getData('isBoss');
-            en.destroy();
-            const xpAmt = wasBoss ? 6 : 3;
-            const goldAmt = wasBoss ? 20 : 8;
-            grantXP(xpAmt);
-            grantGold(goldAmt);
-            setStatusHint(`获得经验+${xpAmt} 金币+${goldAmt}`, 1.6);
-            registerEnemyDefeat({ isBoss: wasBoss });
-            // small chance to drop a potion
-            if(Math.random() < 0.25){
-                const px = Phaser.Math.Between(ex-12, ex+12);
-                const py = Phaser.Math.Between(ey-12, ey+12);
-                const p = this.pickups.create(px, py, 'potion');
-                p.setImmovable(true);
-                p.setData('type', 'potion');
-            }
-        }
-    }
-
-    onSkillHit(proj, en){
-        if(proj && proj.active) proj.destroy();
-        if(!en || en.getData('dead')) return;
-        const dmg = (proj && proj.getData) ? (proj.getData('damage') || playerState.attackPower) : playerState.attackPower;
-        this.damageEnemy(en, dmg);
-    }
-
-    tryUseSkill(skillId){
-        if(playerState.dead){ setStatusHint('无法使用：已死亡',1.2); return; }
-        const sk = progression.skills[skillId];
-        if(!sk){ setStatusHint('技能不存在',1.2); return; }
-        if(sk.cooldown && sk.cooldown > 0){ setStatusHint('技能冷却中',1.0); return; }
-        sk.cooldown = sk.baseCooldown || 3;
-        switch(skillId){
-            case 'bow': this.castBowSkill(); break;
-            case 'thunder': this.castThunderSkill(); break;
-            case 'swordQi': this.castSwordQiSkill(); break;
-            case 'whirlwind': this.castWhirlwindSkill(); break;
-            default: setStatusHint('未知技能',1.0); break;
-        }
-    }
-
-    castBowSkill(){
-        const ptr = this.input.activePointer || { worldX: this.player.x + 80, worldY: this.player.y };
-        const tx = ptr.worldX || (this.player.x + 80);
-        const ty = ptr.worldY || this.player.y;
-        const angleCenter = Phaser.Math.Angle.Between(this.player.x,this.player.y,tx,ty);
-        const offsets = [-0.14, 0, 0.14];
-        offsets.forEach(o=>{ const ang = angleCenter + o; const tx2 = this.player.x + Math.cos(ang)*800; const ty2 = this.player.y + Math.sin(ang)*800; this.shootArrowAt(tx2, ty2, 1.6); });
-        setStatusHint('弓箭·连射',1.2);
-    }
-
-    castThunderSkill(){
-        const ptr = this.input.activePointer || { worldX: this.player.x, worldY: this.player.y };
-        const tx = ptr.worldX || this.player.x;
-        const ty = ptr.worldY || this.player.y;
-        const radius = 120;
-        const dmg = Math.round((playerState.attackPower * 2.2) + (progression.activeBuff.attack || 0));
-        this.enemies.children.iterate((en)=>{ if(!en || en.getData('dead')) return; const dx = en.x - tx; const dy = en.y - ty; if(dx*dx + dy*dy <= radius*radius) this.damageEnemy(en, dmg); });
-        const bolt = this.add.sprite(tx, ty, 'bolt').setDepth(3); bolt.setScale(1.8); this.time.delayedCall(420, ()=>{ if(bolt) bolt.destroy(); });
-        setStatusHint('玄雷术',1.6);
-    }
-
-    castSwordQiSkill(){
-        const ptr = this.input.activePointer || { worldX: this.player.x + 48, worldY: this.player.y };
-        const tx = ptr.worldX || (this.player.x + 48);
-        const ty = ptr.worldY || this.player.y;
-        const proj = this.skillProjectiles.create(this.player.x, this.player.y, 'swordQi');
-        proj.setDepth(2);
-        if(proj.body) proj.body.allowGravity = false;
-        const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, tx, ty);
-        const speed = 480;
-        this.physics.velocityFromRotation(angle, speed, proj.body.velocity);
-        proj.rotation = angle;
-        proj.setData('damage', Math.round(playerState.attackPower * 1.9));
-        this.time.delayedCall(900, ()=>{ if(proj && proj.active) proj.destroy(); });
-        setStatusHint('剑气斩',1.4);
-    }
-
-    castWhirlwindSkill(){
-        const radius = 100;
-        const dmg = Math.round(playerState.attackPower * 1.6);
-        const hits = [];
-        this.enemies.children.iterate((en)=>{ if(!en || en.getData('dead')) return; const dx = en.x - this.player.x; const dy = en.y - this.player.y; if(dx*dx + dy*dy <= radius*radius) hits.push(en); });
-        hits.forEach(en=> this.damageEnemy(en, dmg));
-        const ring = this.add.circle(this.player.x, this.player.y, radius, 0x9ef7c8, 0.12).setDepth(0);
-        this.tweens.add({ targets: ring, alpha: 0, scale: 1.6, duration: 520, onComplete: ()=> ring.destroy() });
-        setStatusHint('飓风术',1.6);
-    }
-    spawnEnemyAt(x,y,isBoss=false,tier=1){
-        const en = this.enemies.create(x,y,'beast');
-        en.setCollideWorldBounds(true);
-        en.setVelocity(0,0);
-        const baseHealth = isBoss ? (40 + Phaser.Math.Between(0,22)) : (18 + Phaser.Math.Between(0,10) + Math.max(0,(tier-1))*6);
-        en.setData('health', baseHealth);
-        en.setData('speed', 30 + Phaser.Math.Between(10,30) + Math.max(0,(tier-1))*8);
-        en.setData('attack', 6 + Math.max(0,(tier-1))*2 + (isBoss?4:0));
-        en.setData('tier', Math.max(1,tier));
-        if(isBoss) en.setData('isBoss', true);
-        en.setData('dead', false);
-    }
-
-    spawnWave(waveNum){
-        const count = Math.min(3 + waveNum * 2, 28);
-        for(let i=0;i<count;i++){
-            const edge = Phaser.Math.Between(0,3);
-            let x,y;
-            if(edge===0){ x = Phaser.Math.Between(0,this.worldSize.width); y = -24; }
-            else if(edge===1){ x = Phaser.Math.Between(0,this.worldSize.width); y = this.worldSize.height + 24; }
-            else if(edge===2){ x = -24; y = Phaser.Math.Between(0,this.worldSize.height); }
-            else { x = this.worldSize.width + 24; y = Phaser.Math.Between(0,this.worldSize.height); }
-            const isBoss = (waveNum % 5 === 0 && i === 0);
-            const tier = Math.min(1 + Math.floor(waveNum/3), 5);
-            this.spawnEnemyAt(x,y,isBoss,tier);
-        }
-        setStatusHint('兽潮来袭：第 ' + waveNum + ' 波', 2.6);
-    }
-    placeMarker(x,y){ if(this.marker) this.marker.destroy(); this.marker = this.add.circle(x,y,8,0xffffff,0.6); setTimeout(()=>{ if(this.marker){ this.marker.destroy(); this.marker = null; }},1500); }
-    collectPickup(pick){
-        if(!pick) return;
-        const type = pick.getData('type') || 'potion';
-        if(type === 'potion'){
-            pick.destroy();
-            progression.potionBag.heal = (progression.potionBag.heal||0) + 1;
-            setStatusHint('获得丹药',1.6);
-            registerPickupCollected();
-        } else {
-            pick.destroy();
-            registerPickupCollected();
-        }
-    }
-    applyPlayerDamage(amount){ playerState.health = Math.max(0, playerState.health - amount); this.player.health = playerState.health; stateDamageFlash(0.28); if(playerState.health<=0 && !playerState.dead){ playerState.dead=true; dom.deathPanel.classList.toggle('hidden', false); setStatusHint('你已被击倒',2.4); } }
-    respawnPlayer(){ playerState.health = playerState.maxHealth; playerState.dead = false; this.player.setPosition(playerState.spawnPoint.x, playerState.spawnPoint.y); dom.deathPanel.classList.toggle('hidden', true); setStatusHint('重生成功',1.6); }
-    // Inventory and settings removed to simplify UI
-    update(time,delta){ const dt = delta/1000;
-        if(this.isMoving){ const dir = new Phaser.Math.Vector2(this.moveTarget.x - this.player.x, this.moveTarget.y - this.player.y); const dist = Math.max(0.0001, dir.length()); if(dist>6){ dir.scale(this.player.speed / dist); this.player.setVelocity(dir.x, dir.y); } else { this.player.setVelocity(0,0); } registerTravelDistance((this.player.body.speed||0)*dt); } else { this.player.setVelocity(0,0); }
-
-        this.enemies.children.iterate((en)=>{ if(!en || en.getData('dead')) return; this.physics.moveToObject(en, this.player, en.getData('speed')); const dx = en.x - this.player.x; const dy = en.y - this.player.y; const d2 = dx*dx + dy*dy; if(d2 < (90*90)){ if(time - this.lastAutoAttack > 700){ this.applyPlayerDamage(en.getData('attack')||4); this.lastAutoAttack = time; } } });
-
-        // 自动弓箭攻击：寻找最近目标并发射箭矢
-        if(playerState.autoAttack && time - this.lastPlayerAttack >= playerState.attackCooldown*1000){
-            const radius = playerState.attackRadius || 160;
-            const radiusSq = radius * radius;
-            let target = null;
-            let bestDist = Number.MAX_VALUE;
-            this.enemies.children.iterate((en)=>{
-                if(!en || en.getData('dead')) return;
-                const dx = en.x - this.player.x; const dy = en.y - this.player.y; const d2 = dx*dx + dy*dy;
-                if(d2 <= radiusSq && d2 < bestDist){ bestDist = d2; target = en; }
-            });
-            if(target){
-                this.shootArrowAt(target.x, target.y);
-                this.lastPlayerAttack = time;
-            }
-        }
-
-        // 兽潮逻辑：当场上没有妖兽时开始倒计时，倒计时结束则触发下一波
-        const alive = this.enemies.countActive(true);
-        if(alive === 0){
-            if(!this.wavePending){
-                this.wavePending = true;
-                this.waveTimer = 0;
-                setStatusHint('休整中：准备下一波',1.8);
-            } else {
-                this.waveTimer += dt;
-                if(this.waveTimer >= this.waveDelay){
-                    this.waveNumber = (this.waveNumber || 0) + 1;
-                    this.spawnWave(this.waveNumber);
-                    this.wavePending = false;
-                    this.waveTimer = 0;
-                }
-            }
-        } else {
-            if(this.wavePending){ this.wavePending = false; this.waveTimer = 0; }
-        }
-
-        // 保留少量随机刷新以增加开放世界感
-        if(this.enemies.countActive(true) < 6 && Math.random() < 0.01){ this.spawnEnemyAt(Phaser.Math.Between(100,this.worldSize.width-100), Phaser.Math.Between(100,this.worldSize.height-100)); }
-
-        animateTimers(dt); updateProgressionSystems(dt); this.updateHUD(dt);
-    }
-    updateHUD(dt){
-        resolvePlayerStats();
-        dom.healthText.textContent = Math.round(playerState.health) + ' / ' + Math.round(playerState.maxHealth);
-        dom.healthFill.style.width = (playerState.health / playerState.maxHealth * 100) + '%';
-        dom.ammoText.textContent = '技能 · 自动攻击';
-        const aliveEnemies = this.enemies.countActive(true);
-        const perspective = '2D';
-        let status = playerState.dead ? '倒下' : '探索中';
-        if(progression.activeBuff.timer > 0) status += ' | 增益 ' + Math.ceil(progression.activeBuff.timer) + '秒';
-        if(state.statusHint) status += ' | ' + state.statusHint;
-        let waveInfo = '';
-        if(this.waveNumber && this.waveNumber > 0) waveInfo = ' | 波 ' + this.waveNumber;
-        if(this.wavePending) waveInfo += ' (下一波 ' + Math.max(0, Math.ceil(this.waveDelay - this.waveTimer)) + 's)';
-        dom.statusText.textContent = status + waveInfo + ' | 等级 ' + progression.level + ' | 妖兽 ' + aliveEnemies + ' | ' + perspective + ' | 金币 ' + progression.gold + ' | 技能书 ' + progression.skillBooks;
-        dom.damageFlash.style.opacity = String(clamp(state.damageFlashTimer / 0.28, 0, 1) * 0.9);
-        dom.deathPanel.classList.toggle('hidden', !playerState.dead);
-        updateHotbarUI();
-    }
-}
-
-// Shared state & helpers
-const state = { damageFlashTimer:0, statusHint:'', statusHintTimer:0, hotbarSelected: -1 };
-function animateTimers(dt){ state.damageFlashTimer = Math.max(0, state.damageFlashTimer - dt); if(state.statusHintTimer > 0){ state.statusHintTimer = Math.max(0, state.statusHintTimer - dt); if(state.statusHintTimer <= 0) state.statusHint = ''; } }
-function updateProgressionSystems(dt){ for(const id of Object.keys(progression.skills)) progression.skills[id].cooldown = Math.max(0, progression.skills[id].cooldown - dt); if(progression.activeBuff.timer > 0){ progression.activeBuff.timer = Math.max(0, progression.activeBuff.timer - dt); if(progression.activeBuff.timer <= 0){ progression.activeBuff.name=''; progression.activeBuff.attack=0; progression.activeBuff.defense=0; progression.activeBuff.moveSpeed=0; progression.activeBuff.pickupRadius=0; progression.activeBuff.maxHealth=0; resolvePlayerStats(); setStatusHint('增益结束',1.4); } } }
-function setStatusHint(text,duration){ state.statusHint = text||''; state.statusHintTimer = Math.max(0,duration||0); }
-function registerTravelDistance(d){ if(d>0.001) progression.metrics.distanceTravelled += d; }
-function registerPickupCollected(){ progression.metrics.pickupsCollected += 1; }
-function registerEnemyDefeat(enemy){ progression.metrics.enemiesDefeated += 1; }
-function grantXP(amount){ if(!amount) return; progression.xp += amount; while(progression.xp >= progression.xpToNext){ progression.xp -= progression.xpToNext; progression.level += 1; progression.xpToNext = Math.min(progression.xpToNext + 1, 12); setStatusHint('升级！等级 ' + progression.level, 2.2); resolvePlayerStats(); } }
-function grantGold(amount){ if(!amount) return; progression.gold += Math.max(0, Math.round(amount)); }
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function stateDamageFlash(time){ state.damageFlashTimer = Math.max(state.damageFlashTimer, time || 0); }
-
-// bootstrap Phaser
-window.addEventListener('load', ()=>{
-    buildHotbarUI();
-    const canvas = document.getElementById('gameCanvas');
-    const config = { type: Phaser.CANVAS, canvas, width: window.innerWidth, height: window.innerHeight, backgroundColor: '#0f1720', physics: { default:'arcade', arcade:{ gravity:{x:0,y:0}, debug:false } }, scene:[MainScene], scale:{ mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.CENTER_BOTH } };
-    const game = new Phaser.Game(config);
-    window.addEventListener('resize', ()=>{ game.scale.resize(window.innerWidth, window.innerHeight); });
-});
-
-// ---- End inlined src files (Phaser) ----
-    </script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
