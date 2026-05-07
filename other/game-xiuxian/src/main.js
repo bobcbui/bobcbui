@@ -1,21 +1,11 @@
-// Import all modules for their side effects (registrations on window)
 import './data.js';
-import { recalcStats, refreshSkills, initHotbar } from './state.js';
-import { setStatus, setLoot } from './helpers.js';
-import { saveGame, loadGame } from './save.js';
+import './state.js';
+import './helpers.js';
+import './save.js';
 import { updateHUD, hotbarRender, toggleCharPanel, toggleBagPanel, toggleSkillPanel, toggleAchPanel, toggleShopPanel, upgradeSkill, equipSkill, addAttr } from './ui.js';
 import { tryBreakthrough } from './cultivation.js';
-import { genEquipment } from './equipment.js';
-import { ACHIEVEMENTS, SHOP_ITEMS } from './data.js';
 import { MainScene } from './scene.js';
 
-// Ensure window globals for onclick handlers
-window.setStatus = setStatus;
-window.setLoot = setLoot;
-window.saveGame = saveGame;
-window.loadGame = loadGame;
-window.genEquipment = genEquipment;
-window._data = { ACHIEVEMENTS, SHOP_ITEMS };
 if(window.ontouchstart!==undefined||navigator.maxTouchPoints>0) document.body.classList.add('has-touch');
 
 window.addEventListener('load', ()=>{
