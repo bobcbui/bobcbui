@@ -33,7 +33,6 @@ export class MainScene extends Phaser.Scene {
     window.scene = this;
     this.worldSize = 3500;
     this.safeZoneRadius = 360;
-    this.inTown = false;
     this.physics.world.setBounds(0,0,this.worldSize,this.worldSize);
     this.ground = this.add.graphics();
     this.drawGround();
@@ -45,43 +44,46 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.setZoom(1.2);
     this.cameras.main.setBounds(0,0,this.worldSize,this.worldSize);
     this.enemies = this.physics.add.group();
-    this.pickups = this.physics.add.group();
     this.projectiles = this.physics.add.group();
+    this.enemyProjs = this.physics.add.group();
     this.hpBarGfx = this.add.graphics().setDepth(16);
     this.physics.add.overlap(this.projectiles, this.enemies, (proj, en)=>{ this.onProjHit(proj, en); }, null, this);
-    this.physics.add.overlap(this.player, this.pickups, (p, pk)=>{ this.onPickup(pk); }, null, this);
     this.physics.add.overlap(this.player, this.enemies, (p, en)=>{ this.onEnemyContact(en); }, null, this);
+    this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.onEnemyProjHit(proj); }, null, this);
     for(let i=0;i<8;i++) this.spawnEnemy();
     this.isMoving = false;
     this.moveTarget = new Phaser.Math.Vector2(this.worldSize/2, this.worldSize/2);
     this.input.on('pointerdown', (ptr)=>{
-      if(this.inTown) return;
       if(ptr.event.button===0){ this.isMoving=true; this.moveTarget.set(ptr.worldX,ptr.worldY); }
       else if(ptr.event.button===2){ this.placeMarker(ptr.worldX,ptr.worldY); }
     });
     this.input.on('pointerup', (ptr)=>{ if(ptr.event.button===0) this.isMoving=false; });
     this.input.on('pointermove', (ptr)=>{ if(this.isMoving) this.moveTarget.set(ptr.worldX,ptr.worldY); });
     this.input.mouse.disableContextMenu();
-    this.keys = this.input.keyboard.addKeys('Q,W,E,R,ONE,TWO,THREE,FOUR,SPACE,B,C,X,Z');
-    this.input.keyboard.on('keydown-Q', ()=>{ const fn=window.tryUseSkill; const h=P.hotbar[0]; if(fn&&h&&h.kind==='skill'&&h.id)fn(h.id); });
-    this.input.keyboard.on('keydown-W', ()=>{ const fn=window.tryUseSkill; const h=P.hotbar[1]; if(fn&&h&&h.kind==='skill'&&h.id)fn(h.id); });
-    this.input.keyboard.on('keydown-E', ()=>{ const fn=window.tryUseSkill; const h=P.hotbar[2]; if(fn&&h&&h.kind==='skill'&&h.id)fn(h.id); });
-    this.input.keyboard.on('keydown-R', ()=>{ const fn=window.tryUseSkill; const h=P.hotbar[3]; if(fn&&h&&h.kind==='skill'&&h.id)fn(h.id); });
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.wasd = {
+      up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+      left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+      right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+    };
+    this.input.keyboard.addKeys('SPACE,B,C,X,Z');
     this.input.keyboard.on('keydown-SPACE', ()=>{ const fn=window.toggleCultivate; if(fn)fn(); });
     this.input.keyboard.on('keydown-B', ()=>{ const fn=window.toggleCharPanel; if(fn)fn(); });
     this.input.keyboard.on('keydown-C', ()=>{ const fn=window.tryBreakthrough; if(fn)fn(); });
-    this.input.keyboard.on('keydown-X', ()=>{ const fn=window.craftPill; if(fn)fn('heal_pill'); });
-    this.input.keyboard.on('keydown-ONE', ()=>{ const fn=window.useConsumable; if(fn)fn(0); });
-    this.input.keyboard.on('keydown-TWO', ()=>{ const fn=window.useConsumable; if(fn)fn(1); });
-    this.input.keyboard.on('keydown-THREE', ()=>{ const fn=window.useConsumable; if(fn)fn(2); });
-    this.input.keyboard.on('keydown-FOUR', ()=>{ const fn=window.useConsumable; if(fn)fn(3); });
+    this.input.keyboard.on('keydown-X', ()=>{ const fn=window.toggleShopPanel; if(fn)fn(); });
+    this.skillCooldowns = {};
+    for(const sk of SKILL_DEFS) this.skillCooldowns[sk.id] = 0;
+    window.skillCooldowns = this.skillCooldowns;
+    this.shieldOrbs = [];
+    this.shieldTimer = 0;
+    this.shieldReflect = 0;
 
     this.deathModal = document.getElementById('deathModal');
     const rb = document.getElementById('respawnBtn');
     if(rb) rb.onclick = ()=>{ this.respawnPlayer(); };
 
     this.marker = null;
-    this.lastAutoAtk = 0;
     this.lastZoneId = null;
 
     const ld=window.loadGame; if(ld)ld();
@@ -136,27 +138,13 @@ export class MainScene extends Phaser.Scene {
       if(!en) return;
       const lbl=en.getData && en.getData('label');
       if(lbl) lbl.destroy();
+      const uw=en.getData && en.getData('ultWarning');
+      if(uw) uw.destroy();
       en.destroy();
     });
     this.projectiles.children.iterate((p)=>{ if(p) p.destroy(); });
+    this.enemyProjs.children.iterate((p)=>{ if(p) p.destroy(); });
     this.hpBarGfx.clear();
-  }
-
-  enterTown(){
-    this.inTown = true;
-    this.isMoving = false;
-    this.player.setVelocity(0,0);
-    this.player.setPosition(this.worldSize/2,this.worldSize/2);
-    this.moveTarget.set(this.player.x,this.player.y);
-    this.clearEnemies();
-    const ss=window.setStatus;if(ss)ss('已回到主城',1.2);
-  }
-
-  leaveTown(){
-    this.inTown = false;
-    this.player.setPosition(this.worldSize/2,this.worldSize/2);
-    this.moveTarget.set(this.player.x,this.player.y);
-    const ss=window.setStatus;if(ss)ss('已进入安全区',1.2);
   }
 
   updateZoneLabel(){
@@ -172,7 +160,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   spawnEnemy(){
-    if(this.inTown || this.isInSafeZone()) return null;
+    if(this.isInSafeZone()) return null;
     const zone=this.getCurrentZone();
     const list=BESTIARY[zone.id]||BESTIARY.village;
     const tmpl=list[Math.floor(Math.random()*list.length)];
@@ -210,6 +198,14 @@ export class MainScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(15);
     en.setData('label',lbl);
     en.setData('barW',isBoss?32:24);
+    en.setData('atkType', tmpl.atkType||'melee');
+    en.setData('atkRange', tmpl.atkRange||150);
+    en.setData('atkCD', tmpl.atkCD||2);
+    en.setData('projColor', tmpl.projColor||0xff4444);
+    en.setData('lastRangedAtk', 0);
+    en.setData('ultCD', isBoss?6:99);
+    en.setData('lastUlt', 0);
+    en.setData('ultWarning', null);
     return en;
   }
 
@@ -219,6 +215,26 @@ export class MainScene extends Phaser.Scene {
     const pierce=proj.getData('pierce');
     this.damageEnemy(en,dmg);
     if(!pierce) proj.destroy();
+  }
+
+  onEnemyProjHit(proj){
+    if(!proj.active||this.playerDead) return;
+    const dmg=proj.getData('damage')||8;
+    const sd=P.buff.shieldPct>0?(1-P.buff.shieldPct):1;
+    P.hp=Math.max(0, P.hp-Math.round(dmg*sd));
+    this.damageFlash(0.15);
+    proj.destroy();
+    if(P.hp<=0 && !this.playerDead){
+      this.playerDead=true;
+      this.player.setAlpha(0.3); this.player.setVelocity(0,0); this.isMoving=false;
+      if(this.playerAura){this.playerAura.destroy();this.playerAura=null;}
+      this.destroyShieldVisual();
+      if(this.deathModal) this.deathModal.classList.remove('hidden');
+      const lostGold=Math.round(P.gold*0.15);
+      P.gold=Math.max(0,P.gold-lostGold);
+      const ss=window.setStatus; if(ss) ss('💀 道殒！损失 '+lostGold+' 灵石', 3);
+    }
+    const h=window.updateHUD; if(h)h();
   }
 
   damageEnemy(en,dmg){
@@ -243,6 +259,7 @@ export class MainScene extends Phaser.Scene {
       const isElite=en.getData('isElite');
       en.destroy();
       P.xp+=xp;P.gold+=gold;P.kills++;
+      P.totalGoldEarned = (P.totalGoldEarned||0) + gold;
       while(P.xp>=P.xpToNext){
         P.xp-=P.xpToNext;P.level+=1;
         P.attrPoints=(P.attrPoints||0)+3;
@@ -256,32 +273,19 @@ export class MainScene extends Phaser.Scene {
       const ss=window.setStatus;if(ss)ss('击杀 '+name+' +'+xp+'exp +'+gold+'灵石',1.5);
       if(Math.random()<(isBoss?0.9:(isElite?0.4:0.15))){
         const eq=genEquipment(zoneLv,isBoss?'legendary':null);
+        if(eq.rarity==='legendary'||eq.rarity==='mythic') P.legendaryFound = true;
         if(P.inventory.length<30){P.inventory.push(eq);const sl=window.setLoot;if(sl)sl('🎁 获得 ['+RARITY_LABEL[eq.rarity]+'] '+eq.name);}
       }
-      if(Math.random()<0.2&&P.inventory.length<30){
-        const pTypes=['heal_pill','qi_pill','buff_pill'];
-        const pType=pTypes[Math.floor(Math.random()*Math.min(3,1+Math.floor(zoneLv/5)))];
-        const pNames={heal_pill:'回血丹',qi_pill:'回灵丹',buff_pill:'爆气丹'};
-        const uid=Date.now()+'_'+Math.random().toString(36).slice(2,6);
-        P.inventory.push({id:uid,name:pNames[pType],type:'consumable',subType:pType});
-        for(let i=4;i<8;i++){const h=P.hotbar[i];if(h.kind==='consumable'&&!h.id){h.id=pType;h.uid=uid;break;}}
-        if(Math.random()<0.1){const sl=window.setLoot;if(sl)sl('💊 获得 '+pNames[pType]);}
+      if(Math.random()<0.08&&P.inventory.length<30){
+        const dropGold = Math.round((10 + zoneLv*5) * (isBoss?5:1));
+        P.gold = Math.min(99999, P.gold + dropGold);
+        P.totalGoldEarned = (P.totalGoldEarned||0) + dropGold;
+        if(Math.random()<0.2){ const sl=window.setLoot; if(sl)sl('💰 额外灵石 +'+dropGold); }
       }
       P.gold=Math.min(P.gold,99999);
       const h=window.updateHUD;if(h)h();
       const hr=window.hotbarRender;if(hr)hr();
       const sg=window.saveGame;if(sg)sg();
-    }
-  }
-
-  onPickup(pk){
-    if(!pk)return;
-    const type=pk.getData('type');
-    pk.destroy();
-    if(type==='gold'){
-      P.gold+=pk.getData('amount')||5;
-      const ss=window.setStatus;if(ss)ss('灵石 +'+pk.getData('amount'),1);
-      const h=window.updateHUD;if(h)h();
     }
   }
 
@@ -295,6 +299,7 @@ export class MainScene extends Phaser.Scene {
     const shieldMult=P.buff.shieldPct>0?(1-P.buff.shieldPct):1;
     const dmg=Math.max(1,Math.round((atk*0.5-P.def*0.3)*shieldMult));
     P.hp=Math.max(0,P.hp-dmg);
+    if(this.shieldReflect>0) this.damageEnemy(en, Math.round(this.shieldReflect*(1+P.level*0.03)));
     this.damageFlash(0.25);
     if(P.hp<=0&&!this.playerDead){
       this.playerDead=true;
@@ -302,6 +307,7 @@ export class MainScene extends Phaser.Scene {
       this.player.setVelocity(0,0);
       this.isMoving=false;
       if(this.playerAura){this.playerAura.destroy();this.playerAura=null;}
+      this.destroyShieldVisual();
       const lostGold=Math.round(P.gold*0.15);
       P.gold=Math.max(0,P.gold-lostGold);
       if(this.deathModal)this.deathModal.classList.remove('hidden');
@@ -319,7 +325,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   respawnPlayer(){
-    P.hp=P.maxHp;P.qi=P.maxQi;
+    P.hp=P.maxHp;
     this.playerDead=false;
     this.player.setAlpha(1);
     this.player.setPosition(this.worldSize/2,this.worldSize/2);
@@ -350,52 +356,6 @@ export class MainScene extends Phaser.Scene {
     this.time.delayedCall(isPierce?1500:1200,()=>{if(proj.active)proj.destroy();});
   }
 
-  doAoeSkill(tx,ty,dmg,radius,color,texture){
-    if(texture==='bolt'){
-      const bolt=this.add.sprite(tx,ty,'bolt').setDepth(9).setScale(2);
-      this.tweens.add({targets:bolt,alpha:0,scale:3,duration:400,onComplete:()=>bolt.destroy()});
-    }
-    const circle=this.add.circle(tx,ty,radius,color||0xffee44,0.15).setDepth(7);
-    this.tweens.add({targets:circle,alpha:0,scale:1.4,duration:500,onComplete:()=>circle.destroy()});
-    this.enemies.children.iterate((en)=>{
-      if(!en||en.getData('dead'))return;
-      const dx=en.x-tx,dy=en.y-ty;
-      if(dx*dx+dy*dy<=radius*radius)this.damageEnemy(en,dmg);
-    });
-  }
-
-  doWaterDomain(tx,ty,dmg,radius,color){
-    const circle=this.add.circle(tx,ty,radius,color||0x5aa6b1,0.18).setDepth(7);
-    const ring=this.add.circle(tx,ty,radius,color||0x5aa6b1,0).setStrokeStyle(2,0xd8f2ef,0.55).setDepth(8);
-    this.tweens.add({targets:[circle,ring],alpha:0,scale:1.18,duration:700,onComplete:()=>{circle.destroy();ring.destroy();}});
-    this.enemies.children.iterate((en)=>{
-      if(!en||en.getData('dead'))return;
-      const dx=en.x-tx,dy=en.y-ty;
-      if(dx*dx+dy*dy<=radius*radius){
-        this.damageEnemy(en,dmg);
-        en.setData('slowTimer',2.5);
-      }
-    });
-  }
-
-  doTornadoSkill(tx,ty,dmg,radius,color){
-    const circle=this.add.circle(tx,ty,radius,color||0x9fb884,0.16).setDepth(7);
-    this.tweens.add({targets:circle,alpha:0,scale:1.35,duration:650,onComplete:()=>circle.destroy()});
-    this.enemies.children.iterate((en)=>{
-      if(!en||en.getData('dead'))return;
-      const dx=en.x-tx,dy=en.y-ty;
-      if(dx*dx+dy*dy<=radius*radius){
-        this.damageEnemy(en,dmg);
-        const pull=new Phaser.Math.Vector2(tx-en.x,ty-en.y);
-        if(pull.length()>1){
-          pull.normalize().scale(90);
-          en.x += pull.x*0.18;
-          en.y += pull.y*0.18;
-        }
-      }
-    });
-  }
-
   doMultiProjectile(angle,dmg,count,range,texture){
     const offsets=[];
     for(let i=0;i<count;i++)offsets.push((i/(count-1)-0.5)*0.6);
@@ -419,6 +379,14 @@ export class MainScene extends Phaser.Scene {
     this.tweens.add({targets:c,alpha:0,scale:2,duration:600,onComplete:()=>c.destroy()});
   }
 
+  showSkillName(name, color){
+    const txt=this.add.text(this.player.x, this.player.y-40, name, {
+      fontSize:'14px', fontFamily:'"Microsoft YaHei",sans-serif', fontStyle:'bold',
+      color:'#'+color.toString(16).padStart(6,'0'), stroke:'#000', strokeThickness:1
+    }).setOrigin(0.5).setDepth(20);
+    this.tweens.add({targets:txt, y:txt.y-40, alpha:0, duration:900, onComplete:()=>txt.destroy()});
+  }
+
   doLightningEffect(success){
     const color=success?0xffdd44:0xff4444;
     for(let i=0;i<12;i++){
@@ -430,12 +398,48 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
+  createShieldVisual(color){
+    this.destroyShieldVisual();
+    const count = 4;
+    for(let i=0;i<count;i++){
+      const orb = this.add.circle(this.player.x, this.player.y, 7, color, 0.55).setDepth(12).setStrokeStyle(1, 0xffffff, 0.3);
+      this.shieldOrbs.push({ sprite:orb, offset:(i/count)*Math.PI*2 });
+    }
+  }
+
+  updateShieldVisual(dt){
+    const t = this.time.now/1000;
+    this.shieldOrbs.forEach(o=>{
+      if(!o.sprite.active) return;
+      const a = o.offset + t*3;
+      o.sprite.setPosition(this.player.x+Math.cos(a)*30, this.player.y+Math.sin(a)*30);
+    });
+  }
+
+  destroyShieldVisual(){
+    this.shieldOrbs.forEach(o=>{ if(o.sprite.active) o.sprite.destroy(); });
+    this.shieldOrbs = [];
+  }
+
+  doDomainSkill(tx,ty,dmg,def){
+    const circle=this.add.circle(tx,ty,def.aoeRadius||140,def.color||0xffee44,0.15).setDepth(7);
+    this.tweens.add({targets:circle,alpha:0,scale:1.3,duration:600,onComplete:()=>circle.destroy()});
+    this.enemies.children.iterate((en)=>{
+      if(!en||en.getData('dead'))return;
+      const dx=en.x-tx,dy=en.y-ty;
+      if(dx*dx+dy*dy<=(def.aoeRadius||140)*(def.aoeRadius||140)){
+        this.damageEnemy(en,dmg);
+        if(def.slow) en.setData('slowTimer',2.5);
+        else if(def.id==='tornado'){
+          const pull=new Phaser.Math.Vector2(tx-en.x,ty-en.y);
+          if(pull.length()>1){ pull.normalize().scale(80); en.x+=pull.x*0.15; en.y+=pull.y*0.15; }
+        }
+      }
+    });
+  }
+
   update(time,delta){
     const dt=delta/1000;
-    if(this.inTown){
-      this.player.setVelocity(0,0);
-      return;
-    }
     if(this.isInSafeZone()){
       if(this.enemies.countActive(true)>0) this.clearEnemies();
       if(!this.wasInSafeZone){
@@ -447,19 +451,36 @@ export class MainScene extends Phaser.Scene {
       const ss=window.setStatus;if(ss)ss('已离开安全区',1.2);
     }
     P.totalPlayTime+=dt;
-    if(this.isMoving&&!this.playerDead){
-      const dir=new Phaser.Math.Vector2(this.moveTarget.x-this.player.x,this.moveTarget.y-this.player.y);
-      const dist=Math.max(0.01,dir.length());
-      let spd=P.speed;
-      if(P.buffTimer>0&&P.buff.speedBoost)spd*=(1+P.buff.speedBoost);
-      if(dist>5){dir.scale(spd/dist);this.player.setVelocity(dir.x,dir.y);}
-      else this.player.setVelocity(0,0);
-    }else if(!this.playerDead) this.player.setVelocity(0,0);
-    if(!this.playerDead) P.qi=Math.min(P.maxQi,P.qi+P.maxQi*0.015*dt);
+    if(!this.playerDead){
+      let mvx=0, mvy=0, keyMoving=false;
+      const left=this.cursors.left.isDown||this.wasd.left.isDown;
+      const right=this.cursors.right.isDown||this.wasd.right.isDown;
+      const up=this.cursors.up.isDown||this.wasd.up.isDown;
+      const down=this.cursors.down.isDown||this.wasd.down.isDown;
+      if(left){mvx-=1;} if(right){mvx+=1;} if(up){mvy-=1;} if(down){mvy+=1;}
+      if(left||right||up||down) keyMoving=true;
+      const joy=window.joystickDir;
+      if(joy){ mvx+=joy.x; mvy+=joy.y; keyMoving=true; }
+      if(keyMoving){
+        const len=Math.sqrt(mvx*mvx+mvy*mvy);
+        if(len>0.01){
+          let spd=P.speed;
+          if(P.buffTimer>0&&P.buff.speedBoost)spd*=(1+P.buff.speedBoost);
+          this.player.setVelocity(mvx/len*spd,mvy/len*spd);
+          this.isMoving=false;
+        }else{this.player.setVelocity(0,0);}
+      }else if(this.isMoving){
+        const dir=new Phaser.Math.Vector2(this.moveTarget.x-this.player.x,this.moveTarget.y-this.player.y);
+        const dist=Math.max(0.01,dir.length());
+        let spd=P.speed;
+        if(P.buffTimer>0&&P.buff.speedBoost)spd*=(1+P.buff.speedBoost);
+        if(dist>5){dir.scale(spd/dist);this.player.setVelocity(dir.x,dir.y);}
+        else this.player.setVelocity(0,0);
+      }else{this.player.setVelocity(0,0);}
+      }else{this.player.setVelocity(0,0);}
     if(isCultivating&&!this.playerDead){
       const cultRate=0.02+getRealmIndex(P.realm)*0.005;
       let cp=cultProgress+cultRate*dt;
-      P.qi=Math.min(P.maxQi,P.qi+P.maxQi*0.08*dt);
       if(cp>=1){
         cp=0;
         const r=getRealm(P.realm);
@@ -476,13 +497,21 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({targets:dot,alpha:0,y:py-30,duration:600,onComplete:()=>dot.destroy()});
       }
     }
-    if(P.buffTimer>0){P.buffTimer-=dt;if(P.buffTimer<=0){P.buff.speedBoost=0;P.buff.shieldPct=0;}}
+    if(P.buffTimer>0){
+      P.buffTimer-=dt;
+      if(P.buffTimer<=0){ P.buff.speedBoost=0;P.buff.shieldPct=0;P.buff.atkBoost=0;P.buff.rangeBoost=0;
+        this.destroyShieldVisual(); this.shieldReflect=0; }
+    }
+    if(this.shieldOrbs.length>0) this.updateShieldVisual(dt);
     if(!this.playerDead && !this.isInSafeZone()){
-      const atkInterval=Math.max(0.3,0.8-P.level*0.005);
-      if(time-this.lastAutoAtk>atkInterval*1000){
-        this.lastAutoAtk=time;
+      const skillNow=time/1000;
+      const qDef = SKILL_DEFS.find(s=>s.id===P.hotbar[0]?.id) || SKILL_DEFS.find(s=>s.id==='swordfly');
+      const qCD = qDef?.cooldown || 0.7;
+      if(skillNow >= (this.skillCooldowns[qDef.id]||0)){
+        this.skillCooldowns[qDef.id] = skillNow + qCD;
         let target=null,bestD2=Infinity;
-        const range=180+getRealmIndex(P.realm)*10,r2=range*range;
+        const range=(qDef.range||280)*(1+(P.buff.rangeBoost||0));
+        const r2=range*range;
         this.enemies.children.iterate((en)=>{
           if(!en||en.getData('dead'))return;
           const dx=en.x-this.player.x,dy=en.y-this.player.y,d2=dx*dx+dy*dy;
@@ -490,10 +519,80 @@ export class MainScene extends Phaser.Scene {
         });
         if(target){
           const angle=Phaser.Math.Angle.Between(this.player.x,this.player.y,target.x,target.y);
-          const autoDef=SKILL_DEFS.find(s=>s.id==='swordfly');
-          const lv=P.skillLevels?.swordfly||1;
-          const dmg=Math.round((P.atk+P.level*0.5)*(autoDef?.baseDmg||1)*(0.72+lv*0.06));
-          this.shootProjectile('swordfly',angle,dmg,autoDef?.range||230);
+          const lv=P.skillLevels?.[qDef.id]||1;
+          const mult = 1+(P.buff.atkBoost||0);
+          const dmg=Math.round((P.atk+P.level*0.5)*(qDef.baseDmg||0.7)*(0.72+lv*0.06)*mult);
+          this.shootProjectile('swordfly',angle,dmg,qDef.range);
+          this.showSkillName(qDef.name, qDef.color);
+        }
+      }
+      for(let si=1;si<5;si++){
+        const def = SKILL_DEFS.find(s=>s.id===P.hotbar[si]?.id);
+        if(!def || def.type==='basic') continue;
+        if(skillNow < (this.skillCooldowns[def.id]||0)) continue;
+        const cd = def.cooldown||2;
+        if(def.type==='shield'){
+          this.skillCooldowns[def.id] = skillNow + cd;
+          P.buff.shieldPct = def.shieldPct||0;
+          P.buffTimer = Math.max(P.buffTimer, def.duration||5);
+          this.shieldReflect = def.reflectDmg||0;
+          this.createShieldVisual(def.color||0xffd700);
+          this.showSkillName(def.name, def.color||0xffd700);
+          const ss=window.setStatus; if(ss) ss(def.name+' 护体!', 1.5);
+        } else if(def.type==='buff'){
+          this.skillCooldowns[def.id] = skillNow + cd;
+          if(def.speedBoost) P.buff.speedBoost = def.speedBoost;
+          if(def.atkBoost) P.buff.atkBoost = def.atkBoost;
+          if(def.rangeBoost) P.buff.rangeBoost = def.rangeBoost;
+          P.buffTimer = Math.max(P.buffTimer, def.duration||5);
+          if(this.applyBuffVisual) this.applyBuffVisual(def.color||0x66ffcc);
+          this.showSkillName(def.name, def.color||0x66ffcc);
+          const ss=window.setStatus; if(ss) ss(def.name+' 激活!', 1.5);
+        } else if(def.type==='domain'){
+          const activeEnemies=[];
+          this.enemies.children.iterate((en)=>{if(en&&!en.getData('dead'))activeEnemies.push(en);});
+          const dRange=def.range||200,dR2=dRange*dRange;
+          let dTarget=null,dBest=Infinity;
+          for(const en of activeEnemies){
+            const dx=en.x-this.player.x,dy=en.y-this.player.y,d2=dx*dx+dy*dy;
+            if(d2<dR2&&d2<dBest){dBest=d2;dTarget=en;}
+          }
+          if(dTarget){
+            let cnt=0;
+            for(const en of activeEnemies){
+              const dx=en.x-dTarget.x,dy=en.y-dTarget.y;
+              if(dx*dx+dy*dy<=(def.aoeRadius||130)*(def.aoeRadius||130))cnt++;
+            }
+            if(cnt>=2){
+              this.skillCooldowns[def.id] = skillNow + cd;
+              const dlv=P.skillLevels?.[def.id]||1;
+              const dmg=Math.round((P.atk+P.level*0.5)*def.baseDmg*(1+(dlv-1)*0.18));
+              this.doDomainSkill(dTarget.x, dTarget.y, dmg, def);
+              this.showSkillName(def.name, def.color||0xffdd00);
+            }
+          }
+        } else {
+          let target=null,bestD2=Infinity;
+          const sRange=(def.range||200)*(1+(P.buff.rangeBoost||0));
+          const sR2=sRange*sRange;
+          this.enemies.children.iterate((en)=>{
+            if(!en||en.getData('dead'))return;
+            const dx=en.x-this.player.x,dy=en.y-this.player.y,d2=dx*dx+dy*dy;
+            if(d2<sR2&&d2<bestD2){bestD2=d2;target=en;}
+          });
+          if(target){
+            this.skillCooldowns[def.id] = skillNow + cd;
+            const angle=Phaser.Math.Angle.Between(this.player.x,this.player.y,target.x,target.y);
+            const lv=P.skillLevels?.[def.id]||1;
+            const mult = 1+(P.buff.atkBoost||0);
+            const dmg=Math.round((P.atk+P.level*0.5)*(def.baseDmg||1)*(1+(lv-1)*0.18)*mult);
+            if(def.type==='multi'){
+              this.doMultiProjectile(angle, dmg, def.count||3, def.range, def.texture);
+            } else {
+              this.shootProjectile(def.id, angle, dmg, def.range);
+            }
+            this.showSkillName(def.name, def.color||0xffdd00);
+          }
         }
       }
     }
@@ -502,13 +601,58 @@ export class MainScene extends Phaser.Scene {
     this.hpBarGfx.clear();
     this.enemies.children.iterate((en)=>{
       if(!en||en.getData('dead'))return;
+      const atkType=en.getData('atkType')||'melee';
+      const dx=this.player.x-en.x, dy=this.player.y-en.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
       let speed=en.getData('speed')||30;
       const slowTimer=en.getData('slowTimer')||0;
       if(slowTimer>0){
         speed*=0.45;
         en.setData('slowTimer',Math.max(0,slowTimer-dt));
       }
-      this.physics.moveToObject(en,this.player,speed);
+      if(atkType==='ranged'){
+        const atkRange=en.getData('atkRange')||200;
+        const atkCD=en.getData('atkCD')||2.5;
+        const lastAtk=en.getData('lastRangedAtk')||0;
+        if(dist<atkRange*1.2 && time/1000-lastAtk > atkCD){
+          en.setData('lastRangedAtk', time/1000);
+          const proj=this.enemyProjs.create(en.x, en.y, 'arrow');
+          if(proj){
+            proj.setDepth(8).setScale(0.7).setTint(en.getData('projColor')||0xff4444);
+            if(proj.body) proj.body.allowGravity=false;
+            const angle=Phaser.Math.Angle.Between(en.x,en.y,this.player.x,this.player.y);
+            this.physics.velocityFromRotation(angle, 280, proj.body.velocity);
+            proj.rotation=angle;
+            proj.setData('damage', Math.round((en.getData('atk')||5)*0.6));
+            this.time.delayedCall(2000, ()=>{if(proj.active)proj.destroy();});
+          }
+        }
+        if(dist>atkRange) this.physics.moveToObject(en,this.player,speed*0.7);
+      } else {
+        this.physics.moveToObject(en,this.player,speed);
+      }
+      const isBoss=en.getData('isBoss');
+      if(isBoss){
+        const ultCD=en.getData('ultCD')||8;
+        const lastUlt=en.getData('lastUlt')||0;
+        if(time/1000-lastUlt > ultCD && dist<300){
+          const warning=en.getData('ultWarning');
+          if(!warning || !warning.active){
+            en.setData('lastUlt', time/1000);
+            const w=this.add.circle(this.player.x,this.player.y,40,0xff0000,0).setDepth(25).setStrokeStyle(3,0xff3333,0.8);
+            en.setData('ultWarning', w);
+            this.tweens.add({targets:w,scale:2.5,alpha:0.35,duration:1000,onComplete:()=>{
+              if(w.active) w.destroy();
+              en.setData('ultWarning', null);
+              const dmg=Math.round((en.getData('atk')||20)*2*(1-P.buff.shieldPct));
+              P.hp=Math.max(0,P.hp-dmg);
+              this.damageFlash(0.4);
+              const ss=window.setStatus; if(ss) ss('⚡ BOSS大招! -'+dmg, 2);
+            }});
+            const ss=window.setStatus; if(ss) ss('⚠️ '+en.getData('name')+' 蓄力中...', 1.5);
+          }
+        }
+      }
       const lbl=en.getData('label');if(lbl)lbl.setPosition(en.x,en.y-16);
       const bw=en.getData('barW')||24, bh=3;
       const yPos=en.y-24;
@@ -534,6 +678,7 @@ export class MainScene extends Phaser.Scene {
         let wt=waveTimer+dt;
         if(wt>=waveDelay){
           let wn=waveNum+1;setWaveNum(wn);
+          if(wn>P.maxWave) P.maxWave = wn;
           const count=Math.min(4+wn*2,30);
           for(let i=0;i<count;i++)this.spawnEnemy();
           if(wn%5===0){
@@ -561,6 +706,7 @@ export class MainScene extends Phaser.Scene {
     let at=autoSaveTimer+dt;
     if(at>=30){at=0;const sg=window.saveGame;if(sg)sg();}
     setAutoSaveTimer(at);
-    const h=window.updateHUD;if(h)h();const hr=window.hotbarRender;if(hr)hr();
+    const h=window.updateHUD;if(h)h();const hr=window.hotbarRender;if(hr)hr();const cu=window.updateHotbarCooldowns;if(cu)cu();
+    if(time%2000<delta*1.5 && window.checkAchievements) window.checkAchievements();
   }
 }

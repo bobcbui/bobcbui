@@ -5,11 +5,11 @@ import { EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS } from './d
 export function hotbarRender(){
   const cont = document.getElementById('hotbar');
   if(!cont) return;
-  const sig = JSON.stringify(P.hotbar.map(h=>(h.kind==='consumable'?h.id+'_'+(h.id?P.inventory.filter(i=>i.id===h.uid).length:0):h.id+'_'+(P.skillLevels?.[h.id]||1))));
+  const sig = JSON.stringify(P.hotbar.map(h=>h.id+'_'+(P.skillLevels?.[h.id]||1)));
   if(sig === hotGen) return;
   setHotGen(sig);
   cont.innerHTML = '';
-  const keys = ['Q','W','E','R','1','2','3','4'];
+  const keys = ['Q','W','E','R','T'];
   P.hotbar.forEach((item,i)=>{
     const el = document.createElement('div');
     el.className = 'slot';
@@ -19,101 +19,222 @@ export function hotbarRender(){
       const def = SKILL_DEFS.find(s=>s.id===item.id);
       if(def){
         name = def.name;
-        meta = 'Lv.'+(P.skillLevels?.[def.id]||1)+' 灵力'+def.qiCost;
-        if(P.qi < def.qiCost) el.classList.add('no-qi');
+        meta = 'Lv.'+(P.skillLevels?.[def.id]||1)+' · 自动';
       }
-    } else if(item.kind==='consumable'){
-      const types = { heal_pill:'回血丹', qi_pill:'回灵丹', buff_pill:'爆气丹' };
-      name = types[item.id]||'空位';
-      const count = item.id ? P.inventory.filter(i=>i.id===item.uid).length : 0;
-      meta = count>0 ? 'x'+count : '';
-      if(count===0 && item.id) { item.id=null; item.uid=null; name='空位'; }
     }
     el.innerHTML = `<div class="k">${k}</div><div class="n">${name}</div><div class="m">${meta}</div>`;
-    el.onclick = ()=>{
-      if(item.kind==='skill'){ const fn = window.tryUseSkill; if(fn) fn(item.id); }
-      else if(item.kind==='consumable' && item.id){ const fn = window.useConsumable; if(fn) fn(item.idx); }
-    };
     cont.appendChild(el);
   });
 }
 
-export function renderTownPanel(){
-  const panel = document.getElementById('townPanel');
-  if(!panel) return;
-  document.getElementById('townAttrPoints').textContent = P.attrPoints || 0;
-  document.getElementById('townSkillPoints').textContent = P.skillPoints || 0;
-  document.getElementById('townGold').textContent = P.gold || 0;
-  const statDefs = [
-    ['str','筋骨','攻击 +2'],
-    ['body','体魄','生命 +12 / 防御 +0.8'],
-    ['spirit','神识','灵力 +10 / 攻击 +0.8'],
-    ['agility','身法','速度 +5']
-  ];
-  const stats = document.getElementById('townStats');
-  stats.innerHTML = '';
-  statDefs.forEach(([id,name,desc])=>{
-    const div = document.createElement('div');
-    div.className = 'eq-slot';
-    div.innerHTML = `<div class="lbl">${name}</div><div class="val">${P.attrs?.[id]||0}</div><div class="lbl">${desc}</div><button class="btn btn-sm btn-sec" onclick="assignAttr('${id}')">加点</button>`;
-    stats.appendChild(div);
-  });
-  const keys = ['Q','W','E','R'];
-  const hot = document.getElementById('townHotbar');
-  hot.innerHTML = '';
-  for(let i=0;i<4;i++){
-    const def = SKILL_DEFS.find(s=>s.id===P.hotbar[i]?.id);
-    const btn = document.createElement('span');
-    btn.className = 'btn btn-sm btn-sec';
-    btn.textContent = keys[i] + ': ' + (def ? def.name : '空');
-    hot.appendChild(btn);
-  }
-  const skills = document.getElementById('townSkills');
-  skills.innerHTML = '';
-  SKILL_DEFS.forEach(def=>{
-    const lv = P.skillLevels?.[def.id] || 1;
-    const div = document.createElement('div');
-    div.className = 'town-skill';
-    const bindBtns = def.type === 'basic'
-      ? '<span class="lbl">普通攻击</span>'
-      : keys.map((k,idx)=>`<button class="btn btn-sm btn-sec" onclick="equipSkill('${def.id}',${idx})">${k}</button>`).join('');
-    div.innerHTML = `
-      <div class="name">${def.name} Lv.${lv}</div>
-      <div class="desc">${def.desc}</div>
-      <div class="lbl">消耗 ${def.qiCost} / 伤害系数 ${def.baseDmg}</div>
-      <div class="actions">
-        <button class="btn btn-sm btn-gold" onclick="upgradeSkill('${def.id}')">升级</button>
-        ${bindBtns}
-      </div>`;
-    skills.appendChild(div);
+export function renderBagPanel(){
+  document.getElementById('bagCount').textContent = P.inventory.length+'/30';
+  const grid = document.getElementById('bagGrid');
+  grid.innerHTML = '';
+  P.inventory.forEach((item,i)=>{
+    const d = document.createElement('div');
+    d.className = 'inv-item rarity-'+(item.rarity||'common');
+    const isEq = Object.values(P.equipment).some(e=>e&&e.id===item.id);
+    let stats='';
+    if(item.stats){
+      const lb={atk:'攻',def:'防',hp:'命',speed:'速'};
+      stats = Object.entries(item.stats).map(([k,v])=>(lb[k]||k)+'+'+v).join(' ');
+    }
+    d.innerHTML = `<div class="in">${item.name}</div><div class="im">${EQ_NAMES[item.type]||item.type||'道具'}</div><div class="is">${stats}</div>`;
+    if(isEq) d.classList.add('equipped');
+    d.onclick = (e)=>{
+      e.stopPropagation();
+      if(EQ_TYPES.includes(item.type)){ bagEquip(i); }
+    };
+    d.oncontextmenu = (e)=>{ e.preventDefault(); e.stopPropagation(); bagSell(i); };
+    grid.appendChild(d);
   });
 }
 
-export function enterTown(){
-  const scene = window.scene;
-  if(scene && scene.enterTown) scene.enterTown();
-  const panel = document.getElementById('townPanel');
-  if(panel) panel.classList.remove('hidden');
-  renderTownPanel();
-}
-
-export function leaveTown(){
-  const panel = document.getElementById('townPanel');
-  if(panel) panel.classList.add('hidden');
-  const scene = window.scene;
-  if(scene && scene.leaveTown) scene.leaveTown();
-}
-
-export function assignAttr(attr){
-  if((P.attrPoints || 0) <= 0) return;
-  if(!P.attrs) P.attrs = { str:0, body:0, spirit:0, agility:0 };
-  if(!(attr in P.attrs)) return;
-  P.attrs[attr] += 1;
-  P.attrPoints -= 1;
+function bagEquip(idx){
+  const item = P.inventory[idx];
+  if(!item || !EQ_TYPES.includes(item.type)) return;
+  const current = P.equipment[item.type];
+  P.equipment[item.type] = item;
+  P.inventory.splice(idx,1);
+  if(current) P.inventory.push(current);
   window.recalcStats();
-  updateHUD();
-  renderTownPanel();
+  updateCharPanel(); updateHUD(); hotbarRender(); renderBagPanel();
   const sg = window.saveGame; if(sg) sg();
+  const ss = window.setStatus; if(ss) ss('装备 '+item.name,1.2);
+}
+
+function bagSell(idx){
+  const item = P.inventory[idx];
+  if(!item) return;
+  const sellPrice = item.stats ? Math.round(Object.values(item.stats).reduce((a,b)=>a+b,0)*2) : 3;
+  P.inventory.splice(idx,1);
+  P.gold = Math.min(99999, P.gold + sellPrice);
+  updateHUD(); renderBagPanel();
+  const sg = window.saveGame; if(sg) sg();
+  const ss = window.setStatus; if(ss) ss('出售 '+item.name+' +'+sellPrice+'灵石',1.2);
+}
+
+export function toggleBagPanel(){
+  const el = document.getElementById('bagPanel');
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')) renderBagPanel();
+}
+
+export function renderSkillPanel(){
+  document.getElementById('spSkillPoints').textContent = P.skillPoints || 0;
+  const hotbarKeys = P.hotbar.map((h,i)=>['Q','W','E','R','T'][i]+':'+(SKILL_DEFS.find(s=>s.id===h.id)?.name||'空')).join(' ');
+  document.getElementById('spHotbarKeys').textContent = '当前: '+hotbarKeys;
+  const inSafe = window.scene?.isInSafeZone?.();
+  const list = document.getElementById('skillList');
+  list.innerHTML = '';
+  const slots = ['Q','W','E','R','T'];
+  const slotLabels = ['普攻(固定)','技能2','技能3','技能4','技能5'];
+  const allSwaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
+  slots.forEach((slot,si)=>{
+    const equipped = P.hotbar[si]?.id;
+    const header = document.createElement('div');
+    header.style.cssText = 'font-size:13px;font-weight:700;color:var(--gold);margin:8px 0 4px;';
+    header.textContent = '['+slot+'] '+slotLabels[si];
+    list.appendChild(header);
+    if(si===0){
+      const def = SKILL_DEFS.find(s=>s.id==='swordfly');
+      const lv = P.skillLevels?.swordfly||1;
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      card.style.borderColor='var(--gold)';
+      card.innerHTML = `
+        <div class="sc-head"><span class="sc-name">${def.name}</span><span class="sc-lv">Lv.${lv}/20</span></div>
+        <div class="sc-desc">${def.desc} · 伤害x${def.baseDmg} · CD${def.cooldown}s · 射程${def.range}</div>
+        <div class="sc-actions">
+          <button class="btn btn-sm btn-gold" onclick="upgradeSkill('swordfly')" ${lv>=20?'disabled':''}>升级</button>
+          <span class="btn btn-sm btn-sec" style="cursor:default">固定</span>
+        </div>`;
+      list.appendChild(card);
+      return;
+    }
+    allSwaps.forEach(def=>{
+      const lv = P.skillLevels?.[def.id] || 1;
+      const active = equipped === def.id;
+      const cd = def.cooldown||0;
+      let info = def.desc;
+      if(def.baseDmg) info += ' · 伤害x'+def.baseDmg;
+      info += ' · CD'+cd+'s';
+      const card = document.createElement('div');
+      card.className = 'skill-card';
+      if(active) card.style.cssText = 'border-color:var(--gold);background:rgba(250,226,168,.15);';
+      const canEquip = inSafe || active;
+      card.innerHTML = `
+        <div class="sc-head"><span class="sc-name">${def.name}</span><span class="sc-lv">Lv.${lv}/20</span></div>
+        <div class="sc-desc">${info}</div>
+        <div class="sc-actions">
+          <button class="btn btn-sm btn-gold" onclick="upgradeSkill('${def.id}')" ${lv>=20?'disabled':''}>升级</button>
+          ${active?'<span class="btn btn-sm btn-sec" style="cursor:default">使用中</span>':`<button class="btn btn-sm btn-sec" onclick="equipSkill('${def.id}',${si})" ${!canEquip?'disabled':''}>${canEquip?'装备':'安全区外'}</button>`}
+        </div>`;
+      list.appendChild(card);
+    });
+  });
+}
+
+export function toggleSkillPanel(){
+  const el = document.getElementById('skillPanel');
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')) renderSkillPanel();
+}
+
+export function renderAchPanel(){
+  const {ACHIEVEMENTS} = window._data || {};
+  if(!ACHIEVEMENTS) return;
+  const list = document.getElementById('achList');
+  let done=0, total=ACHIEVEMENTS.length;
+  list.innerHTML = '';
+  ACHIEVEMENTS.forEach(a=>{
+    const earned = P.achievements[a.id];
+    const item = document.createElement('div');
+    item.className = 'ach-item' + (earned?' done':'');
+    const rwd = Object.entries(a.reward).map(([k,v])=>{
+      const lb = {gold:'灵石',attrPoints:'属性点',skillPoints:'技能点'};
+      return (lb[k]||k)+'+'+v;
+    }).join(' ');
+    item.innerHTML = `
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
+      <div class="ach-reward">${earned?'✅ 已达成':'🎁 '+rwd}</div>`;
+    if(earned) done++;
+    list.appendChild(item);
+  });
+  document.getElementById('achSummary').textContent = '已完成 '+done+'/'+total;
+}
+
+export function toggleAchPanel(){
+  const el = document.getElementById('achPanel');
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')) renderAchPanel();
+}
+
+export function renderShopPanel(){
+  const {SHOP_ITEMS} = window._data || {};
+  if(!SHOP_ITEMS) return;
+  document.getElementById('shopGold').textContent = P.gold;
+  const list = document.getElementById('shopList');
+  list.innerHTML = '';
+  SHOP_ITEMS.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'shop-item';
+    card.innerHTML = `
+      <div class="si-icon">${item.icon}</div>
+      <div class="si-info"><div class="si-name">${item.name}</div><div class="si-desc">${item.desc}</div></div>
+      <span class="si-cost">${item.cost}💰</span>
+      <button class="btn btn-sm btn-gold" onclick="buyShopItem('${item.id}')" ${P.gold<item.cost?'disabled':''}>购买</button>`;
+    list.appendChild(card);
+  });
+}
+
+export function toggleShopPanel(){
+  const el = document.getElementById('shopPanel');
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')) renderShopPanel();
+}
+
+export function buyShopItem(itemId){
+  const {SHOP_ITEMS} = window._data || {};
+  const item = SHOP_ITEMS?.find(s=>s.id===itemId);
+  if(!item || P.gold < item.cost || P.inventory.length>=30) return;
+  P.gold -= item.cost;
+  const ss = window.setStatus;
+  if(item.effect === 'gold_bag'){
+    P.gold = Math.min(99999, P.gold + 120);
+    if(ss) ss('获得120灵石!',1.2);
+  } else if(item.effect === 'attr_reset'){
+    let total = P.attrs.str + P.attrs.body + P.attrs.spirit + P.attrs.agility;
+    P.attrs = {str:0,body:0,spirit:0,agility:0};
+    P.attrPoints += total;
+    window.recalcStats();
+    if(ss) ss('属性点已重置!',1.2);
+  } else if(item.effect === 'skill_reset'){
+    for(const sk of SKILL_DEFS){ const lv = P.skillLevels?.[sk.id]||1; P.skillPoints += Math.max(0,lv-1); P.skillLevels[sk.id]=1; }
+    if(ss) ss('技能点已重置!',1.2);
+  } else if(item.effect?.startsWith('eq_box_')){
+    const rarity = item.effect.replace('eq_box_','');
+    if(P.inventory.length < 30){
+      const eq = (window.genEquipment||function(){})(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
+      if(eq && eq.id){ P.inventory.push(eq); if(ss) ss('获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name,2); }
+    }
+  }
+  updateHUD(); renderShopPanel(); renderBagPanel();
+  const sg = window.saveGame; if(sg) sg();
+}
+
+export function equipSkill(skillId, slotIdx){
+  const def = SKILL_DEFS.find(s=>s.id===skillId);
+  if(!def || def.id==='swordfly' || slotIdx<1 || slotIdx>4) return;
+  const scene = window.scene;
+  if(scene && !scene.isInSafeZone()){ const ss=window.setStatus; if(ss) ss('只能在安全区内切换技能',1.5); return; }
+  P.hotbar[slotIdx] = { kind:'skill', id:skillId };
+  hotbarRender();
+  renderSkillPanel();
+  const sg = window.saveGame; if(sg) sg();
+  const ss = window.setStatus; if(ss) ss('装备 '+def.name, 1);
 }
 
 export function upgradeSkill(skillId){
@@ -124,17 +245,46 @@ export function upgradeSkill(skillId){
   P.skillLevels[skillId] = lv + 1;
   P.skillPoints -= 1;
   hotbarRender();
-  renderTownPanel();
+  renderSkillPanel();
   const sg = window.saveGame; if(sg) sg();
 }
 
-export function equipSkill(skillId, slotIdx){
-  const def = SKILL_DEFS.find(s=>s.id===skillId);
-  if(!def || def.type === 'basic' || slotIdx < 0 || slotIdx > 3) return;
-  P.hotbar[slotIdx] = { kind:'skill', id:skillId };
-  hotbarRender();
-  renderTownPanel();
+export function addAttr(attr){
+  if((P.attrPoints || 0) <= 0) return;
+  if(!P.attrs) P.attrs = {str:0, body:0, spirit:0, agility:0};
+  P.attrs[attr] = (P.attrs[attr] || 0) + 1;
+  P.attrPoints -= 1;
+  window.recalcStats();
+  updateHUD();
+  updateCharPanel();
   const sg = window.saveGame; if(sg) sg();
+}
+
+export function updateHotbarCooldowns(){
+  const cont = document.getElementById('hotbar');
+  if(!cont) return;
+  const slots = cont.children;
+  const cds = window.skillCooldowns || {};
+  const scene = window.scene;
+  const now = scene?.time?.now ? scene.time.now/1000 : 0;
+  for(let i=0;i<Math.min(5,slots.length);i++){
+    const item = P.hotbar[i];
+    if(item && item.kind==='skill' && item.id){
+      const def = SKILL_DEFS.find(s=>s.id===item.id);
+      const cdEnd = cds[item.id] || 0;
+      const remain = Math.max(0, cdEnd - now);
+      const metaEl = slots[i].querySelector('.m');
+      if(metaEl){
+        if(remain > 0.05){
+          metaEl.textContent = 'CD '+remain.toFixed(1)+'s';
+          slots[i].classList.add('cd');
+        } else {
+          metaEl.textContent = 'Lv.'+(P.skillLevels?.[item.id]||1)+' · 就绪';
+          slots[i].classList.remove('cd');
+        }
+      }
+    }
+  }
 }
 
 export function updateHUD(){
@@ -155,12 +305,6 @@ export function updateHUD(){
     document.getElementById('hpText').textContent = hpR+'/'+mhpR;
     document.getElementById('hpFill').style.width = (P.hp/P.maxHp*100)+'%';
     hudCache.hp = hpR; hudCache.maxHp = mhpR;
-  }
-  const qiR = Math.round(P.qi), mqiR = Math.round(P.maxQi);
-  if(hudCache.qi !== qiR || hudCache.maxQi !== mqiR){
-    document.getElementById('qiText').textContent = qiR+'/'+mqiR;
-    document.getElementById('qiFill').style.width = (P.qi/P.maxQi*100)+'%';
-    hudCache.qi = qiR; hudCache.maxQi = mqiR;
   }
   if(hudCache.xp !== P.xp || hudCache.xpNext !== P.xpToNext){
     document.getElementById('xpText').textContent = P.xp+'/'+P.xpToNext;
@@ -190,14 +334,20 @@ export function updateCharPanel(){
   document.getElementById('cpAtk').textContent = Math.round(P.atk);
   document.getElementById('cpDef').textContent = Math.round(P.def);
   document.getElementById('cpHP').textContent = Math.round(P.hp)+'/'+Math.round(P.maxHp);
-  document.getElementById('cpQi').textContent = Math.round(P.qi)+'/'+Math.round(P.maxQi);
+  document.getElementById('cpSpeed').textContent = Math.round(P.speed);
+  document.getElementById('cpAttrPoints').textContent = P.attrPoints || 0;
+  document.getElementById('cpSkillPoints').textContent = P.skillPoints || 0;
+  document.getElementById('attr-str').textContent = P.attrs?.str || 0;
+  document.getElementById('attr-body').textContent = P.attrs?.body || 0;
+  document.getElementById('attr-spirit').textContent = P.attrs?.spirit || 0;
+  document.getElementById('attr-agility').textContent = P.attrs?.agility || 0;
   for(const slot of EQ_TYPES){
     const eq = P.equipment[slot];
     const el = document.getElementById('eq-'+slot);
     if(eq){
       const rc = RARITY_COLORS[eq.rarity]||'#aab';
       const statsStr = Object.entries(eq.stats).map(([k,v])=>{
-        const labels = {atk:'攻击',def:'防御',hp:'生命',qi:'灵力',speed:'速度'};
+        const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
         return (labels[k]||k)+'+'+v;
       }).join(' ');
       el.innerHTML = `<span style="color:${rc}">${RARITY_LABEL[eq.rarity]||''} ${eq.name}</span><br><span style="font-size:11px;color:var(--text-dim)">${statsStr}</span>`;
@@ -206,41 +356,17 @@ export function updateCharPanel(){
       el.textContent = '空'; el.className = 'val empty';
     }
   }
-  const inv = document.getElementById('invGrid');
-  inv.innerHTML = '';
-  document.getElementById('invCount').textContent = P.inventory.length;
-  P.inventory.forEach((item,i)=>{
-    const d = document.createElement('div');
-    d.className = 'inv-item rarity-'+(item.rarity||'common');
-    const isEq = Object.values(P.equipment).some(e=>e&&e.id===item.id);
-    d.innerHTML = `<div class="in">${item.name}</div><div class="im">${EQ_NAMES[item.type]||item.type}</div>`;
-    if(isEq) d.classList.add('equipped');
-    d.onclick = (e)=>{ e.stopPropagation(); invItemClick(i); };
-    inv.appendChild(d);
-  });
-}
-
-export function invItemClick(idx){
-  const item = P.inventory[idx];
-  if(!item) return;
-  if(EQ_TYPES.includes(item.type)){
-    const current = P.equipment[item.type];
-    P.equipment[item.type] = item;
-    P.inventory.splice(idx,1);
-    if(current) P.inventory.push(current);
-    window.recalcStats();
-    updateCharPanel(); updateHUD(); hotbarRender();
-    const sg = window.saveGame; if(sg) sg();
-    const ss = window.setStatus; if(ss) ss('装备 '+item.name,1.2);
-  }
 }
 
 window.toggleCharPanel = toggleCharPanel;
 window.updateHUD = updateHUD;
 window.hotbarRender = hotbarRender;
-window.renderTownPanel = renderTownPanel;
-window.enterTown = enterTown;
-window.leaveTown = leaveTown;
-window.assignAttr = assignAttr;
+window.toggleBagPanel = toggleBagPanel;
+window.toggleSkillPanel = toggleSkillPanel;
+window.toggleAchPanel = toggleAchPanel;
+window.toggleShopPanel = toggleShopPanel;
+window.buyShopItem = buyShopItem;
 window.upgradeSkill = upgradeSkill;
 window.equipSkill = equipSkill;
+window.addAttr = addAttr;
+window.updateHotbarCooldowns = updateHotbarCooldowns;

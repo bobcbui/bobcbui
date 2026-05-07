@@ -1,7 +1,7 @@
-import { REALMS, SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex } from './data.js';
+import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex } from './data.js';
 
 export const P = {
-  hp:100, maxHp:100, qi:50, maxQi:50,
+  hp:100, maxHp:100,
   atk:10, def:5, speed:180,
   realm:'mortal', stage:1,
   level:1, xp:0, xpToNext:10,
@@ -13,17 +13,17 @@ export const P = {
   hotbar:[],
   equipment:{},
   inventory:[],
-  buffTimer:0, buff:{ speedBoost:0, shieldPct:0 },
-  totalPlayTime:0
+  buffTimer:0, buff:{ speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0 },
+  totalPlayTime:0,
+  totalGoldEarned:0, legendaryFound:false, maxWave:0,
+  achievements:{}
 };
 
 export let waveNum = 0;
 export let waveTimer = 0;
 export let wavePending = false;
 export let waveDelay = 8;
-export let statusMsg = '';
 export let statusTimer = 0;
-export let lootMsg = '';
 export let lootTimer = 0;
 export let isCultivating = false;
 export let cultProgress = 0;
@@ -31,7 +31,7 @@ export let breakPending = false;
 export let autoSaveTimer = 0;
 
 export let hotGen = -1;
-export const hudCache = { realm:'',level:-1,hp:-1,maxHp:-1,qi:-1,maxQi:-1,xp:-1,xpNext:-1,gold:-1,kills:-1 };
+export const hudCache = { realm:'',level:-1,hp:-1,maxHp:-1,xp:-1,xpNext:-1,gold:-1,kills:-1 };
 
 export function setWaveNum(v){ waveNum = v; }
 export function setWaveTimer(v){ waveTimer = v; }
@@ -48,14 +48,12 @@ export function recalcStats(){
   const r = getRealm(P.realm);
   const stageMult = (P.stage-1) / (r.stages-1 || 1);
   P.maxHp = 100 + r.hpBonus * (1 + stageMult * 0.5);
-  P.maxQi = 50 + r.qiBonus * (1 + stageMult * 0.5);
   P.atk = 10 + r.atkBonus * (1 + stageMult * 0.5);
   P.def = 5 + r.defBonus * (1 + stageMult * 0.5);
   P.speed = 180 + (getRealmIndex(P.realm) * 10);
   P.atk += (P.attrs?.str || 0) * 2;
   P.maxHp += (P.attrs?.body || 0) * 12;
   P.def += (P.attrs?.body || 0) * 0.8;
-  P.maxQi += (P.attrs?.spirit || 0) * 10;
   P.atk += (P.attrs?.spirit || 0) * 0.8;
   P.speed += (P.attrs?.agility || 0) * 5;
   for(const slot of EQ_TYPES){
@@ -64,11 +62,9 @@ export function recalcStats(){
     if(eq.stats.atk) P.atk += eq.stats.atk;
     if(eq.stats.def) P.def += eq.stats.def;
     if(eq.stats.hp) P.maxHp += eq.stats.hp;
-    if(eq.stats.qi) P.maxQi += eq.stats.qi;
     if(eq.stats.speed) P.speed += eq.stats.speed;
   }
   P.hp = Math.min(P.hp, P.maxHp);
-  P.qi = Math.min(P.qi, P.maxQi);
 }
 
 export function realmText(){
@@ -89,20 +85,19 @@ export function refreshSkills(){
 }
 
 export function initHotbar(){
-  const keyOrder = ['Q','W','E','R'];
   P.hotbar = [];
+  const current = P.hotbar?.[0];
+  P.hotbar.push({ kind:'skill', id:'swordfly' });
+  const swaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
+  const slotKeys = ['W','E','R','T'];
   for(let i=0;i<4;i++){
-    const key = keyOrder[i];
-    const candidates = SKILL_DEFS.filter(s=>s.key===key && P.skills.includes(s.id));
-    if(candidates.length>0){
-      const best = candidates[candidates.length-1];
-      P.hotbar.push({ kind:'skill', id:best.id });
+    const existing = P.hotbar?.[i+1];
+    if(existing && existing.id && swaps.some(s=>s.id===existing.id)){
+      P.hotbar.push(existing);
     } else {
-      P.hotbar.push({ kind:'skill', id:null });
+      const defaults = ['fireball','earthshield','speedbuff','waterdomain'];
+      P.hotbar.push({ kind:'skill', id:defaults[i]||swaps[i]?.id||null });
     }
-  }
-  for(let i=0;i<4;i++){
-    P.hotbar.push({ kind:'consumable', idx:i });
   }
 }
 
@@ -113,3 +108,24 @@ window.realmText = realmText;
 window.recalcStats = recalcStats;
 window.refreshSkills = refreshSkills;
 window.initHotbar = initHotbar;
+
+export function checkAchievements(){
+  const {ACHIEVEMENTS} = window._data || {};
+  if(!ACHIEVEMENTS) return;
+  let changed = false;
+  for(const a of ACHIEVEMENTS){
+    if(P.achievements[a.id]) continue;
+    if(a.check(P)){
+      P.achievements[a.id] = true;
+      changed = true;
+      if(a.reward.gold){ P.gold = Math.min(99999, P.gold + a.reward.gold); P.totalGoldEarned = (P.totalGoldEarned||0) + a.reward.gold; }
+      if(a.reward.attrPoints) P.attrPoints = (P.attrPoints||0) + a.reward.attrPoints;
+      if(a.reward.skillPoints) P.skillPoints = (P.skillPoints||0) + a.reward.skillPoints;
+      const ss = window.setStatus; if(ss) ss('🏅 成就达成: '+a.name, 3);
+      const sg = window.saveGame; if(sg) sg();
+    }
+  }
+  if(changed){ const h=window.updateHUD; if(h)h(); }
+}
+
+window.checkAchievements = checkAchievements;
