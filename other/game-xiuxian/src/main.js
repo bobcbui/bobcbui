@@ -26,7 +26,7 @@ window.addEventListener('load', ()=>{
     canvas,
     width: window.innerWidth,
     height: window.innerHeight,
-    backgroundColor: '#0a1320',
+    backgroundColor: '#efe3c0',
     physics: { default:'arcade', arcade:{ gravity:{x:0,y:0}, debug:false } },
     scene: [MainScene],
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: window.innerWidth, height: window.innerHeight }
@@ -42,6 +42,7 @@ window.addEventListener('load', ()=>{
     <button class="btn btn-sm btn-sec" onclick="craftPill('buff_pill')">炼爆气丹(12💰)</button>
     <button class="btn btn-sm btn-gold" onclick="toggleCharPanel()">角色B</button>
     <button class="btn btn-sm btn-sec" onclick="tryBreakthrough()">突破C</button>
+    <button class="btn btn-sm btn-sec" onclick="enterTown()">退出游戏/主城</button>
     <button class="btn btn-sm btn-sec" onclick="saveGame()">存档</button>
   `;
   ui.appendChild(alchemyBar);

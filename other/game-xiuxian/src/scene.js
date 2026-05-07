@@ -20,6 +20,10 @@ export class MainScene extends Phaser.Scene {
     g.generateTexture('fireball',14,14); g.clear();
     g.fillStyle(0x99ddff,1); g.fillRect(0,3,22,4); g.fillStyle(0xccffff,0.5); g.fillRect(0,2,22,6);
     g.generateTexture('swordQi',22,10); g.clear();
+    g.fillStyle(0x5aa6b1,0.75); g.fillCircle(12,12,10); g.fillStyle(0xd8f2ef,0.5); g.fillCircle(12,12,14);
+    g.generateTexture('water',28,28); g.clear();
+    g.fillStyle(0x9fb884,0.75); g.fillCircle(12,12,10); g.fillStyle(0xf5f0d8,0.55); g.fillCircle(12,12,15);
+    g.generateTexture('wind',30,30); g.clear();
     g.fillStyle(0xffee88,1); g.fillRect(1,0,5,20); g.fillStyle(0xffffcc,0.5); g.fillRect(0,0,7,20);
     g.generateTexture('bolt',7,20); g.clear();
     g.fillStyle(0x65c8ff,1); g.fillCircle(5,5,4); g.generateTexture('loot',10,10); g.clear();
@@ -28,6 +32,8 @@ export class MainScene extends Phaser.Scene {
   create(){
     window.scene = this;
     this.worldSize = 3500;
+    this.safeZoneRadius = 360;
+    this.inTown = false;
     this.physics.world.setBounds(0,0,this.worldSize,this.worldSize);
     this.ground = this.add.graphics();
     this.drawGround();
@@ -49,6 +55,7 @@ export class MainScene extends Phaser.Scene {
     this.isMoving = false;
     this.moveTarget = new Phaser.Math.Vector2(this.worldSize/2, this.worldSize/2);
     this.input.on('pointerdown', (ptr)=>{
+      if(this.inTown) return;
       if(ptr.event.button===0){ this.isMoving=true; this.moveTarget.set(ptr.worldX,ptr.worldY); }
       else if(ptr.event.button===2){ this.placeMarker(ptr.worldX,ptr.worldY); }
     });
@@ -88,22 +95,24 @@ export class MainScene extends Phaser.Scene {
   drawGround(){
     const g = this.ground; g.clear();
     const s = this.worldSize;
-    g.fillStyle(0x1a2a1a,1); g.fillRect(0,0,s,s);
+    g.fillStyle(0xefe3c0,1); g.fillRect(0,0,s,s);
     for(const zone of ZONES){
       for(let x=0;x<s;x+=50){
         for(let y=0;y<s;y+=50){
           const cx=x+25,cy=y+25;
           const dist=Math.sqrt((cx-s/2)*(cx-s/2)+(cy-s/2)*(cy-s/2));
           if(dist>=zone.minDist&&dist<zone.maxDist){
-            g.fillStyle(zone.color,0.15+Math.random()*0.1);
+            g.fillStyle(zone.color,0.18+Math.random()*0.08);
             g.fillRect(x-1,y-1,52,52);
           }
         }
       }
     }
-    g.fillStyle(0x446644,0.3); g.fillCircle(s/2,s/2,100);
-    g.lineStyle(1,0x88aa88,0.2); g.strokeCircle(s/2,s/2,60);
-    g.lineStyle(2,0x335533,0.15);
+    g.fillStyle(0xd8c48e,0.22); g.fillCircle(s/2,s/2,100);
+    g.fillStyle(0xf7edc8,0.9); g.fillCircle(s/2,s/2,this.safeZoneRadius);
+    g.lineStyle(3,0xb57a19,0.38); g.strokeCircle(s/2,s/2,this.safeZoneRadius);
+    g.lineStyle(1,0x8aa678,0.22); g.strokeCircle(s/2,s/2,60);
+    g.lineStyle(2,0xb99a59,0.18);
     for(let r=500;r<2000;r+=300) g.strokeCircle(s/2,s/2,r);
   }
 
@@ -113,6 +122,41 @@ export class MainScene extends Phaser.Scene {
     const dist=Math.sqrt((cx-s)*(cx-s)+(cy-s)*(cy-s));
     for(const zone of ZONES){ if(dist>=zone.minDist&&dist<zone.maxDist) return zone; }
     return ZONES[ZONES.length-1];
+  }
+
+  isInSafeZone(x=this.player?.x, y=this.player?.y){
+    if(x == null || y == null) return false;
+    const c=this.worldSize/2;
+    const dx=x-c, dy=y-c;
+    return dx*dx+dy*dy <= this.safeZoneRadius*this.safeZoneRadius;
+  }
+
+  clearEnemies(){
+    this.enemies.children.iterate((en)=>{
+      if(!en) return;
+      const lbl=en.getData && en.getData('label');
+      if(lbl) lbl.destroy();
+      en.destroy();
+    });
+    this.projectiles.children.iterate((p)=>{ if(p) p.destroy(); });
+    this.hpBarGfx.clear();
+  }
+
+  enterTown(){
+    this.inTown = true;
+    this.isMoving = false;
+    this.player.setVelocity(0,0);
+    this.player.setPosition(this.worldSize/2,this.worldSize/2);
+    this.moveTarget.set(this.player.x,this.player.y);
+    this.clearEnemies();
+    const ss=window.setStatus;if(ss)ss('已回到主城',1.2);
+  }
+
+  leaveTown(){
+    this.inTown = false;
+    this.player.setPosition(this.worldSize/2,this.worldSize/2);
+    this.moveTarget.set(this.player.x,this.player.y);
+    const ss=window.setStatus;if(ss)ss('已进入安全区',1.2);
   }
 
   updateZoneLabel(){
@@ -128,6 +172,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   spawnEnemy(){
+    if(this.inTown || this.isInSafeZone()) return null;
     const zone=this.getCurrentZone();
     const list=BESTIARY[zone.id]||BESTIARY.village;
     const tmpl=list[Math.floor(Math.random()*list.length)];
@@ -135,6 +180,12 @@ export class MainScene extends Phaser.Scene {
     let y=this.player.y+Phaser.Math.Between(-400,400);
     x=Phaser.Math.Clamp(x,30,this.worldSize-30);
     y=Phaser.Math.Clamp(y,30,this.worldSize-30);
+    if(this.isInSafeZone(x,y)){
+      const angle=Phaser.Math.Angle.Between(this.worldSize/2,this.worldSize/2,this.player.x,this.player.y) + Phaser.Math.FloatBetween(-0.9,0.9);
+      const dist=this.safeZoneRadius+Phaser.Math.Between(120,420);
+      x=Phaser.Math.Clamp(this.worldSize/2+Math.cos(angle)*dist,30,this.worldSize-30);
+      y=Phaser.Math.Clamp(this.worldSize/2+Math.sin(angle)*dist,30,this.worldSize-30);
+    }
     const isElite=Math.random()<0.08;
     const isBoss=Math.random()<0.01&&zone.monsterLv>=3;
     const texture=isBoss?'boss':(isElite?'elite':'beast');
@@ -154,8 +205,8 @@ export class MainScene extends Phaser.Scene {
     en.setData('name',enName); en.setData('dead',false);
     const lbl=this.add.text(x,y-16,enName,{
       fontSize:'11px',fontFamily:'"Segoe UI","Microsoft YaHei",sans-serif',
-      color:isBoss?'#ffd866':(isElite?'#65c8ff':'#99aabb'),
-      stroke:'#000',strokeThickness:2
+      color:isBoss?'#a86f18':(isElite?'#2f8f88':'#5d6f54'),
+      stroke:'#fff4cf',strokeThickness:2
     }).setOrigin(0.5).setDepth(15);
     en.setData('label',lbl);
     en.setData('barW',isBoss?32:24);
@@ -178,7 +229,7 @@ export class MainScene extends Phaser.Scene {
     this.time.delayedCall(60,()=>{if(en.active)en.clearTint();});
     const dtxt=this.add.text(en.x+Phaser.Math.Between(-8,8),en.y-10,'-'+dmg,{
       fontSize:'13px',fontFamily:'"Segoe UI","Microsoft YaHei",sans-serif',
-      color:'#ff8866',fontStyle:'bold',stroke:'#000',strokeThickness:2
+      color:'#b94a3e',fontStyle:'bold',stroke:'#fff4cf',strokeThickness:2
     }).setDepth(20).setOrigin(0.5);
     this.tweens.add({targets:dtxt,y:dtxt.y-35,alpha:0,duration:700,onComplete:()=>dtxt.destroy()});
     if(hp<=0){
@@ -194,6 +245,8 @@ export class MainScene extends Phaser.Scene {
       P.xp+=xp;P.gold+=gold;P.kills++;
       while(P.xp>=P.xpToNext){
         P.xp-=P.xpToNext;P.level+=1;
+        P.attrPoints=(P.attrPoints||0)+3;
+        P.skillPoints=(P.skillPoints||0)+1;
         P.xpToNext=Math.round(10*Math.pow(1.15,P.level-1));
         recalcStats();
         const ss=window.setStatus;if(ss)ss('🎉 升级！当前Lv.'+P.level,2);
@@ -285,14 +338,14 @@ export class MainScene extends Phaser.Scene {
   }
 
   shootProjectile(skillId,angle,dmg,range){
-    const tex={'fireball':'fireball','swordfly':'swordQi','divinestrike':'swordQi','spaceslash':'swordQi'}[skillId]||'arrow';
+    const tex={'fireball':'fireball','swordfly':'swordQi','thunder':'bolt','waterdomain':'water','tornado':'wind'}[skillId]||'arrow';
     const proj=this.projectiles.create(this.player.x,this.player.y,tex);
     if(!proj)return;
     proj.setDepth(8);
     if(proj.body)proj.body.allowGravity=false;
-    this.physics.velocityFromRotation(angle,skillId==='spaceslash'?700:450,proj.body.velocity);
+    this.physics.velocityFromRotation(angle,skillId==='swordfly'?560:450,proj.body.velocity);
     proj.rotation=angle;
-    const isPierce=['swordfly','divinestrike','spaceslash'].includes(skillId);
+    const isPierce=skillId==='swordfly';
     proj.setData('damage',dmg);proj.setData('pierce',isPierce);
     this.time.delayedCall(isPierce?1500:1200,()=>{if(proj.active)proj.destroy();});
   }
@@ -308,6 +361,38 @@ export class MainScene extends Phaser.Scene {
       if(!en||en.getData('dead'))return;
       const dx=en.x-tx,dy=en.y-ty;
       if(dx*dx+dy*dy<=radius*radius)this.damageEnemy(en,dmg);
+    });
+  }
+
+  doWaterDomain(tx,ty,dmg,radius,color){
+    const circle=this.add.circle(tx,ty,radius,color||0x5aa6b1,0.18).setDepth(7);
+    const ring=this.add.circle(tx,ty,radius,color||0x5aa6b1,0).setStrokeStyle(2,0xd8f2ef,0.55).setDepth(8);
+    this.tweens.add({targets:[circle,ring],alpha:0,scale:1.18,duration:700,onComplete:()=>{circle.destroy();ring.destroy();}});
+    this.enemies.children.iterate((en)=>{
+      if(!en||en.getData('dead'))return;
+      const dx=en.x-tx,dy=en.y-ty;
+      if(dx*dx+dy*dy<=radius*radius){
+        this.damageEnemy(en,dmg);
+        en.setData('slowTimer',2.5);
+      }
+    });
+  }
+
+  doTornadoSkill(tx,ty,dmg,radius,color){
+    const circle=this.add.circle(tx,ty,radius,color||0x9fb884,0.16).setDepth(7);
+    this.tweens.add({targets:circle,alpha:0,scale:1.35,duration:650,onComplete:()=>circle.destroy()});
+    this.enemies.children.iterate((en)=>{
+      if(!en||en.getData('dead'))return;
+      const dx=en.x-tx,dy=en.y-ty;
+      if(dx*dx+dy*dy<=radius*radius){
+        this.damageEnemy(en,dmg);
+        const pull=new Phaser.Math.Vector2(tx-en.x,ty-en.y);
+        if(pull.length()>1){
+          pull.normalize().scale(90);
+          en.x += pull.x*0.18;
+          en.y += pull.y*0.18;
+        }
+      }
     });
   }
 
@@ -347,6 +432,20 @@ export class MainScene extends Phaser.Scene {
 
   update(time,delta){
     const dt=delta/1000;
+    if(this.inTown){
+      this.player.setVelocity(0,0);
+      return;
+    }
+    if(this.isInSafeZone()){
+      if(this.enemies.countActive(true)>0) this.clearEnemies();
+      if(!this.wasInSafeZone){
+        this.wasInSafeZone=true;
+        const ss=window.setStatus;if(ss)ss('已进入安全区',1.2);
+      }
+    }else if(this.wasInSafeZone){
+      this.wasInSafeZone=false;
+      const ss=window.setStatus;if(ss)ss('已离开安全区',1.2);
+    }
     P.totalPlayTime+=dt;
     if(this.isMoving&&!this.playerDead){
       const dir=new Phaser.Math.Vector2(this.moveTarget.x-this.player.x,this.moveTarget.y-this.player.y);
@@ -378,7 +477,7 @@ export class MainScene extends Phaser.Scene {
       }
     }
     if(P.buffTimer>0){P.buffTimer-=dt;if(P.buffTimer<=0){P.buff.speedBoost=0;P.buff.shieldPct=0;}}
-    if(!this.playerDead){
+    if(!this.playerDead && !this.isInSafeZone()){
       const atkInterval=Math.max(0.3,0.8-P.level*0.005);
       if(time-this.lastAutoAtk>atkInterval*1000){
         this.lastAutoAtk=time;
@@ -391,20 +490,10 @@ export class MainScene extends Phaser.Scene {
         });
         if(target){
           const angle=Phaser.Math.Angle.Between(this.player.x,this.player.y,target.x,target.y);
-          const autoSkillId=(P.hotbar[0]&&P.hotbar[0].kind==='skill')?P.hotbar[0].id:null;
-          const autoDef=autoSkillId?SKILL_DEFS.find(s=>s.id===autoSkillId):null;
-          if(autoDef&&autoDef.type!=='buff'){
-            const dmg=Math.round((P.atk+P.level*0.5)*autoDef.baseDmg*0.5);
-            if(P.qi>=autoDef.qiCost*0.3){
-              P.qi=Math.max(0,P.qi-Math.round(autoDef.qiCost*0.3));
-              if(autoDef.type==='single'||autoDef.type==='pierce') this.shootProjectile(autoDef.id,angle,dmg,autoDef.range);
-              else if(autoDef.type==='aoe') this.doAoeSkill(target.x,target.y,dmg,autoDef.aoeRadius||120,autoDef.color,autoDef.texture);
-              else if(autoDef.type==='multi') this.doMultiProjectile(angle,dmg,Math.min(autoDef.count||5,3),autoDef.range,autoDef.texture);
-            }
-          } else {
-            const dmg=Math.round(P.atk*(0.5+Math.random()*0.3));
-            this.shootProjectile('fireball',angle,dmg,220);
-          }
+          const autoDef=SKILL_DEFS.find(s=>s.id==='swordfly');
+          const lv=P.skillLevels?.swordfly||1;
+          const dmg=Math.round((P.atk+P.level*0.5)*(autoDef?.baseDmg||1)*(0.72+lv*0.06));
+          this.shootProjectile('swordfly',angle,dmg,autoDef?.range||230);
         }
       }
     }
@@ -413,13 +502,19 @@ export class MainScene extends Phaser.Scene {
     this.hpBarGfx.clear();
     this.enemies.children.iterate((en)=>{
       if(!en||en.getData('dead'))return;
-      this.physics.moveToObject(en,this.player,en.getData('speed')||30);
+      let speed=en.getData('speed')||30;
+      const slowTimer=en.getData('slowTimer')||0;
+      if(slowTimer>0){
+        speed*=0.45;
+        en.setData('slowTimer',Math.max(0,slowTimer-dt));
+      }
+      this.physics.moveToObject(en,this.player,speed);
       const lbl=en.getData('label');if(lbl)lbl.setPosition(en.x,en.y-16);
       const bw=en.getData('barW')||24, bh=3;
       const yPos=en.y-24;
       const cur=en.getData('hp')||0,full=en.getData('maxHp')||1;
       const pct=Math.max(0,Math.min(1,cur/full));
-      this.hpBarGfx.fillStyle(0x333344,0.7);
+      this.hpBarGfx.fillStyle(0x8b7752,0.35);
       this.hpBarGfx.fillRect(en.x-bw/2,yPos,bw,bh);
       this.hpBarGfx.fillStyle(pct>0.6?0x6de27a:pct>0.3?0xffd866:0xff6a5f,1);
       this.hpBarGfx.fillRect(en.x-bw/2,yPos,Math.max(0,bw*pct),bh);
@@ -433,7 +528,7 @@ export class MainScene extends Phaser.Scene {
       }else this.playerAura.setPosition(this.player.x,this.player.y);
     }
     const alive=this.enemies.countActive(true);
-    if(alive===0){
+    if(!this.isInSafeZone() && alive===0){
       if(!wavePending){setWavePending(true);setWaveTimer(0);const ss=window.setStatus;if(ss)ss('区域已清，休整中...',1.5);}
       else{
         let wt=waveTimer+dt;
@@ -456,7 +551,7 @@ export class MainScene extends Phaser.Scene {
         setWaveTimer(wt);
       }
     } else if(wavePending){setWavePending(false);setWaveTimer(0);}
-    if(this.enemies.countActive(true)<4&&Math.random()<0.02)this.spawnEnemy();
+    if(!this.isInSafeZone()&&this.enemies.countActive(true)<4&&Math.random()<0.02)this.spawnEnemy();
     let st=statusTimer;
     if(st>0){st-=dt;if(st<=0){const el=document.getElementById('status');if(el)el.classList.remove('show');}}
     setStatusTimer(st);

@@ -6,6 +6,9 @@ export const P = {
   realm:'mortal', stage:1,
   level:1, xp:0, xpToNext:10,
   gold:0, kills:0,
+  attrPoints:0, skillPoints:0,
+  attrs:{ str:0, body:0, spirit:0, agility:0 },
+  skillLevels:{ swordfly:1, fireball:1, thunder:1, waterdomain:1, tornado:1 },
   skills:[],
   hotbar:[],
   equipment:{},
@@ -49,6 +52,12 @@ export function recalcStats(){
   P.atk = 10 + r.atkBonus * (1 + stageMult * 0.5);
   P.def = 5 + r.defBonus * (1 + stageMult * 0.5);
   P.speed = 180 + (getRealmIndex(P.realm) * 10);
+  P.atk += (P.attrs?.str || 0) * 2;
+  P.maxHp += (P.attrs?.body || 0) * 12;
+  P.def += (P.attrs?.body || 0) * 0.8;
+  P.maxQi += (P.attrs?.spirit || 0) * 10;
+  P.atk += (P.attrs?.spirit || 0) * 0.8;
+  P.speed += (P.attrs?.agility || 0) * 5;
   for(const slot of EQ_TYPES){
     const eq = P.equipment[slot];
     if(!eq) continue;
@@ -71,16 +80,12 @@ export function realmText(){
 }
 
 export function refreshSkills(){
-  const idx = getRealmIndex(P.realm);
+  if(!P.skillLevels) P.skillLevels = {};
   P.skills = [];
   for(const sk of SKILL_DEFS){
-    const reqIdx = getRealmIndex(sk.realmReq);
-    if(reqIdx < idx || (reqIdx === idx && sk.stageReq <= P.stage)){
-      if(P.realm==='mortal' && sk.realmReq!=='mortal') continue;
-      P.skills.push(sk.id);
-    }
+    if(!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
+    P.skills.push(sk.id);
   }
-  if(P.skills.length===0 && P.realm==='mortal') P.skills.push('fireball');
 }
 
 export function initHotbar(){

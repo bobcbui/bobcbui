@@ -13,18 +13,11 @@ export function getRealm(rId){ return REALMS.find(r=>r.id===rId)||REALMS[0]; }
 export function getRealmIndex(rId){ return REALMS.findIndex(r=>r.id===rId); }
 
 export const SKILL_DEFS = [
-  { id:'fireball',name:'火球术',key:'Q',qiCost:8,baseDmg:1.8,range:220,desc:'单体火球',realmReq:'liangi',stageReq:1,type:'single',color:0xff6633,texture:'fireball' },
-  { id:'windstep',name:'御风术',key:'W',qiCost:15,baseDmg:0,range:0,desc:'移速+80% 4秒',realmReq:'liangi',stageReq:3,type:'buff',duration:4,speedBoost:0.8,color:0x66ffcc },
-  { id:'swordfly',name:'飞剑术',key:'E',qiCost:14,baseDmg:2.2,range:250,desc:'穿透飞剑',realmReq:'zhuji',stageReq:1,type:'pierce',color:0x88ccff,texture:'swordQi' },
-  { id:'lightning',name:'雷符',key:'R',qiCost:20,baseDmg:2.8,range:130,desc:'范围雷击',realmReq:'zhuji',stageReq:4,type:'aoe',aoeRadius:130,color:0xffee44,texture:'bolt' },
-  { id:'myriads',name:'万剑诀',key:'Q',qiCost:28,baseDmg:3.0,range:280,desc:'多目标剑雨',realmReq:'jindan',stageReq:1,type:'multi',count:6,color:0xaaccff,texture:'swordQi' },
-  { id:'goldshield',name:'金丹护体',key:'W',qiCost:25,baseDmg:0,range:0,desc:'减伤60% 5秒',realmReq:'jindan',stageReq:4,type:'shield',duration:5,color:0xffd700 },
-  { id:'heaventhunder',name:'天雷引',key:'R',qiCost:35,baseDmg:4.0,range:160,desc:'强力天雷',realmReq:'yuanying',stageReq:1,type:'aoe',aoeRadius:160,color:0xffffff,texture:'bolt' },
-  { id:'voidstep',name:'虚空步',key:'E',qiCost:30,baseDmg:0,range:0,desc:'移速+120% 4秒',realmReq:'yuanying',stageReq:5,type:'buff',duration:4,speedBoost:1.2,color:0xcc66ff },
-  { id:'skyfire',name:'焚天火',key:'Q',qiCost:45,baseDmg:5.5,range:200,desc:'大范围烈焰',realmReq:'huashen',stageReq:1,type:'aoe',aoeRadius:200,color:0xff3300,texture:'fireball' },
-  { id:'divinestrike',name:'神念冲击',key:'W',qiCost:50,baseDmg:6.0,range:300,desc:'直线灭杀',realmReq:'huashen',stageReq:6,type:'pierce',color:0xff88ff,texture:'swordQi' },
-  { id:'zixiao',name:'紫霄神雷',key:'R',qiCost:60,baseDmg:8.0,range:220,desc:'九天神雷',realmReq:'dacheng',stageReq:1,type:'aoe',aoeRadius:220,color:0xaa44ff,texture:'bolt' },
-  { id:'spaceslash',name:'空间斩',key:'E',qiCost:55,baseDmg:9.0,range:350,desc:'无视距离斩击',realmReq:'dacheng',stageReq:7,type:'single',color:0x44aaff,texture:'swordQi' },
+  { id:'swordfly',name:'飞剑术',key:'AUTO',qiCost:0,baseDmg:1.0,range:230,desc:'普通攻击，自动释放飞剑',realmReq:'mortal',stageReq:1,type:'basic',color:0x6f9eb8,texture:'swordQi' },
+  { id:'fireball',name:'火球术',key:'Q',qiCost:8,baseDmg:1.8,range:240,desc:'单体火球',realmReq:'mortal',stageReq:1,type:'single',color:0xc95f36,texture:'fireball' },
+  { id:'thunder',name:'雷法',key:'W',qiCost:16,baseDmg:2.4,range:180,desc:'范围雷击',realmReq:'mortal',stageReq:1,type:'aoe',aoeRadius:130,color:0xd6a742,texture:'bolt' },
+  { id:'waterdomain',name:'水域术',key:'E',qiCost:18,baseDmg:1.2,range:170,desc:'水域伤害并迟缓敌人',realmReq:'mortal',stageReq:1,type:'water',aoeRadius:150,color:0x5aa6b1,texture:'water' },
+  { id:'tornado',name:'龙卷风',key:'R',qiCost:22,baseDmg:1.7,range:190,desc:'风卷范围敌人',realmReq:'mortal',stageReq:1,type:'tornado',aoeRadius:165,color:0x9fb884,texture:'wind' },
 ];
 
 export const EQ_TYPES = ['weapon','helmet','armor','boots','ring','amulet'];
@@ -43,11 +36,11 @@ export const EQ_BASES = {
 };
 
 export const ZONES = [
-  { id:'village',name:'灵溪村',color:0x3a6b35,minDist:0,maxDist:500,monsterLv:1,colorName:'#4a8b45' },
-  { id:'mountains',name:'落霞山脉',color:0x8b6b3a,minDist:500,maxDist:1100,monsterLv:3,colorName:'#ab7b3a' },
-  { id:'forest',name:'幽暗密林',color:0x2a4a2a,minDist:1100,maxDist:1700,monsterLv:6,colorName:'#1a3a1a' },
-  { id:'ice',name:'寒冰极域',color:0x3a6b8b,minDist:1700,maxDist:2300,monsterLv:10,colorName:'#4a8bab' },
-  { id:'inferno',name:'烈焰炼狱',color:0x6b2a1a,minDist:2300,maxDist:3500,monsterLv:15,colorName:'#8b2a1a' }
+  { id:'village',name:'灵溪村',color:0x9fbe82,minDist:0,maxDist:500,monsterLv:1,colorName:'#4f7d3f' },
+  { id:'mountains',name:'落霞山脉',color:0xd1b06c,minDist:500,maxDist:1100,monsterLv:3,colorName:'#8a6329' },
+  { id:'forest',name:'幽暗密林',color:0x7aa879,minDist:1100,maxDist:1700,monsterLv:6,colorName:'#3f7041' },
+  { id:'ice',name:'寒冰极域',color:0x9cc9cf,minDist:1700,maxDist:2300,monsterLv:10,colorName:'#3f7e86' },
+  { id:'inferno',name:'烈焰炼狱',color:0xc98263,minDist:2300,maxDist:3500,monsterLv:15,colorName:'#9a4634' }
 ];
 
 export const BESTIARY = {
