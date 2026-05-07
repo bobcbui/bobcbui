@@ -24,14 +24,14 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .hidden { display:none!important; }
 
 /* Top HUD */
-#hud { position:absolute;top:10px;left:10px;width:240px;padding:12px; }
+#hud { position:absolute;top:10px;left:10px;width:260px;padding:10px; }
 #hud .realm { font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px; }
 #hud .realm-sub { font-size:11px;color:var(--text-dim);margin-bottom:6px; }
-#hud .bar-wrap { display:flex;align-items:center;gap:6px;margin-bottom:4px; }
-#hud .bar-wrap .label { font-size:11px;width:20px;text-align:right; }
-#hud .bar-bg { flex:1;height:8px;border-radius:999px;background:rgba(128,88,44,0.12);overflow:hidden; }
+#hud .bar-wrap { display:flex;align-items:center;gap:6px;margin-bottom:3px; }
+#hud .bar-wrap .label { font-size:11px;width:16px;text-align:right; }
+#hud .bar-bg { flex:1;height:7px;border-radius:999px;background:rgba(128,88,44,0.12);overflow:hidden; }
 #hud .bar-fill { height:100%;width:100%;transition:width .1s linear;border-radius:999px; }
-#hud .bar-text { font-size:10px;min-width:58px;text-align:right;color:var(--text-dim); }
+#hud .bar-text { font-size:10px;min-width:50px;text-align:right;color:var(--text-dim); }
 
 /* Cultivation orb */
 #cult-orb { position:absolute;top:50%;left:50%;width:80px;height:80px;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:0;transition:opacity .3s; }
@@ -42,13 +42,12 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 #zone-label.show { opacity:.3; }
 
 /* Bottom hotbar */
-#hotbar { position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:grid;grid-template-columns:repeat(5,minmax(48px,72px));gap:5px;width:min(calc(100vw - 16px),380px);justify-content:center; }
-.slot { padding:5px 4px 6px;border:1px solid rgba(128,88,44,0.18);background:rgba(255,250,232,0.82);border-radius:8px;text-align:center;transition:.12s;pointer-events:auto;cursor:pointer;box-shadow:0 6px 20px rgba(112,82,38,0.12); }
+#hotbar { display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:8px; }
+.slot { padding:4px 3px 5px;border:1px solid rgba(128,88,44,0.18);background:rgba(255,250,232,0.82);border-radius:8px;text-align:center;transition:.12s;pointer-events:auto;cursor:pointer;box-shadow:0 6px 20px rgba(112,82,38,0.12); }
 .slot:hover { border-color:rgba(128,88,44,0.34); }
 .slot.active { transform:translateY(-4px);border-color:var(--gold);background:rgba(250,226,168,0.9); }
-.slot .k { font-size:10px;color:var(--text-dim); }
-.slot .n { font-size:12px;font-weight:700;margin:2px 0; }
-.slot .m { font-size:10px;color:var(--text-dim);min-height:15px; }
+.slot .n { font-size:18px;font-weight:900;margin:1px 0; }
+.slot .m { font-size:10px;color:var(--text-dim);min-height:14px; }
 .slot.cd .m { color:var(--hp); }
 
 /* Status msg */
@@ -152,10 +151,14 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 
 /* Virtual Joystick */
 #joystick-zone {
-  position:absolute; bottom:30px; left:20px; width:130px; height:130px;
+  display:none;
+  position:absolute; bottom:80px; left:50%; transform:translateX(-50%); width:130px; height:130px;
   pointer-events:auto; touch-action:none; z-index:5;
   border-radius:50%; border:2px solid rgba(128,88,44,0.18);
   background:rgba(255,250,232,0.06);
+}
+@media (max-width:768px) {
+  body.has-touch #joystick-zone { display:block; }
 }
 #joystick-zone.active { border-color:rgba(128,88,44,0.35); background:rgba(255,250,232,0.14); }
 #joystick-thumb {
@@ -166,12 +169,11 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 }
 
 @media(max-width:500px) {
-  #hud { width:180px;padding:8px; }
-  #hud .bar-text { font-size:9px;min-width:45px; }
-  #hotbar { grid-template-columns:repeat(5,minmax(36px,1fr));gap:3px; }
+  #hud { width:200px;padding:8px; }
+  #hud .bar-text { font-size:9px;min-width:40px; }
   .slot .n { font-size:10px; }
   .slot .k,.slot .m { font-size:9px; }
-  #joystick-zone { bottom:16px;left:8px;width:105px;height:105px; }
+  #joystick-zone { bottom:70px;width:105px;height:105px; }
   #joystick-thumb { width:44px;height:44px; }
 }
 </style>
@@ -193,21 +195,16 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
       <span>灵石 <strong id="moneyText" style="color:var(--gold)">0</strong></span>
       <span>杀敌 <strong id="killText">0</strong></span>
     </div>
+    <div id="hotbar"></div>
   </div>
 
   <!-- Zone label -->
   <div id="zone-label">灵溪村</div>
-
   <!-- Status -->
   <div id="status">消息</div>
-
   <!-- Loot popup -->
   <div id="loot-popup" class="panel"></div>
 
-  <!-- Hotbar -->
-  <div id="hotbar"></div>
-
-  <!-- Virtual Joystick -->
   <div id="joystick-zone"><div id="joystick-thumb"></div></div>
 
   <!-- Character Panel -->

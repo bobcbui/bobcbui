@@ -1,6 +1,6 @@
 import { P, waveNum, waveTimer, wavePending, waveDelay, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
   setWaveNum, setWaveTimer, setWavePending, setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar } from './state.js';
-import { ZONES, BESTIARY, BOSS_NAMES, SKILL_DEFS, RARITY_LABEL, getRealm, getRealmIndex } from './data.js';
+import { ZONES, BESTIARY, BOSS_NAMES, SKILL_DEFS, RARITY_LABEL, RARITY_COLORS, getRealm, getRealmIndex } from './data.js';
 import { genEquipment } from './equipment.js';
 
 export class MainScene extends Phaser.Scene {
@@ -180,12 +180,14 @@ export class MainScene extends Phaser.Scene {
     const en=this.enemies.create(x,y,texture);
     en.setCollideWorldBounds(true); en.setDepth(5);
     const lvMult=1+(zone.monsterLv-1)*0.3;
-    en.setData('hp',Math.round(tmpl.hp*lvMult*(isBoss?4:(isElite?1.8:1))));
-    en.setData('maxHp',Math.round(tmpl.hp*lvMult*(isBoss?4:(isElite?1.8:1))));
-    en.setData('atk',Math.round(tmpl.atk*lvMult*(isBoss?3:(isElite?1.5:1))));
+    const plvMult=1+(P.level-1)*0.08;
+    const scale = lvMult * plvMult;
+    en.setData('hp',Math.round(tmpl.hp*scale*(isBoss?4:(isElite?1.8:1))));
+    en.setData('maxHp',Math.round(tmpl.hp*scale*(isBoss?4:(isElite?1.8:1))));
+    en.setData('atk',Math.round(tmpl.atk*scale*(isBoss?3:(isElite?1.5:1))));
     en.setData('speed',Math.round(tmpl.speed*(isBoss?0.6:(isElite?0.8:1))));
-    en.setData('xp',Math.round(tmpl.xp*lvMult*(isBoss?5:(isElite?2:1))));
-    en.setData('gold',Math.round(tmpl.gold*lvMult*(isBoss?6:(isElite?2:1))));
+    en.setData('xp',Math.round(tmpl.xp*lvMult*plvMult*(isBoss?5:(isElite?2:1))));
+    en.setData('gold',Math.round(tmpl.gold*lvMult*plvMult*(isBoss?6:(isElite?2:1))));
     en.setData('zoneLv',zone.monsterLv);
     en.setData('isBoss',!!isBoss);
     en.setData('isElite',!!isElite);
@@ -239,13 +241,18 @@ export class MainScene extends Phaser.Scene {
 
   damageEnemy(en,dmg){
     if(en.getData('dead')) return;
-    const hp=en.getData('hp')-dmg;
+    const critChance = 0.15 + P.level*0.003;
+    const isCrit = Math.random() < critChance;
+    const finalDmg = isCrit ? Math.round(dmg*2) : dmg;
+    const hp=en.getData('hp')-finalDmg;
     en.setData('hp',hp);
-    en.setTint(0xffffff);
+    en.setTint(isCrit?0xffff44:0xffffff);
     this.time.delayedCall(60,()=>{if(en.active)en.clearTint();});
-    const dtxt=this.add.text(en.x+Phaser.Math.Between(-8,8),en.y-10,'-'+dmg,{
-      fontSize:'13px',fontFamily:'"Segoe UI","Microsoft YaHei",sans-serif',
-      color:'#b94a3e',fontStyle:'bold',stroke:'#fff4cf',strokeThickness:2
+    const dColor = isCrit?'#ffd700':'#b94a3e';
+    const dSize = isCrit?'18px':'13px';
+    const dtxt=this.add.text(en.x+Phaser.Math.Between(-8,8),en.y-10,(isCrit?'💥':'')+'-'+finalDmg,{
+      fontSize:dSize,fontFamily:'"Segoe UI","Microsoft YaHei",sans-serif',
+      color:dColor,fontStyle:'bold',stroke:'#000',strokeThickness:isCrit?3:2
     }).setDepth(20).setOrigin(0.5);
     this.tweens.add({targets:dtxt,y:dtxt.y-35,alpha:0,duration:700,onComplete:()=>dtxt.destroy()});
     if(hp<=0){
@@ -257,30 +264,53 @@ export class MainScene extends Phaser.Scene {
       const gold=en.getData('gold')||1;
       const isBoss=en.getData('isBoss');
       const isElite=en.getData('isElite');
-      en.destroy();
-      P.xp+=xp;P.gold+=gold;P.kills++;
+      en.setVelocity(0,0);en.body.enable=false;
+      this.tweens.add({targets:en,scaleX:1.5,scaleY:1.5,alpha:0,duration:250,onComplete:()=>en.destroy()});
+      this.killStreak = (this.killStreak||0);
+      const now = this.time.now;
+      if(now - (this.lastKill||0) < 3000) this.killStreak++; else this.killStreak = 1;
+      this.lastKill = now;
+      const streakBonus = this.killStreak>=5 ? Math.round(xp*(this.killStreak*0.1)) : 0;
+      P.xp+=xp+streakBonus;P.gold+=gold;P.kills++;
       P.totalGoldEarned = (P.totalGoldEarned||0) + gold;
+      if(this.killStreak>=3){
+        const stxt=this.add.text(en.x,en.y-30,'连杀x'+this.killStreak+(streakBonus?' +'+streakBonus+'exp':''),{
+          fontSize:'16px',fontFamily:'"Microsoft YaHei",sans-serif',fontStyle:'bold',
+          color:'#ff8844',stroke:'#000',strokeThickness:2
+        }).setDepth(20).setOrigin(0.5);
+        this.tweens.add({targets:stxt,y:stxt.y-50,alpha:0,duration:1000,onComplete:()=>stxt.destroy()});
+      }
       while(P.xp>=P.xpToNext){
         P.xp-=P.xpToNext;P.level+=1;
         P.attrPoints=(P.attrPoints||0)+3;
         P.skillPoints=(P.skillPoints||0)+1;
         P.xpToNext=Math.round(10*Math.pow(1.15,P.level-1));
         recalcStats();
+        this.cameras.main.flash(300,255,255,200);
+        const ltxt=this.add.text(this.player.x,this.player.y-50,'🎉 LEVEL UP! Lv.'+P.level,{
+          fontSize:'22px',fontFamily:'"Microsoft YaHei",sans-serif',fontStyle:'bold',
+          color:'#ffd700',stroke:'#000',strokeThickness:3
+        }).setDepth(25).setOrigin(0.5);
+        this.tweens.add({targets:ltxt,y:ltxt.y-80,alpha:0,duration:1500,onComplete:()=>ltxt.destroy()});
         const ss=window.setStatus;if(ss)ss('🎉 升级！当前Lv.'+P.level,2);
       }
       const zoneLv=en.getData('zoneLv')||1;
       recalcStats();
-      const ss=window.setStatus;if(ss)ss('击杀 '+name+' +'+xp+'exp +'+gold+'灵石',1.5);
-      if(Math.random()<(isBoss?0.9:(isElite?0.4:0.15))){
+      const dropRate = isBoss?1.0:(isElite?0.6:0.35);
+      if(Math.random()<dropRate){
         const eq=genEquipment(zoneLv,isBoss?'legendary':null);
         if(eq.rarity==='legendary'||eq.rarity==='mythic') P.legendaryFound = true;
-        if(P.inventory.length<30){P.inventory.push(eq);const sl=window.setLoot;if(sl)sl('🎁 获得 ['+RARITY_LABEL[eq.rarity]+'] '+eq.name);}
+        if(P.inventory.length<30){
+          P.inventory.push(eq);
+          const sl=window.setLoot;if(sl)sl('🎁 获得 ['+RARITY_LABEL[eq.rarity]+'] '+eq.name);
+          const spark=this.add.circle(en.x,en.y,20,RARITY_COLORS[eq.rarity]||0xffffff,0.5).setDepth(18);
+          this.tweens.add({targets:spark,scale:2.5,alpha:0,duration:500,onComplete:()=>spark.destroy()});
+        }
       }
-      if(Math.random()<0.08&&P.inventory.length<30){
+      if(Math.random()<0.1&&P.inventory.length<30){
         const dropGold = Math.round((10 + zoneLv*5) * (isBoss?5:1));
         P.gold = Math.min(99999, P.gold + dropGold);
         P.totalGoldEarned = (P.totalGoldEarned||0) + dropGold;
-        if(Math.random()<0.2){ const sl=window.setLoot; if(sl)sl('💰 额外灵石 +'+dropGold); }
       }
       P.gold=Math.min(P.gold,99999);
       const h=window.updateHUD;if(h)h();
@@ -706,7 +736,8 @@ export class MainScene extends Phaser.Scene {
     let at=autoSaveTimer+dt;
     if(at>=30){at=0;const sg=window.saveGame;if(sg)sg();}
     setAutoSaveTimer(at);
-    const h=window.updateHUD;if(h)h();const hr=window.hotbarRender;if(hr)hr();const cu=window.updateHotbarCooldowns;if(cu)cu();
+    this._hudTick=(this._hudTick||0)+1;
+    if(this._hudTick>6){this._hudTick=0;const h=window.updateHUD;if(h)h();const hr=window.hotbarRender;if(hr)hr();const cu=window.updateHotbarCooldowns;if(cu)cu();}
     if(time%2000<delta*1.5 && window.checkAchievements) window.checkAchievements();
   }
 }
