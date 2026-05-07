@@ -1,6 +1,7 @@
-import { P, hudCache, hotGen, setHotGen } from './state.js';
-import { getRealm } from './data.js';
-import { EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS } from './data.js';
+import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from './state.js';
+import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, RARITY_MULT } from './data.js';
+import { genEquipment } from './equipment.js';
+import { bus } from './events.js';
 
 export function hotbarRender(){
   const cont = document.getElementById('hotbar');
@@ -103,12 +104,12 @@ window.doBagEquip = function(idx){
   P.equipment[item.type] = item;
   P.inventory.splice(idx,1);
   if(current) P.inventory.push(current);
-  window.recalcStats();
+  recalcStats();
   updateCharPanel(); updateHUD(); hotbarRender();
   const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
   renderBagPanel();
-  const sg = window.saveGame; if(sg) sg();
-  const ss = window.setStatus; if(ss) ss('装备 '+item.name,1.2);
+  bus.emit('save');
+  bus.emit('status', '装备 '+item.name,1.2);
 };
 
 window.doBagSell = function(idx){
@@ -120,8 +121,8 @@ window.doBagSell = function(idx){
   updateHUD();
   const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
   renderBagPanel();
-  const sg = window.saveGame; if(sg) sg();
-  const ss = window.setStatus; if(ss) ss('出售 '+item.name+' +'+sellPrice+'灵石',1.2);
+  bus.emit('save');
+  bus.emit('status', '出售 '+item.name+' +'+sellPrice+'灵石',1.2);
 };
 
 export function toggleBagPanel(){
@@ -213,7 +214,6 @@ export function toggleSkillPanel(){
 }
 
 export function renderAchPanel(){
-  const {ACHIEVEMENTS} = window._data || {};
   if(!ACHIEVEMENTS) return;
   const list = document.getElementById('achList');
   let done=0, total=ACHIEVEMENTS.length;
@@ -243,7 +243,6 @@ export function toggleAchPanel(){
 }
 
 export function renderShopPanel(){
-  const {SHOP_ITEMS} = window._data || {};
   if(!SHOP_ITEMS) return;
   document.getElementById('shopGold').textContent = P.gold;
   const list = document.getElementById('shopList');
@@ -267,44 +266,42 @@ export function toggleShopPanel(){
 }
 
 export function buyShopItem(itemId){
-  const {SHOP_ITEMS} = window._data || {};
   const item = SHOP_ITEMS?.find(s=>s.id===itemId);
   if(!item || P.gold < item.cost || P.inventory.length>=30) return;
   P.gold -= item.cost;
-  const ss = window.setStatus;
   if(item.effect === 'gold_bag'){
     P.gold = Math.min(99999, P.gold + 120);
-    if(ss) ss('获得120灵石!',1.2);
+      bus.emit('status', '获得120灵石!',1.2);
   } else if(item.effect === 'attr_reset'){
     let total = P.attrs.str + P.attrs.body + P.attrs.spirit + P.attrs.agility;
     P.attrs = {str:0,body:0,spirit:0,agility:0};
     P.attrPoints += total;
-    window.recalcStats();
-    if(ss) ss('属性点已重置!',1.2);
+    recalcStats();
+    bus.emit('status', '属性点已重置!',1.2);
   } else if(item.effect === 'skill_reset'){
     for(const sk of SKILL_DEFS){ const lv = P.skillLevels?.[sk.id]||1; P.skillPoints += Math.max(0,lv-1); P.skillLevels[sk.id]=1; }
-    if(ss) ss('技能点已重置!',1.2);
+    bus.emit('status', '技能点已重置!',1.2);
   } else if(item.effect?.startsWith('eq_box_')){
     const rarity = item.effect.replace('eq_box_','');
     if(P.inventory.length < 30){
-      const eq = (window.genEquipment||function(){})(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
-      if(eq && eq.id){ P.inventory.push(eq); if(ss) ss('获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name,2); }
+      const eq = (genEquipment||function(){})(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
+      if(eq && eq.id){ P.inventory.push(eq); bus.emit('status', '获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name,2); }
     }
   }
   updateHUD(); renderShopPanel(); renderBagPanel();
-  const sg = window.saveGame; if(sg) sg();
+  bus.emit('save');
 }
 
 export function equipSkill(skillId, slotIdx){
   const def = SKILL_DEFS.find(s=>s.id===skillId);
   if(!def || def.id==='swordfly' || slotIdx<1 || slotIdx>4) return;
   const scene = window.scene;
-  if(scene && !scene.isInSafeZone()){ const ss=window.setStatus; if(ss) ss('只能在安全区内切换技能',1.5); return; }
+  if(scene && !scene.isInSafeZone()){ bus.emit('status', '只能在安全区内切换技能',1.5); return; }
   P.hotbar[slotIdx] = { kind:'skill', id:skillId };
   hotbarRender();
   renderSkillPanel();
-  const sg = window.saveGame; if(sg) sg();
-  const ss = window.setStatus; if(ss) ss('装备 '+def.name, 1);
+  bus.emit('save');
+  bus.emit('status', '装备 '+def.name, 1);
 }
 
 export function upgradeSkill(skillId){
@@ -316,7 +313,7 @@ export function upgradeSkill(skillId){
   P.skillPoints -= 1;
   hotbarRender();
   renderSkillPanel();
-  const sg = window.saveGame; if(sg) sg();
+  bus.emit('save');
 }
 
 export function addAttr(attr){
@@ -324,10 +321,10 @@ export function addAttr(attr){
   if(!P.attrs) P.attrs = {str:0, body:0, spirit:0, agility:0};
   P.attrs[attr] = (P.attrs[attr] || 0) + 1;
   P.attrPoints -= 1;
-  window.recalcStats();
+  recalcStats();
   updateHUD();
   updateCharPanel();
-  const sg = window.saveGame; if(sg) sg();
+  bus.emit('save');
 }
 
 export function updateHotbarCooldowns(){
@@ -398,7 +395,7 @@ export function toggleCharPanel(){
 }
 
 export function updateCharPanel(){
-  const rt = (window.realmText||function(){return ''})();
+  const rt = (realmText||function(){return ''})();
   document.getElementById('cpRealm').textContent = rt;
   document.getElementById('cpLevel').textContent = 'Lv.'+P.level;
   document.getElementById('cpAtk').textContent = Math.round(P.atk);
@@ -429,8 +426,6 @@ export function updateCharPanel(){
 }
 
 window.toggleCharPanel = toggleCharPanel;
-window.updateHUD = updateHUD;
-window.hotbarRender = hotbarRender;
 window.toggleBagPanel = toggleBagPanel;
 window.toggleSkillPanel = toggleSkillPanel;
 window.toggleAchPanel = toggleAchPanel;
@@ -440,3 +435,6 @@ window.upgradeSkill = upgradeSkill;
 window.equipSkill = equipSkill;
 window.addAttr = addAttr;
 window.updateHotbarCooldowns = updateHotbarCooldowns;
+
+bus.on('hud-refresh', updateHUD);
+bus.on('hotbar-refresh', hotbarRender);

@@ -1,0 +1,93 @@
+import { P } from '../state.js';
+import { bus } from '../events.js';
+
+export class AISystem {
+  constructor(scene) {
+    this.scene = scene;
+  }
+
+  update(dt, time, qRange, qR2) {
+    const { scene } = this;
+    scene.hpBarGfx.clear();
+    let closestQ = null, bestQD2 = Infinity;
+    const activeEnemies = [];
+
+    scene.enemies.children.iterate((en) => {
+      if (!en || en.getData('dead')) return;
+      const dx = scene.player.x - en.x, dy = scene.player.y - en.y;
+      const d2 = dx * dx + dy * dy;
+
+      if (d2 < qR2 && d2 < bestQD2) { bestQD2 = d2; closestQ = en; }
+      activeEnemies.push(en);
+
+      const atkType = en.getData('atkType') || 'melee';
+      const dist = Math.sqrt(d2);
+      let speed = en.getData('speed') || 30;
+      const slowTimer = en.getData('slowTimer') || 0;
+      if (slowTimer > 0) {
+        speed *= 0.45;
+        en.setData('slowTimer', Math.max(0, slowTimer - dt));
+      }
+
+      if (atkType === 'ranged') {
+        const atkRange = en.getData('atkRange') || 200;
+        const atkCD = en.getData('atkCD') || 2.5;
+        const lastAtk = en.getData('lastRangedAtk') || 0;
+        if (dist < atkRange * 1.2 && time - lastAtk > atkCD) {
+          en.setData('lastRangedAtk', time);
+          const proj = scene.getPooledProj(en.x, en.y, 'arrow', scene.enemyProjs);
+          if (proj) {
+            proj.setScale(0.7).setTint(en.getData('projColor') || 0xff4444);
+            const angle = Phaser.Math.Angle.Between(en.x, en.y, scene.player.x, scene.player.y);
+            scene.physics.velocityFromRotation(angle, 280, proj.body.velocity);
+            proj.rotation = angle;
+            proj.setData('damage', Math.round((en.getData('atk') || 5) * 0.6));
+            scene.time.delayedCall(2000, () => { scene.freeProj(proj); });
+          }
+        }
+        if (dist > atkRange) scene.physics.moveToObject(en, scene.player, speed * 0.7);
+      } else {
+        scene.physics.moveToObject(en, scene.player, speed);
+      }
+
+      const isBoss = en.getData('isBoss');
+      if (isBoss) {
+        const ultCD = en.getData('ultCD') || 8;
+        const lastUlt = en.getData('lastUlt') || 0;
+        if (time - lastUlt > ultCD && dist < 300) {
+          const warning = en.getData('ultWarning');
+          if (!warning || !warning.active) {
+            en.setData('lastUlt', time);
+            const w = scene.add.circle(scene.player.x, scene.player.y, 40, 0xff0000, 0)
+              .setDepth(25).setStrokeStyle(3, 0xff3333, 0.8);
+            en.setData('ultWarning', w);
+            scene.tweens.add({
+              targets: w, scale: 2.5, alpha: 0.35, duration: 1000,
+              onComplete: () => {
+                if (w.active) w.destroy();
+                en.setData('ultWarning', null);
+                const dmg = Math.round((en.getData('atk') || 20) * 2 * (1 - P.buff.shieldPct));
+                P.hp = Math.max(0, P.hp - dmg);
+                scene.damageFlash(0.4);
+                bus.emit('status', '⚡ BOSS大招! -' + dmg, 2);
+              }
+            });
+            bus.emit('status', '⚠️ ' + en.getData('name') + ' 蓄力中...', 1.5);
+          }
+        }
+      }
+
+      const lbl = en.getData('label'); if (lbl) lbl.setPosition(en.x, en.y - 16);
+      const bw = en.getData('barW') || 24, bh = 3;
+      const yPos = en.y - 24;
+      const cur = en.getData('hp') || 0, full = en.getData('maxHp') || 1;
+      const pct = Math.max(0, Math.min(1, cur / full));
+      scene.hpBarGfx.fillStyle(0x8b7752, 0.35);
+      scene.hpBarGfx.fillRect(en.x - bw / 2, yPos, bw, bh);
+      scene.hpBarGfx.fillStyle(pct > 0.6 ? 0x6de27a : pct > 0.3 ? 0xffd866 : 0xff6a5f, 1);
+      scene.hpBarGfx.fillRect(en.x - bw / 2, yPos, Math.max(0, bw * pct), bh);
+    });
+
+    return { closestQ, activeEnemies };
+  }
+}

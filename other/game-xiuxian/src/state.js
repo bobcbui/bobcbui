@@ -1,4 +1,5 @@
-import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex } from './data.js';
+import { bus } from './events.js';
+import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from './data.js';
 
 export const P = {
   hp:100, maxHp:100,
@@ -104,14 +105,7 @@ export function initHotbar(){
 refreshSkills();
 initHotbar();
 
-window.realmText = realmText;
-window.recalcStats = recalcStats;
-window.refreshSkills = refreshSkills;
-window.initHotbar = initHotbar;
-
 export function checkAchievements(){
-  const {ACHIEVEMENTS} = window._data || {};
-  if(!ACHIEVEMENTS) return;
   let changed = false;
   for(const a of ACHIEVEMENTS){
     if(P.achievements[a.id]) continue;
@@ -121,11 +115,11 @@ export function checkAchievements(){
       if(a.reward.gold){ P.gold = Math.min(99999, P.gold + a.reward.gold); P.totalGoldEarned = (P.totalGoldEarned||0) + a.reward.gold; }
       if(a.reward.attrPoints) P.attrPoints = (P.attrPoints||0) + a.reward.attrPoints;
       if(a.reward.skillPoints) P.skillPoints = (P.skillPoints||0) + a.reward.skillPoints;
-      const ss = window.setStatus; if(ss) ss('🏅 成就达成: '+a.name, 3);
-      const sg = window.saveGame; if(sg) sg();
+      bus.emit('status', '🏅 成就达成: '+a.name, 3);
+      bus.emit('save');
     }
   }
-  if(changed){ const h=window.updateHUD; if(h)h(); }
+  if(changed){ bus.emit('hud-refresh'); }
 }
 
-window.checkAchievements = checkAchievements;
+bus.on('check-achievements', checkAchievements);
