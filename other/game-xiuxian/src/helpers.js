@@ -11,5 +11,3 @@ export function setLoot(text){
   const el = document.getElementById('loot-popup');
   if(el){ el.textContent = text; el.classList.add('show'); }
 }
-
-export function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }

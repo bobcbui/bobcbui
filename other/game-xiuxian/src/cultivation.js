@@ -37,7 +37,6 @@ export function doBreakthrough(){
     P.realm = next.id;
     P.stage = 1;
     P.hp = P.maxHp;
-    P.qi = P.maxQi;
     const rfs=window.refreshSkills; if(rfs)rfs();
     const ih=window.initHotbar; if(ih)ih();
     if(ss)ss('🎉 突破成功！踏入 ' + next.name, 3);

@@ -4,11 +4,13 @@ import { SKILL_DEFS } from './data.js';
 export function saveGame(){
   try {
     const data = {
-      P: { hp:P.hp, maxHp:P.maxHp, qi:P.qi, maxQi:P.maxQi, atk:P.atk, def:P.def, speed:P.speed,
+      P: { hp:P.hp, maxHp:P.maxHp, atk:P.atk, def:P.def, speed:P.speed,
            realm:P.realm, stage:P.stage, level:P.level, xp:P.xp, xpToNext:P.xpToNext,
            gold:P.gold, kills:P.kills, attrPoints:P.attrPoints, skillPoints:P.skillPoints,
            attrs:P.attrs, skillLevels:P.skillLevels, skills:P.skills, hotbar:P.hotbar,
-           equipment:P.equipment, inventory:P.inventory, totalPlayTime:P.totalPlayTime },
+           equipment:P.equipment, inventory:P.inventory, totalPlayTime:P.totalPlayTime,
+           totalGoldEarned:P.totalGoldEarned, legendaryFound:P.legendaryFound, maxWave:P.maxWave,
+           achievements:P.achievements },
       wave: waveNum,
       version:1
     };
@@ -29,12 +31,16 @@ export function loadGame(){
     if(P.attrPoints == null) P.attrPoints = 0;
     if(P.skillPoints == null) P.skillPoints = 0;
     if(!P.skillLevels) P.skillLevels = {};
+    if(P.totalGoldEarned == null) P.totalGoldEarned = 0;
+    if(P.legendaryFound == null) P.legendaryFound = false;
+    if(P.maxWave == null) P.maxWave = 0;
+    if(!P.achievements) P.achievements = {};
     for(const sk of SKILL_DEFS){
       if(!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
     }
     refreshSkills();
-    const activeIds = new Set(SKILL_DEFS.map(s=>s.id));
-    const invalidHotbar = !Array.isArray(P.hotbar) || P.hotbar.length < 8 || P.hotbar.slice(0,4).some(h=>h?.id && !activeIds.has(h.id));
+    const invalidHotbar = !Array.isArray(P.hotbar) || P.hotbar.length < 5 || P.hotbar[0]?.id !== 'swordfly';
+    if(P.hotbar && P.hotbar.length !== 5) initHotbar();
     if(invalidHotbar) initHotbar();
     setWaveNum(data.wave || 0);
     recalcStats();
