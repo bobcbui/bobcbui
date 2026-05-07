@@ -16,6 +16,7 @@ window.saveGame = saveGame;
 window.loadGame = loadGame;
 window.genEquipment = genEquipment;
 window._data = { ACHIEVEMENTS, SHOP_ITEMS };
+if(window.ontouchstart!==undefined||navigator.maxTouchPoints>0) document.body.classList.add('has-touch');
 
 window.addEventListener('load', ()=>{
   hotbarRender();

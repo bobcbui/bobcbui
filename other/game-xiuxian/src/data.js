@@ -13,19 +13,19 @@ export function getRealm(rId){ return REALMS.find(r=>r.id===rId)||REALMS[0]; }
 export function getRealmIndex(rId){ return REALMS.findIndex(r=>r.id===rId); }
 
 export const SKILL_DEFS = [
-  { id:'swordfly',name:'飞剑术',slot:'Q',baseDmg:0.7,range:280,desc:'锁定敌人，远距飞剑',type:'basic',color:0x6f9eb8,texture:'swordQi',cooldown:0.7 },
-  { id:'fireball',name:'火球术',baseDmg:1.4,range:210,desc:'大火球，伤害更高',type:'basic',color:0xc95f36,texture:'fireball',cooldown:1.2 },
-  { id:'swordrush',name:'御剑术',baseDmg:0.7,range:200,desc:'三把飞剑齐射',type:'multi',color:0x99ddff,texture:'swordQi',count:3,cooldown:1.5 },
-  { id:'thunderbolt',name:'落雷',baseDmg:2.0,range:200,desc:'单体高伤雷击',type:'single',color:0xd6a742,texture:'bolt',cooldown:2.0 },
-  { id:'earthshield',name:'土盾',desc:'土灵环绕，吸收30%伤害',type:'shield',shieldPct:0.3,duration:6,cooldown:8,color:0x8b6914 },
-  { id:'swordshield',name:'剑盾',desc:'剑气护体，减伤20%并反弹',type:'shield',shieldPct:0.2,reflectDmg:8,duration:5,cooldown:7,color:0x5599cc },
-  { id:'goldshield',name:'金盾',desc:'金钟罩，减伤50%',type:'shield',shieldPct:0.5,duration:4,cooldown:12,color:0xffd700 },
-  { id:'speedbuff',name:'疾风步',desc:'移速+40%，持续6秒',type:'buff',speedBoost:0.4,duration:6,cooldown:10,color:0x66ffcc },
-  { id:'atkbuff',name:'战意',desc:'攻速+30%，伤害+20%',type:'buff',speedBoost:0.15,atkBoost:0.2,duration:5,cooldown:12,color:0xff8866 },
-  { id:'rangebuff',name:'鹰眼',desc:'攻击距离+50%，持续8秒',type:'buff',rangeBoost:0.5,duration:8,cooldown:10,color:0x55aadd },
-  { id:'waterdomain',name:'水域术',baseDmg:0.5,range:170,desc:'水域，伤害并迟缓敌人',type:'domain',aoeRadius:150,slow:0.4,cooldown:4,color:0x5aa6b1,texture:'water' },
-  { id:'thunder',name:'雷域',baseDmg:0.9,range:180,desc:'雷击范围敌人，伤害高',type:'domain',aoeRadius:130,cooldown:3,color:0xd6a742,texture:'bolt' },
-  { id:'tornado',name:'风域',baseDmg:0.6,range:190,desc:'风卷敌人，拉扯聚怪',type:'domain',aoeRadius:165,cooldown:4,color:0x9fb884,texture:'wind' },
+  { id:'swordfly',name:'飞剑术',short:'剑',slot:'Q',baseDmg:0.7,range:280,desc:'锁定敌人，远距飞剑',type:'basic',color:0x6f9eb8,texture:'swordQi',cooldown:0.7 },
+  { id:'fireball',name:'火球术',short:'火',baseDmg:1.4,range:210,desc:'大火球，伤害更高',type:'basic',color:0xc95f36,texture:'fireball',cooldown:1.2 },
+  { id:'swordrush',name:'御剑术',short:'御',baseDmg:0.7,range:200,desc:'三把飞剑齐射',type:'multi',color:0x99ddff,texture:'swordQi',count:3,cooldown:1.5 },
+  { id:'thunderbolt',name:'落雷',short:'雳',baseDmg:2.0,range:200,desc:'单体高伤雷击',type:'single',color:0xd6a742,texture:'bolt',cooldown:2.0 },
+  { id:'earthshield',name:'土盾',short:'土',desc:'土灵环绕，吸收30%伤害',type:'shield',shieldPct:0.3,duration:6,cooldown:8,color:0x8b6914 },
+  { id:'swordshield',name:'剑盾',short:'罡',desc:'剑气护体，减伤20%并反弹',type:'shield',shieldPct:0.2,reflectDmg:8,duration:5,cooldown:7,color:0x5599cc },
+  { id:'goldshield',name:'金盾',short:'金',desc:'金钟罩，减伤50%',type:'shield',shieldPct:0.5,duration:4,cooldown:12,color:0xffd700 },
+  { id:'speedbuff',name:'疾风步',short:'疾',desc:'移速+40%，持续6秒',type:'buff',speedBoost:0.4,duration:6,cooldown:10,color:0x66ffcc },
+  { id:'atkbuff',name:'战意',short:'战',desc:'攻速+30%，伤害+20%',type:'buff',speedBoost:0.15,atkBoost:0.2,duration:5,cooldown:12,color:0xff8866 },
+  { id:'rangebuff',name:'鹰眼',short:'眼',desc:'攻击距离+50%，持续8秒',type:'buff',rangeBoost:0.5,duration:8,cooldown:10,color:0x55aadd },
+  { id:'waterdomain',name:'水域术',short:'水',baseDmg:0.5,range:170,desc:'水域，伤害并迟缓敌人',type:'domain',aoeRadius:150,slow:0.4,cooldown:4,color:0x5aa6b1,texture:'water' },
+  { id:'thunder',name:'雷域',short:'雷',baseDmg:0.9,range:180,desc:'雷击范围敌人，伤害高',type:'domain',aoeRadius:130,cooldown:3,color:0xd6a742,texture:'bolt' },
+  { id:'tornado',name:'风域',short:'风',baseDmg:0.6,range:190,desc:'风卷敌人，拉扯聚怪',type:'domain',aoeRadius:165,cooldown:4,color:0x9fb884,texture:'wind' },
 ];
 
 export const EQ_TYPES = ['weapon','helmet','armor','boots','ring','amulet'];
