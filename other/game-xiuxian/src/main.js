@@ -21,7 +21,8 @@ window.addEventListener('load', ()=>{
 
   const canvas = document.getElementById('gameCanvas');
   const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
+    renderType: Phaser.CANVAS,
     canvas,
     width: window.innerWidth,
     height: window.innerHeight,
