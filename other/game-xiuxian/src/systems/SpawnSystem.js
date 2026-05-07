@@ -8,23 +8,22 @@ export class SpawnSystem {
 
   spawnEnemy() {
     const { scene } = this;
-    if (scene.isInSafeZone()) return null;
+    if (scene._currentMap.safe) return null;
 
-    const zone = scene.getCurrentZone();
-    const list = BESTIARY[zone.id] || BESTIARY.village;
+    const zone = scene._currentMap;
+    const list = BESTIARY[zone.id];
+    if (!list || list.length === 0) return null;
     const tmpl = list[Math.floor(Math.random() * list.length)];
 
+    const sz = scene._currentMap.worldSize;
     let x = scene.player.x + Phaser.Math.Between(-400, 400);
     let y = scene.player.y + Phaser.Math.Between(-400, 400);
-    x = Phaser.Math.Clamp(x, 30, scene.worldSize - 30);
-    y = Phaser.Math.Clamp(y, 30, scene.worldSize - 30);
+    x = Phaser.Math.Clamp(x, 30, sz - 30);
+    y = Phaser.Math.Clamp(y, 30, sz - 30);
 
-    if (scene.isInSafeZone(x, y)) {
-      const angle = Phaser.Math.Angle.Between(scene.worldSize / 2, scene.worldSize / 2, scene.player.x, scene.player.y)
-        + Phaser.Math.FloatBetween(-0.9, 0.9);
-      const dist = scene.safeZoneRadius + Phaser.Math.Between(120, 420);
-      x = Phaser.Math.Clamp(scene.worldSize / 2 + Math.cos(angle) * dist, 30, scene.worldSize - 30);
-      y = Phaser.Math.Clamp(scene.worldSize / 2 + Math.sin(angle) * dist, 30, scene.worldSize - 30);
+    if (scene._currentMap.safe && Math.random() > 0.3) {
+      x = sz / 2 + Phaser.Math.Between(-200, 200);
+      y = sz / 2 + Phaser.Math.Between(-200, 200);
     }
 
     const isElite = Math.random() < 0.08;

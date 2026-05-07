@@ -43,18 +43,18 @@ export class MainScene extends Phaser.Scene {
   }
   create(){
     window.scene = this;
-    this.worldSize = 3500;
-    this.safeZoneRadius = 360;
-    this.physics.world.setBounds(0,0,this.worldSize,this.worldSize);
+    window.teleportToZone = (zoneId) => this.switchMap(zoneId);
+    this._currentMap = MAPS[0];
+    this.physics.world.setBounds(0,0,this._currentMap.worldSize,this._currentMap.worldSize);
     this.ground = this.add.graphics();
     this.drawGround();
-    this.player = this.physics.add.sprite(this.worldSize/2, this.worldSize/2, 'player');
+    this.player = this.physics.add.sprite(this._currentMap.worldSize/2, this._currentMap.worldSize/2, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
     this.playerDead = false;
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
     this.cameras.main.setZoom(1.2);
-    this.cameras.main.setBounds(0,0,this.worldSize,this.worldSize);
+    this.cameras.main.setBounds(0,0,this._currentMap.worldSize,this._currentMap.worldSize);
     this.enemies = this.physics.add.group();
     this.projectiles = this.physics.add.group();
     this.enemyProjs = this.physics.add.group();
@@ -72,7 +72,7 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.combatSystem.onEnemyProjHit(proj); }, null, this);
     for(let i=0;i<8;i++) this.spawnSystem.spawnEnemy();
     this.isMoving = false;
-    this.moveTarget = new Phaser.Math.Vector2(this.worldSize/2, this.worldSize/2);
+    this.moveTarget = new Phaser.Math.Vector2(this._currentMap.worldSize/2, this._currentMap.worldSize/2);
     this.input.on('pointerdown', (ptr)=>{
       if(ptr.event.button===0){ this.isMoving=true; this.moveTarget.set(ptr.worldX,ptr.worldY); }
       else if(ptr.event.button===2){ this.placeMarker(ptr.worldX,ptr.worldY); }
@@ -116,41 +116,25 @@ export class MainScene extends Phaser.Scene {
 
   drawGround(){
     const g = this.ground; g.clear();
-    const s = this.worldSize;
-    g.fillStyle(0xefe3c0,1); g.fillRect(0,0,s,s);
-    for(const zone of ZONES){
-      for(let x=0;x<s;x+=50){
-        for(let y=0;y<s;y+=50){
-          const cx=x+25,cy=y+25;
-          const dist=Math.sqrt((cx-s/2)*(cx-s/2)+(cy-s/2)*(cy-s/2));
-          if(dist>=zone.minDist&&dist<zone.maxDist){
-            g.fillStyle(zone.color,0.18+Math.random()*0.08);
-            g.fillRect(x-1,y-1,52,52);
-          }
-        }
+    const s = this._currentMap.worldSize;
+    const m = this._currentMap;
+    g.fillStyle(parseInt('0x' + m.bgColor.replace('#',''), 16) || 0xefe3c0, 1);
+    g.fillRect(0, 0, s, s);
+    for(let x = 0; x < s; x += 40) {
+      for(let y = 0; y < s; y += 40) {
+        g.fillStyle(m.color, 0.1 + Math.random() * 0.08);
+        g.fillRect(x, y, 40, 40);
       }
     }
-    g.fillStyle(0xd8c48e,0.22); g.fillCircle(s/2,s/2,100);
-    g.fillStyle(0xf7edc8,0.9); g.fillCircle(s/2,s/2,this.safeZoneRadius);
-    g.lineStyle(3,0xb57a19,0.38); g.strokeCircle(s/2,s/2,this.safeZoneRadius);
-    g.lineStyle(1,0x8aa678,0.22); g.strokeCircle(s/2,s/2,60);
-    g.lineStyle(2,0xb99a59,0.18);
-    for(let r=500;r<2000;r+=300) g.strokeCircle(s/2,s/2,r);
+    if (m.safe) {
+      g.fillStyle(0xf7edc8, 0.85); g.fillCircle(s / 2, s / 2, s * 0.35);
+      g.lineStyle(3, 0xb57a19, 0.4); g.strokeCircle(s / 2, s / 2, s * 0.35);
+      g.lineStyle(1, 0x8aa678, 0.25); g.strokeCircle(s / 2, s / 2, 60);
+    }
   }
 
-  getCurrentZone(){
-    const cx=this.player.x,cy=this.player.y;
-    const s=this.worldSize/2;
-    const dist=Math.sqrt((cx-s)*(cx-s)+(cy-s)*(cy-s));
-    for(const zone of ZONES){ if(dist>=zone.minDist&&dist<zone.maxDist) return zone; }
-    return ZONES[ZONES.length-1];
-  }
-
-  isInSafeZone(x=this.player?.x, y=this.player?.y){
-    if(x == null || y == null) return false;
-    const c=this.worldSize/2;
-    const dx=x-c, dy=y-c;
-    return dx*dx+dy*dy <= this.safeZoneRadius*this.safeZoneRadius;
+  getCurrentMap(){
+    return this._currentMap;
   }
 
   clearEnemies(){
@@ -168,7 +152,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   updateZoneLabel(){
-    const zone=this.getCurrentZone();
+    const zone = this._currentMap;
     const el=document.getElementById('zone-label');
     if(el){
       el.textContent='「 '+zone.name+' 」';
@@ -187,12 +171,51 @@ export class MainScene extends Phaser.Scene {
     el._to=setTimeout(()=>{el.style.opacity='0';},60);
   }
 
+  switchMap(mapId){
+    const map = MAPS.find(m => m.id === mapId);
+    if (!map || map.id === this._currentMap.id) return;
+    const overlay = document.getElementById('loadingOverlay');
+    const bar = document.getElementById('loadingBar');
+    const txt = document.getElementById('loadingText');
+    if (overlay) { overlay.style.display = 'flex'; if (txt) txt.textContent = '传送至 ' + map.name + '...'; if (bar) bar.style.width = '0%'; }
+    setTimeout(() => { if (bar) bar.style.width = '50%'; }, 100);
+    setTimeout(() => { if (bar) bar.style.width = '100%'; }, 300);
+    setTimeout(() => {
+      this._currentMap = map;
+      this.physics.world.setBounds(0, 0, map.worldSize, map.worldSize);
+      this.cameras.main.setBounds(0, 0, map.worldSize, map.worldSize);
+      this.drawGround();
+      this.player.setPosition(map.worldSize / 2, map.worldSize / 2);
+      this.moveTarget.set(map.worldSize / 2, map.worldSize / 2);
+      this.lastZoneId = null;
+      this.clearEnemies();
+      for (let i = 0; i < 8; i++) this.spawnSystem.spawnEnemy();
+      this.updateZoneLabel();
+      bus.emit('status', '📍 传送至 ' + map.name, 2);
+      bus.emit('save');
+      if (overlay) overlay.style.display = 'none';
+    }, 500);
+  }
+
   respawnPlayer(){
     P.hp=P.maxHp;
     this.playerDead=false;
     this.player.setAlpha(1);
-    this.player.setPosition(this.worldSize/2,this.worldSize/2);
-    this.moveTarget.set(this.worldSize/2,this.worldSize/2);
+    this.player.setPosition(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
+    this.moveTarget.set(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
+    if(this.deathModal)this.deathModal.classList.add('hidden');
+    recalcStats();
+    bus.emit('status','转生归来',1.5);
+    bus.emit('hud-refresh');
+    bus.emit('save');
+  }
+
+  respawnPlayer(){
+    P.hp=P.maxHp;
+    this.playerDead=false;
+    this.player.setAlpha(1);
+    this.player.setPosition(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
+    this.moveTarget.set(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
     if(this.deathModal)this.deathModal.classList.add('hidden');
     recalcStats();
     bus.emit('status','转生归来',1.5);
@@ -257,16 +280,7 @@ export class MainScene extends Phaser.Scene {
 
   update(time,delta){
     const dt=delta/1000;
-    if(this.isInSafeZone()){
-      if(this.enemies.countActive(true)>0) this.clearEnemies();
-      if(!this.wasInSafeZone){
-        this.wasInSafeZone=true;
-        bus.emit('status','已进入安全区',1.2);
-      }
-    }else if(this.wasInSafeZone){
-      this.wasInSafeZone=false;
-      bus.emit('status','已离开安全区',1.2);
-    }
+    if(this._currentMap.safe && this.enemies.countActive(true)>0) this.clearEnemies();
     P.totalPlayTime += dt;
     this.movementSystem.update();
     if (this.playerDead) this.player.setVelocity(0, 0);
@@ -290,8 +304,6 @@ export class MainScene extends Phaser.Scene {
       }
     }
     this.buffSystem.update(dt);
-    const curZone = this.getCurrentZone();
-    if (curZone.id !== this.lastZoneId) { this.lastZoneId = curZone.id; this.updateZoneLabel(); }
     const skillNow = time / 1000;
     const qDef = SKILL_DEFS.find(s => s.id === P.hotbar[0]?.id) || SKILL_DEFS.find(s => s.id === 'swordfly');
     const qRange = (qDef.range || 280) * (1 + (P.buff.rangeBoost || 0));
@@ -305,7 +317,7 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: this.playerAura, alpha: 0.08, scale: 1.6, duration: 1200, yoyo: true, repeat: -1 });
       } else this.playerAura.setPosition(this.player.x, this.player.y);
     }
-    if (!this.playerDead && !this.isInSafeZone()) {
+    if (!this.playerDead && !this._currentMap.safe) {
       this.combatSystem.useAutoAttack(skillNow, closestQ, qDef);
       this.combatSystem.useManualSkills(skillNow, activeEnemies);
     }

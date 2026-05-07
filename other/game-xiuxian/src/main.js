@@ -3,8 +3,18 @@ import './state.js';
 import './helpers.js';
 import './save.js';
 import { updateHUD, hotbarRender, toggleCharPanel, toggleBagPanel, toggleSkillPanel, toggleAchPanel, toggleShopPanel, upgradeSkill, equipSkill, addAttr } from './ui.js';
-import { tryBreakthrough } from './cultivation.js';
+import { toggleSettingsPanel, exportSaveData, importSaveData, resetGameData, manualSave } from './save.js';
 import { MainScene } from './scene.js';
+
+window.toggleSettingsPanel = toggleSettingsPanel;
+window.exportSaveData = exportSaveData;
+window.importSaveData = importSaveData;
+window.resetGameData = resetGameData;
+window.manualSave = manualSave;
+
+window.toggleMapPanel = function() {
+  document.getElementById('mapPanel').classList.toggle('hidden');
+};
 
 if(window.ontouchstart!==undefined||navigator.maxTouchPoints>0) document.body.classList.add('has-touch');
 
@@ -30,13 +40,13 @@ window.addEventListener('load', ()=>{
   const navBar = document.createElement('div');
   navBar.style.cssText = 'position:absolute;top:10px;right:10px;pointer-events:auto;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;';
   navBar.innerHTML = `
-    <button class="btn btn-sm btn-gold" onclick="toggleCharPanel()">角色(B)</button>
+    <button class="btn btn-sm btn-gold" onclick="toggleMapPanel()">地图</button>
+    <button class="btn btn-sm btn-gold" onclick="toggleCharPanel()">角色</button>
     <button class="btn btn-sm btn-sec" onclick="toggleBagPanel()">背包</button>
     <button class="btn btn-sm btn-sec" onclick="toggleSkillPanel()">技能</button>
     <button class="btn btn-sm btn-sec" onclick="toggleAchPanel()">成就</button>
-    <button class="btn btn-sm btn-gold" onclick="toggleShopPanel()">百宝阁(X)</button>
-    <button class="btn btn-sm btn-sec" onclick="tryBreakthrough()">突破(C)</button>
-    <button class="btn btn-sm btn-sec" onclick="saveGame()">存档</button>
+    <button class="btn btn-sm btn-gold" onclick="toggleShopPanel()">百宝阁</button>
+    <button class="btn btn-sm btn-sec" onclick="toggleSettingsPanel()">设置</button>
   `;
   ui.appendChild(navBar);
 
