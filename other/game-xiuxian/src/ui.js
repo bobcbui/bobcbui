@@ -5,7 +5,7 @@ import { EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS } from './d
 export function hotbarRender(){
   const cont = document.getElementById('hotbar');
   if(!cont) return;
-  const sig = JSON.stringify(P.hotbar.map(h=>(h.kind==='consumable'?h.id+'_'+(h.id?P.inventory.filter(i=>i.id===h.uid).length:0):h.id)));
+  const sig = JSON.stringify(P.hotbar.map(h=>(h.kind==='consumable'?h.id+'_'+(h.id?P.inventory.filter(i=>i.id===h.uid).length:0):h.id+'_'+(P.skillLevels?.[h.id]||1))));
   if(sig === hotGen) return;
   setHotGen(sig);
   cont.innerHTML = '';
@@ -19,9 +19,8 @@ export function hotbarRender(){
       const def = SKILL_DEFS.find(s=>s.id===item.id);
       if(def){
         name = def.name;
-        meta = '灵力'+def.qiCost;
+        meta = 'Lv.'+(P.skillLevels?.[def.id]||1)+' 灵力'+def.qiCost;
         if(P.qi < def.qiCost) el.classList.add('no-qi');
-        if(def.type==='buff' && P.buffTimer>0 && ['windstep','goldshield','voidstep'].includes(def.id)) el.classList.add('active');
       }
     } else if(item.kind==='consumable'){
       const types = { heal_pill:'回血丹', qi_pill:'回灵丹', buff_pill:'爆气丹' };
@@ -37,6 +36,105 @@ export function hotbarRender(){
     };
     cont.appendChild(el);
   });
+}
+
+export function renderTownPanel(){
+  const panel = document.getElementById('townPanel');
+  if(!panel) return;
+  document.getElementById('townAttrPoints').textContent = P.attrPoints || 0;
+  document.getElementById('townSkillPoints').textContent = P.skillPoints || 0;
+  document.getElementById('townGold').textContent = P.gold || 0;
+  const statDefs = [
+    ['str','筋骨','攻击 +2'],
+    ['body','体魄','生命 +12 / 防御 +0.8'],
+    ['spirit','神识','灵力 +10 / 攻击 +0.8'],
+    ['agility','身法','速度 +5']
+  ];
+  const stats = document.getElementById('townStats');
+  stats.innerHTML = '';
+  statDefs.forEach(([id,name,desc])=>{
+    const div = document.createElement('div');
+    div.className = 'eq-slot';
+    div.innerHTML = `<div class="lbl">${name}</div><div class="val">${P.attrs?.[id]||0}</div><div class="lbl">${desc}</div><button class="btn btn-sm btn-sec" onclick="assignAttr('${id}')">加点</button>`;
+    stats.appendChild(div);
+  });
+  const keys = ['Q','W','E','R'];
+  const hot = document.getElementById('townHotbar');
+  hot.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const def = SKILL_DEFS.find(s=>s.id===P.hotbar[i]?.id);
+    const btn = document.createElement('span');
+    btn.className = 'btn btn-sm btn-sec';
+    btn.textContent = keys[i] + ': ' + (def ? def.name : '空');
+    hot.appendChild(btn);
+  }
+  const skills = document.getElementById('townSkills');
+  skills.innerHTML = '';
+  SKILL_DEFS.forEach(def=>{
+    const lv = P.skillLevels?.[def.id] || 1;
+    const div = document.createElement('div');
+    div.className = 'town-skill';
+    const bindBtns = def.type === 'basic'
+      ? '<span class="lbl">普通攻击</span>'
+      : keys.map((k,idx)=>`<button class="btn btn-sm btn-sec" onclick="equipSkill('${def.id}',${idx})">${k}</button>`).join('');
+    div.innerHTML = `
+      <div class="name">${def.name} Lv.${lv}</div>
+      <div class="desc">${def.desc}</div>
+      <div class="lbl">消耗 ${def.qiCost} / 伤害系数 ${def.baseDmg}</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-gold" onclick="upgradeSkill('${def.id}')">升级</button>
+        ${bindBtns}
+      </div>`;
+    skills.appendChild(div);
+  });
+}
+
+export function enterTown(){
+  const scene = window.scene;
+  if(scene && scene.enterTown) scene.enterTown();
+  const panel = document.getElementById('townPanel');
+  if(panel) panel.classList.remove('hidden');
+  renderTownPanel();
+}
+
+export function leaveTown(){
+  const panel = document.getElementById('townPanel');
+  if(panel) panel.classList.add('hidden');
+  const scene = window.scene;
+  if(scene && scene.leaveTown) scene.leaveTown();
+}
+
+export function assignAttr(attr){
+  if((P.attrPoints || 0) <= 0) return;
+  if(!P.attrs) P.attrs = { str:0, body:0, spirit:0, agility:0 };
+  if(!(attr in P.attrs)) return;
+  P.attrs[attr] += 1;
+  P.attrPoints -= 1;
+  window.recalcStats();
+  updateHUD();
+  renderTownPanel();
+  const sg = window.saveGame; if(sg) sg();
+}
+
+export function upgradeSkill(skillId){
+  if((P.skillPoints || 0) <= 0) return;
+  if(!P.skillLevels) P.skillLevels = {};
+  const lv = P.skillLevels[skillId] || 1;
+  if(lv >= 20) return;
+  P.skillLevels[skillId] = lv + 1;
+  P.skillPoints -= 1;
+  hotbarRender();
+  renderTownPanel();
+  const sg = window.saveGame; if(sg) sg();
+}
+
+export function equipSkill(skillId, slotIdx){
+  const def = SKILL_DEFS.find(s=>s.id===skillId);
+  if(!def || def.type === 'basic' || slotIdx < 0 || slotIdx > 3) return;
+  P.hotbar[slotIdx] = { kind:'skill', id:skillId };
+  hotbarRender();
+  renderTownPanel();
+  const sg = window.saveGame; if(sg) sg();
 }
 
 export function updateHUD(){
@@ -140,3 +238,9 @@ export function invItemClick(idx){
 window.toggleCharPanel = toggleCharPanel;
 window.updateHUD = updateHUD;
 window.hotbarRender = hotbarRender;
+window.renderTownPanel = renderTownPanel;
+window.enterTown = enterTown;
+window.leaveTown = leaveTown;
+window.assignAttr = assignAttr;
+window.upgradeSkill = upgradeSkill;
+window.equipSkill = equipSkill;
