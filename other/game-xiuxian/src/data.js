@@ -42,42 +42,40 @@ export const EQ_BASES = {
   amulet:{ hp:[10,40],def:[1,4] }
 };
 
-export const ZONES = [
-  { id:'village',name:'灵溪村',color:0x9fbe82,minDist:0,maxDist:500,monsterLv:1,colorName:'#4f7d3f' },
-  { id:'mountains',name:'落霞山脉',color:0xd1b06c,minDist:500,maxDist:1100,monsterLv:3,colorName:'#8a6329' },
-  { id:'forest',name:'幽暗密林',color:0x7aa879,minDist:1100,maxDist:1700,monsterLv:6,colorName:'#3f7041' },
-  { id:'ice',name:'寒冰极域',color:0x9cc9cf,minDist:1700,maxDist:2300,monsterLv:10,colorName:'#3f7e86' },
-  { id:'inferno',name:'烈焰炼狱',color:0xc98263,minDist:2300,maxDist:3500,monsterLv:15,colorName:'#9a4634' }
+export const MAPS = [
+  { id:'hehuan',  name:'合欢宗', worldSize:800,  monsterLv:0,  color:0xf0e0c8, colorName:'#c9a96e', safe:true,  bgColor:'#f8eed8' },
+  { id:'yaoshou', name:'妖兽谷', worldSize:1400, monsterLv:3,  color:0xb8a878, colorName:'#7a6020', bgColor:'#d8c898' },
+  { id:'xueshan', name:'雪山',   worldSize:1400, monsterLv:6,  color:0xb8d8e8, colorName:'#5a8a9a', bgColor:'#d0e8f0' },
+  { id:'huoyan',  name:'火焰山', worldSize:1400, monsterLv:10, color:0xd89878, colorName:'#b84a2a', bgColor:'#e8c8b8' },
+  { id:'shenyuan',name:'深渊',   worldSize:1600, monsterLv:15, color:0x8866aa, colorName:'#5a3a7a', bgColor:'#c0b8d0' },
 ];
 
+export const ZONES = MAPS;
+
 export const BESTIARY = {
-  village:[
-    { name:'灵兔',hp:20,atk:4,speed:35,xp:3,gold:2,atkType:'melee' },
-    { name:'山鸡',hp:18,atk:3,speed:40,xp:2,gold:1,atkType:'melee' },
-    { name:'野狼',hp:30,atk:6,speed:50,xp:4,gold:3,atkType:'melee' }
+  hehuan:[],
+  yaoshou:[
+    { name:'妖狼',hp:40,atk:10,speed:45,xp:6,gold:4,atkType:'melee' },
+    { name:'石傀',hp:55,atk:12,speed:30,xp:8,gold:6,atkType:'melee' },
+    { name:'毒蝎',hp:35,atk:16,speed:50,xp:9,gold:7,atkType:'ranged',atkRange:200,atkCD:2.5,projColor:0x88cc44 }
   ],
-  mountains:[
-    { name:'石傀',hp:50,atk:10,speed:25,xp:7,gold:5,atkType:'melee' },
-    { name:'风狼',hp:40,atk:12,speed:55,xp:8,gold:6,atkType:'melee' },
-    { name:'毒蝎',hp:35,atk:15,speed:45,xp:9,gold:7,atkType:'ranged',atkRange:200,atkCD:2.5,projColor:0x88cc44 }
+  xueshan:[
+    { name:'雪狼',hp:70,atk:20,speed:50,xp:14,gold:10,atkType:'melee' },
+    { name:'冰魄',hp:85,atk:25,speed:30,xp:16,gold:12,atkType:'ranged',atkRange:220,atkCD:3,projColor:0x88ccff },
+    { name:'霜巨人',hp:110,atk:22,speed:25,xp:18,gold:15,atkType:'melee' }
   ],
-  forest:[
-    { name:'树妖',hp:80,atk:20,speed:20,xp:14,gold:10,atkType:'ranged',atkRange:220,atkCD:3,projColor:0x669944 },
-    { name:'暗影豹',hp:65,atk:25,speed:60,xp:16,gold:12,atkType:'melee' },
-    { name:'魔蛛',hp:55,atk:28,speed:50,xp:18,gold:14,atkType:'ranged',atkRange:180,atkCD:2.0,projColor:0x9944aa }
+  huoyan:[
+    { name:'炎魔',hp:140,atk:38,speed:35,xp:28,gold:20,atkType:'ranged',atkRange:240,atkCD:3,projColor:0xff6633 },
+    { name:'火蛟',hp:120,atk:45,speed:55,xp:32,gold:24,atkType:'ranged',atkRange:260,atkCD:2.8,projColor:0xff4422 },
+    { name:'熔岩兽',hp:200,atk:35,speed:28,xp:35,gold:28,atkType:'melee' }
   ],
-  ice:[
-    { name:'冰魄',hp:120,atk:35,speed:30,xp:25,gold:18,atkType:'ranged',atkRange:250,atkCD:3.5,projColor:0x88ccff },
-    { name:'雪猿',hp:150,atk:40,speed:35,xp:28,gold:20,atkType:'melee' },
-    { name:'霜龙蜥',hp:100,atk:45,speed:45,xp:32,gold:24,atkType:'ranged',atkRange:200,atkCD:2.5,projColor:0x66bbff }
-  ],
-  inferno:[
-    { name:'炎魔',hp:200,atk:55,speed:30,xp:40,gold:30,atkType:'ranged',atkRange:240,atkCD:3,projColor:0xff6633 },
-    { name:'火蛟',hp:180,atk:65,speed:50,xp:45,gold:35,atkType:'ranged',atkRange:260,atkCD:2.8,projColor:0xff4422 },
-    { name:'熔岩巨人',hp:300,atk:50,speed:20,xp:50,gold:40,atkType:'melee' }
+  shenyuan:[
+    { name:'影魔',hp:250,atk:55,speed:40,xp:45,gold:35,atkType:'ranged',atkRange:250,atkCD:2.5,projColor:0x9944cc },
+    { name:'深渊领主',hp:350,atk:65,speed:30,xp:55,gold:45,atkType:'melee' },
+    { name:'噬魂者',hp:200,atk:70,speed:55,xp:50,gold:40,atkType:'ranged',atkRange:280,atkCD:2,projColor:0x6644dd }
   ]
 };
-export const BOSS_NAMES = ['妖兽头领','山魈王','暗影领主','冰霜巨龙','炎帝分身'];
+export const BOSS_NAMES = ['妖兽王','雪山之主','炎帝分身','深渊魔神','九尾天狐'];
 
 export const ACHIEVEMENTS = [
   { id:'kill_10', name:'初出茅庐', desc:'击杀10只妖兽', icon:'⚔️', check:(p)=>p.kills>=10, reward:{gold:50} },
