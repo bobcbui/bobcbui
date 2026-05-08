@@ -1,7 +1,7 @@
 import { P, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
   setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar,
   checkAchievements } from './state.js';
-import { ZONES, SKILL_DEFS, getRealm, getRealmIndex } from './data.js';
+import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES } from './data.js';
 import { MovementSystem } from './systems/MovementSystem.js';
 import { BuffSystem } from './systems/BuffSystem.js';
 import { SpawnSystem } from './systems/SpawnSystem.js';
@@ -43,18 +43,19 @@ export class MainScene extends Phaser.Scene {
   }
   create(){
     window.scene = this;
-    window.teleportToZone = (zoneId) => this.switchMap(zoneId);
-    this._currentMap = MAPS[0];
-    this.physics.world.setBounds(0,0,this._currentMap.worldSize,this._currentMap.worldSize);
+    window.teleportToZone = (zoneId) => this.teleportToZone(zoneId);
+    this.worldSize = WORLD.size;
+    this._currentMap = { worldSize: WORLD.size, safeRadius: WORLD.safeRadius, id:'hehuan', name:'合欢宗', colorName:'#c9a96e' };
+    this.physics.world.setBounds(0,0,this.worldSize,this.worldSize);
     this.ground = this.add.graphics();
     this.drawGround();
-    this.player = this.physics.add.sprite(this._currentMap.worldSize/2, this._currentMap.worldSize/2, 'player');
+    this.player = this.physics.add.sprite(this.worldSize/2, this.worldSize/2, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
     this.playerDead = false;
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
     this.cameras.main.setZoom(1.2);
-    this.cameras.main.setBounds(0,0,this._currentMap.worldSize,this._currentMap.worldSize);
+    this.cameras.main.setBounds(0,0,this.worldSize,this.worldSize);
     this.enemies = this.physics.add.group();
     this.projectiles = this.physics.add.group();
     this.enemyProjs = this.physics.add.group();
@@ -72,7 +73,7 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.combatSystem.onEnemyProjHit(proj); }, null, this);
     for(let i=0;i<8;i++) this.spawnSystem.spawnEnemy();
     this.isMoving = false;
-    this.moveTarget = new Phaser.Math.Vector2(this._currentMap.worldSize/2, this._currentMap.worldSize/2);
+    this.moveTarget = new Phaser.Math.Vector2(this.worldSize/2, this.worldSize/2);
     this.input.on('pointerdown', (ptr)=>{
       if(ptr.event.button===0){ this.isMoving=true; this.moveTarget.set(ptr.worldX,ptr.worldY); }
       else if(ptr.event.button===2){ this.placeMarker(ptr.worldX,ptr.worldY); }
@@ -105,6 +106,7 @@ export class MainScene extends Phaser.Scene {
 
     this.marker = null;
     this.lastZoneId = null;
+    this._wasInSafe = true;
 
     loadGame();
     bus.emit('status','读档成功',1.5);
@@ -116,25 +118,88 @@ export class MainScene extends Phaser.Scene {
 
   drawGround(){
     const g = this.ground; g.clear();
-    const s = this._currentMap.worldSize;
-    const m = this._currentMap;
-    g.fillStyle(parseInt('0x' + m.bgColor.replace('#',''), 16) || 0xefe3c0, 1);
-    g.fillRect(0, 0, s, s);
-    for(let x = 0; x < s; x += 40) {
-      for(let y = 0; y < s; y += 40) {
-        g.fillStyle(m.color, 0.1 + Math.random() * 0.08);
-        g.fillRect(x, y, 40, 40);
+    const s = this.worldSize;
+    g.fillStyle(0xefe3c0, 1); g.fillRect(0, 0, s, s);
+    for(const zone of ZONES){
+      for(let x=0;x<s;x+=100){
+        for(let y=0;y<s;y+=100){
+          const cx=x+50,cy=y+50;
+          const dist=Math.sqrt((cx-s/2)*(cx-s/2)+(cy-s/2)*(cy-s/2));
+          if(dist>=zone.minDist&&dist<zone.maxDist){
+            g.fillStyle(zone.color,0.12+Math.random()*0.06);
+            g.fillRect(x-1,y-1,102,102);
+          }
+        }
       }
     }
-    if (m.safe) {
-      g.fillStyle(0xf7edc8, 0.85); g.fillCircle(s / 2, s / 2, s * 0.35);
-      g.lineStyle(3, 0xb57a19, 0.4); g.strokeCircle(s / 2, s / 2, s * 0.35);
-      g.lineStyle(1, 0x8aa678, 0.25); g.strokeCircle(s / 2, s / 2, 60);
+    const r = WORLD.safeRadius;
+    g.fillStyle(0xf7edc8,0.82); g.fillCircle(s/2,s/2,r);
+    g.lineStyle(3,0xb57a19,0.38); g.strokeCircle(s/2,s/2,r);
+    g.lineStyle(1,0x8aa678,0.22); g.strokeCircle(s/2,s/2,80);
+    g.lineStyle(2,0xb99a59,0.15);
+    for(let d=600;d<2200;d+=400) g.strokeCircle(s/2,s/2,d);
+    this._drawObstacles(g);
+  }
+
+  _drawObstacles(g){
+    const s = this.worldSize;
+    const center = s/2;
+    const hash = (x,y)=>Math.abs(Math.sin(x*12.9898+y*78.233)*43758.5453)%1;
+    for(let x=20;x<s;x+=80){
+      for(let y=20;y<s;y+=80){
+        const dx=x-center, dy=y-center;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist<WORLD.safeRadius+60) continue;
+        const h = hash(x,y);
+        if(h<0.12){
+          g.fillStyle(0x3a6e2a,0.6); g.fillCircle(x,y,10+Math.floor(h*40));
+          g.fillStyle(0x5a4a2a,0.5); g.fillRect(x-2,y+8,4,10);
+        }else if(h<0.18){
+          g.fillStyle(0x7a7a80,0.45); g.fillRect(x-12,y-8,24+Math.floor(h*20),16+Math.floor(h*10));
+          g.fillStyle(0x9a9aa0,0.3); g.fillRect(x-8,y-12,16,8);
+        }else if(h<0.21){
+          g.fillStyle(0x5599cc,0.25); g.fillRect(x-40,y-15,80,30);
+        }
+      }
+    }
+    for(let x=30;x<s;x+=200){
+      for(let y=30;y<s;y+=200){
+        const dx=x-center, dy=y-center;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist<WORLD.safeRadius+100) continue;
+        const h = hash(x+100,y+100);
+        if(h<0.3){
+          g.fillStyle(0x3a6e2a,0.7); g.fillCircle(x+Phaser.Math.Between(-10,10),y+Phaser.Math.Between(-10,10),14+Math.random()*10);
+          g.fillStyle(0x5a4a2a,0.6); g.fillRect(x-3+Phaser.Math.Between(-5,5),y+12+Phaser.Math.Between(-5,5),5,12);
+        }
+      }
     }
   }
 
-  getCurrentMap(){
-    return this._currentMap;
+  getCurrentZone(){
+    const cx=this.player.x,cy=this.player.y;
+    const s=this.worldSize/2;
+    const dist=Math.sqrt((cx-s)*(cx-s)+(cy-s)*(cy-s));
+    for(const zone of ZONES){ if(dist>=zone.minDist&&dist<zone.maxDist) return zone; }
+    return ZONES[ZONES.length-1];
+  }
+
+  _inSafeCircle(){
+    const c = this.worldSize/2;
+    const dx=this.player.x-c, dy=this.player.y-c;
+    return dx*dx+dy*dy <= WORLD.safeRadius*WORLD.safeRadius;
+  }
+
+  updateZoneLabel(){
+    const zone = this.getCurrentZone();
+    const el=document.getElementById('zone-label');
+    if(el){
+      el.textContent='「 '+zone.name+' 」';
+      el.style.color=zone.colorName||'#fff';
+      el.classList.add('show');
+      if(this.zoneFadeTimer) clearTimeout(this.zoneFadeTimer);
+      this.zoneFadeTimer=setTimeout(()=>el.classList.remove('show'),2000);
+    }
   }
 
   clearEnemies(){
@@ -151,18 +216,6 @@ export class MainScene extends Phaser.Scene {
     this.hpBarGfx.clear();
   }
 
-  updateZoneLabel(){
-    const zone = this._currentMap;
-    const el=document.getElementById('zone-label');
-    if(el){
-      el.textContent='「 '+zone.name+' 」';
-      el.style.color=zone.colorName||'#fff';
-      el.classList.add('show');
-      if(this.zoneFadeTimer) clearTimeout(this.zoneFadeTimer);
-      this.zoneFadeTimer=setTimeout(()=>el.classList.remove('show'),2000);
-    }
-  }
-
   damageFlash(t){
     const el=document.getElementById('damageFlash');
     if(!el)return;
@@ -171,42 +224,20 @@ export class MainScene extends Phaser.Scene {
     el._to=setTimeout(()=>{el.style.opacity='0';},60);
   }
 
-  switchMap(mapId){
-    const map = MAPS.find(m => m.id === mapId);
-    if (!map || map.id === this._currentMap.id) return;
-    const overlay = document.getElementById('loadingOverlay');
-    const bar = document.getElementById('loadingBar');
-    const txt = document.getElementById('loadingText');
-    if (overlay) { overlay.style.display = 'flex'; if (txt) txt.textContent = '传送至 ' + map.name + '...'; if (bar) bar.style.width = '0%'; }
-    setTimeout(() => { if (bar) bar.style.width = '50%'; }, 100);
-    setTimeout(() => { if (bar) bar.style.width = '100%'; }, 300);
-    setTimeout(() => {
-      this._currentMap = map;
-      this.physics.world.setBounds(0, 0, map.worldSize, map.worldSize);
-      this.cameras.main.setBounds(0, 0, map.worldSize, map.worldSize);
-      this.drawGround();
-      this.player.setPosition(map.worldSize / 2, map.worldSize / 2);
-      this.moveTarget.set(map.worldSize / 2, map.worldSize / 2);
-      this.lastZoneId = null;
-      this.clearEnemies();
-      for (let i = 0; i < 8; i++) this.spawnSystem.spawnEnemy();
-      this.updateZoneLabel();
-      bus.emit('status', '📍 传送至 ' + map.name, 2);
-      bus.emit('save');
-      if (overlay) overlay.style.display = 'none';
-    }, 500);
-  }
-
-  respawnPlayer(){
-    P.hp=P.maxHp;
-    this.playerDead=false;
-    this.player.setAlpha(1);
-    this.player.setPosition(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
-    this.moveTarget.set(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
-    if(this.deathModal)this.deathModal.classList.add('hidden');
-    recalcStats();
-    bus.emit('status','转生归来',1.5);
-    bus.emit('hud-refresh');
+  teleportToZone(zoneId){
+    const zone = ZONES.find(z => z.id === zoneId);
+    if (!zone) return;
+    const s = this.worldSize;
+    const c = s / 2;
+    const dist = zoneId === 'hehuan' ? 0 : (zone.minDist + zone.maxDist) / 2;
+    const angle = Math.random() * Math.PI * 2;
+    const x = Phaser.Math.Clamp(c + Math.cos(angle) * dist, 30, s - 30);
+    const y = Phaser.Math.Clamp(c + Math.sin(angle) * dist, 30, s - 30);
+    this.player.setPosition(x, y);
+    this.moveTarget.set(x, y);
+    this.lastZoneId = null;
+    this.updateZoneLabel();
+    bus.emit('status', '📍 传送至 ' + zone.name, 2);
     bus.emit('save');
   }
 
@@ -214,8 +245,8 @@ export class MainScene extends Phaser.Scene {
     P.hp=P.maxHp;
     this.playerDead=false;
     this.player.setAlpha(1);
-    this.player.setPosition(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
-    this.moveTarget.set(this._currentMap.worldSize/2,this._currentMap.worldSize/2);
+    this.player.setPosition(this.worldSize/2,this.worldSize/2);
+    this.moveTarget.set(this.worldSize/2,this.worldSize/2);
     if(this.deathModal)this.deathModal.classList.add('hidden');
     recalcStats();
     bus.emit('status','转生归来',1.5);
@@ -280,7 +311,16 @@ export class MainScene extends Phaser.Scene {
 
   update(time,delta){
     const dt=delta/1000;
-    if(this._currentMap.safe && this.enemies.countActive(true)>0) this.clearEnemies();
+    const inSafe = this._inSafeCircle();
+    if (inSafe && !this._wasInSafe) {
+      this._wasInSafe = true;
+      this.clearEnemies();
+      bus.emit('status', '已进入安全区', 1.2);
+    } else if (!inSafe && this._wasInSafe) {
+      this._wasInSafe = false;
+      bus.emit('status', '已离开安全区', 1.2);
+    }
+    if (inSafe && this.enemies.countActive(true) > 0) this.clearEnemies();
     P.totalPlayTime += dt;
     this.movementSystem.update();
     if (this.playerDead) this.player.setVelocity(0, 0);
@@ -317,7 +357,7 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: this.playerAura, alpha: 0.08, scale: 1.6, duration: 1200, yoyo: true, repeat: -1 });
       } else this.playerAura.setPosition(this.player.x, this.player.y);
     }
-    if (!this.playerDead && !this._currentMap.safe) {
+    if (!this.playerDead && !this._inSafeCircle()) {
       this.combatSystem.useAutoAttack(skillNow, closestQ, qDef);
       this.combatSystem.useManualSkills(skillNow, activeEnemies);
     }

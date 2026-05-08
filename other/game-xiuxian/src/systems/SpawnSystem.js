@@ -1,4 +1,4 @@
-import { ZONES, BESTIARY, BOSS_NAMES } from '../data.js';
+import { ZONES, BESTIARY, BOSS_NAMES, WORLD } from '../data.js';
 import { P } from '../state.js';
 
 export class SpawnSystem {
@@ -8,22 +8,25 @@ export class SpawnSystem {
 
   spawnEnemy() {
     const { scene } = this;
-    if (scene._currentMap.safe) return null;
-
-    const zone = scene._currentMap;
+    const zone = scene.getCurrentZone();
     const list = BESTIARY[zone.id];
     if (!list || list.length === 0) return null;
     const tmpl = list[Math.floor(Math.random() * list.length)];
 
-    const sz = scene._currentMap.worldSize;
+    const sz = scene.worldSize;
     let x = scene.player.x + Phaser.Math.Between(-400, 400);
     let y = scene.player.y + Phaser.Math.Between(-400, 400);
     x = Phaser.Math.Clamp(x, 30, sz - 30);
     y = Phaser.Math.Clamp(y, 30, sz - 30);
 
-    if (scene._currentMap.safe && Math.random() > 0.3) {
-      x = sz / 2 + Phaser.Math.Between(-200, 200);
-      y = sz / 2 + Phaser.Math.Between(-200, 200);
+    const r = WORLD.safeRadius + 40;
+    const cx = sz / 2, cy = sz / 2;
+    const dx = x - cx, dy = y - cy;
+    if (dx * dx + dy * dy < r * r) {
+      const angle = Math.atan2(dy, dx) + Phaser.Math.FloatBetween(-0.5, 0.5);
+      const dist = r + Phaser.Math.Between(60, 300);
+      x = Phaser.Math.Clamp(cx + Math.cos(angle) * dist, 30, sz - 30);
+      y = Phaser.Math.Clamp(cy + Math.sin(angle) * dist, 30, sz - 30);
     }
 
     const isElite = Math.random() < 0.08;

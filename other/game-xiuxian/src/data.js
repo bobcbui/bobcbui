@@ -42,18 +42,24 @@ export const EQ_BASES = {
   amulet:{ hp:[10,40],def:[1,4] }
 };
 
-export const MAPS = [
-  { id:'hehuan',  name:'合欢宗', worldSize:800,  monsterLv:0,  color:0xf0e0c8, colorName:'#c9a96e', safe:true,  bgColor:'#f8eed8' },
-  { id:'yaoshou', name:'妖兽谷', worldSize:1400, monsterLv:3,  color:0xb8a878, colorName:'#7a6020', bgColor:'#d8c898' },
-  { id:'xueshan', name:'雪山',   worldSize:1400, monsterLv:6,  color:0xb8d8e8, colorName:'#5a8a9a', bgColor:'#d0e8f0' },
-  { id:'huoyan',  name:'火焰山', worldSize:1400, monsterLv:10, color:0xd89878, colorName:'#b84a2a', bgColor:'#e8c8b8' },
-  { id:'shenyuan',name:'深渊',   worldSize:1600, monsterLv:15, color:0x8866aa, colorName:'#5a3a7a', bgColor:'#c0b8d0' },
+export const WORLD = { size: 4000, safeRadius: 380 };
+
+export const ZONES = [
+  { id:'hehuan',  name:'合欢宗', minDist:0,    maxDist:500,  monsterLv:1,  color:0xf0e0c8, colorName:'#c9a96e' },
+  { id:'yaoshou', name:'妖兽谷', minDist:500,  maxDist:1200, monsterLv:4,  color:0xb8a878, colorName:'#7a6020' },
+  { id:'xueshan', name:'雪山',   minDist:1200, maxDist:2000, monsterLv:8,  color:0xb8d8e8, colorName:'#5a8a9a' },
+  { id:'huoyan',  name:'火焰山', minDist:2000, maxDist:2900, monsterLv:12, color:0xd89878, colorName:'#b84a2a' },
+  { id:'shenyuan',name:'深渊',   minDist:2900, maxDist:4000, monsterLv:16, color:0x8866aa, colorName:'#5a3a7a' },
 ];
 
-export const ZONES = MAPS;
+export const MAPS = [];
 
 export const BESTIARY = {
-  hehuan:[],
+  hehuan:[
+    { name:'灵兔',hp:20,atk:4,speed:35,xp:3,gold:2,atkType:'melee' },
+    { name:'野狗',hp:28,atk:6,speed:45,xp:4,gold:3,atkType:'melee' },
+    { name:'毒蜂',hp:18,atk:9,speed:50,xp:4,gold:3,atkType:'ranged',atkRange:180,atkCD:3,projColor:0x88cc44 }
+  ],
   yaoshou:[
     { name:'妖狼',hp:40,atk:10,speed:45,xp:6,gold:4,atkType:'melee' },
     { name:'石傀',hp:55,atk:12,speed:30,xp:8,gold:6,atkType:'melee' },

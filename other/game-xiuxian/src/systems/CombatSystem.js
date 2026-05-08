@@ -65,7 +65,7 @@ export class CombatSystem {
   }
 
   onEnemyProjHit(proj) {
-    if (!proj.active || this.scene.playerDead) return;
+    if (!proj.active || this.scene.playerDead || this.scene._inSafeCircle()) { this.scene.freeProj(proj); return; }
     const dmg = proj.getData('damage') || 8;
     const sd = P.buff.shieldPct > 0 ? (1 - P.buff.shieldPct) : 1;
     P.hp = Math.max(0, P.hp - Math.round(dmg * sd));
@@ -85,7 +85,7 @@ export class CombatSystem {
   }
 
   onEnemyContact(en) {
-    if (en.getData('dead') || this.scene.playerDead) return;
+    if (en.getData('dead') || this.scene.playerDead || this.scene._inSafeCircle()) return;
     const now = this.scene.time.now;
     const lastHit = en.getData('lastContactTime') || 0;
     if (now - lastHit < 600) return;
