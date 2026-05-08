@@ -135,7 +135,7 @@ export function renderSkillPanel(){
   document.getElementById('spSkillPoints').textContent = P.skillPoints || 0;
   const hotbarKeys = P.hotbar.map((h,i)=>['Q','W','E','R','T'][i]+':'+(SKILL_DEFS.find(s=>s.id===h.id)?.name||'空')).join(' ');
   document.getElementById('spHotbarKeys').textContent = '当前: '+hotbarKeys;
-  const inSafe = window.scene?._currentMap?.safe;
+  const inSafe = window.scene?._inSafeCircle?.();
   const list = document.getElementById('skillList');
   list.innerHTML = '';
 
@@ -296,7 +296,7 @@ export function equipSkill(skillId, slotIdx){
   const def = SKILL_DEFS.find(s=>s.id===skillId);
   if(!def || def.id==='swordfly' || slotIdx<1 || slotIdx>4) return;
   const scene = window.scene;
-  if(scene && !scene._currentMap.safe){ bus.emit('status', '只能在安全区内切换技能',1.5); return; }
+  if(scene && !scene._inSafeCircle()){ bus.emit('status', '只能在安全区内切换技能',1.5); return; }
   P.hotbar[slotIdx] = { kind:'skill', id:skillId };
   hotbarRender();
   renderSkillPanel();

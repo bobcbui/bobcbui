@@ -12,10 +12,6 @@ window.importSaveData = importSaveData;
 window.resetGameData = resetGameData;
 window.manualSave = manualSave;
 
-window.toggleMapPanel = function() {
-  document.getElementById('mapPanel').classList.toggle('hidden');
-};
-
 if(window.ontouchstart!==undefined||navigator.maxTouchPoints>0) document.body.classList.add('has-touch');
 
 window.addEventListener('load', ()=>{
@@ -40,7 +36,6 @@ window.addEventListener('load', ()=>{
   const navBar = document.createElement('div');
   navBar.style.cssText = 'position:absolute;top:10px;right:10px;pointer-events:auto;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;';
   navBar.innerHTML = `
-    <button class="btn btn-sm btn-gold" onclick="toggleMapPanel()">地图</button>
     <button class="btn btn-sm btn-gold" onclick="toggleCharPanel()">角色</button>
     <button class="btn btn-sm btn-sec" onclick="toggleBagPanel()">背包</button>
     <button class="btn btn-sm btn-sec" onclick="toggleSkillPanel()">技能</button>
