@@ -1,7 +1,7 @@
 import { P, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
   setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar,
   checkAchievements } from './state.js';
-import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES } from '../data/index.js';
+import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES, COMBAT_TUNING } from '../data/index.js';
 import { installSceneSystems } from '../systems/index.js';
 import { bus } from './events.js';
 import { loadGame } from './save.js';
@@ -41,7 +41,6 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(this.projectiles, this.enemies, (proj, en)=>{ this.combatSystem.onProjHit(proj, en); }, null, this);
     this.physics.add.overlap(this.player, this.enemies, (p, en)=>{ this.combatSystem.onEnemyContact(en); }, null, this);
     this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.combatSystem.onEnemyProjHit(proj); }, null, this);
-    for(let i=0;i<8;i++) this.spawnSystem.spawnEnemy();
     this.isMoving = false;
     this.moveTarget = new Phaser.Math.Vector2(this.worldSize/2, this.worldSize/2);
     this.input.on('pointerdown', (ptr)=>{
@@ -81,6 +80,9 @@ export class MainScene extends Phaser.Scene {
     loadGame();
     bus.emit('status','读档成功',1.5);
     recalcStats();
+    for (let i = 0; i < COMBAT_TUNING.initialEnemyCount; i++) {
+      this.spawnSystem.spawnEnemy({ allowBoss: false });
+    }
     bus.emit('hud-refresh');
     bus.emit('hotbar-refresh');
     this.updateZoneLabel();
@@ -291,7 +293,9 @@ export class MainScene extends Phaser.Scene {
 
   placeMarker(x,y){
     if(this.marker)this.marker.destroy();
-    this.marker=this.add.circle(x,y,7,0xffffff,0.5).setDepth(20);
+    this.marker=this.add.circle(x,y,12,0xfff4cc,1).setDepth(20);
+    this.marker.setStrokeStyle(4,0xffa01f,1);
+    this.tweens.add({ targets:this.marker, scale:1.35, alpha:0.88, yoyo:true, repeat:2, duration:180 });
     this.time.delayedCall(1200,()=>{if(this.marker){this.marker.destroy();this.marker=null;}});
   }
 
@@ -300,19 +304,39 @@ export class MainScene extends Phaser.Scene {
     const pool = this.pool[tex] || (this.pool[tex] = []);
     let p = pool.pop();
     if (p && p.scene) {
+      const despawnTimer = p.getData('despawnTimer');
+      if (despawnTimer?.remove) despawnTimer.remove(false);
       p.setActive(true).setVisible(true).setPosition(x, y);
       p.setAlpha(1).setScale(1).clearTint();
+      p.setData('despawnTimer', null);
       if (p.body) { p.body.enable = true; p.body.reset(x, y); }
       return p;
     }
     p = group.create(x, y, tex);
     if (p && p.body) p.body.allowGravity = false;
-    if (p) p.setDepth(8);
+    if (p) {
+      p.setDepth(8);
+      p.setData('despawnTimer', null);
+    }
     return p;
   }
 
+  scheduleProjFree(p, lifetime) {
+    if (!p) return;
+    const oldTimer = p.getData('despawnTimer');
+    if (oldTimer?.remove) oldTimer.remove(false);
+    const timer = this.time.delayedCall(lifetime, () => {
+      if (p?.active) this.freeProj(p);
+    });
+    p.setData('despawnTimer', timer);
+  }
+
   freeProj(p) {
-    if (!p || !p.active) return;
+    if (!p) return;
+    const despawnTimer = p.getData('despawnTimer');
+    if (despawnTimer?.remove) despawnTimer.remove(false);
+    p.setData('despawnTimer', null);
+    if (!p.active) return;
     p.setActive(false).setVisible(false);
     if (p.body) { p.body.enable = false; p.body.velocity.set(0, 0); }
     const tex = p.texture.key;
@@ -404,6 +428,7 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: dot, alpha: 0, y: py - 30, duration: 600, onComplete: () => dot.destroy() });
       }
     }
+    this.combatSystem.updateSwordProjectiles(dt);
     this.skillEffects?.updateProjectileTrails();
     this.updateFireballFields();
     this.groundEffectSystem?.update(dt);
@@ -430,7 +455,7 @@ export class MainScene extends Phaser.Scene {
       } else this.playerAura.setPosition(this.player.x, this.player.y);
     }
     if (!this.playerDead && !this._inSafeZone()) {
-      this.combatSystem.useAutoAttack(skillNow, closestQ, qDef);
+      this.combatSystem.useAutoAttack(skillNow, closestQ, activeEnemies, qDef);
       this.combatSystem.useManualSkills(skillNow, activeEnemies);
     }
     this.waveSystem.update(dt);

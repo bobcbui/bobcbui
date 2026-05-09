@@ -12,12 +12,12 @@ export class GroundEffectSystem {
     });
     if (exists) return;
 
-    const gfx = this.scene.add.circle(x, y, radius, 0xff5522, 0.13).setDepth(4);
-    gfx.setStrokeStyle(2, 0xffaa44, 0.35);
-    const core = this.scene.add.circle(x, y, radius * 0.45, 0xffaa33, 0.1).setDepth(4);
+    const gfx = this.scene.add.circle(x, y, radius, 0xff5522, 0.24).setDepth(4);
+    gfx.setStrokeStyle(3, 0xffaa44, 0.6);
+    const core = this.scene.add.circle(x, y, radius * 0.45, 0xffaa33, 0.22).setDepth(4);
     this.scene.tweens.add({
       targets: core,
-      alpha: 0.22,
+      alpha: 0.42,
       scale: 1.25,
       duration: 520,
       yoyo: true,
@@ -38,14 +38,14 @@ export class GroundEffectSystem {
   }
 
   addThunderField(x, y, radius, damage, duration = 5) {
-    const gfx = this.scene.add.circle(x, y, radius, 0xd6a742, 0.03).setDepth(5);
-    gfx.setStrokeStyle(2, 0xffdd44, 0.35);
-    const pulse = this.scene.add.circle(x, y, radius * 0.2, 0xffffcc, 0.08).setDepth(6);
-    pulse.setStrokeStyle(2, 0xffdd44, 0.35);
+    const gfx = this.scene.add.circle(x, y, radius, 0xd6a742, 0.12).setDepth(5);
+    gfx.setStrokeStyle(3, 0xffdd44, 0.6);
+    const pulse = this.scene.add.circle(x, y, radius * 0.2, 0xffffcc, 0.22).setDepth(6);
+    pulse.setStrokeStyle(3, 0xffdd44, 0.6);
     this.scene.tweens.add({
       targets: pulse,
       scale: radius / (radius * 0.2),
-      alpha: 0.02,
+      alpha: 0.12,
       duration: 900,
       repeat: -1
     });
@@ -76,9 +76,11 @@ export class GroundEffectSystem {
         continue;
       }
 
-      const alpha = Math.min(0.16, Math.max(0.03, effect.ttl / 10 * 0.16));
+      const alpha = effect.type === 'fire'
+        ? Math.min(0.3, Math.max(0.14, effect.ttl / 10 * 0.3))
+        : Math.min(0.22, Math.max(0.1, effect.ttl / 10 * 0.22));
       effect.gfx.setAlpha(alpha);
-      effect.core.setAlpha(alpha + 0.05);
+      effect.core.setAlpha(Math.min(0.48, alpha + (effect.type === 'fire' ? 0.12 : 0.16)));
 
       if (effect.type === 'thunder') this.updateThunderVisual(effect, dt);
 
@@ -101,7 +103,7 @@ export class GroundEffectSystem {
     const angle = Math.random() * Math.PI * 2;
     const length = effect.radius * Phaser.Math.FloatBetween(0.35, 0.95);
     const g = this.scene.add.graphics().setDepth(12);
-    g.lineStyle(2, 0xffdd44, 0.58);
+    g.lineStyle(3, 0xffdd44, 0.86);
     g.beginPath();
     g.moveTo(effect.x, effect.y);
     for (let i = 1; i <= 4; i++) {

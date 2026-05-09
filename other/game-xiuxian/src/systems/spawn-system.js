@@ -1,4 +1,4 @@
-import { ZONES, BESTIARY, BOSS_NAMES, WORLD } from '../data/index.js';
+import { ZONES, BESTIARY, BOSS_NAMES, WORLD, COMBAT_TUNING } from '../data/index.js';
 import { P } from '../core/state.js';
 
 const MONSTER_TEXTURES = {
@@ -11,6 +11,13 @@ const MONSTER_TEXTURES = {
   youming: ['monster-ghost', 'monster-serpent', 'monster-shadow'],
   jiutian: ['monster-thunder-beast', 'monster-thunder-spirit', 'monster-dragon']
 };
+
+function getEnemyMaxHp(tmpl, scale, isBoss, isElite) {
+  const tierMult = isBoss
+    ? COMBAT_TUNING.enemyHpTierMult.boss
+    : (isElite ? COMBAT_TUNING.enemyHpTierMult.elite : COMBAT_TUNING.enemyHpTierMult.normal);
+  return Math.round(tmpl.hp * scale * COMBAT_TUNING.enemyHpScale * tierMult);
+}
 
 export class SpawnSystem {
   constructor(scene) {
@@ -26,22 +33,23 @@ export class SpawnSystem {
     if (this.spawnTimer > 0) return;
 
     const active = scene.enemies.countActive(true);
-    const target = Math.min(8 + Math.floor(P.level / 3), 18);
+    const target = COMBAT_TUNING.maxActiveEnemies;
     if (active < target) {
-      const batch = Math.min(target - active, active === 0 ? 5 : 2);
+      const batch = Math.min(target - active, active === 0 ? 2 : 1);
       for (let i = 0; i < batch; i++) this.spawnEnemy();
-      this.spawnTimer = active === 0 ? 0.6 : 1.4;
+      this.spawnTimer = active === 0 ? COMBAT_TUNING.spawnInterval.empty : COMBAT_TUNING.spawnInterval.refill;
     } else {
-      this.spawnTimer = 2;
+      this.spawnTimer = COMBAT_TUNING.spawnInterval.capped;
     }
   }
 
-  spawnEnemy() {
+  spawnEnemy(options = {}) {
     const { scene } = this;
     const zone = scene.getCurrentZone();
     const list = BESTIARY[zone.id];
     if (!list || list.length === 0) return null;
     const tmpl = list[Math.floor(Math.random() * list.length)];
+    const { forceBoss = false, forceElite = false, allowBoss = true, allowElite = true } = options;
 
     const sz = scene.worldSize;
     let { x, y } = this.pickSpawnPoint();
@@ -55,8 +63,8 @@ export class SpawnSystem {
       y = Phaser.Math.Clamp(cy + Math.sin(angle) * dist, 30, sz - 30);
     }
 
-    const isElite = Math.random() < 0.08;
-    const isBoss = Math.random() < 0.01 && zone.monsterLv >= 3;
+    const isBoss = forceBoss || (allowBoss && Math.random() < 0.01 && zone.monsterLv >= 3);
+    const isElite = !isBoss && (forceElite || (allowElite && Math.random() < 0.08));
     const texture = isBoss ? 'monster-boss' : this.getMonsterTexture(zone, list, tmpl);
     const en = scene.enemies.create(x, y, texture);
     en.setCollideWorldBounds(true);
@@ -71,9 +79,10 @@ export class SpawnSystem {
     const lvMult = 1 + (zone.monsterLv - 1) * 0.3;
     const plvMult = 1 + (P.level - 1) * 0.08;
     const scale = lvMult * plvMult;
+    const maxHp = getEnemyMaxHp(tmpl, scale, isBoss, isElite);
 
-    en.setData('hp', Math.round(tmpl.hp * scale * (isBoss ? 4 : (isElite ? 1.8 : 1))));
-    en.setData('maxHp', Math.round(tmpl.hp * scale * (isBoss ? 4 : (isElite ? 1.8 : 1))));
+    en.setData('hp', maxHp);
+    en.setData('maxHp', maxHp);
     en.setData('atk', Math.round(tmpl.atk * scale * (isBoss ? 3 : (isElite ? 1.5 : 1))));
     en.setData('speed', Math.round(tmpl.speed * (isBoss ? 0.6 : (isElite ? 0.8 : 1))));
     en.setData('xp', Math.round(tmpl.xp * lvMult * plvMult * (isBoss ? 5 : (isElite ? 2 : 1))));
@@ -96,7 +105,7 @@ export class SpawnSystem {
     }).setOrigin(0.5).setDepth(15);
     en.setData('label', lbl);
 
-    en.setData('barW', isBoss ? 32 : 24);
+    en.setData('barW', isBoss ? COMBAT_TUNING.hpBar.bossWidth : COMBAT_TUNING.hpBar.normalWidth);
     en.setData('atkType', tmpl.atkType || 'melee');
     en.setData('atkRange', tmpl.atkRange || 150);
     en.setData('atkCD', tmpl.atkCD || 2);

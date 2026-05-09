@@ -1,29 +1,69 @@
 import { P, recalcStats } from '../core/state.js';
-import { SKILL_DEFS, RARITY_LABEL, RARITY_COLORS } from '../data/index.js';
-import { genEquipment } from '../core/equipment.js';
+import { SKILL_DEFS, RARITY_LABEL, RARITY_COLORS, COMBAT_TUNING } from '../data/index.js';
+import { genEquipment, acquireEquipment } from '../core/equipment.js';
 import { bus } from '../core/events.js';
+
+const SWORD_VOLLEY_COUNT = 3;
+const SWORD_VOLLEY_SPREAD = 0.28;
+const SWORD_TURN_RATE = 12;
+const SWORD_PROJECTILE_SPEED = 560;
+const SWORD_MIN_LIFETIME = 1900;
+const SWORD_RANGE_LIFETIME_FACTOR = 7.5;
+const SWORD_HITBOX_W = 30;
+const SWORD_HITBOX_H = 18;
 
 export class CombatSystem {
   constructor(scene) {
     this.scene = scene;
   }
 
-  shootProjectile(skillId, angle, dmg, range) {
+  getScaledPlayerDamageBase() {
+    return (P.atk + P.level * 0.5) * COMBAT_TUNING.playerDamageScale;
+  }
+
+  splitDamage(totalDamage, count) {
+    const base = Math.floor(totalDamage / count);
+    const remainder = Math.max(0, totalDamage - base * count);
+    return Array.from({ length: count }, (_, idx) => base + (idx < remainder ? 1 : 0));
+  }
+
+  spawnProjectile(skillId, angle, dmg, options = {}) {
     const tex = { 'fireball': 'fireball', 'swordfly': 'swordQi', 'thunder': 'bolt', 'waterdomain': 'water', 'tornado': 'wind' }[skillId] || 'arrow';
     const proj = this.scene.getPooledProj(this.scene.player.x, this.scene.player.y, tex);
-    if (!proj) return;
-    this.scene.physics.velocityFromRotation(angle, skillId === 'swordfly' ? 560 : 450, proj.body.velocity);
+    if (!proj) return null;
+
+    const speed = options.speed || (skillId === 'swordfly' ? SWORD_PROJECTILE_SPEED : 450);
+    this.scene.physics.velocityFromRotation(angle, speed, proj.body.velocity);
     proj.rotation = angle;
-    const isPierce = skillId === 'swordfly';
     proj.setData('damage', dmg);
-    proj.setData('pierce', isPierce);
+    proj.setData('pierce', !!options.pierce);
     proj.setData('skillId', skillId);
+    proj.setData('speed', speed);
+    proj.setData('homing', !!options.homing);
+    proj.setData('turnRate', options.turnRate || 0);
+    proj.setData('seekRadius', options.seekRadius || 0);
+    proj.setData('targetRef', options.targetRef || null);
     proj.setData('lastFireFieldX', this.scene.player.x);
     proj.setData('lastFireFieldY', this.scene.player.y);
-    if (skillId === 'fireball') this.scene.groundEffectSystem?.addFireField(this.scene.player.x, this.scene.player.y, dmg * 0.18, 10);
+    if (proj.body) {
+      if (skillId === 'swordfly') proj.body.setSize(SWORD_HITBOX_W, SWORD_HITBOX_H, true);
+      else proj.body.setSize(proj.width, proj.height, true);
+    }
     this.scene.skillEffects?.onProjectileFired(proj, skillId, angle);
+
+    const lifetime = options.lifetime || 1200;
+    this.scene.scheduleProjFree(proj, lifetime);
+    return proj;
+  }
+
+  shootProjectile(skillId, angle, dmg, range) {
+    const proj = this.spawnProjectile(skillId, angle, dmg, {
+      pierce: false,
+      lifetime: skillId === 'swordfly' ? SWORD_PROJECTILE_LIFETIME : 1200
+    });
+    if (!proj) return;
+    if (skillId === 'fireball') this.scene.groundEffectSystem?.addFireField(this.scene.player.x, this.scene.player.y, dmg * 0.18, 10);
     this.scene.entityAnimationSystem?.playPlayerAttack(angle);
-    this.scene.time.delayedCall(isPierce ? 1500 : 1200, () => { this.scene.freeProj(proj); });
   }
 
   doMultiProjectile(angle, dmg, count, range, texture) {
@@ -39,9 +79,115 @@ export class CombatSystem {
         proj.rotation = ang;
         proj.setData('damage', Math.round(dmg * 0.6));
         proj.setData('pierce', false);
+        proj.setData('homing', false);
+        proj.setData('turnRate', 0);
+        proj.setData('seekRadius', 0);
+        proj.setData('targetRef', null);
+        proj.setData('speed', 460);
+        proj.setData('skillId', 'swordfly');
         this.scene.skillEffects?.onProjectileFired(proj, 'swordfly', ang);
-        this.scene.time.delayedCall(1000, () => { this.scene.freeProj(proj); });
+        this.scene.scheduleProjFree(proj, 1000);
       }
+    });
+  }
+
+  getSwordVolleyTargets(primaryTarget, activeEnemies, count) {
+    const uniqueTargets = [];
+    const candidates = (activeEnemies || [])
+      .filter((en) => en && en.active && !en.getData('dead'))
+      .sort((a, b) => {
+        const adx = a.x - this.scene.player.x;
+        const ady = a.y - this.scene.player.y;
+        const bdx = b.x - this.scene.player.x;
+        const bdy = b.y - this.scene.player.y;
+        return adx * adx + ady * ady - (bdx * bdx + bdy * bdy);
+      });
+
+    if (primaryTarget) uniqueTargets.push(primaryTarget);
+    for (const enemy of candidates) {
+      if (uniqueTargets.includes(enemy)) continue;
+      uniqueTargets.push(enemy);
+      if (uniqueTargets.length >= count) break;
+    }
+
+    while (uniqueTargets.length < count && uniqueTargets.length > 0) {
+      uniqueTargets.push(uniqueTargets[uniqueTargets.length % Math.max(1, Math.min(uniqueTargets.length, count))]);
+    }
+    return uniqueTargets;
+  }
+
+  shootSwordVolley(primaryTarget, totalDamage, qDef, activeEnemies) {
+    const targets = this.getSwordVolleyTargets(primaryTarget, activeEnemies, SWORD_VOLLEY_COUNT);
+    if (targets.length === 0) return;
+
+    const damages = this.splitDamage(totalDamage, SWORD_VOLLEY_COUNT);
+    const centerAngle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, primaryTarget.x, primaryTarget.y);
+    const effectiveRange = (qDef.range || 300) * (1 + (P.buff.rangeBoost || 0));
+    const lifetime = Math.max(SWORD_MIN_LIFETIME, Math.round(effectiveRange * SWORD_RANGE_LIFETIME_FACTOR));
+
+    targets.forEach((target, idx) => {
+      const spreadOffset = SWORD_VOLLEY_COUNT === 1 ? 0 : (idx / (SWORD_VOLLEY_COUNT - 1) - 0.5) * SWORD_VOLLEY_SPREAD;
+      const launchAngle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, target.x, target.y) + spreadOffset;
+      const proj = this.spawnProjectile('swordfly', launchAngle, damages[idx] || 1, {
+        pierce: false,
+        homing: true,
+        turnRate: SWORD_TURN_RATE,
+        speed: SWORD_PROJECTILE_SPEED,
+        seekRadius: effectiveRange * 2.4,
+        targetRef: target,
+        lifetime
+      });
+      if (proj) proj.setScale(0.92);
+    });
+
+    this.scene.entityAnimationSystem?.playPlayerAttack(centerAngle);
+  }
+
+  findSwordTarget(proj, seekRadius) {
+    let nearest = null;
+    let bestD2 = seekRadius * seekRadius;
+    this.scene.enemies.children.iterate((en) => {
+      if (!en || !en.active || en.getData('dead')) return;
+      const dx = en.x - proj.x;
+      const dy = en.y - proj.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestD2) {
+        bestD2 = d2;
+        nearest = en;
+      }
+    });
+    return nearest;
+  }
+
+  updateSwordProjectiles(dt) {
+    this.scene.projectiles.children.iterate((proj) => {
+      if (!proj || !proj.active || proj.getData('skillId') !== 'swordfly' || !proj.getData('homing') || !proj.body) return;
+
+      const seekRadius = proj.getData('seekRadius') || 0;
+      let target = proj.getData('targetRef');
+      const targetValid = target && target.active && !target.getData('dead') && (() => {
+        const dx = target.x - proj.x;
+        const dy = target.y - proj.y;
+        return dx * dx + dy * dy <= seekRadius * seekRadius;
+      })();
+
+      if (!targetValid) {
+        target = this.findSwordTarget(proj, seekRadius || 300);
+        proj.setData('targetRef', target || null);
+      }
+
+      const currentAngle = Math.atan2(proj.body.velocity.y, proj.body.velocity.x);
+      if (!target) {
+        proj.rotation = currentAngle;
+        return;
+      }
+
+      const desiredAngle = Phaser.Math.Angle.Between(proj.x, proj.y, target.x, target.y);
+      const turnRate = proj.getData('turnRate') || 0;
+      const speed = proj.getData('speed') || SWORD_PROJECTILE_SPEED;
+      const nextAngle = Phaser.Math.Angle.RotateTo(currentAngle, desiredAngle, turnRate * dt);
+      this.scene.physics.velocityFromRotation(nextAngle, speed, proj.body.velocity);
+      proj.rotation = nextAngle;
     });
   }
 
@@ -181,9 +327,10 @@ export class CombatSystem {
       if (Math.random() < dropRate) {
         const eq = genEquipment(zoneLv, isBoss ? 'legendary' : null);
         if (eq.rarity === 'legendary' || eq.rarity === 'mythic') P.legendaryFound = true;
-        if (P.inventory.length < 30) {
-          P.inventory.push(eq);
-          bus.emit('loot', '🎁 获得 [' + RARITY_LABEL[eq.rarity] + '] ' + eq.name);
+        const result = acquireEquipment(P, eq);
+        if (result.stored) {
+          if (result.changed) recalcStats();
+          bus.emit('loot', '🎁 获得 [' + RARITY_LABEL[eq.rarity] + '] ' + eq.name + (result.equipped ? '（已自动装备）' : ''));
           const spark = scene.add.circle(en.x, en.y, 20, RARITY_COLORS[eq.rarity] || 0xffffff, 0.5).setDepth(18);
           scene.tweens.add({ targets: spark, scale: 2.5, alpha: 0, duration: 500, onComplete: () => spark.destroy() });
         }
@@ -200,16 +347,15 @@ export class CombatSystem {
     }
   }
 
-  useAutoAttack(skillNow, closestQ, qDef) {
+  useAutoAttack(skillNow, closestQ, activeEnemies, qDef) {
     if (skillNow >= (this.scene.skillCooldowns[qDef.id] || 0)) {
       const qCD = qDef.cooldown || 0.7;
       this.scene.skillCooldowns[qDef.id] = skillNow + qCD;
       if (closestQ) {
-        const angle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, closestQ.x, closestQ.y);
         const lv = P.skillLevels?.[qDef.id] || 1;
         const mult = 1 + (P.buff.atkBoost || 0);
-        const dmg = Math.round((P.atk + P.level * 0.5) * (qDef.baseDmg || 0.7) * (0.72 + lv * 0.06) * mult);
-        this.shootProjectile('swordfly', angle, dmg, qDef.range);
+        const dmg = Math.round(this.getScaledPlayerDamageBase() * (qDef.baseDmg || 0.7) * (0.72 + lv * 0.06) * mult);
+        this.shootSwordVolley(closestQ, dmg, qDef, activeEnemies);
         this.scene.showSkillName(qDef.name, qDef.color);
       }
     }
@@ -252,7 +398,7 @@ export class CombatSystem {
         if (target) {
           scene.skillCooldowns[def.id] = skillNow + cd;
           const lv = P.skillLevels?.[def.id] || 1;
-          const dmg = Math.max(1, Math.round((P.atk + P.level * 0.5) * def.baseDmg * (1 + (lv - 1) * 0.08)));
+          const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (lv - 1) * 0.08)));
           scene.groundEffectSystem?.addFireField(target.x, target.y, dmg, def.duration || 10, def.aoeRadius || 95);
           scene.skillEffects?.onDomainCast(target.x, target.y, { ...def, id: 'firedomain' });
           scene.showSkillName(def.name, def.color || 0xff8844);
@@ -268,7 +414,7 @@ export class CombatSystem {
           if (hasTarget) {
             scene.skillCooldowns[def.id] = skillNow + cd;
             const dlv = P.skillLevels?.[def.id] || 1;
-            const dmg = Math.max(1, Math.round((P.atk + P.level * 0.5) * def.baseDmg * (1 + (dlv - 1) * 0.08)));
+            const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.08)));
             scene.groundEffectSystem?.addThunderField(scene.player.x, scene.player.y, def.aoeRadius || 300, dmg, def.duration || 5);
             scene.skillEffects?.onDomainCast(scene.player.x, scene.player.y, def);
             scene.showSkillName(def.name, def.color || 0xffdd00);
@@ -291,7 +437,7 @@ export class CombatSystem {
           if (cnt >= 2 || def.freeze) {
             scene.skillCooldowns[def.id] = skillNow + cd;
             const dlv = P.skillLevels?.[def.id] || 1;
-            const dmg = Math.round((P.atk + P.level * 0.5) * def.baseDmg * (1 + (dlv - 1) * 0.18));
+            const dmg = Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.18));
             this.doDomainSkill(dTarget.x, dTarget.y, dmg, def);
             scene.showSkillName(def.name, def.color || 0xffdd00);
           }
@@ -309,7 +455,7 @@ export class CombatSystem {
           const angle = Phaser.Math.Angle.Between(scene.player.x, scene.player.y, target.x, target.y);
           const lv = P.skillLevels?.[def.id] || 1;
           const mult = 1 + (P.buff.atkBoost || 0);
-          const dmg = Math.round((P.atk + P.level * 0.5) * (def.baseDmg || 1) * (1 + (lv - 1) * 0.18) * mult);
+          const dmg = Math.round(this.getScaledPlayerDamageBase() * (def.baseDmg || 1) * (1 + (lv - 1) * 0.18) * mult);
           if (def.type === 'multi') {
             this.doMultiProjectile(angle, dmg, def.count || 3, def.range, def.texture);
           } else {

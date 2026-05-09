@@ -1,4 +1,5 @@
 import { P } from '../core/state.js';
+import { COMBAT_TUNING } from '../data/index.js';
 import { bus } from '../core/events.js';
 
 export class AISystem {
@@ -53,7 +54,7 @@ export class AISystem {
             scene.physics.velocityFromRotation(angle, 280, proj.body.velocity);
             proj.rotation = angle;
             proj.setData('damage', Math.round((en.getData('atk') || 5) * 0.6));
-            scene.time.delayedCall(2000, () => { scene.freeProj(proj); });
+            scene.scheduleProjFree(proj, 2000);
           }
         }
         if (dist > atkRange) scene.physics.moveToObject(en, scene.player, speed * 0.7);
@@ -89,7 +90,8 @@ export class AISystem {
       }
 
       const lbl = en.getData('label'); if (lbl) lbl.setPosition(en.x, en.y - 16);
-      const bw = en.getData('barW') || 24, bh = 3;
+      const bw = en.getData('barW') || COMBAT_TUNING.hpBar.normalWidth;
+      const bh = COMBAT_TUNING.hpBar.height;
       const yPos = en.y - 24;
       const cur = en.getData('hp') || 0, full = en.getData('maxHp') || 1;
       const pct = Math.max(0, Math.min(1, cur / full));
