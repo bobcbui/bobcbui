@@ -1,6 +1,6 @@
 import { bus } from './events.js';
 import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from './state.js';
-import { SKILL_DEFS } from './data.js';
+import { SKILL_DEFS } from '../data/index.js';
 
 function buildSaveData() {
   return {

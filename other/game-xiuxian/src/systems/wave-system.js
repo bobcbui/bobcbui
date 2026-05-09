@@ -1,6 +1,6 @@
 import { P, waveNum, waveTimer, wavePending, waveDelay,
-  setWaveNum, setWaveTimer, setWavePending } from '../state.js';
-import { bus } from '../events.js';
+  setWaveNum, setWaveTimer, setWavePending } from '../core/state.js';
+import { bus } from '../core/events.js';
 
 export class WaveSystem {
   constructor(scene) {
@@ -30,8 +30,9 @@ export class WaveSystem {
               bos.setData('atk', bos.getData('atk') * 2);
               bos.setData('xp', bos.getData('xp') * 5);
               bos.setData('isBoss', true);
-              bos.setTexture('boss');
+              bos.setTexture('monster-boss');
               bos.setScale(1.3);
+              bos.setData('baseScale', 1.3);
               bus.emit('status', '👑 妖兽王降临！', 2.5);
             }
           }

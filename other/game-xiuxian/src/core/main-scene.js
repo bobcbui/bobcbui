@@ -1,49 +1,23 @@
 import { P, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
   setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar,
   checkAchievements } from './state.js';
-import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES } from './data.js';
-import { MovementSystem } from './systems/MovementSystem.js';
-import { BuffSystem } from './systems/BuffSystem.js';
-import { SpawnSystem } from './systems/SpawnSystem.js';
-import { AISystem } from './systems/AISystem.js';
-import { CombatSystem } from './systems/CombatSystem.js';
-import { WaveSystem } from './systems/WaveSystem.js';
-import { TextPool } from './systems/TextPool.js';
+import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES } from '../data/index.js';
+import { installSceneSystems } from '../systems/index.js';
 import { bus } from './events.js';
 import { loadGame } from './save.js';
+import { setScene, setSkillCooldowns } from './runtime.js';
+import { createGeneratedTextures } from './textures.js';
 import { toggleCultivate, tryBreakthrough } from './cultivation.js';
 import { toggleCharPanel, toggleBagPanel, toggleSkillPanel, toggleAchPanel, toggleShopPanel,
-  hotbarRender, updateHUD, updateHotbarCooldowns, addAttr, upgradeSkill, equipSkill } from './ui.js';
+  hotbarRender, updateHUD, updateHotbarCooldowns, addAttr, upgradeSkill, equipSkill } from '../ui/index.js';
 
 export class MainScene extends Phaser.Scene {
   constructor(){ super({key:'main'}); }
   preload(){
-    const g = this.make.graphics({add:false});
-    g.fillStyle(0x6de27a,1); g.fillCircle(14,14,12); g.fillStyle(0x88ff99,0.4); g.fillCircle(14,14,16);
-    g.generateTexture('player',28,28); g.clear();
-    g.fillStyle(0xff5544,1); g.fillCircle(10,10,9); g.generateTexture('beast',20,20); g.clear();
-    g.fillStyle(0xff8800,1); g.fillCircle(12,12,11); g.fillStyle(0xffaa44,0.4); g.fillCircle(12,12,14);
-    g.generateTexture('elite',24,24); g.clear();
-    g.fillStyle(0xcc22ff,1); g.fillCircle(16,16,14); g.fillStyle(0xdd66ff,0.3); g.fillCircle(16,16,18);
-    g.fillStyle(0xffdd00,0.8); g.fillCircle(16,16,6);
-    g.generateTexture('boss',32,32); g.clear();
-    g.fillStyle(0x8b5a2b,1); g.fillRect(0,3,18,3); g.generateTexture('arrow',18,9); g.clear();
-    g.fillStyle(0xff6633,1); g.fillCircle(6,6,5); g.fillStyle(0xffaa66,0.5); g.fillCircle(6,6,7);
-    g.generateTexture('fireball',14,14); g.clear();
-    g.fillStyle(0x99ddff,1); g.fillRect(0,3,22,4); g.fillStyle(0xccffff,0.5); g.fillRect(0,2,22,6);
-    g.generateTexture('swordQi',22,10); g.clear();
-    g.fillStyle(0x5aa6b1,0.75); g.fillCircle(12,12,10); g.fillStyle(0xd8f2ef,0.5); g.fillCircle(12,12,14);
-    g.generateTexture('water',28,28); g.clear();
-    g.fillStyle(0x9fb884,0.75); g.fillCircle(12,12,10); g.fillStyle(0xf5f0d8,0.55); g.fillCircle(12,12,15);
-    g.generateTexture('wind',30,30); g.clear();
-    g.fillStyle(0xffee88,1); g.fillRect(1,0,5,20); g.fillStyle(0xffffcc,0.5); g.fillRect(0,0,7,20);
-    g.generateTexture('bolt',7,20); g.clear();
-    g.fillStyle(0x65c8ff,1); g.fillCircle(5,5,4); g.generateTexture('loot',10,10); g.clear();
-    g.destroy();
+    createGeneratedTextures(this);
   }
   create(){
-    window.scene = this;
-    window.teleportToZone = (zoneId) => this.teleportToZone(zoneId);
+    setScene(this);
     this.worldSize = WORLD.size;
     this._currentMap = { worldSize: WORLD.size, safeRadius: WORLD.safeRadius, id:'hehuan', name:'合欢宗', colorName:'#c9a96e' };
     this.physics.world.setBounds(0,0,this.worldSize,this.worldSize);
@@ -52,6 +26,7 @@ export class MainScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(this.worldSize/2, this.worldSize/2, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
+    this.player.setData('baseScale', 1);
     this.playerDead = false;
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
     this.cameras.main.setZoom(1.2);
@@ -61,13 +36,7 @@ export class MainScene extends Phaser.Scene {
     this.enemyProjs = this.physics.add.group();
     this.hpBarGfx = this.add.graphics().setDepth(16);
     this.pool = {};
-    this.textPool = new TextPool(this, 24);
-    this.movementSystem = new MovementSystem(this);
-    this.buffSystem = new BuffSystem(this);
-    this.spawnSystem = new SpawnSystem(this);
-    this.aiSystem = new AISystem(this);
-    this.combatSystem = new CombatSystem(this);
-    this.waveSystem = new WaveSystem(this);
+    installSceneSystems(this);
     this.physics.add.overlap(this.projectiles, this.enemies, (proj, en)=>{ this.combatSystem.onProjHit(proj, en); }, null, this);
     this.physics.add.overlap(this.player, this.enemies, (p, en)=>{ this.combatSystem.onEnemyContact(en); }, null, this);
     this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.combatSystem.onEnemyProjHit(proj); }, null, this);
@@ -95,7 +64,7 @@ export class MainScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-X', toggleShopPanel);
     this.skillCooldowns = {};
     for(const sk of SKILL_DEFS) this.skillCooldowns[sk.id] = 0;
-    window.skillCooldowns = this.skillCooldowns;
+    setSkillCooldowns(this.skillCooldowns);
     this.shieldOrbs = [];
     this.shieldTimer = 0;
     this.shieldReflect = 0;
@@ -135,13 +104,21 @@ export class MainScene extends Phaser.Scene {
     const r = WORLD.safeRadius;
     const half = s/2;
     g.fillStyle(0xf7edc8,0.82); g.fillRect(half-r, half-r, r*2, r*2);
+    this._drawWorldGrid(g);
     g.lineStyle(3,0xb57a19,0.45); g.strokeRect(half-r, half-r, r*2, r*2);
-    g.lineStyle(1,0x8aa678,0.18);
-    for(let gy=half-r;gy<=half+r;gy+=80) g.lineBetween(half-r,gy,half+r,gy);
-    for(let gx=half-r;gx<=half+r;gx+=80) g.lineBetween(gx,half-r,gx,half+r);
     g.lineStyle(2,0xb99a59,0.15);
     for(let d=1200;d<4400;d+=600) g.strokeCircle(s/2,s/2,d);
     this._drawScenery(g);
+  }
+
+  _drawWorldGrid(g){
+    const s = this.worldSize;
+    const step = 100;
+    g.lineStyle(1,0x8aa678,0.16);
+    for(let v=0;v<=s;v+=step){
+      g.lineBetween(v,0,v,s);
+      g.lineBetween(0,v,s,v);
+    }
   }
 
   _drawScenery(g){
@@ -338,17 +315,11 @@ export class MainScene extends Phaser.Scene {
   }
 
   applyBuffVisual(color){
-    const c=this.add.circle(this.player.x,this.player.y,30,color||0x66ffcc,0.2).setDepth(3);
-    this.tweens.add({targets:c,alpha:0,scale:2,duration:600,onComplete:()=>c.destroy()});
+    this.skillEffects?.onBuffCast(color || 0x66ffcc);
   }
 
   showSkillName(name, color){
-    this.textPool.show(this.player.x, this.player.y - 40, name, {
-      fontSize: '14px',
-      color: '#' + color.toString(16).padStart(6, '0'),
-      stroke: '#000', strokeThickness: 1,
-      depth: 20, floatDist: 40, duration: 900
-    });
+    this.skillEffects?.showSkillName(name, color);
   }
 
   doLightningEffect(success){
@@ -376,6 +347,7 @@ export class MainScene extends Phaser.Scene {
     if (inSafe && this.enemies.countActive(true) > 0) this.clearEnemies();
     P.totalPlayTime += dt;
     this.movementSystem.update();
+    this.entityAnimationSystem?.update(dt);
     if (this.playerDead) this.player.setVelocity(0, 0);
     if (isCultivating && !this.playerDead) {
       const cultRate = 0.02 + getRealmIndex(P.realm) * 0.005;
@@ -396,6 +368,7 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: dot, alpha: 0, y: py - 30, duration: 600, onComplete: () => dot.destroy() });
       }
     }
+    this.skillEffects?.updateProjectileTrails();
     if (!this.playerDead && P.hp < P.maxHp) {
       const noEnemies = this.enemies.countActive(true) === 0;
       if (inSafe || noEnemies) {

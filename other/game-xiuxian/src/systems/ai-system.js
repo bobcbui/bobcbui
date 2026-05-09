@@ -1,5 +1,5 @@
-import { P } from '../state.js';
-import { bus } from '../events.js';
+import { P } from '../core/state.js';
+import { bus } from '../core/events.js';
 
 export class AISystem {
   constructor(scene) {
@@ -35,6 +35,7 @@ export class AISystem {
         const lastAtk = en.getData('lastRangedAtk') || 0;
         if (dist < atkRange * 1.2 && time - lastAtk > atkCD) {
           en.setData('lastRangedAtk', time);
+          scene.entityAnimationSystem?.playEnemyAttack(en);
           const proj = scene.getPooledProj(en.x, en.y, 'arrow', scene.enemyProjs);
           if (proj) {
             proj.setScale(0.7).setTint(en.getData('projColor') || 0xff4444);

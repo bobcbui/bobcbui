@@ -1,7 +1,8 @@
-import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from './state.js';
-import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, RARITY_MULT } from './data.js';
-import { genEquipment } from './equipment.js';
-import { bus } from './events.js';
+import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '../core/state.js';
+import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, RARITY_MULT } from '../data/index.js';
+import { genEquipment } from '../core/equipment.js';
+import { bus } from '../core/events.js';
+import { getScene, getSkillCooldowns } from '../core/runtime.js';
 
 export function hotbarRender(){
   const cont = document.getElementById('hotbar');
@@ -97,7 +98,7 @@ function showBagMenu(idx){
   document.body.appendChild(overlay);
 }
 
-window.doBagEquip = function(idx){
+export function doBagEquip(idx){
   const item = P.inventory[idx];
   if(!item || !EQ_TYPES.includes(item.type)) return;
   const current = P.equipment[item.type];
@@ -110,9 +111,9 @@ window.doBagEquip = function(idx){
   renderBagPanel();
   bus.emit('save');
   bus.emit('status', '装备 '+item.name,1.2);
-};
+}
 
-window.doBagSell = function(idx){
+export function doBagSell(idx){
   const item = P.inventory[idx];
   if(!item) return;
   const sellPrice = item.stats ? Math.round(Object.values(item.stats).reduce((a,b)=>a+b,0)*2) : 3;
@@ -123,7 +124,7 @@ window.doBagSell = function(idx){
   renderBagPanel();
   bus.emit('save');
   bus.emit('status', '出售 '+item.name+' +'+sellPrice+'灵石',1.2);
-};
+}
 
 export function toggleBagPanel(){
   const el = document.getElementById('bagPanel');
@@ -135,7 +136,7 @@ export function renderSkillPanel(){
   document.getElementById('spSkillPoints').textContent = P.skillPoints || 0;
   const hotbarKeys = P.hotbar.map((h,i)=>['Q','W','E','R','T'][i]+':'+(SKILL_DEFS.find(s=>s.id===h.id)?.name||'空')).join(' ');
   document.getElementById('spHotbarKeys').textContent = '当前: '+hotbarKeys;
-  const inSafe = window.scene?._inSafeZone?.();
+  const inSafe = getScene()?._inSafeZone?.();
   const list = document.getElementById('skillList');
   list.innerHTML = '';
 
@@ -179,7 +180,7 @@ export function renderSkillPanel(){
   });
 }
 
-window.showSlotPick = function(skillId){
+export function showSlotPick(skillId){
   const actEl = document.getElementById('act-'+skillId);
   const btnEl = document.getElementById('eqbtn-'+skillId);
   if(!actEl || !btnEl) return;
@@ -205,7 +206,7 @@ window.showSlotPick = function(skillId){
   cancel.onclick = ()=>pick.remove();
   pick.appendChild(cancel);
   actEl.appendChild(pick);
-};
+}
 
 export function toggleSkillPanel(){
   const el = document.getElementById('skillPanel');
@@ -295,7 +296,7 @@ export function buyShopItem(itemId){
 export function equipSkill(skillId, slotIdx){
   const def = SKILL_DEFS.find(s=>s.id===skillId);
   if(!def || def.id==='swordfly' || slotIdx<1 || slotIdx>4) return;
-  const scene = window.scene;
+  const scene = getScene();
   if(scene && !scene._inSafeZone()){ bus.emit('status', '只能在安全区内切换技能',1.5); return; }
   P.hotbar[slotIdx] = { kind:'skill', id:skillId };
   hotbarRender();
@@ -331,8 +332,8 @@ export function updateHotbarCooldowns(){
   const cont = document.getElementById('hotbar');
   if(!cont) return;
   const slots = cont.children;
-  const cds = window.skillCooldowns || {};
-  const scene = window.scene;
+  const cds = getSkillCooldowns();
+  const scene = getScene();
   const now = scene?.time?.now ? scene.time.now/1000 : 0;
   for(let i=0;i<Math.min(5,slots.length);i++){
     const item = P.hotbar[i];
@@ -424,17 +425,6 @@ export function updateCharPanel(){
     }
   }
 }
-
-window.toggleCharPanel = toggleCharPanel;
-window.toggleBagPanel = toggleBagPanel;
-window.toggleSkillPanel = toggleSkillPanel;
-window.toggleAchPanel = toggleAchPanel;
-window.toggleShopPanel = toggleShopPanel;
-window.buyShopItem = buyShopItem;
-window.upgradeSkill = upgradeSkill;
-window.equipSkill = equipSkill;
-window.addAttr = addAttr;
-window.updateHotbarCooldowns = updateHotbarCooldowns;
 
 bus.on('hud-refresh', updateHUD);
 bus.on('hotbar-refresh', hotbarRender);

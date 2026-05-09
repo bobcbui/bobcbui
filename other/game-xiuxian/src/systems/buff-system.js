@@ -1,4 +1,4 @@
-import { P } from '../state.js';
+import { P } from '../core/state.js';
 
 export class BuffSystem {
   constructor(scene) {
