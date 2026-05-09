@@ -1,5 +1,6 @@
 import { P, waveNum, waveTimer, wavePending, waveDelay,
   setWaveNum, setWaveTimer, setWavePending } from '../core/state.js';
+import { COMBAT_TUNING } from '../data/index.js';
 import { bus } from '../core/events.js';
 
 export class WaveSystem {
@@ -21,14 +22,16 @@ export class WaveSystem {
           let wn = waveNum + 1;
           setWaveNum(wn);
           if (wn > P.maxWave) P.maxWave = wn;
-          const count = Math.min(4 + wn * 2, 30);
-          for (let i = 0; i < count; i++) scene.spawnSystem.spawnEnemy();
-          if (wn % 5 === 0) {
-            const bos = scene.spawnSystem.spawnEnemy();
+          const isBossWave = wn % 5 === 0;
+          const count = isBossWave ? COMBAT_TUNING.maxActiveEnemies - 1 : COMBAT_TUNING.maxActiveEnemies;
+          for (let i = 0; i < count; i++) {
+            scene.spawnSystem.spawnEnemy({ allowBoss: !isBossWave });
+          }
+          if (isBossWave) {
+            const bos = scene.spawnSystem.spawnEnemy({ forceBoss: true, allowBoss: false, allowElite: false });
             if (bos) {
-              bos.setData('hp', bos.getData('hp') * 3);
-              bos.setData('atk', bos.getData('atk') * 2);
-              bos.setData('xp', bos.getData('xp') * 5);
+              bos.setData('atk', Math.round((bos.getData('atk') || 1) * 2));
+              bos.setData('xp', Math.round((bos.getData('xp') || 1) * 5));
               bos.setData('isBoss', true);
               bos.setTexture('monster-boss');
               bos.setScale(1.3);

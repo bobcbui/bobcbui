@@ -1,6 +1,7 @@
 import { bus } from './events.js';
 import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from './state.js';
 import { SKILL_DEFS } from '../data/index.js';
+import { autoEquipBestEquipment } from './equipment.js';
 
 function buildSaveData() {
   return {
@@ -90,14 +91,11 @@ function applySaveData(data) {
   if (P.maxWave == null) P.maxWave = 0;
   if (!P.achievements) P.achievements = {};
   for (const sk of SKILL_DEFS) {
-    if (!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
+    P.skillLevels[sk.id] = 1;
   }
   refreshSkills();
-  const validSkillIds = new Set(SKILL_DEFS.map(sk => sk.id));
-  const invalidHotbar = !Array.isArray(P.hotbar) || P.hotbar.length < 5 || P.hotbar[0]?.id !== 'swordfly' ||
-    P.hotbar.some(item => item?.id && !validSkillIds.has(item.id));
-  if (P.hotbar && P.hotbar.length !== 5) initHotbar();
-  if (invalidHotbar) initHotbar();
+  initHotbar();
+  autoEquipBestEquipment(P);
   setWaveNum(data.wave || 0);
   recalcStats();
 }

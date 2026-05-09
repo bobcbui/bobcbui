@@ -233,7 +233,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
         <div class="eq-slot" data-slot="ring"><div class="lbl">戒指</div><div class="val empty" id="eq-ring">空</div></div>
         <div class="eq-slot" data-slot="amulet"><div class="lbl">项链</div><div class="val empty" id="eq-amulet">空</div></div>
       </div>
-      <h3 style="font-size:14px;margin-bottom:6px;">🔢 属性点: <strong id="cpAttrPoints">0</strong> | 技能点: <strong id="cpSkillPoints">0</strong></h3>
+      <h3 style="font-size:14px;margin-bottom:6px;">🔢 属性点: <strong id="cpAttrPoints">0</strong></h3>
       <div class="attr-grid">
         <div class="attr-row"><span class="attr-label">筋骨</span><span class="attr-val" id="attr-str">0</span><span class="attr-desc">攻+2</span><button class="btn btn-sm btn-gold" onclick="addAttr('str')">+</button></div>
         <div class="attr-row"><span class="attr-label">体魄</span><span class="attr-val" id="attr-body">0</span><span class="attr-desc">命+12 防+0.8</span><button class="btn btn-sm btn-gold" onclick="addAttr('body')">+</button></div>
@@ -252,7 +252,10 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
     <div class="modal-box panel" style="width:min(620px,calc(100vw - 24px));">
       <h2><span>🎒 背包</span><span class="close" onclick="toggleBagPanel()">✕</span></h2>
       <div class="flex-between mb8"><span style="color:var(--text-dim);font-size:13px;" id="bagCount">0/30</span>
-        <span style="font-size:12px;color:var(--text-dim);">点击装备 / 右键出售换灵石</span>
+        <div class="flex gap4">
+          <span style="font-size:12px;color:var(--text-dim);">点击装备 / 右键出售换灵石</span>
+          <button class="btn btn-sm btn-sec" id="bagSellAllBtn" onclick="sellAllBagItems()">一键售出</button>
+        </div>
       </div>
       <div class="bag-grid" id="bagGrid"></div>
     </div>
@@ -263,10 +266,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
     <div class="bg" onclick="toggleSkillPanel()"></div>
     <div class="modal-box panel" style="width:min(580px,calc(100vw - 24px));">
       <h2><span>📖 技能</span><span class="close" onclick="toggleSkillPanel()">✕</span></h2>
-      <div class="flex-between mb8">
-        <span style="color:var(--text-dim);font-size:13px;">技能自动释放 · 技能点 <strong id="spSkillPoints">0</strong></span>
-        <span style="font-size:12px;color:var(--text-dim);" id="spHotbarKeys"></span>
-      </div>
       <div class="skill-list" id="skillList"></div>
     </div>
   </div>

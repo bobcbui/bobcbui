@@ -164,7 +164,8 @@ export class SkillEffects {
     for (let i = 0; i < 12; i++) {
       const a = Math.random() * Math.PI * 2;
       const r = Phaser.Math.FloatBetween(8, radius * 0.8);
-      const flame = this.scene.add.circle(x + Math.cos(a) * r, y + Math.sin(a) * r, Phaser.Math.FloatBetween(2, 4), color, 0.45).setDepth(10);
+      const flame = this.scene.add.circle(x + Math.cos(a) * r, y + Math.sin(a) * r, Phaser.Math.FloatBetween(3, 5), color, 0.78).setDepth(10);
+      flame.setStrokeStyle(1, 0xfff1a8, 0.7);
       this.scene.tweens.add({
         targets: flame,
         y: flame.y - Phaser.Math.Between(18, 36),
@@ -197,8 +198,8 @@ export class SkillEffects {
 
   drawThunderDomain(x, y, radius, color) {
     for (let i = 0; i < 4; i++) {
-      const ring = this.scene.add.circle(x, y, 24 + i * 12, color, 0.02).setDepth(10);
-      ring.setStrokeStyle(2, color, 0.42 - i * 0.06);
+      const ring = this.scene.add.circle(x, y, 24 + i * 12, color, 0.1).setDepth(10);
+      ring.setStrokeStyle(3, color, 0.68 - i * 0.08);
       this.scene.tweens.add({
         targets: ring,
         alpha: 0,
@@ -215,7 +216,7 @@ export class SkillEffects {
       this.drawThunderArc(x, y, angle, radius * Phaser.Math.FloatBetween(0.55, 0.98), color, delay);
     }
 
-    const core = this.scene.add.circle(x, y, 22, 0xffffcc, 0.34).setDepth(12);
+    const core = this.scene.add.circle(x, y, 22, 0xffffcc, 0.58).setDepth(12);
     this.scene.tweens.add({
       targets: core,
       alpha: 0,
@@ -227,7 +228,7 @@ export class SkillEffects {
 
   drawThunderArc(x, y, angle, length, color, delay) {
     const g = this.scene.add.graphics().setDepth(12);
-    g.lineStyle(2, color, 0.72);
+    g.lineStyle(3, color, 0.92);
     g.beginPath();
     g.moveTo(x, y);
     const segments = 5;

@@ -1,5 +1,7 @@
 import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS } from '../data/index.js';
 
+const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','mythic'];
+
 export function genEquipment(monsterLv, forceRarity=null){
   const rarityRoll = Math.random();
   let rarity;
@@ -33,4 +35,86 @@ export function genEquipment(monsterLv, forceRarity=null){
   const idx = Math.min(['common','uncommon','rare','epic','legendary','mythic'].indexOf(rarity), nameList.length-1);
   const itemName = prefix + nameList[idx];
   return { id:Date.now()+'_'+Math.random().toString(36).slice(2,6), type, name:itemName, rarity, stats };
+}
+
+export function getEquipmentScore(item){
+  if(!item || !item.type || !item.stats) return Number.NEGATIVE_INFINITY;
+  const base = EQ_BASES[item.type];
+  if(!base) return Number.NEGATIVE_INFINITY;
+  let score = 0;
+  for(const [key, range] of Object.entries(base)){
+    if(range[1] <= 0) continue;
+    score += (item.stats[key] || 0) / Math.max(1, range[1]);
+  }
+  const rarityIdx = Math.max(0, RARITY_ORDER.indexOf(item.rarity));
+  return score + rarityIdx * 0.01;
+}
+
+export function isBetterEquipment(candidate, current){
+  if(!candidate) return false;
+  if(!current) return true;
+  if(candidate.type !== current.type) return false;
+  const candidateScore = getEquipmentScore(candidate);
+  const currentScore = getEquipmentScore(current);
+  if(candidateScore !== currentScore) return candidateScore > currentScore;
+  return String(candidate.id || '') > String(current.id || '');
+}
+
+export function autoEquipBestEquipment(playerState){
+  if(!playerState) return false;
+  if(!playerState.equipment) playerState.equipment = {};
+  if(!Array.isArray(playerState.inventory)) playerState.inventory = [];
+
+  const nextEquipment = { ...playerState.equipment };
+  const nextInventory = [];
+
+  for(const item of playerState.inventory){
+    if(!item || !EQ_TYPES.includes(item.type)){
+      nextInventory.push(item);
+      continue;
+    }
+    const current = nextEquipment[item.type];
+    if(isBetterEquipment(item, current)){
+      if(current) nextInventory.push(current);
+      nextEquipment[item.type] = item;
+    } else {
+      nextInventory.push(item);
+    }
+  }
+
+  let changed = false;
+  for(const slot of EQ_TYPES){
+    if((playerState.equipment?.[slot]?.id || null) !== (nextEquipment[slot]?.id || null)){
+      changed = true;
+      break;
+    }
+  }
+  if(!changed && playerState.inventory.length !== nextInventory.length) changed = true;
+
+  playerState.equipment = nextEquipment;
+  playerState.inventory = nextInventory;
+  return changed;
+}
+
+export function acquireEquipment(playerState, item){
+  if(!item || !EQ_TYPES.includes(item.type)) return { stored:false, equipped:false, changed:false };
+  if(!playerState.equipment) playerState.equipment = {};
+  if(!Array.isArray(playerState.inventory)) playerState.inventory = [];
+
+  const roomInBag = playerState.inventory.length < 30;
+  if(!roomInBag){
+    if(!playerState.equipment[item.type]){
+      playerState.equipment[item.type] = item;
+      return { stored:true, equipped:true, changed:true };
+    }
+    return { stored:false, equipped:false, changed:false };
+  }
+
+  playerState.inventory.push(item);
+  const changed = autoEquipBestEquipment(playerState);
+  return {
+    stored:true,
+    equipped: playerState.equipment?.[item.type]?.id === item.id,
+    changed
+  };
 }

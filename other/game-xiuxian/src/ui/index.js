@@ -1,6 +1,6 @@
 import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '../core/state.js';
 import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, RARITY_MULT } from '../data/index.js';
-import { genEquipment } from '../core/equipment.js';
+import { genEquipment, acquireEquipment } from '../core/equipment.js';
 import { bus } from '../core/events.js';
 import { getScene, getSkillCooldowns } from '../core/runtime.js';
 
@@ -29,6 +29,16 @@ export function hotbarRender(){
 
 export function renderBagPanel(){
   document.getElementById('bagCount').textContent = P.inventory.length+'/30';
+  const sellAllBtn = document.getElementById('bagSellAllBtn');
+  const totalSellPrice = P.inventory.reduce((sum, item) => {
+    if(!item) return sum;
+    const price = item.stats ? Math.round(Object.values(item.stats).reduce((acc,val)=>acc+val,0)*2) : 3;
+    return sum + price;
+  }, 0);
+  if(sellAllBtn){
+    sellAllBtn.disabled = P.inventory.length === 0;
+    sellAllBtn.textContent = P.inventory.length > 0 ? '一键售出(' + totalSellPrice + '💰)' : '一键售出';
+  }
   const grid = document.getElementById('bagGrid');
   grid.innerHTML = '';
   P.inventory.forEach((item,i)=>{
@@ -126,6 +136,26 @@ export function doBagSell(idx){
   bus.emit('status', '出售 '+item.name+' +'+sellPrice+'灵石',1.2);
 }
 
+export function sellAllBagItems(){
+  if(P.inventory.length === 0){
+    bus.emit('status', '背包里没有可出售的物品',1.2);
+    return;
+  }
+  const totalSellPrice = P.inventory.reduce((sum, item) => {
+    if(!item) return sum;
+    const price = item.stats ? Math.round(Object.values(item.stats).reduce((acc,val)=>acc+val,0)*2) : 3;
+    return sum + price;
+  }, 0);
+  const soldCount = P.inventory.length;
+  P.inventory.length = 0;
+  P.gold = Math.min(99999, P.gold + totalSellPrice);
+  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
+  updateHUD();
+  renderBagPanel();
+  bus.emit('save');
+  bus.emit('status', '一键售出 '+soldCount+' 件物品 +'+totalSellPrice+'灵石',1.5);
+}
+
 export function toggleBagPanel(){
   const el = document.getElementById('bagPanel');
   el.classList.toggle('hidden');
@@ -133,79 +163,34 @@ export function toggleBagPanel(){
 }
 
 export function renderSkillPanel(){
-  document.getElementById('spSkillPoints').textContent = P.skillPoints || 0;
-  const hotbarKeys = P.hotbar.map((h,i)=>['Q','W','E','R','T'][i]+':'+(SKILL_DEFS.find(s=>s.id===h.id)?.name||'空')).join(' ');
-  document.getElementById('spHotbarKeys').textContent = '当前: '+hotbarKeys;
-  const inSafe = getScene()?._inSafeZone?.();
   const list = document.getElementById('skillList');
   list.innerHTML = '';
 
-  const header = document.createElement('div');
-  header.style.cssText = 'font-size:13px;font-weight:700;color:var(--gold);margin:8px 0 4px;';
-  header.textContent = '[Q] 普攻(固定)';
-  list.appendChild(header);
   const qDef = SKILL_DEFS.find(s=>s.id==='swordfly');
-  const qLv = P.skillLevels?.swordfly||1;
   const qCard = document.createElement('div');
   qCard.className = 'skill-card';
   qCard.style.borderColor='var(--gold)';
-  qCard.innerHTML = `<div class="sc-head"><span class="sc-name">${qDef.name}</span><span class="sc-lv">Lv.${qLv}/20</span></div><div class="sc-desc">${qDef.desc} · 伤害x${qDef.baseDmg} · CD${qDef.cooldown}s · 射程${qDef.range}</div><div class="sc-actions"><button class="btn btn-sm btn-gold" onclick="upgradeSkill('swordfly')" ${qLv>=20?'disabled':''}>升级</button><span class="btn btn-sm btn-sec" style="cursor:default">固定</span></div>`;
+  qCard.innerHTML = `<div class="sc-head"><span class="sc-name">${qDef.name}</span></div><div class="sc-desc">${qDef.desc} · 伤害x${qDef.baseDmg} · CD${qDef.cooldown}s · 射程${qDef.range}</div>`;
   list.appendChild(qCard);
-
-  const hdr = document.createElement('div');
-  hdr.style.cssText = 'font-size:13px;font-weight:700;color:var(--gold);margin:12px 0 4px;';
-  hdr.textContent = '可装备技能 (点击装备→选择槽位)';
-  list.appendChild(hdr);
 
   const allSwaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
   allSwaps.forEach(def=>{
-    const lv = P.skillLevels?.[def.id] || 1;
     const cd = def.cooldown||0;
     let info = def.desc;
     if(def.baseDmg) info += ' · 伤害x'+def.baseDmg;
     info += ' · CD'+cd+'s';
-    const slotIdx = P.hotbar.findIndex(h=>h?.id===def.id);
-    const active = slotIdx>0;
     const card = document.createElement('div');
     card.className = 'skill-card';
-    if(active) card.style.cssText = 'border-color:var(--gold);background:rgba(250,226,168,.15);';
+    card.style.cssText = 'border-color:var(--gold);background:rgba(250,226,168,.15);';
     card.innerHTML = `
-      <div class="sc-head"><span class="sc-name">${def.name}</span><span class="sc-lv">Lv.${lv}/20</span></div>
-      <div class="sc-desc">${info}${active?' · 已装['+['Q','W','E','R','T'][slotIdx]+']':''}</div>
-      <div class="sc-actions" id="act-${def.id}">
-        <button class="btn btn-sm btn-gold" onclick="upgradeSkill('${def.id}')" ${lv>=20?'disabled':''}>升级</button>
-        ${active?`<span class="btn btn-sm btn-sec" style="cursor:default">使用中</span>`:`<button class="btn btn-sm btn-sec" id="eqbtn-${def.id}" onclick="showSlotPick('${def.id}')" ${!inSafe?'disabled':''}>${inSafe?'装备':'安全区外'}</button>`}
-      </div>`;
+      <div class="sc-head"><span class="sc-name">${def.name}</span></div>
+      <div class="sc-desc">${info}</div>`;
     list.appendChild(card);
   });
 }
 
 export function showSlotPick(skillId){
-  const actEl = document.getElementById('act-'+skillId);
-  const btnEl = document.getElementById('eqbtn-'+skillId);
-  if(!actEl || !btnEl) return;
-  if(document.getElementById('pick-'+skillId)) return;
-  const pick = document.createElement('div');
-  pick.id = 'pick-'+skillId;
-  pick.style.cssText = 'display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;';
-  ['W','E','R','T'].forEach((k,i)=>{
-    const cur = P.hotbar[i+1];
-    const nm = SKILL_DEFS.find(s=>s.id===cur?.id)?.name||'空';
-    const b = document.createElement('button');
-    b.className = 'btn btn-sm btn-sec';
-    b.textContent = k+':'+nm;
-    b.onclick = ()=>{
-      equipSkill(skillId, i+1);
-      pick.remove();
-    };
-    pick.appendChild(b);
-  });
-  const cancel = document.createElement('button');
-  cancel.className = 'btn btn-sm btn-sec';
-  cancel.textContent = '取消';
-  cancel.onclick = ()=>pick.remove();
-  pick.appendChild(cancel);
-  actEl.appendChild(pick);
+  bus.emit('status', '当前版本无法切换技能', 1.5);
 }
 
 export function toggleSkillPanel(){
@@ -248,7 +233,7 @@ export function renderShopPanel(){
   document.getElementById('shopGold').textContent = P.gold;
   const list = document.getElementById('shopList');
   list.innerHTML = '';
-  SHOP_ITEMS.forEach(item=>{
+  SHOP_ITEMS.filter(item=>item.effect!=='skill_reset').forEach(item=>{
     const card = document.createElement('div');
     card.className = 'shop-item';
     card.innerHTML = `
@@ -269,6 +254,10 @@ export function toggleShopPanel(){
 export function buyShopItem(itemId){
   const item = SHOP_ITEMS?.find(s=>s.id===itemId);
   if(!item || P.gold < item.cost || P.inventory.length>=30) return;
+  if(item.effect === 'skill_reset'){
+    bus.emit('status', '当前版本无需技能洗点',1.2);
+    return;
+  }
   P.gold -= item.cost;
   if(item.effect === 'gold_bag'){
     P.gold = Math.min(99999, P.gold + 120);
@@ -284,9 +273,11 @@ export function buyShopItem(itemId){
     bus.emit('status', '技能点已重置!',1.2);
   } else if(item.effect?.startsWith('eq_box_')){
     const rarity = item.effect.replace('eq_box_','');
-    if(P.inventory.length < 30){
-      const eq = (genEquipment||function(){})(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
-      if(eq && eq.id){ P.inventory.push(eq); bus.emit('status', '获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name,2); }
+    const eq = (genEquipment||function(){})(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
+    const result = acquireEquipment(P, eq);
+    if(result.stored){
+      if(eq && eq.id){ bus.emit('status', '获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name + (result.equipped ? '，已自动装备' : ''),2); }
+      if(result.changed) recalcStats();
     }
   }
   updateHUD(); renderShopPanel(); renderBagPanel();
@@ -294,27 +285,11 @@ export function buyShopItem(itemId){
 }
 
 export function equipSkill(skillId, slotIdx){
-  const def = SKILL_DEFS.find(s=>s.id===skillId);
-  if(!def || def.id==='swordfly' || slotIdx<1 || slotIdx>4) return;
-  const scene = getScene();
-  if(scene && !scene._inSafeZone()){ bus.emit('status', '只能在安全区内切换技能',1.5); return; }
-  P.hotbar[slotIdx] = { kind:'skill', id:skillId };
-  hotbarRender();
-  renderSkillPanel();
-  bus.emit('save');
-  bus.emit('status', '装备 '+def.name, 1);
+  bus.emit('status', '当前版本无法切换技能', 1.5);
 }
 
 export function upgradeSkill(skillId){
-  if((P.skillPoints || 0) <= 0) return;
-  if(!P.skillLevels) P.skillLevels = {};
-  const lv = P.skillLevels[skillId] || 1;
-  if(lv >= 20) return;
-  P.skillLevels[skillId] = lv + 1;
-  P.skillPoints -= 1;
-  hotbarRender();
-  renderSkillPanel();
-  bus.emit('save');
+  bus.emit('status', '当前版本无法升级技能', 1.5);
 }
 
 export function addAttr(attr){
@@ -404,7 +379,6 @@ export function updateCharPanel(){
   document.getElementById('cpHP').textContent = Math.round(P.hp)+'/'+Math.round(P.maxHp);
   document.getElementById('cpSpeed').textContent = Math.round(P.speed);
   document.getElementById('cpAttrPoints').textContent = P.attrPoints || 0;
-  document.getElementById('cpSkillPoints').textContent = P.skillPoints || 0;
   document.getElementById('attr-str').textContent = P.attrs?.str || 0;
   document.getElementById('attr-body').textContent = P.attrs?.body || 0;
   document.getElementById('attr-spirit').textContent = P.attrs?.spirit || 0;

@@ -36,6 +36,18 @@ export const SKILL_DEFS = [
   { id:'hailstorm',name:'冰雹术',short:'冰',baseDmg:0.35,range:260,desc:'召来冰雹打击一片区域，并冻结敌人',type:'domain',aoeRadius:145,freeze:2.2,cooldown:10,color:0x88ccff,texture:'water' },
 ];
 
+const ENEMY_HP_TIER_MULT = Object.freeze({ normal: 1, elite: 2, boss: 5 });
+
+export const COMBAT_TUNING = Object.freeze({
+  maxActiveEnemies: 8,
+  initialEnemyCount: 4,
+  spawnInterval: Object.freeze({ empty: 1.8, refill: 2.6, capped: 3.4 }),
+  playerDamageScale: 70,
+  enemyHpScale: 190,
+  enemyHpTierMult: ENEMY_HP_TIER_MULT,
+  hpBar: Object.freeze({ normalWidth: 28, bossWidth: 38, height: 5 })
+});
+
 export const EQ_TYPES = ['weapon','helmet','armor','boots','ring','amulet'];
 export const EQ_NAMES = { weapon:'武器',helmet:'头盔',armor:'衣服',boots:'鞋子',ring:'戒指',amulet:'项链' };
 export const RARITY_LABEL = { common:'凡品',uncommon:'下品',rare:'中品',epic:'上品',legendary:'极品',mythic:'仙品' };
