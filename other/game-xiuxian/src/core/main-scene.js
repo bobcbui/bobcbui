@@ -13,6 +13,22 @@ import { toggleCharPanel, toggleBagPanel, toggleSkillPanel, toggleAchPanel, togg
 
 export class MainScene extends Phaser.Scene {
   constructor(){ super({key:'main'}); }
+
+  isMobileViewport() {
+    const device = this.sys?.game?.device;
+    const isMobileOs = !!(device?.os?.android || device?.os?.iOS || device?.os?.iPad);
+    const hasTouch = !!(device?.input?.touch || navigator.maxTouchPoints > 0);
+    return isMobileOs || hasTouch || window.innerWidth <= 900;
+  }
+
+  applyCameraProfile() {
+    const cam = this.cameras.main;
+    if (!cam) return;
+    const mobile = this.isMobileViewport();
+    cam.setZoom(mobile ? 0.95 : 1.2);
+    cam.setLerp(mobile ? 0.11 : 0.08, mobile ? 0.11 : 0.08);
+  }
+
   preload(){
     createGeneratedTextures(this);
   }
@@ -30,8 +46,14 @@ export class MainScene extends Phaser.Scene {
     this.player.setData('baseScale', 1);
     this.playerDead = false;
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
-    this.cameras.main.setZoom(1.2);
+    this.applyCameraProfile();
     this.cameras.main.setBounds(0,0,this.worldSize,this.worldSize);
+    this._onResizeCamera = () => this.applyCameraProfile();
+    this.scale.on('resize', this._onResizeCamera);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this._onResizeCamera) this.scale.off('resize', this._onResizeCamera);
+      this._onResizeCamera = null;
+    });
     this.enemies = this.physics.add.group();
     this.projectiles = this.physics.add.group();
     this.enemyProjs = this.physics.add.group();
@@ -346,6 +368,7 @@ export class MainScene extends Phaser.Scene {
   updateFireballFields(){
     this.projectiles.children.iterate((proj)=>{
       if(!proj || !proj.active || proj.getData('skillId') !== 'fireball') return;
+      if (proj.getData('noFireField')) return;
       const lastX = proj.getData('lastFireFieldX') ?? proj.x;
       const lastY = proj.getData('lastFireFieldY') ?? proj.y;
       const dx = proj.x - lastX;
@@ -442,7 +465,13 @@ export class MainScene extends Phaser.Scene {
     this.buffSystem.update(dt);
     const skillNow = time / 1000;
     const qDef = SKILL_DEFS.find(s => s.id === P.hotbar[0]?.id) || SKILL_DEFS.find(s => s.id === 'swordfly');
-    const qRange = (qDef.range || 280) * (1 + (P.buff.rangeBoost || 0));
+    const view = this.cameras.main?.worldView;
+    const visibleRange = view
+      ? Math.sqrt(view.width * view.width + view.height * view.height) * 0.5 + 80
+      : (qDef.range || 280);
+    const qRange = qDef.id === 'swordfly'
+      ? Math.max(qDef.range || 280, visibleRange)
+      : (qDef.range || 280) * (1 + (P.buff.rangeBoost || 0));
     const qR2 = qRange * qRange;
     const { closestQ, activeEnemies } = this.aiSystem.update(dt, time / 1000, qRange, qR2);
     this.sceneEffectsSystem?.update(dt, this.getCurrentZone());
