@@ -133,45 +133,100 @@ export class MainScene extends Phaser.Scene {
       }
     }
     const r = WORLD.safeRadius;
-    g.fillStyle(0xf7edc8,0.82); g.fillCircle(s/2,s/2,r);
-    g.lineStyle(3,0xb57a19,0.38); g.strokeCircle(s/2,s/2,r);
-    g.lineStyle(1,0x8aa678,0.22); g.strokeCircle(s/2,s/2,80);
+    const half = s/2;
+    g.fillStyle(0xf7edc8,0.82); g.fillRect(half-r, half-r, r*2, r*2);
+    g.lineStyle(3,0xb57a19,0.45); g.strokeRect(half-r, half-r, r*2, r*2);
+    g.lineStyle(1,0x8aa678,0.18);
+    for(let gy=half-r;gy<=half+r;gy+=80) g.lineBetween(half-r,gy,half+r,gy);
+    for(let gx=half-r;gx<=half+r;gx+=80) g.lineBetween(gx,half-r,gx,half+r);
     g.lineStyle(2,0xb99a59,0.15);
-    for(let d=600;d<2200;d+=400) g.strokeCircle(s/2,s/2,d);
-    this._drawObstacles(g);
+    for(let d=1200;d<4400;d+=600) g.strokeCircle(s/2,s/2,d);
+    this._drawScenery(g);
   }
 
-  _drawObstacles(g){
+  _drawScenery(g){
     const s = this.worldSize;
     const center = s/2;
-    const hash = (x,y)=>Math.abs(Math.sin(x*12.9898+y*78.233)*43758.5453)%1;
+    const sr = WORLD.safeRadius;
+    const h = (x,y)=>Math.abs(Math.sin(x*12.9898+y*78.233)*43758.5453)%1;
+
     for(let x=20;x<s;x+=80){
       for(let y=20;y<s;y+=80){
-        const dx=x-center, dy=y-center;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        if(dist<WORLD.safeRadius+60) continue;
-        const h = hash(x,y);
-        if(h<0.12){
-          g.fillStyle(0x3a6e2a,0.6); g.fillCircle(x,y,10+Math.floor(h*40));
-          g.fillStyle(0x5a4a2a,0.5); g.fillRect(x-2,y+8,4,10);
-        }else if(h<0.18){
-          g.fillStyle(0x7a7a80,0.45); g.fillRect(x-12,y-8,24+Math.floor(h*20),16+Math.floor(h*10));
+        if(Math.abs(x-center)<=sr+60&&Math.abs(y-center)<=sr+60) continue;
+        const v = h(x,y);
+        if(v<0.08){
+          g.fillStyle(0x7a7a80,0.45); g.fillRect(x-12,y-8,24+Math.floor(v*20),16+Math.floor(v*10));
           g.fillStyle(0x9a9aa0,0.3); g.fillRect(x-8,y-12,16,8);
-        }else if(h<0.21){
+        }else if(v<0.11){
           g.fillStyle(0x5599cc,0.25); g.fillRect(x-40,y-15,80,30);
         }
       }
     }
-    for(let x=30;x<s;x+=200){
-      for(let y=30;y<s;y+=200){
-        const dx=x-center, dy=y-center;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        if(dist<WORLD.safeRadius+100) continue;
-        const h = hash(x+100,y+100);
-        if(h<0.3){
-          g.fillStyle(0x3a6e2a,0.7); g.fillCircle(x+Phaser.Math.Between(-10,10),y+Phaser.Math.Between(-10,10),14+Math.random()*10);
-          g.fillStyle(0x5a4a2a,0.6); g.fillRect(x-3+Phaser.Math.Between(-5,5),y+12+Phaser.Math.Between(-5,5),5,12);
+
+    for(let i=0;i<6;i++){
+      const sx=Phaser.Math.Between(sr+200,s-sr-200), sy=Phaser.Math.Between(sr+200,s-sr-200);
+      g.fillStyle(0x667788,0.18); g.fillTriangle(sx,sy,sx-50,sy+120,sx+50,sy+120);
+      g.fillStyle(0x8899aa,0.14); g.fillTriangle(sx-15,sy-40,sx,sy+60,sx+30,sy+60);
+    }
+
+    for(let i=0;i<4;i++){
+      const sx=Phaser.Math.Between(sr+100,s-sr-100), sy=Phaser.Math.Between(sr+100,s-sr-100);
+      g.fillStyle(0x889988,0.1); g.fillTriangle(sx,sy,sx-30,sy+80,sx+40,sy+80);
+      g.fillStyle(0x99aa99,0.08); g.fillTriangle(sx-10,sy-20,sx+20,sy+50,sx+45,sy+50);
+    }
+
+    for(let ri=0;ri<3;ri++){
+      let rx=Phaser.Math.Between(sr+150,s*0.6), ry=Phaser.Math.Between(sr+150,s-sr-150);
+      g.lineStyle(8+Math.floor(h(rx,ry+ri*99)*10),0x5599cc,0.14);
+      g.beginPath(); g.moveTo(rx,ry);
+      for(let seg=0;seg<8;seg++){
+        rx+=Phaser.Math.Between(-30,60); ry+=Phaser.Math.Between(-80,80);
+        rx=Phaser.Math.Clamp(rx,50,s-50); ry=Phaser.Math.Clamp(ry,50,s-50);
+        g.lineTo(rx,ry);
+      }
+      g.strokePath();
+    }
+
+    this._drawSectDecor(g);
+  }
+
+  _drawSectDecor(g){
+    const c=this.worldSize/2, sr=WORLD.safeRadius;
+    const h=(x,y)=>Math.abs(Math.sin(x*31.337+y*17.771)*43758.5453)%1;
+    for(let x=c-sr+40;x<c+sr;x+=90){
+      for(let y=c-sr+40;y<c+sr;y+=90){
+        if(Math.abs(x-c)<sr*0.5&&Math.abs(y-c)<sr*0.5) continue;
+        const v=h(x,y);
+        if(v<0.15){
+          g.fillStyle(0xc9a66b,0.35); g.fillRect(x-10,y-10,20,20);
+          g.fillStyle(0xb89a5a,0.28); g.fillRect(x-8,y-20,8,14);
+          g.fillStyle(0x8a6a3a,0.35); g.fillTriangle(x-12,y+10,x,y+10,x-6,y-2);
+        }else if(v<0.28){
+          g.fillStyle(0x7a5a3a,0.3); g.fillRect(x-4,y-4,8,14);
+          g.fillStyle(0x9a7a5a,0.2); g.fillRect(x-6,y+10,12,4);
+        }else if(v<0.38){
+          g.fillStyle(0x5599cc,0.2); g.fillCircle(x,y,8+Math.floor(v*12));
+          g.fillStyle(0x88aacc,0.1); g.fillCircle(x,y,14+Math.floor(v*12));
+        }else if(v<0.48){
+          g.fillStyle(0x66aa44,0.25); g.fillCircle(x,y,6+Math.floor(v*8));
+          g.fillStyle(0x88cc66,0.15); g.fillCircle(x+3,y-2,4+Math.floor(v*6));
+        }else if(v<0.55){
+          g.fillStyle(0xd4b896,0.3); g.fillRect(x-14,y-2,28,4);
+          g.fillStyle(0xc4a886,0.2); g.fillRect(x-10,y-6,6,12);
         }
+      }
+    }
+    g.fillStyle(0xc9a96e,0.25);
+    g.fillRect(c-14,c-14,28,28);
+    g.fillStyle(0xd4b896,0.18);
+    g.fillTriangle(c-18,c+14,c,c-8,c+18,c+14);
+    g.lineStyle(2,0xd4b896,0.3);
+    g.strokeRect(c-18,c-18,36,36);
+    g.fillStyle(0xe8d5a8,0.18);
+    for(let ax=-1;ax<=1;ax+=2){
+      for(let ay=-1;ay<=1;ay+=2){
+        g.fillRect(c+ax*30-10,c+ay*30-10,20,20);
+        g.fillStyle(0xb89a5a,0.2); g.fillRect(c+ax*30-3,c+ay*30-18,6,12);
       }
     }
   }
@@ -184,21 +239,19 @@ export class MainScene extends Phaser.Scene {
     return ZONES[ZONES.length-1];
   }
 
-  _inSafeCircle(){
+  _inSafeZone(){
     const c = this.worldSize/2;
-    const dx=this.player.x-c, dy=this.player.y-c;
-    return dx*dx+dy*dy <= WORLD.safeRadius*WORLD.safeRadius;
+    const r = WORLD.safeRadius;
+    return Math.abs(this.player.x-c)<=r && Math.abs(this.player.y-c)<=r;
   }
 
   updateZoneLabel(){
     const zone = this.getCurrentZone();
     const el=document.getElementById('zone-label');
     if(el){
-      el.textContent='「 '+zone.name+' 」';
+      el.textContent=zone.name;
       el.style.color=zone.colorName||'#fff';
       el.classList.add('show');
-      if(this.zoneFadeTimer) clearTimeout(this.zoneFadeTimer);
-      this.zoneFadeTimer=setTimeout(()=>el.classList.remove('show'),2000);
     }
   }
 
@@ -311,7 +364,7 @@ export class MainScene extends Phaser.Scene {
 
   update(time,delta){
     const dt=delta/1000;
-    const inSafe = this._inSafeCircle();
+    const inSafe = this._inSafeZone();
     if (inSafe && !this._wasInSafe) {
       this._wasInSafe = true;
       this.clearEnemies();
@@ -343,6 +396,13 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: dot, alpha: 0, y: py - 30, duration: 600, onComplete: () => dot.destroy() });
       }
     }
+    if (!this.playerDead && P.hp < P.maxHp) {
+      const noEnemies = this.enemies.countActive(true) === 0;
+      if (inSafe || noEnemies) {
+        const healRate = inSafe ? P.maxHp * 0.05 : P.maxHp * 0.02;
+        P.hp = Math.min(P.maxHp, P.hp + healRate * dt);
+      }
+    }
     this.buffSystem.update(dt);
     const skillNow = time / 1000;
     const qDef = SKILL_DEFS.find(s => s.id === P.hotbar[0]?.id) || SKILL_DEFS.find(s => s.id === 'swordfly');
@@ -357,7 +417,7 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({ targets: this.playerAura, alpha: 0.08, scale: 1.6, duration: 1200, yoyo: true, repeat: -1 });
       } else this.playerAura.setPosition(this.player.x, this.player.y);
     }
-    if (!this.playerDead && !this._inSafeCircle()) {
+    if (!this.playerDead && !this._inSafeZone()) {
       this.combatSystem.useAutoAttack(skillNow, closestQ, qDef);
       this.combatSystem.useManualSkills(skillNow, activeEnemies);
     }
@@ -372,7 +432,7 @@ export class MainScene extends Phaser.Scene {
     if (at >= 30) { at = 0; bus.emit('save'); }
     setAutoSaveTimer(at);
     this._hudTick = (this._hudTick || 0) + 1;
-     if (this._hudTick > 6) { this._hudTick = 0; bus.emit('hud-refresh'); bus.emit('hotbar-refresh'); updateHotbarCooldowns(); }
+      if (this._hudTick > 6) { this._hudTick = 0; bus.emit('hud-refresh'); bus.emit('hotbar-refresh'); updateHotbarCooldowns(); this.updateZoneLabel(); }
     if (time % 2000 < delta * 1.5) bus.emit('check-achievements');
   }
 }

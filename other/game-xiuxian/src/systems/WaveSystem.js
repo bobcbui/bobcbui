@@ -10,7 +10,7 @@ export class WaveSystem {
   update(dt) {
     const { scene } = this;
     const alive = scene.enemies.countActive(true);
-    if (!scene._inSafeCircle() && alive === 0) {
+    if (!scene._inSafeZone() && alive === 0) {
       if (!wavePending) {
         setWavePending(true);
         setWaveTimer(0);
@@ -45,7 +45,7 @@ export class WaveSystem {
       setWavePending(false);
       setWaveTimer(0);
     }
-    if (!scene._inSafeCircle() && scene.enemies.countActive(true) < 4 && Math.random() < 0.02) {
+    if (!scene._inSafeZone() && scene.enemies.countActive(true) < 4 && Math.random() < 0.02) {
       scene.spawnSystem.spawnEnemy();
     }
   }
