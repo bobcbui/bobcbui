@@ -29,6 +29,7 @@ export class MovementSystem {
       if (len > 0.01) {
         let spd = P.speed;
         if (P.buffTimer > 0 && P.buff.speedBoost) spd *= (1 + P.buff.speedBoost);
+        spd = Math.min(spd, 480);
         scene.player.setVelocity(mvx / len * spd, mvy / len * spd);
         scene.isMoving = false;
       } else {
@@ -39,6 +40,7 @@ export class MovementSystem {
       const dist = Math.max(0.01, dir.length());
       let spd = P.speed;
       if (P.buffTimer > 0 && P.buff.speedBoost) spd *= (1 + P.buff.speedBoost);
+      spd = Math.min(spd, 480);
       if (dist > 5) { dir.scale(spd / dist); scene.player.setVelocity(dir.x, dir.y); }
       else scene.player.setVelocity(0, 0);
     } else {

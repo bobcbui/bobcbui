@@ -93,7 +93,9 @@ function applySaveData(data) {
     if (!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
   }
   refreshSkills();
-  const invalidHotbar = !Array.isArray(P.hotbar) || P.hotbar.length < 5 || P.hotbar[0]?.id !== 'swordfly';
+  const validSkillIds = new Set(SKILL_DEFS.map(sk => sk.id));
+  const invalidHotbar = !Array.isArray(P.hotbar) || P.hotbar.length < 5 || P.hotbar[0]?.id !== 'swordfly' ||
+    P.hotbar.some(item => item?.id && !validSkillIds.has(item.id));
   if (P.hotbar && P.hotbar.length !== 5) initHotbar();
   if (invalidHotbar) initHotbar();
   setWaveNum(data.wave || 0);

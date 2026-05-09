@@ -14,10 +14,10 @@ export class WaveSystem {
       if (!wavePending) {
         setWavePending(true);
         setWaveTimer(0);
-        bus.emit('status', '区域已清，休整中...', 1.5);
+        scene.showWorldNotice?.('区域已清，休整中...', '#dff7ff');
       } else {
         let wt = waveTimer + dt;
-        if (wt >= waveDelay) {
+        if (wt >= 2) {
           let wn = waveNum + 1;
           setWaveNum(wn);
           if (wn > P.maxWave) P.maxWave = wn;
@@ -45,9 +45,6 @@ export class WaveSystem {
     } else if (wavePending) {
       setWavePending(false);
       setWaveTimer(0);
-    }
-    if (!scene._inSafeZone() && scene.enemies.countActive(true) < 4 && Math.random() < 0.02) {
-      scene.spawnSystem.spawnEnemy();
     }
   }
 }

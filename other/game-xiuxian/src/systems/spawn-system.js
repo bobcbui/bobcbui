@@ -15,6 +15,25 @@ const MONSTER_TEXTURES = {
 export class SpawnSystem {
   constructor(scene) {
     this.scene = scene;
+    this.spawnTimer = 0;
+  }
+
+  update(dt) {
+    const { scene } = this;
+    if (scene._inSafeZone()) return;
+
+    this.spawnTimer -= dt;
+    if (this.spawnTimer > 0) return;
+
+    const active = scene.enemies.countActive(true);
+    const target = Math.min(8 + Math.floor(P.level / 3), 18);
+    if (active < target) {
+      const batch = Math.min(target - active, active === 0 ? 5 : 2);
+      for (let i = 0; i < batch; i++) this.spawnEnemy();
+      this.spawnTimer = active === 0 ? 0.6 : 1.4;
+    } else {
+      this.spawnTimer = 2;
+    }
   }
 
   spawnEnemy() {
@@ -25,10 +44,7 @@ export class SpawnSystem {
     const tmpl = list[Math.floor(Math.random() * list.length)];
 
     const sz = scene.worldSize;
-    let x = scene.player.x + Phaser.Math.Between(-400, 400);
-    let y = scene.player.y + Phaser.Math.Between(-400, 400);
-    x = Phaser.Math.Clamp(x, 30, sz - 30);
-    y = Phaser.Math.Clamp(y, 30, sz - 30);
+    let { x, y } = this.pickSpawnPoint();
 
     const r = WORLD.safeRadius + 40;
     const cx = sz / 2, cy = sz / 2;
@@ -91,6 +107,34 @@ export class SpawnSystem {
     en.setData('ultWarning', null);
 
     return en;
+  }
+
+  pickSpawnPoint() {
+    const { scene } = this;
+    const sz = scene.worldSize;
+    const cam = scene.cameras.main;
+    const margin = 80;
+    const minDist = 360;
+    const maxDist = 700;
+
+    for (let i = 0; i < 18; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Phaser.Math.Between(minDist, maxDist);
+      const x = Phaser.Math.Clamp(scene.player.x + Math.cos(angle) * dist, 30, sz - 30);
+      const y = Phaser.Math.Clamp(scene.player.y + Math.sin(angle) * dist, 30, sz - 30);
+      const visible = x > cam.worldView.left - margin && x < cam.worldView.right + margin &&
+        y > cam.worldView.top - margin && y < cam.worldView.bottom + margin;
+      if (!visible || i > 8) return { x, y };
+    }
+
+    const side = Phaser.Math.Between(0, 3);
+    const view = cam.worldView;
+    const x = side === 0 ? view.left - margin : side === 1 ? view.right + margin : Phaser.Math.Between(view.left, view.right);
+    const y = side === 2 ? view.top - margin : side === 3 ? view.bottom + margin : Phaser.Math.Between(view.top, view.bottom);
+    return {
+      x: Phaser.Math.Clamp(x, 30, sz - 30),
+      y: Phaser.Math.Clamp(y, 30, sz - 30)
+    };
   }
 
   getMonsterTexture(zone, list, tmpl) {

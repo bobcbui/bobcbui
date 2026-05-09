@@ -38,7 +38,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 #cult-orb.show { opacity:1; }
 
 /* Zone label */
-#zone-label { position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;pointer-events:none;opacity:0;transition:opacity .6s;text-shadow:0 2px 18px rgba(255,248,220,.95);letter-spacing:3px;z-index:2;background:rgba(63,45,29,0.35);padding:2px 18px;border-radius:0 0 12px 12px; }
+#zone-label { position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;pointer-events:none;opacity:0;transition:opacity .6s;text-shadow:0 2px 18px rgba(255,248,220,.95);letter-spacing:3px;z-index:2;background:rgba(63,45,29,0.35);padding:2px 18px;border-radius:12px; }
 #zone-label.show { opacity:.9; }
 
 /* Bottom hotbar */
@@ -51,7 +51,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .slot.cd .m { color:var(--hp); }
 
 /* Status msg */
-#status { position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .2s;text-shadow:0 2px 12px rgba(255,248,220,.9);white-space:nowrap; }
+#status { display:none!important;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .2s;text-shadow:0 2px 12px rgba(255,248,220,.9);white-space:nowrap; }
 #status.show { opacity:1; }
 
 /* Modal - Character */
@@ -203,7 +203,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   </div>
 
   <!-- Zone label -->
-  <div id="zone-label">合欢宗</div>
+  <div id="zone-label">古剑门</div>
   <!-- Status -->
   <div id="status">消息</div>
   <!-- Loot popup -->

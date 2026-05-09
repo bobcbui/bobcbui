@@ -23,6 +23,16 @@ export class AISystem {
       const atkType = en.getData('atkType') || 'melee';
       const dist = Math.sqrt(d2);
       let speed = en.getData('speed') || 30;
+      const freezeTimer = en.getData('freezeTimer') || 0;
+      if (freezeTimer > 0) {
+        en.setData('freezeTimer', Math.max(0, freezeTimer - dt));
+        en.setVelocity(0, 0);
+        en.setTint(0xbfefff);
+        const lbl = en.getData('label'); if (lbl) lbl.setPosition(en.x, en.y - 16);
+        return;
+      } else if (en.tintTopLeft === 0xbfefff) {
+        en.clearTint();
+      }
       const slowTimer = en.getData('slowTimer') || 0;
       if (slowTimer > 0) {
         speed *= 0.45;
