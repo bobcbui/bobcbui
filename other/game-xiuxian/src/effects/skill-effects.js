@@ -122,6 +122,8 @@ export class SkillEffects {
 
     if (def.id === 'tornado') this.drawTornado(x, y, radius, color);
     else if (def.id === 'waterdomain') this.drawWaterDomain(x, y, radius, color);
+    else if (def.id === 'firedomain') this.drawFireDomain(x, y, radius, color);
+    else if (def.id === 'hailstorm') this.drawHailstorm(x, y, radius, color);
     else if (def.id === 'thunder') this.drawThunderDomain(x, y, radius, color);
   }
 
@@ -158,23 +160,95 @@ export class SkillEffects {
     }
   }
 
-  drawThunderDomain(x, y, radius, color) {
-    for (let i = 0; i < 8; i++) {
-      const sx = x + Phaser.Math.Between(-radius, radius);
-      const sy = y + Phaser.Math.Between(-radius, radius);
-      if ((sx - x) * (sx - x) + (sy - y) * (sy - y) > radius * radius) continue;
-      const bolt = this.scene.add.rectangle(sx, sy - 16, 4, 34, color, 0.64).setDepth(11);
-      bolt.rotation = Phaser.Math.FloatBetween(-0.4, 0.4);
+  drawFireDomain(x, y, radius, color) {
+    for (let i = 0; i < 12; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Phaser.Math.FloatBetween(8, radius * 0.8);
+      const flame = this.scene.add.circle(x + Math.cos(a) * r, y + Math.sin(a) * r, Phaser.Math.FloatBetween(2, 4), color, 0.45).setDepth(10);
       this.scene.tweens.add({
-        targets: bolt,
+        targets: flame,
+        y: flame.y - Phaser.Math.Between(18, 36),
         alpha: 0,
-        scaleY: 0.3,
-        y: sy + 12,
-        duration: 180,
-        delay: i * 38,
-        onComplete: () => bolt.destroy()
+        scale: 0.2,
+        duration: Phaser.Math.Between(420, 780),
+        onComplete: () => flame.destroy()
       });
     }
+  }
+
+  drawHailstorm(x, y, radius, color) {
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Phaser.Math.FloatBetween(0, radius);
+      const hx = x + Math.cos(a) * r;
+      const hy = y + Math.sin(a) * r;
+      const hail = this.scene.add.circle(hx, hy - 90, Phaser.Math.FloatBetween(2, 4), 0xe8fbff, 0.85).setDepth(12);
+      hail.setStrokeStyle(1, color, 0.75);
+      this.scene.tweens.add({
+        targets: hail,
+        y: hy,
+        alpha: 0,
+        duration: Phaser.Math.Between(260, 520),
+        delay: i * 26,
+        onComplete: () => hail.destroy()
+      });
+    }
+  }
+
+  drawThunderDomain(x, y, radius, color) {
+    for (let i = 0; i < 4; i++) {
+      const ring = this.scene.add.circle(x, y, 24 + i * 12, color, 0.02).setDepth(10);
+      ring.setStrokeStyle(2, color, 0.42 - i * 0.06);
+      this.scene.tweens.add({
+        targets: ring,
+        alpha: 0,
+        scale: radius / (24 + i * 12),
+        duration: 720,
+        delay: i * 90,
+        onComplete: () => ring.destroy()
+      });
+    }
+
+    for (let i = 0; i < 14; i++) {
+      const angle = (i / 14) * Math.PI * 2 + Phaser.Math.FloatBetween(-0.12, 0.12);
+      const delay = i * 24;
+      this.drawThunderArc(x, y, angle, radius * Phaser.Math.FloatBetween(0.55, 0.98), color, delay);
+    }
+
+    const core = this.scene.add.circle(x, y, 22, 0xffffcc, 0.34).setDepth(12);
+    this.scene.tweens.add({
+      targets: core,
+      alpha: 0,
+      scale: 2.2,
+      duration: 320,
+      onComplete: () => core.destroy()
+    });
+  }
+
+  drawThunderArc(x, y, angle, length, color, delay) {
+    const g = this.scene.add.graphics().setDepth(12);
+    g.lineStyle(2, color, 0.72);
+    g.beginPath();
+    g.moveTo(x, y);
+    const segments = 5;
+    for (let i = 1; i <= segments; i++) {
+      const t = i / segments;
+      const jitter = Phaser.Math.FloatBetween(-14, 14) * (1 - Math.abs(t - 0.5));
+      const px = x + Math.cos(angle) * length * t + Math.cos(angle + Math.PI / 2) * jitter;
+      const py = y + Math.sin(angle) * length * t + Math.sin(angle + Math.PI / 2) * jitter;
+      g.lineTo(px, py);
+    }
+    g.strokePath();
+    g.alpha = 0;
+    this.scene.tweens.add({
+      targets: g,
+      alpha: 0.9,
+      duration: 70,
+      delay,
+      yoyo: true,
+      hold: 60,
+      onComplete: () => g.destroy()
+    });
   }
 
   onBuffCast(color) {

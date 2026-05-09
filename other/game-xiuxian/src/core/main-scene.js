@@ -20,6 +20,7 @@ export class MainScene extends Phaser.Scene {
     setScene(this);
     this.worldSize = WORLD.size;
     this._currentMap = { worldSize: WORLD.size, safeRadius: WORLD.safeRadius, id:'hehuan', name:'合欢宗', colorName:'#c9a96e' };
+    this._currentMap.name = '古剑门';
     this.physics.world.setBounds(0,0,this.worldSize,this.worldSize);
     this.ground = this.add.graphics();
     this.drawGround();
@@ -216,6 +217,10 @@ export class MainScene extends Phaser.Scene {
     return ZONES[ZONES.length-1];
   }
 
+  getZoneName(zone){
+    return zone?.id === 'hehuan' ? '古剑门' : zone?.name;
+  }
+
   _inSafeZone(){
     const c = this.worldSize/2;
     const r = WORLD.safeRadius;
@@ -226,7 +231,7 @@ export class MainScene extends Phaser.Scene {
     const zone = this.getCurrentZone();
     const el=document.getElementById('zone-label');
     if(el){
-      el.textContent=zone.name;
+      el.textContent=this.getZoneName(zone);
       el.style.color=zone.colorName||'#fff';
       el.classList.add('show');
     }
@@ -267,7 +272,7 @@ export class MainScene extends Phaser.Scene {
     this.moveTarget.set(x, y);
     this.lastZoneId = null;
     this.updateZoneLabel();
-    bus.emit('status', '📍 传送至 ' + zone.name, 2);
+    bus.emit('status', '📍 传送至 ' + this.getZoneName(zone), 2);
     bus.emit('save');
   }
 
@@ -314,12 +319,40 @@ export class MainScene extends Phaser.Scene {
     (this.pool[tex] = this.pool[tex] || []).push(p);
   }
 
+  updateFireballFields(){
+    this.projectiles.children.iterate((proj)=>{
+      if(!proj || !proj.active || proj.getData('skillId') !== 'fireball') return;
+      const lastX = proj.getData('lastFireFieldX') ?? proj.x;
+      const lastY = proj.getData('lastFireFieldY') ?? proj.y;
+      const dx = proj.x - lastX;
+      const dy = proj.y - lastY;
+      if(dx * dx + dy * dy < 70 * 70) return;
+      const dmg = proj.getData('damage') || 10;
+      this.groundEffectSystem?.addFireField(proj.x, proj.y, dmg * 0.18, 10);
+      proj.setData('lastFireFieldX', proj.x);
+      proj.setData('lastFireFieldY', proj.y);
+    });
+  }
+
   applyBuffVisual(color){
     this.skillEffects?.onBuffCast(color || 0x66ffcc);
   }
 
   showSkillName(name, color){
     this.skillEffects?.showSkillName(name, color);
+  }
+
+  showWorldNotice(text, color = '#f7d98e'){
+    if(!this.textPool || !this.player) return;
+    this.textPool.show(this.player.x, this.player.y - 58, text, {
+      fontSize: '16px',
+      color,
+      stroke: '#3f2d1d',
+      strokeThickness: 3,
+      depth: 28,
+      floatDist: 52,
+      duration: 1100
+    });
   }
 
   doLightningEffect(success){
@@ -339,13 +372,16 @@ export class MainScene extends Phaser.Scene {
     if (inSafe && !this._wasInSafe) {
       this._wasInSafe = true;
       this.clearEnemies();
+      this.showWorldNotice('进入安全区', '#dfffd8');
       bus.emit('status', '已进入安全区', 1.2);
     } else if (!inSafe && this._wasInSafe) {
       this._wasInSafe = false;
+      this.showWorldNotice('离开安全区', '#ffd866');
       bus.emit('status', '已离开安全区', 1.2);
     }
     if (inSafe && this.enemies.countActive(true) > 0) this.clearEnemies();
     P.totalPlayTime += dt;
+    this.spawnSystem.update(dt);
     this.movementSystem.update();
     this.entityAnimationSystem?.update(dt);
     if (this.playerDead) this.player.setVelocity(0, 0);
@@ -369,6 +405,8 @@ export class MainScene extends Phaser.Scene {
       }
     }
     this.skillEffects?.updateProjectileTrails();
+    this.updateFireballFields();
+    this.groundEffectSystem?.update(dt);
     if (!this.playerDead && P.hp < P.maxHp) {
       const noEnemies = this.enemies.countActive(true) === 0;
       if (inSafe || noEnemies) {
@@ -382,6 +420,7 @@ export class MainScene extends Phaser.Scene {
     const qRange = (qDef.range || 280) * (1 + (P.buff.rangeBoost || 0));
     const qR2 = qRange * qRange;
     const { closestQ, activeEnemies } = this.aiSystem.update(dt, time / 1000, qRange, qR2);
+    this.sceneEffectsSystem?.update(dt, this.getCurrentZone());
     if (!this.playerDead) {
       if (!this.playerAura || !this.playerAura.active) {
         const colors = [0x6de27a, 0x66ffcc, 0x88ccff, 0xffd700, 0xcc66ff, 0xff8866, 0xaa44ff, 0xffffff, 0xffdd00];

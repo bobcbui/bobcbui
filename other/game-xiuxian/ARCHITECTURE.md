@@ -16,6 +16,7 @@
 
 - Add a new gameplay system by creating it in `src/systems/` and registering it in `installSceneSystems`.
 - Entity movement, idle, attack, and hit reactions are handled by `src/systems/entity-animation-system.js`.
+- Zone ambience particles such as snow, embers, mist, and lightning are handled by `src/systems/scene-effects-system.js`.
 - Add or tune skill visuals in `src/effects/skill-effects.js`; combat systems should call the effect layer instead of building tweens inline.
 - Add new UI commands to `src/ui/actions.js`; only that file should bridge legacy inline HTML handlers to modules.
 - Add runtime references to `src/core/runtime.js` instead of reading or writing ad hoc `window.*` globals.

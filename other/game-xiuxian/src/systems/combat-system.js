@@ -17,6 +17,10 @@ export class CombatSystem {
     const isPierce = skillId === 'swordfly';
     proj.setData('damage', dmg);
     proj.setData('pierce', isPierce);
+    proj.setData('skillId', skillId);
+    proj.setData('lastFireFieldX', this.scene.player.x);
+    proj.setData('lastFireFieldY', this.scene.player.y);
+    if (skillId === 'fireball') this.scene.groundEffectSystem?.addFireField(this.scene.player.x, this.scene.player.y, dmg * 0.18, 10);
     this.scene.skillEffects?.onProjectileFired(proj, skillId, angle);
     this.scene.entityAnimationSystem?.playPlayerAttack(angle);
     this.scene.time.delayedCall(isPierce ? 1500 : 1200, () => { this.scene.freeProj(proj); });
@@ -49,7 +53,8 @@ export class CombatSystem {
       const dx = en.x - tx, dy = en.y - ty;
       if (dx * dx + dy * dy <= (def.aoeRadius || 140) * (def.aoeRadius || 140)) {
         this.damageEnemy(en, dmg, def.id);
-        if (def.slow) en.setData('slowTimer', 2.5);
+        if (def.freeze) en.setData('freezeTimer', def.freeze);
+        else if (def.slow) en.setData('slowTimer', 2.5);
         else if (def.id === 'tornado') {
           const pull = new Phaser.Math.Vector2(tx - en.x, ty - en.y);
           if (pull.length() > 1) { pull.normalize().scale(80); en.x += pull.x * 0.15; en.y += pull.y * 0.15; }
@@ -64,6 +69,7 @@ export class CombatSystem {
     const pierce = proj.getData('pierce');
     const skillId = proj.getData('skillId');
     this.damageEnemy(en, dmg, skillId);
+    if (skillId === 'fireball') this.scene.groundEffectSystem?.addFireField(en.x, en.y, dmg * 0.18, 10);
     if (!pierce) this.scene.freeProj(proj);
   }
 
@@ -231,11 +237,44 @@ export class CombatSystem {
         if (def.speedBoost) P.buff.speedBoost = def.speedBoost;
         if (def.atkBoost) P.buff.atkBoost = def.atkBoost;
         if (def.rangeBoost) P.buff.rangeBoost = def.rangeBoost;
+        if (def.shieldPct) P.buff.shieldPct = def.shieldPct;
         P.buffTimer = Math.max(P.buffTimer, def.duration || 5);
         scene.skillEffects?.onBuffCast(def.color || 0x66ffcc);
         scene.showSkillName(def.name, def.color || 0x66ffcc);
         bus.emit('status', def.name + ' 激活!', 1.5);
+      } else if (def.type === 'ground') {
+        let target = null, bestD2 = Infinity;
+        const gRange = def.range || 220, gR2 = gRange * gRange;
+        for (const en of activeEnemies) {
+          const dx = en.x - scene.player.x, dy = en.y - scene.player.y, d2 = dx * dx + dy * dy;
+          if (d2 < gR2 && d2 < bestD2) { bestD2 = d2; target = en; }
+        }
+        if (target) {
+          scene.skillCooldowns[def.id] = skillNow + cd;
+          const lv = P.skillLevels?.[def.id] || 1;
+          const dmg = Math.max(1, Math.round((P.atk + P.level * 0.5) * def.baseDmg * (1 + (lv - 1) * 0.08)));
+          scene.groundEffectSystem?.addFireField(target.x, target.y, dmg, def.duration || 10, def.aoeRadius || 95);
+          scene.skillEffects?.onDomainCast(target.x, target.y, { ...def, id: 'firedomain' });
+          scene.showSkillName(def.name, def.color || 0xff8844);
+        }
       } else if (def.type === 'domain') {
+        if (def.selfCenter) {
+          const aoeR2 = (def.aoeRadius || 260) * (def.aoeRadius || 260);
+          let hasTarget = false;
+          for (const en of activeEnemies) {
+            const dx = en.x - scene.player.x, dy = en.y - scene.player.y;
+            if (dx * dx + dy * dy <= aoeR2) { hasTarget = true; break; }
+          }
+          if (hasTarget) {
+            scene.skillCooldowns[def.id] = skillNow + cd;
+            const dlv = P.skillLevels?.[def.id] || 1;
+            const dmg = Math.max(1, Math.round((P.atk + P.level * 0.5) * def.baseDmg * (1 + (dlv - 1) * 0.08)));
+            scene.groundEffectSystem?.addThunderField(scene.player.x, scene.player.y, def.aoeRadius || 300, dmg, def.duration || 5);
+            scene.skillEffects?.onDomainCast(scene.player.x, scene.player.y, def);
+            scene.showSkillName(def.name, def.color || 0xffdd00);
+          }
+          continue;
+        }
         const dRange = def.range || 200, dR2 = dRange * dRange;
         let dTarget = null, dBest = Infinity;
         for (const en of activeEnemies) {
@@ -249,7 +288,7 @@ export class CombatSystem {
             const dx = en.x - dTarget.x, dy = en.y - dTarget.y;
             if (dx * dx + dy * dy <= aoeR2) cnt++;
           }
-          if (cnt >= 2) {
+          if (cnt >= 2 || def.freeze) {
             scene.skillCooldowns[def.id] = skillNow + cd;
             const dlv = P.skillLevels?.[def.id] || 1;
             const dmg = Math.round((P.atk + P.level * 0.5) * def.baseDmg * (1 + (dlv - 1) * 0.18));

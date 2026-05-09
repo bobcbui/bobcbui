@@ -3,13 +3,13 @@ import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from '../
 
 export const P = {
   hp:100, maxHp:100,
-  atk:10, def:5, speed:180,
+  atk:10, def:5, speed:220,
   realm:'mortal', stage:1,
   level:1, xp:0, xpToNext:10,
   gold:0, kills:0,
   attrPoints:0, skillPoints:0,
   attrs:{ str:0, body:0, spirit:0, agility:0 },
-  skillLevels:{ swordfly:1, fireball:1, thunder:1, waterdomain:1, tornado:1 },
+  skillLevels:{ swordfly:1, earthmove:1, firedomain:1, thunder:1, hailstorm:1 },
   skills:[],
   hotbar:[],
   equipment:{},
@@ -51,7 +51,7 @@ export function recalcStats(){
   P.maxHp = 100 + r.hpBonus * (1 + stageMult * 0.5);
   P.atk = 10 + r.atkBonus * (1 + stageMult * 0.5);
   P.def = 5 + r.defBonus * (1 + stageMult * 0.5);
-  P.speed = 180 + (getRealmIndex(P.realm) * 10);
+  P.speed = 220 + (getRealmIndex(P.realm) * 10);
   P.atk += (P.attrs?.str || 0) * 2;
   P.maxHp += (P.attrs?.body || 0) * 12;
   P.def += (P.attrs?.body || 0) * 0.8;
@@ -65,6 +65,7 @@ export function recalcStats(){
     if(eq.stats.hp) P.maxHp += eq.stats.hp;
     if(eq.stats.speed) P.speed += eq.stats.speed;
   }
+  P.speed = Math.min(P.speed, 420);
   P.hp = Math.min(P.hp, P.maxHp);
 }
 
@@ -96,7 +97,7 @@ export function initHotbar(){
     if(existing && existing.id && swaps.some(s=>s.id===existing.id)){
       P.hotbar.push(existing);
     } else {
-      const defaults = ['fireball','earthshield','speedbuff','waterdomain'];
+      const defaults = ['earthmove','firedomain','thunder','hailstorm'];
       P.hotbar.push({ kind:'skill', id:defaults[i]||swaps[i]?.id||null });
     }
   }
