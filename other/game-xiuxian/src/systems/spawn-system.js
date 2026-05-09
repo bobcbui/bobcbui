@@ -1,5 +1,16 @@
-import { ZONES, BESTIARY, BOSS_NAMES, WORLD } from '../data.js';
-import { P } from '../state.js';
+import { ZONES, BESTIARY, BOSS_NAMES, WORLD } from '../data/index.js';
+import { P } from '../core/state.js';
+
+const MONSTER_TEXTURES = {
+  hehuan: ['monster-rabbit', 'monster-wolf', 'monster-spider'],
+  yaoshou: ['monster-wolf', 'monster-golem', 'monster-spider'],
+  xueshan: ['monster-wolf', 'monster-ice-spirit', 'monster-golem'],
+  huoyan: ['monster-fire-demon', 'monster-serpent', 'monster-golem'],
+  shenyuan: ['monster-shadow', 'monster-fire-demon', 'monster-ghost'],
+  wanjian: ['monster-sword-spirit', 'monster-sword-golem', 'monster-sword-spirit'],
+  youming: ['monster-ghost', 'monster-serpent', 'monster-shadow'],
+  jiutian: ['monster-thunder-beast', 'monster-thunder-spirit', 'monster-dragon']
+};
 
 export class SpawnSystem {
   constructor(scene) {
@@ -30,10 +41,16 @@ export class SpawnSystem {
 
     const isElite = Math.random() < 0.08;
     const isBoss = Math.random() < 0.01 && zone.monsterLv >= 3;
-    const texture = isBoss ? 'boss' : (isElite ? 'elite' : 'beast');
+    const texture = isBoss ? 'monster-boss' : this.getMonsterTexture(zone, list, tmpl);
     const en = scene.enemies.create(x, y, texture);
     en.setCollideWorldBounds(true);
     en.setDepth(5);
+    if (isElite) {
+      en.setTint(0xffdf88);
+      en.setScale(1.16);
+    }
+    en.setData('baseScale', isElite ? 1.16 : 1);
+    en.setData('animSeed', Math.random() * Math.PI * 2);
 
     const lvMult = 1 + (zone.monsterLv - 1) * 0.3;
     const plvMult = 1 + (P.level - 1) * 0.08;
@@ -74,5 +91,11 @@ export class SpawnSystem {
     en.setData('ultWarning', null);
 
     return en;
+  }
+
+  getMonsterTexture(zone, list, tmpl) {
+    const options = MONSTER_TEXTURES[zone.id] || ['monster-wolf'];
+    const idx = Math.max(0, list.indexOf(tmpl));
+    return options[idx % options.length];
   }
 }

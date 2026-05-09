@@ -1,6 +1,7 @@
 import { bus } from './events.js';
 import { P, isCultivating, breakPending, setIsCultivating, setBreakPending, recalcStats, refreshSkills, initHotbar } from './state.js';
-import { REALMS, getRealm, getRealmIndex } from './data.js';
+import { getScene } from './runtime.js';
+import { REALMS, getRealm, getRealmIndex } from '../data/index.js';
 
 export function tryBreakthrough(){
   if(P.realm==='feisheng'){ bus.emit('status','已至飞升，大道已成！',2); return; }
@@ -39,12 +40,12 @@ export function doBreakthrough(){
     refreshSkills();
     initHotbar();
     bus.emit('status','🎉 突破成功！踏入 ' + next.name, 3);
-    const sc = window.scene;
+    const sc = getScene();
     if(sc && sc.doLightningEffect) sc.doLightningEffect(true);
   } else {
     bus.emit('status','💥 突破失败！天雷反噬', 2);
     P.hp = Math.max(1, P.hp - P.maxHp*0.3);
-    const sc = window.scene;
+    const sc = getScene();
     if(sc && sc.doLightningEffect) sc.doLightningEffect(false);
   }
   cancelBreakthrough();
@@ -65,7 +66,3 @@ export function toggleCultivate(){
   bus.emit('status', newVal ? '🧘 打坐修炼中...' : '停止修炼', newVal ? 2 : 1);
 }
 
-window.tryBreakthrough = tryBreakthrough;
-window.doBreakthrough = doBreakthrough;
-window.cancelBreakthrough = cancelBreakthrough;
-window.toggleCultivate = toggleCultivate;

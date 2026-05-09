@@ -1,7 +1,7 @@
-import { P, recalcStats } from '../state.js';
-import { SKILL_DEFS, RARITY_LABEL, RARITY_COLORS } from '../data.js';
-import { genEquipment } from '../equipment.js';
-import { bus } from '../events.js';
+import { P, recalcStats } from '../core/state.js';
+import { SKILL_DEFS, RARITY_LABEL, RARITY_COLORS } from '../data/index.js';
+import { genEquipment } from '../core/equipment.js';
+import { bus } from '../core/events.js';
 
 export class CombatSystem {
   constructor(scene) {
@@ -17,6 +17,8 @@ export class CombatSystem {
     const isPierce = skillId === 'swordfly';
     proj.setData('damage', dmg);
     proj.setData('pierce', isPierce);
+    this.scene.skillEffects?.onProjectileFired(proj, skillId, angle);
+    this.scene.entityAnimationSystem?.playPlayerAttack(angle);
     this.scene.time.delayedCall(isPierce ? 1500 : 1200, () => { this.scene.freeProj(proj); });
   }
 
@@ -33,6 +35,7 @@ export class CombatSystem {
         proj.rotation = ang;
         proj.setData('damage', Math.round(dmg * 0.6));
         proj.setData('pierce', false);
+        this.scene.skillEffects?.onProjectileFired(proj, 'swordfly', ang);
         this.scene.time.delayedCall(1000, () => { this.scene.freeProj(proj); });
       }
     });
@@ -40,13 +43,12 @@ export class CombatSystem {
 
   doDomainSkill(tx, ty, dmg, def) {
     const { scene } = this;
-    const circle = scene.add.circle(tx, ty, def.aoeRadius || 140, def.color || 0xffee44, 0.15).setDepth(7);
-    scene.tweens.add({ targets: circle, alpha: 0, scale: 1.3, duration: 600, onComplete: () => circle.destroy() });
+    scene.skillEffects?.onDomainCast(tx, ty, def);
     scene.enemies.children.iterate((en) => {
       if (!en || en.getData('dead')) return;
       const dx = en.x - tx, dy = en.y - ty;
       if (dx * dx + dy * dy <= (def.aoeRadius || 140) * (def.aoeRadius || 140)) {
-        this.damageEnemy(en, dmg);
+        this.damageEnemy(en, dmg, def.id);
         if (def.slow) en.setData('slowTimer', 2.5);
         else if (def.id === 'tornado') {
           const pull = new Phaser.Math.Vector2(tx - en.x, ty - en.y);
@@ -60,7 +62,8 @@ export class CombatSystem {
     if (!proj.active || !en || en.getData('dead')) return;
     const dmg = proj.getData('damage') || 10;
     const pierce = proj.getData('pierce');
-    this.damageEnemy(en, dmg);
+    const skillId = proj.getData('skillId');
+    this.damageEnemy(en, dmg, skillId);
     if (!pierce) this.scene.freeProj(proj);
   }
 
@@ -90,11 +93,12 @@ export class CombatSystem {
     const lastHit = en.getData('lastContactTime') || 0;
     if (now - lastHit < 600) return;
     en.setData('lastContactTime', now);
+    this.scene.entityAnimationSystem?.playEnemyAttack(en);
     let atk = en.getData('atk') || 5;
     const shieldMult = P.buff.shieldPct > 0 ? (1 - P.buff.shieldPct) : 1;
     const dmg = Math.max(1, Math.round((atk * 0.5 - P.def * 0.3) * shieldMult));
     P.hp = Math.max(0, P.hp - dmg);
-    if (this.scene.shieldReflect > 0) this.damageEnemy(en, Math.round(this.scene.shieldReflect * (1 + P.level * 0.03)));
+    if (this.scene.shieldReflect > 0) this.damageEnemy(en, Math.round(this.scene.shieldReflect * (1 + P.level * 0.03)), 'swordshield');
     this.scene.damageFlash(0.25);
     if (P.hp <= 0 && !this.scene.playerDead) {
       this.scene.playerDead = true;
@@ -111,7 +115,7 @@ export class CombatSystem {
     bus.emit('hud-refresh');
   }
 
-  damageEnemy(en, dmg) {
+  damageEnemy(en, dmg, skillId = null) {
     const { scene } = this;
     if (en.getData('dead')) return;
     const critChance = 0.15 + P.level * 0.003;
@@ -119,6 +123,8 @@ export class CombatSystem {
     const finalDmg = isCrit ? Math.round(dmg * 2) : dmg;
     const hp = en.getData('hp') - finalDmg;
     en.setData('hp', hp);
+    scene.skillEffects?.onProjectileHit(en.x, en.y, skillId, isCrit);
+    scene.entityAnimationSystem?.playEnemyHit(en);
     en.setTint(isCrit ? 0xffff44 : 0xffffff);
     scene.time.delayedCall(60, () => { if (en.active) en.clearTint(); });
     const dColor = isCrit ? '#ffd700' : '#b94a3e';
@@ -136,7 +142,7 @@ export class CombatSystem {
       const isBoss = en.getData('isBoss');
       const isElite = en.getData('isElite');
       en.setVelocity(0, 0); en.body.enable = false;
-      scene.tweens.add({ targets: en, scaleX: 1.5, scaleY: 1.5, alpha: 0, duration: 250, onComplete: () => en.destroy() });
+      scene.tweens.add({ targets: en, alpha: 0, duration: 250, onComplete: () => en.destroy() });
       scene.killStreak = (scene.killStreak || 0);
       const now = scene.time.now;
       if (now - (scene.lastKill || 0) < 3000) scene.killStreak++;
@@ -217,6 +223,7 @@ export class CombatSystem {
         P.buffTimer = Math.max(P.buffTimer, def.duration || 5);
         scene.shieldReflect = def.reflectDmg || 0;
         if (scene.buffSystem) scene.buffSystem.createShieldVisual(def.color || 0xffd700);
+        scene.skillEffects?.onShieldCast(def.color || 0xffd700);
         scene.showSkillName(def.name, def.color || 0xffd700);
         bus.emit('status', def.name + ' 护体!', 1.5);
       } else if (def.type === 'buff') {
@@ -225,7 +232,7 @@ export class CombatSystem {
         if (def.atkBoost) P.buff.atkBoost = def.atkBoost;
         if (def.rangeBoost) P.buff.rangeBoost = def.rangeBoost;
         P.buffTimer = Math.max(P.buffTimer, def.duration || 5);
-        if (scene.applyBuffVisual) scene.applyBuffVisual(def.color || 0x66ffcc);
+        scene.skillEffects?.onBuffCast(def.color || 0x66ffcc);
         scene.showSkillName(def.name, def.color || 0x66ffcc);
         bus.emit('status', def.name + ' 激活!', 1.5);
       } else if (def.type === 'domain') {

@@ -1,5 +1,5 @@
 import { bus } from './events.js';
-import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from './data.js';
+import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from '../data/index.js';
 
 export const P = {
   hp:100, maxHp:100,

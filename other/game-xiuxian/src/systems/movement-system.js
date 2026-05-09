@@ -1,4 +1,5 @@
-import { P } from '../state.js';
+import { P } from '../core/state.js';
+import { getJoystickDir } from '../core/runtime.js';
 
 export class MovementSystem {
   constructor(scene) {
@@ -20,7 +21,7 @@ export class MovementSystem {
     if (down) { mvy += 1; }
     if (left || right || up || down) keyMoving = true;
 
-    const joy = window.joystickDir;
+    const joy = getJoystickDir();
     if (joy) { mvx += joy.x; mvy += joy.y; keyMoving = true; }
 
     if (keyMoving) {

@@ -1,4 +1,4 @@
-import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS } from './data.js';
+import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS } from '../data/index.js';
 
 export function genEquipment(monsterLv, forceRarity=null){
   const rarityRoll = Math.random();
