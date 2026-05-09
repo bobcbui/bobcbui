@@ -42,14 +42,17 @@ export const EQ_BASES = {
   amulet:{ hp:[10,40],def:[1,4] }
 };
 
-export const WORLD = { size: 4000, safeRadius: 380 };
+export const WORLD = { size: 8000, safeRadius: 350 };
 
 export const ZONES = [
-  { id:'hehuan',  name:'合欢宗', minDist:0,    maxDist:500,  monsterLv:1,  color:0xf0e0c8, colorName:'#c9a96e' },
-  { id:'yaoshou', name:'妖兽谷', minDist:500,  maxDist:1200, monsterLv:4,  color:0xb8a878, colorName:'#7a6020' },
-  { id:'xueshan', name:'雪山',   minDist:1200, maxDist:2000, monsterLv:8,  color:0xb8d8e8, colorName:'#5a8a9a' },
-  { id:'huoyan',  name:'火焰山', minDist:2000, maxDist:2900, monsterLv:12, color:0xd89878, colorName:'#b84a2a' },
-  { id:'shenyuan',name:'深渊',   minDist:2900, maxDist:4000, monsterLv:16, color:0x8866aa, colorName:'#5a3a7a' },
+  { id:'hehuan',  name:'合欢宗',   minDist:0,    maxDist:700,  monsterLv:1,  color:0xf0e0c8, colorName:'#c9a96e' },
+  { id:'yaoshou', name:'妖兽谷',   minDist:700,  maxDist:1400, monsterLv:5,  color:0xb8a878, colorName:'#7a6020' },
+  { id:'xueshan', name:'雪山',     minDist:1400, maxDist:2200, monsterLv:9,  color:0xb8d8e8, colorName:'#5a8a9a' },
+  { id:'huoyan',  name:'火焰山',   minDist:2200, maxDist:3100, monsterLv:14, color:0xd89878, colorName:'#b84a2a' },
+  { id:'shenyuan',name:'深渊',     minDist:3100, maxDist:4000, monsterLv:19, color:0x8866aa, colorName:'#5a3a7a' },
+  { id:'wanjian', name:'万剑峰',   minDist:4000, maxDist:4700, monsterLv:24, color:0xaabbcc, colorName:'#6a8aaa' },
+  { id:'youming', name:'幽冥海',   minDist:4700, maxDist:5200, monsterLv:29, color:0x446688, colorName:'#3a5a7a' },
+  { id:'jiutian', name:'九天雷域', minDist:5200, maxDist:6000, monsterLv:34, color:0xccaa44, colorName:'#b89a2a' },
 ];
 
 export const MAPS = [];
@@ -79,9 +82,24 @@ export const BESTIARY = {
     { name:'影魔',hp:250,atk:55,speed:40,xp:45,gold:35,atkType:'ranged',atkRange:250,atkCD:2.5,projColor:0x9944cc },
     { name:'深渊领主',hp:350,atk:65,speed:30,xp:55,gold:45,atkType:'melee' },
     { name:'噬魂者',hp:200,atk:70,speed:55,xp:50,gold:40,atkType:'ranged',atkRange:280,atkCD:2,projColor:0x6644dd }
+  ],
+  wanjian:[
+    { name:'剑灵',hp:380,atk:80,speed:45,xp:65,gold:50,atkType:'ranged',atkRange:300,atkCD:2.5,projColor:0x88bbff },
+    { name:'剑罡',hp:450,atk:75,speed:35,xp:70,gold:55,atkType:'melee' },
+    { name:'飞剑妖',hp:300,atk:90,speed:60,xp:75,gold:60,atkType:'ranged',atkRange:320,atkCD:2,projColor:0x6699dd }
+  ],
+  youming:[
+    { name:'幽魂',hp:500,atk:100,speed:50,xp:90,gold:70,atkType:'ranged',atkRange:280,atkCD:2.2,projColor:0x334488 },
+    { name:'海妖',hp:560,atk:110,speed:40,xp:95,gold:75,atkType:'ranged',atkRange:300,atkCD:2.5,projColor:0x224488 },
+    { name:'冥兽',hp:650,atk:95,speed:35,xp:100,gold:80,atkType:'melee' }
+  ],
+  jiutian:[
+    { name:'雷兽',hp:700,atk:130,speed:55,xp:120,gold:95,atkType:'ranged',atkRange:320,atkCD:2,projColor:0xccbb44 },
+    { name:'天雷将',hp:800,atk:140,speed:40,xp:130,gold:105,atkType:'ranged',atkRange:340,atkCD:2.5,projColor:0xffdd44 },
+    { name:'劫雷龙',hp:950,atk:120,speed:30,xp:140,gold:115,atkType:'melee' }
   ]
 };
-export const BOSS_NAMES = ['妖兽王','雪山之主','炎帝分身','深渊魔神','九尾天狐'];
+export const BOSS_NAMES = ['妖兽王','雪山之主','炎帝分身','深渊魔神','万剑尊者','幽冥海皇','九霄雷帝','九尾天狐'];
 
 export const ACHIEVEMENTS = [
   { id:'kill_10', name:'初出茅庐', desc:'击杀10只妖兽', icon:'⚔️', check:(p)=>p.kills>=10, reward:{gold:50} },

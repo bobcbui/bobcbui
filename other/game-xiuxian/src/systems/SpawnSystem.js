@@ -21,9 +21,8 @@ export class SpawnSystem {
 
     const r = WORLD.safeRadius + 40;
     const cx = sz / 2, cy = sz / 2;
-    const dx = x - cx, dy = y - cy;
-    if (dx * dx + dy * dy < r * r) {
-      const angle = Math.atan2(dy, dx) + Phaser.Math.FloatBetween(-0.5, 0.5);
+    if (Math.abs(x-cx)<=r && Math.abs(y-cy)<=r) {
+      const angle = Math.atan2(y-cy, x-cx) + Phaser.Math.FloatBetween(-0.5, 0.5);
       const dist = r + Phaser.Math.Between(60, 300);
       x = Phaser.Math.Clamp(cx + Math.cos(angle) * dist, 30, sz - 30);
       y = Phaser.Math.Clamp(cy + Math.sin(angle) * dist, 30, sz - 30);
