@@ -14,7 +14,7 @@ export const P = {
   hotbar:[],
   equipment:{},
   inventory:[],
-  buffTimer:0, buff:{ speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0 },
+  buffTimer:0, buff:{ speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0, swordAtkSpeedBoost:0, lifestealPct:0, swordColor:0, swordTrailColor:0 },
   totalPlayTime:0,
   totalGoldEarned:0, legendaryFound:false, maxWave:0,
   achievements:{}

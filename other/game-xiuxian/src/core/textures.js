@@ -1,3 +1,6 @@
+const SWORD_FLY_TEXTURE = 'swordFlySvg';
+const FIREDOMAIN_SWORD_TEXTURE = 'firedomainSword';
+
 export function createGeneratedTextures(scene) {
   const g = scene.make.graphics({ add: false });
 
@@ -20,6 +23,8 @@ export function createGeneratedTextures(scene) {
 
   drawLegacyFallbacks(g);
   drawProjectiles(g);
+  queueSwordFlySvg(scene);
+  queueFiredomainSwordSvg(scene);
   g.destroy();
 }
 
@@ -161,4 +166,92 @@ function drawProjectiles(g) {
   g.fillStyle(0xffee88, 1); g.fillRect(1, 0, 5, 20); g.fillStyle(0xffffcc, 0.5); g.fillRect(0, 0, 7, 20);
   g.generateTexture('bolt', 7, 20); g.clear();
   g.fillStyle(0x65c8ff, 1); g.fillCircle(5, 5, 4); g.generateTexture('loot', 10, 10); g.clear();
+}
+
+function queueSwordFlySvg(scene) {
+  if (!scene?.textures) return;
+  if (typeof scene.textures.addBase64 !== 'function') return;
+  if (scene?.textures?.exists?.(SWORD_FLY_TEXTURE)) return;
+  const svg = [
+    "<svg xmlns='http://www.w3.org/2000/svg' width='96' height='30' viewBox='0 0 96 30'>",
+    "<defs>",
+    "<linearGradient id='sf_blade' x1='0' y1='0' x2='1' y2='1'>",
+    "<stop offset='0%' stop-color='#f9fdff'/>",
+    "<stop offset='62%' stop-color='#b8d8ff'/>",
+    "<stop offset='100%' stop-color='#6c98d3'/>",
+    "</linearGradient>",
+    "<linearGradient id='sf_edge' x1='0' y1='0.5' x2='1' y2='0.5'>",
+    "<stop offset='0%' stop-color='#8fbfff'/>",
+    "<stop offset='100%' stop-color='#ffffff'/>",
+    "</linearGradient>",
+    "<linearGradient id='sf_guard' x1='0' y1='0' x2='0' y2='1'>",
+    "<stop offset='0%' stop-color='#d9ecff'/>",
+    "<stop offset='100%' stop-color='#85abd5'/>",
+    "</linearGradient>",
+    "<radialGradient id='sf_aura' cx='0.54' cy='0.5' r='0.8'>",
+    "<stop offset='0%' stop-color='#d7f2ff' stop-opacity='0.8'/>",
+    "<stop offset='100%' stop-color='#71afff' stop-opacity='0'/>",
+    "</radialGradient>",
+    "</defs>",
+    "<ellipse cx='54' cy='15' rx='44' ry='10' fill='url(#sf_aura)'/>",
+    "<path d='M12 14 L63 10.5 L86 15 L63 19.5 L12 16 Z' fill='url(#sf_blade)' stroke='#ebf6ff' stroke-width='1.6' stroke-linejoin='round'/>",
+    "<path d='M17 15 L61 13.8 L78 15 L61 16.2 Z' fill='url(#sf_edge)' opacity='0.9'/>",
+    "<path d='M58 10.8 L67 15 L58 19.2 Z' fill='#ffffff' opacity='0.76'/>",
+    "<rect x='8' y='11' width='6.5' height='8' rx='1.8' fill='url(#sf_guard)' stroke='#e8f5ff' stroke-width='1'/>",
+    "<rect x='3.2' y='12.2' width='5' height='5.6' rx='1.3' fill='#eaf6ff' stroke='#c8e6ff' stroke-width='1'/>",
+    "</svg>"
+  ].join('');
+  const base64 = (typeof btoa === 'function')
+    ? btoa(svg)
+    : (typeof Buffer !== 'undefined' ? Buffer.from(svg, 'utf8').toString('base64') : null);
+  if (!base64) return;
+  scene.textures.addBase64(SWORD_FLY_TEXTURE, 'data:image/svg+xml;base64,' + base64);
+}
+
+function queueFiredomainSwordSvg(scene) {
+  if (!scene?.textures) return;
+  if (typeof scene.textures.addBase64 !== 'function') return;
+  if (scene?.textures?.exists?.(FIREDOMAIN_SWORD_TEXTURE)) return;
+  const svg = [
+    "<svg xmlns='http://www.w3.org/2000/svg' width='176' height='52' viewBox='0 0 176 52'>",
+    "<defs>",
+    "<linearGradient id='bladeFill' x1='0' y1='0' x2='1' y2='1'>",
+    "<stop offset='0%' stop-color='#fdfefe'/>",
+    "<stop offset='55%' stop-color='#c8dcff'/>",
+    "<stop offset='100%' stop-color='#7a9fd4'/>",
+    "</linearGradient>",
+    "<linearGradient id='edgeGlow' x1='0' y1='0.5' x2='1' y2='0.5'>",
+    "<stop offset='0%' stop-color='#9cc7ff'/>",
+    "<stop offset='100%' stop-color='#ffffff'/>",
+    "</linearGradient>",
+    "<linearGradient id='guardFill' x1='0' y1='0' x2='0' y2='1'>",
+    "<stop offset='0%' stop-color='#f9db85'/>",
+    "<stop offset='100%' stop-color='#c78a31'/>",
+    "</linearGradient>",
+    "<linearGradient id='gripFill' x1='0' y1='0' x2='1' y2='1'>",
+    "<stop offset='0%' stop-color='#7f5537'/>",
+    "<stop offset='100%' stop-color='#5d3b25'/>",
+    "</linearGradient>",
+    "<radialGradient id='bladeAura' cx='0.54' cy='0.5' r='0.75'>",
+    "<stop offset='0%' stop-color='#e2f4ff' stop-opacity='0.85'/>",
+    "<stop offset='100%' stop-color='#89b7ff' stop-opacity='0'/>",
+    "</radialGradient>",
+    "</defs>",
+    "<ellipse cx='96' cy='26' rx='82' ry='20' fill='url(#bladeAura)'/>",
+    "<path d='M16 24 L116 18 L162 26 L116 34 L16 28 Z' fill='url(#bladeFill)' stroke='#edf6ff' stroke-width='2' stroke-linejoin='round'/>",
+    "<path d='M24 26 L114 24 L148 26 L114 28 Z' fill='url(#edgeGlow)' opacity='0.9'/>",
+    "<path d='M110 18 L126 26 L110 34 Z' fill='#ffffff' opacity='0.74'/>",
+    "<rect x='8' y='20' width='12' height='12' rx='2.5' fill='url(#guardFill)' stroke='#fbe6ad' stroke-width='1.6'/>",
+    "<path d='M2 22 L8 20 L8 32 L2 30 Z' fill='url(#guardFill)' stroke='#fbe6ad' stroke-width='1.4'/>",
+    "<rect x='0.6' y='22.8' width='3.2' height='6.6' rx='1.4' fill='#fff5d4'/>",
+    "<rect x='20' y='22' width='20' height='8' rx='3.5' fill='url(#gripFill)' stroke='#b48b67' stroke-width='1.2'/>",
+    "<circle cx='44.2' cy='26' r='5.1' fill='#f2be5b' stroke='#fff0c2' stroke-width='1.4'/>",
+    "<circle cx='44.2' cy='26' r='2.2' fill='#fff8da'/>",
+    "</svg>"
+  ].join('');
+  const base64 = (typeof btoa === 'function')
+    ? btoa(svg)
+    : (typeof Buffer !== 'undefined' ? Buffer.from(svg, 'utf8').toString('base64') : null);
+  if (!base64) return;
+  scene.textures.addBase64(FIREDOMAIN_SWORD_TEXTURE, 'data:image/svg+xml;base64,' + base64);
 }
