@@ -30,10 +30,10 @@ const LEGACY_SKILL_DEFS = [
 
 export const SKILL_DEFS = [
   { id:'swordfly',name:'飞剑术',short:'剑',slot:'Q',baseDmg:0.7,range:300,desc:'锁定敌人，远距飞剑攻击',type:'basic',color:0x6f9eb8,texture:'swordQi',cooldown:0.65 },
-  { id:'earthmove',name:'土遁',short:'遁',desc:'遁入地脉，短时间提升移动速度并减伤',type:'buff',speedBoost:0.35,shieldPct:0.18,duration:5,cooldown:12,color:0x9b7a35 },
-  { id:'firedomain',name:'火域',short:'火',baseDmg:0.55,range:230,desc:'在敌群位置展开10秒火焰领域，持续灼烧敌人',type:'ground',aoeRadius:95,duration:10,cooldown:8,color:0xc95f36,texture:'fireball' },
+  { id:'earthmove',name:'治疗',short:'疗',desc:'恢复10%最大生命值',type:'heal',healPct:0.1,cooldown:30,color:0x66d98f },
+  { id:'firedomain',name:'巨剑术',short:'巨',baseDmg:1.55,range:9999,desc:'召出一把巨大的飞剑向前猛冲',type:'single',cooldown:8,color:0xffd06a,texture:'swordQi' },
   { id:'thunder',name:'雷域',short:'雷',baseDmg:0.35,range:320,desc:'以自身为中心展开5秒雷域，范围广但伤害较低',type:'domain',aoeRadius:300,cooldown:30,duration:5,color:0xd6a742,texture:'bolt',selfCenter:true },
-  { id:'hailstorm',name:'冰雹术',short:'冰',baseDmg:0.35,range:260,desc:'召来冰雹打击一片区域，并冻结敌人',type:'domain',aoeRadius:145,freeze:2.2,cooldown:10,color:0x88ccff,texture:'water' },
+  { id:'hailstorm',name:'高能射线',short:'射',baseDmg:0.35,range:9999,desc:'在地面召唤红球，并由红球持续发射激光攻击敌人',type:'domain',aoeRadius:145,duration:3,cooldown:10,color:0xff2a2a,texture:'bolt' },
 ];
 
 const ENEMY_HP_TIER_MULT = Object.freeze({ normal: 1, elite: 2, boss: 5 });

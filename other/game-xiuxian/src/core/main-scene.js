@@ -25,7 +25,7 @@ export class MainScene extends Phaser.Scene {
     const cam = this.cameras.main;
     if (!cam) return;
     const mobile = this.isMobileViewport();
-    cam.setZoom(mobile ? 0.95 : 1.2);
+    cam.setZoom(mobile ? 0.8 : 1.2);
     cam.setLerp(mobile ? 0.11 : 0.08, mobile ? 0.11 : 0.08);
   }
 

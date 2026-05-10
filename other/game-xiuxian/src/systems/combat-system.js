@@ -9,21 +9,29 @@ const SWORD_TURN_RATE = 12;
 const SWORD_PROJECTILE_SPEED = 560;
 const SWORD_MIN_LIFETIME = 1900;
 const SWORD_RANGE_LIFETIME_FACTOR = 7.5;
-const SWORD_HITBOX_W = 30;
-const SWORD_HITBOX_H = 18;
+const SWORD_HITBOX_W = 22;
+const SWORD_HITBOX_H = 12;
 const SWORD_MAX_HIT_COUNT = 10;
 const SWORD_HIT_COOLDOWN_MS = 120;
 const SWORD_STORM_SHOTS_PER_SEC = 3;
 const SWORD_STORM_INTERVAL = 1 / SWORD_STORM_SHOTS_PER_SEC;
-const SWORD_START_SCALE = 0.62;
-const SWORD_END_SCALE = 1.2;
-const SWORD_GROW_DURATION_MS = 480;
+const SWORD_START_SCALE = 0.38;
+const SWORD_END_SCALE = 0.74;
+const SWORD_GROW_DURATION_MS = 420;
+const GROWING_FIREBALL_START_SCALE = 1.08;
+const GROWING_FIREBALL_END_SCALE = 3.4;
+const GROWING_FIREBALL_TRACK_TURN_RATE = 5.2;
+const CRIMSON_LASER_DURATION_SEC = 3;
+const CRIMSON_LASER_BEAM_TICK_MS = 120;
+const CRIMSON_LASER_DAMAGE_TICK_MS = 300;
 const SWORD_RING_COUNT = 99;
 const SWORD_RING_RADIUS = 40;
 const SWORD_RING_ROTATE_SPEED = 2.7;
 const SWORD_RING_SHOT_LIMIT = 24;
 const SWORD_RING_LAYER_CAP = 33;
 const SWORD_RING_RADIUS_STEP = 18;
+const SWORD_FLY_TEXTURE = 'swordFlySvg';
+const FIREDOMAIN_SWORD_TEXTURE = 'firedomainSword';
 const SWORD_COLOR_PALETTE = Object.freeze([
   0xff5f57,
   0xffa33b,
@@ -49,6 +57,17 @@ export class CombatSystem {
       nextFireAt: 0,
       rebuildAt: 0
     };
+    this.crimsonLaserState = {
+      timer: null,
+      startedAtMs: 0,
+      lastDamageAtMs: 0,
+      durationMs: 0,
+      originX: 0,
+      originY: 0,
+      coreParts: null,
+      castToken: 0,
+      pendingLaunch: false
+    };
   }
 
   getScaledPlayerDamageBase() {
@@ -72,8 +91,23 @@ export class CombatSystem {
     return this.isInCameraView(en.x, en.y, pad);
   }
 
+  getSwordFlyTextureKey() {
+    return this.scene?.textures?.exists?.(SWORD_FLY_TEXTURE) ? SWORD_FLY_TEXTURE : 'swordQi';
+  }
+
+  getFiredomainTextureKey() {
+    return this.scene?.textures?.exists?.(FIREDOMAIN_SWORD_TEXTURE) ? FIREDOMAIN_SWORD_TEXTURE : 'swordQi';
+  }
+
   spawnProjectile(skillId, angle, dmg, options = {}) {
-    const tex = { 'fireball': 'fireball', 'swordfly': 'swordQi', 'thunder': 'bolt', 'waterdomain': 'water', 'tornado': 'wind' }[skillId] || 'arrow';
+    const tex = {
+      'fireball': 'fireball',
+      'firedomain': this.getFiredomainTextureKey(),
+      'swordfly': this.getSwordFlyTextureKey(),
+      'thunder': 'bolt',
+      'waterdomain': 'water',
+      'tornado': 'wind'
+    }[skillId] || 'arrow';
     const startX = options.startX ?? this.scene.player.x;
     const startY = options.startY ?? this.scene.player.y;
     const proj = this.scene.getPooledProj(startX, startY, tex);
@@ -98,6 +132,12 @@ export class CombatSystem {
     proj.setData('noFireField', !!options.noFireField);
     proj.setData('lastFireFieldX', startX);
     proj.setData('lastFireFieldY', startY);
+    proj.setData('growingFireball', !!options.growingFireball);
+    proj.setData('fireballTrackArmed', false);
+    proj.setData('hitTargets', null);
+    proj.setData('baseBodyW', null);
+    proj.setData('baseBodyH', null);
+    proj.setData('lifetimeMs', options.lifetime || 1200);
     if (proj.body) {
       if (skillId === 'swordfly') proj.body.setSize(SWORD_HITBOX_W, SWORD_HITBOX_H, true);
       else proj.body.setSize(proj.width, proj.height, true);
@@ -129,14 +169,14 @@ export class CombatSystem {
   }
 
   doMultiProjectile(angle, dmg, count, range, texture) {
-    const tex = texture || 'swordQi';
+    const tex = texture || this.getSwordFlyTextureKey();
     const offsets = [];
     for (let i = 0; i < count; i++) offsets.push((i / (count - 1) - 0.5) * 0.6);
     offsets.forEach(o => {
       const ang = angle + o;
       const proj = this.scene.getPooledProj(this.scene.player.x, this.scene.player.y, tex);
       if (proj) {
-        proj.setScale(0.8);
+        proj.setScale(0.5);
         this.scene.physics.velocityFromRotation(ang, 460, proj.body.velocity);
         proj.rotation = ang;
         proj.setData('damage', Math.round(dmg * 0.6));
@@ -187,10 +227,10 @@ export class CombatSystem {
       const layerStart = layer * SWORD_RING_LAYER_CAP;
       const countInLayer = Math.min(SWORD_RING_LAYER_CAP, SWORD_RING_COUNT - layerStart);
       const radius = SWORD_RING_RADIUS + layer * SWORD_RING_RADIUS_STEP;
-      const scale = Math.max(0.28, 0.56 - layer * 0.08);
+      const scale = Math.max(0.16, 0.34 - layer * 0.05);
       const baseAngle = (inLayerIndex / Math.max(1, countInLayer)) * Math.PI * 2 + layer * 0.13;
       const color = SWORD_COLOR_PALETTE[i % paletteLen];
-      const orb = this.scene.add.sprite(this.scene.player.x, this.scene.player.y, 'swordQi').setDepth(11);
+      const orb = this.scene.add.sprite(this.scene.player.x, this.scene.player.y, this.getSwordFlyTextureKey()).setDepth(11);
       orb.setScale(scale).setAlpha(0.9).setTint(color);
       this.swordRing.sprites.push({
         sprite: orb,
@@ -372,7 +412,7 @@ export class CombatSystem {
     this.scene.entityAnimationSystem?.playPlayerAttack(centerAngle);
   }
 
-  shootSwordStorm(target, dmg, range, lifetime, color) {
+  shootSwordStorm(target, dmg, range, lifetime, color, trailColor = color) {
     if (!target || !this.isEnemyVisible(target)) return false;
     const px = this.scene.player.x;
     const py = this.scene.player.y;
@@ -387,13 +427,41 @@ export class CombatSystem {
       seekRadius: range,
       maxHits: SWORD_MAX_HIT_COUNT,
       customTint: color,
-      customTrailColor: color,
+      customTrailColor: trailColor,
       targetRef: target,
       lifetime
     });
     if (!proj) return false;
     this.scene.entityAnimationSystem?.playPlayerAttack(angle);
     return true;
+  }
+
+  getSwordStormInterval() {
+    const speedBoost = Math.max(0, P.buff.swordAtkSpeedBoost || 0);
+    const interval = SWORD_STORM_INTERVAL / (1 + speedBoost);
+    return Math.max(0.08, interval);
+  }
+
+  getBloodSwordColor() {
+    const color = P.buff.swordColor || 0;
+    return color > 0 ? color : null;
+  }
+
+  getBloodSwordTrailColor(fallbackColor) {
+    const trail = P.buff.swordTrailColor || 0;
+    return trail > 0 ? trail : fallbackColor;
+  }
+
+  tintActiveSwords(color, trailColor = color) {
+    if (!color) return;
+    this.scene.projectiles.children.iterate((proj) => {
+      if (!proj || !proj.active) return;
+      if (proj.getData('skillId') !== 'swordfly') return;
+      proj.setTint(color);
+      proj.setData('customTint', color);
+      proj.setData('customTrailColor', trailColor);
+      proj.setData('trailColor', trailColor);
+    });
   }
 
   recallSwordProjectiles() {
@@ -423,20 +491,106 @@ export class CombatSystem {
     return nearest;
   }
 
+  findFireballTarget(proj, seekRadius, skipSet = null) {
+    let nearest = null;
+    let bestD2 = seekRadius * seekRadius;
+    this.scene.enemies.children.iterate((en) => {
+      if (!this.isEnemyVisible(en)) return;
+      if (skipSet?.has(en)) return;
+      const dx = en.x - proj.x;
+      const dy = en.y - proj.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestD2) {
+        bestD2 = d2;
+        nearest = en;
+      }
+    });
+    return nearest;
+  }
+
   updateSwordProjectiles(dt) {
     if (this.swordRing?.sprites?.length) this.clearSwordRingSprites();
+    const nowMs = this.scene.time.now;
     this.scene.projectiles.children.iterate((proj) => {
-      if (!proj || !proj.active || proj.getData('skillId') !== 'swordfly') return;
+      if (!proj || !proj.active) return;
+      const skillId = proj.getData('skillId');
+
+      if (skillId === 'fireball' && proj.getData('growingFireball')) {
+        let spawnAtMs = proj.getData('spawnAtMs');
+        if (spawnAtMs == null) {
+          spawnAtMs = nowMs;
+          proj.setData('spawnAtMs', spawnAtMs);
+        }
+        const scaleStart = proj.getData('scaleStart') ?? GROWING_FIREBALL_START_SCALE;
+        const scaleEnd = proj.getData('scaleEnd') ?? GROWING_FIREBALL_END_SCALE;
+        const growMs = proj.getData('scaleGrowMs') || proj.getData('lifetimeMs') || 1200;
+        const growT = Phaser.Math.Clamp((nowMs - spawnAtMs) / growMs, 0, 1);
+        const fireballScale = Phaser.Math.Linear(scaleStart, scaleEnd, growT);
+        proj.setScale(fireballScale);
+
+        const lifetimeMs = proj.getData('lifetimeMs') || growMs;
+        const lifeT = Phaser.Math.Clamp((nowMs - spawnAtMs) / lifetimeMs, 0, 1);
+        const fadeT = Phaser.Math.Clamp((lifeT - 0.72) / 0.28, 0, 1);
+        proj.setAlpha(Phaser.Math.Linear(1, 0.15, fadeT));
+
+        if (proj.body) {
+          const baseBodyW = proj.getData('baseBodyW') || proj.width;
+          const baseBodyH = proj.getData('baseBodyH') || proj.height;
+          proj.body.setSize(
+            Math.max(10, baseBodyW * fireballScale),
+            Math.max(10, baseBodyH * fireballScale),
+            true
+          );
+        }
+
+        if (!proj.getData('homing') || !proj.body) return;
+
+        const seekRadius = proj.getData('seekRadius') || this.getVisibleSwordRange();
+        const trackArmed = !!proj.getData('fireballTrackArmed');
+        let hitTargets = proj.getData('hitTargets');
+        if (!(hitTargets instanceof Set)) {
+          hitTargets = new Set();
+          proj.setData('hitTargets', hitTargets);
+        }
+        let target = proj.getData('targetRef');
+        const targetValid = this.isEnemyVisible(target) && (() => {
+          const dx = target.x - proj.x;
+          const dy = target.y - proj.y;
+          if (dx * dx + dy * dy > seekRadius * seekRadius) return false;
+          if (trackArmed && hitTargets.has(target)) return false;
+          return true;
+        })();
+
+        if (!targetValid) {
+          target = this.findFireballTarget(proj, seekRadius, trackArmed ? hitTargets : null);
+          proj.setData('targetRef', target || null);
+        }
+
+        const currentAngle = Math.atan2(proj.body.velocity.y, proj.body.velocity.x);
+        if (!target) {
+          proj.rotation = currentAngle;
+          return;
+        }
+        const desiredAngle = Phaser.Math.Angle.Between(proj.x, proj.y, target.x, target.y);
+        const turnRate = proj.getData('turnRate') || GROWING_FIREBALL_TRACK_TURN_RATE;
+        const speed = proj.getData('speed') || 340;
+        const nextAngle = Phaser.Math.Angle.RotateTo(currentAngle, desiredAngle, turnRate * dt);
+        this.scene.physics.velocityFromRotation(nextAngle, speed, proj.body.velocity);
+        proj.rotation = nextAngle;
+        return;
+      }
+
+      if (skillId !== 'swordfly') return;
 
       let spawnAtMs = proj.getData('spawnAtMs');
       if (spawnAtMs == null) {
-        spawnAtMs = this.scene.time.now;
+        spawnAtMs = nowMs;
         proj.setData('spawnAtMs', spawnAtMs);
       }
       const scaleStart = proj.getData('scaleStart') ?? SWORD_START_SCALE;
       const scaleEnd = proj.getData('scaleEnd') ?? SWORD_END_SCALE;
       const growMs = proj.getData('scaleGrowMs') || SWORD_GROW_DURATION_MS;
-      const growT = Phaser.Math.Clamp((this.scene.time.now - spawnAtMs) / growMs, 0, 1);
+      const growT = Phaser.Math.Clamp((nowMs - spawnAtMs) / growMs, 0, 1);
       proj.setScale(Phaser.Math.Linear(scaleStart, scaleEnd, growT));
 
       if (!proj.getData('homing') || !proj.body) return;
@@ -487,7 +641,7 @@ export class CombatSystem {
     });
   }
 
-  castSixWayMiniFireballs(totalDamage, activeEnemies) {
+  castGrowingFireball(totalDamage, activeEnemies) {
     const visibleTargets = this.getVisibleEnemyCandidates(activeEnemies);
     if (!visibleTargets.length) return false;
 
@@ -504,59 +658,265 @@ export class CombatSystem {
     }
     if (!target) return false;
 
-    const count = 6;
-    const perFireballDamage = Math.max(1, Math.round(totalDamage / count));
     const baseAngle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, target.x, target.y);
     const visibleRange = this.getVisibleSwordRange();
-    const speed = 420;
-    const lifetime = Math.max(950, Math.round((visibleRange / speed) * 1000) + 320);
-    let fired = 0;
+    const speed = 340;
+    const lifetime = Math.max(2100, Math.round((visibleRange / speed) * 1000) + 850);
+    const dmg = Math.max(1, Math.round(totalDamage));
+    const proj = this.spawnProjectile('fireball', baseAngle, dmg, {
+      speed,
+      lifetime,
+      pierce: true,
+      homing: true,
+      turnRate: GROWING_FIREBALL_TRACK_TURN_RATE,
+      seekRadius: visibleRange,
+      targetRef: target,
+      noFireField: true
+    });
+    if (!proj) return false;
 
-    for (let i = 0; i < count; i++) {
-      const angle = baseAngle + (Math.PI * 2 * i) / count;
-      const proj = this.spawnProjectile('fireball', angle, perFireballDamage, {
-        speed,
-        lifetime,
-        pierce: false,
-        homing: false,
-        noFireField: true
-      });
-      if (!proj) continue;
-      proj.setScale(0.78);
-      fired++;
+    proj.setData('growingFireball', true);
+    proj.setData('scaleStart', GROWING_FIREBALL_START_SCALE);
+    proj.setData('scaleEnd', GROWING_FIREBALL_END_SCALE);
+    proj.setData('scaleGrowMs', Math.round(lifetime * 0.92));
+    proj.setData('lifetimeMs', lifetime);
+    proj.setData('fireballTrackArmed', false);
+    proj.setData('spawnAtMs', this.scene.time.now);
+    proj.setData('hitTargets', new Set());
+    proj.setScale(GROWING_FIREBALL_START_SCALE);
+    if (proj.body) {
+      proj.setData('baseBodyW', proj.width);
+      proj.setData('baseBodyH', proj.height);
+      proj.body.setSize(
+        Math.max(10, proj.width * GROWING_FIREBALL_START_SCALE),
+        Math.max(10, proj.height * GROWING_FIREBALL_START_SCALE),
+        true
+      );
     }
+    this.scene.entityAnimationSystem?.playPlayerAttack(baseAngle);
+    return true;
+  }
 
-    if (fired > 0) this.scene.entityAnimationSystem?.playPlayerAttack(baseAngle);
-    return fired > 0;
+  castGiantSwordStrike(target, totalDamage, def) {
+    if (!target || !this.isEnemyVisible(target)) return false;
+    const angle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, target.x, target.y);
+    const visibleRange = this.getVisibleSwordRange();
+    const speed = 520;
+    const lifetime = Math.max(980, Math.round((visibleRange / speed) * 1000) + 280);
+    const dmg = Math.max(1, Math.round(totalDamage));
+    const tint = def?.color || 0xffd06a;
+    const proj = this.spawnProjectile('firedomain', angle, dmg, {
+      speed,
+      lifetime,
+      pierce: true,
+      homing: false,
+      seekRadius: visibleRange,
+      customTint: tint,
+      customTrailColor: 0xff915c,
+      noFireField: true
+    });
+    if (!proj) return false;
+    const usingSvgSword = proj.texture?.key === FIREDOMAIN_SWORD_TEXTURE;
+    proj.setScale(usingSvgSword ? 0.92 : 2.8);
+    if (proj.body) {
+      if (usingSvgSword) proj.body.setSize(118, 34, true);
+      else proj.body.setSize(72, 24, true);
+    }
+    this.scene.entityAnimationSystem?.playPlayerAttack(angle);
+    return true;
+  }
+
+  createCrimsonGroundCore(x, y, durationMs, color = 0xff2a2a) {
+    this.destroyCrimsonGroundCore();
+    const lowFx = !!this.scene.skillEffects?.lowFxMode;
+    const core = this.scene.add.circle(x, y, lowFx ? 12 : 16, color, 0.82).setDepth(9);
+    core.setStrokeStyle(2, 0xffb0b0, 0.9);
+    const ring = this.scene.add.circle(x, y, lowFx ? 22 : 30, color, 0.2).setDepth(8);
+    ring.setStrokeStyle(2, color, 0.7);
+    const glow = this.scene.add.circle(x, y, lowFx ? 34 : 46, 0xff3b3b, 0.14).setDepth(7);
+    const pulseTween = this.scene.tweens.add({
+      targets: [core, ring],
+      scaleX: 1.16,
+      scaleY: 1.16,
+      duration: lowFx ? 220 : 180,
+      yoyo: true,
+      repeat: -1
+    });
+    const glowTween = this.scene.tweens.add({
+      targets: glow,
+      alpha: lowFx ? 0.22 : 0.28,
+      duration: 200,
+      yoyo: true,
+      repeat: -1
+    });
+    const lifeTimer = this.scene.time.delayedCall(durationMs + 220, () => this.destroyCrimsonGroundCore());
+    this.crimsonLaserState.coreParts = { core, ring, glow, pulseTween, glowTween, lifeTimer };
+  }
+
+  destroyCrimsonGroundCore() {
+    const parts = this.crimsonLaserState?.coreParts;
+    if (!parts) return;
+    if (parts.lifeTimer?.remove) parts.lifeTimer.remove(false);
+    if (parts.pulseTween) parts.pulseTween.remove();
+    if (parts.glowTween) parts.glowTween.remove();
+    if (parts.core?.active) parts.core.destroy();
+    if (parts.ring?.active) parts.ring.destroy();
+    if (parts.glow?.active) parts.glow.destroy();
+    this.crimsonLaserState.coreParts = null;
+  }
+
+  stopCrimsonLaserBarrage() {
+    const timer = this.crimsonLaserState?.timer;
+    if (timer?.remove) timer.remove(false);
+    this.crimsonLaserState.timer = null;
+    this.crimsonLaserState.pendingLaunch = false;
+    this.crimsonLaserState.castToken = (this.crimsonLaserState.castToken || 0) + 1;
+    this.destroyCrimsonGroundCore();
+  }
+
+  getHalfScreenRange() {
+    const view = this.scene?.cameras?.main?.worldView;
+    if (!view) return 220;
+    return Math.max(180, Math.min(view.width, view.height) * 0.5);
+  }
+
+  collectAliveEnemies(maxRange = Infinity, centerX = null, centerY = null) {
+    const targets = [];
+    const hasRangeLimit = Number.isFinite(maxRange) && maxRange > 0;
+    const rangeSq = hasRangeLimit ? maxRange * maxRange : Infinity;
+    const px = centerX ?? this.scene.player.x;
+    const py = centerY ?? this.scene.player.y;
+    this.scene.enemies.children.iterate((en) => {
+      if (!en || !en.active || en.getData('dead')) return;
+      if (hasRangeLimit) {
+        const dx = en.x - px;
+        const dy = en.y - py;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > rangeSq) return;
+      }
+      targets.push(en);
+    });
+    return targets;
   }
 
   castCrimsonLaserBarrage(activeEnemies, totalDamage, def) {
-    const targets = (activeEnemies || []).filter((en) => en && en.active && !en.getData('dead'));
-    if (!targets.length) return false;
+    const halfScreenRange = this.getHalfScreenRange();
+    const initialTargets = (activeEnemies || []).filter((en) => {
+      if (!en || !en.active || en.getData('dead')) return false;
+      const dx = en.x - this.scene.player.x;
+      const dy = en.y - this.scene.player.y;
+      return dx * dx + dy * dy <= halfScreenRange * halfScreenRange;
+    });
+    if (!initialTargets.length) return false;
 
-    let focus = targets[0];
-    let bestD2 = Infinity;
-    for (const en of targets) {
+    this.stopCrimsonLaserBarrage();
+    const castToken = this.crimsonLaserState.castToken;
+
+    const durationMs = Math.round(Math.max(0.5, def?.duration || CRIMSON_LASER_DURATION_SEC) * 1000);
+    const beamTickMs = this.scene.skillEffects?.lowFxMode ? 180 : CRIMSON_LASER_BEAM_TICK_MS;
+    const damageTickMs = CRIMSON_LASER_DAMAGE_TICK_MS;
+    const damageTickCount = Math.max(1, Math.ceil(durationMs / damageTickMs));
+    const perTickDamage = Math.max(1, Math.round(totalDamage / damageTickCount));
+    const skillId = def?.id || 'hailstorm';
+    const beamColor = def?.color || 0xff1f1f;
+    let focusSeed = initialTargets[0];
+    let seedBest = Infinity;
+    for (const en of initialTargets) {
       const dx = en.x - this.scene.player.x;
       const dy = en.y - this.scene.player.y;
       const d2 = dx * dx + dy * dy;
-      if (d2 < bestD2) {
-        bestD2 = d2;
-        focus = en;
+      if (d2 < seedBest) {
+        seedBest = d2;
+        focusSeed = en;
       }
     }
 
-    const aimAngle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, focus.x, focus.y);
-    this.scene.entityAnimationSystem?.playPlayerAttack(aimAngle);
-    this.scene.skillEffects?.castCrimsonLaserBurst?.(
-      this.scene.player.x,
-      this.scene.player.y,
-      targets,
-      def?.color || 0xff1f1f
-    );
+    const startLaserAt = (originX, originY) => {
+      if (this.crimsonLaserState.castToken !== castToken) return;
+      this.crimsonLaserState.pendingLaunch = false;
+      this.crimsonLaserState.originX = originX;
+      this.crimsonLaserState.originY = originY;
+      this.createCrimsonGroundCore(originX, originY, durationMs, beamColor);
+      this.crimsonLaserState.startedAtMs = this.scene.time.now;
+      this.crimsonLaserState.lastDamageAtMs = this.scene.time.now;
+      this.crimsonLaserState.durationMs = durationMs;
 
-    const perTargetDamage = Math.max(1, Math.round(totalDamage));
-    for (const en of targets) this.damageEnemy(en, perTargetDamage, def?.id || 'hailstorm');
+      const tick = () => {
+        if (this.crimsonLaserState.castToken !== castToken) return;
+        if (this.scene.playerDead) {
+          this.stopCrimsonLaserBarrage();
+          return;
+        }
+        const nowMs = this.scene.time.now;
+        if (nowMs - this.crimsonLaserState.startedAtMs >= this.crimsonLaserState.durationMs) {
+          this.stopCrimsonLaserBarrage();
+          return;
+        }
+
+        const rangeNow = this.getHalfScreenRange();
+        const targets = this.collectAliveEnemies(rangeNow, originX, originY);
+        if (!targets.length) return;
+
+        let focus = targets[0];
+        let bestD2 = Infinity;
+        for (const en of targets) {
+          const dx = en.x - originX;
+          const dy = en.y - originY;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) {
+            bestD2 = d2;
+            focus = en;
+          }
+        }
+
+        const aimAngle = Phaser.Math.Angle.Between(originX, originY, focus.x, focus.y);
+        this.scene.entityAnimationSystem?.playPlayerAttack(aimAngle);
+        this.scene.skillEffects?.castCrimsonLaserBurst?.(
+          originX,
+          originY,
+          targets,
+          beamColor
+        );
+
+        if (nowMs - this.crimsonLaserState.lastDamageAtMs < damageTickMs) return;
+        this.crimsonLaserState.lastDamageAtMs = nowMs;
+        for (const en of targets) this.damageEnemy(en, perTickDamage, skillId);
+      };
+
+      tick();
+      this.crimsonLaserState.timer = this.scene.time.addEvent({
+        delay: beamTickMs,
+        loop: true,
+        callback: tick
+      });
+    };
+
+    const launchFromX = this.scene.player.x;
+    const launchFromY = this.scene.player.y;
+    const impactX = focusSeed?.x ?? launchFromX;
+    const impactY = focusSeed?.y ?? launchFromY;
+    const impactDef = { ...def, id: 'hailstorm', color: beamColor };
+    this.crimsonLaserState.pendingLaunch = true;
+
+    const onImpact = (ix, iy) => {
+      if (this.crimsonLaserState.castToken !== castToken) return;
+      let firstHitTarget = null;
+      if (focusSeed?.active && !focusSeed.getData('dead')) firstHitTarget = focusSeed;
+      if (!firstHitTarget) {
+        const impactCandidates = this.collectAliveEnemies(this.getHalfScreenRange(), ix, iy);
+        firstHitTarget = this.findNearestEnemyFrom(ix, iy, impactCandidates, this.getHalfScreenRange());
+      }
+      if (firstHitTarget) this.damageEnemy(firstHitTarget, perTickDamage, skillId);
+      startLaserAt(ix, iy);
+    };
+
+    const launchAngle = Phaser.Math.Angle.Between(launchFromX, launchFromY, impactX, impactY);
+    this.scene.entityAnimationSystem?.playPlayerAttack(launchAngle);
+    if (this.scene.skillEffects?.launchDomainOrb) {
+      this.scene.skillEffects.launchDomainOrb(launchFromX, launchFromY, impactX, impactY, impactDef, onImpact);
+    } else {
+      onImpact(impactX, impactY);
+    }
     return true;
   }
 
@@ -642,6 +1002,27 @@ export class CombatSystem {
     const dmg = proj.getData('damage') || 10;
     const pierce = proj.getData('pierce');
     const skillId = proj.getData('skillId');
+    if (skillId === 'fireball' && proj.getData('growingFireball')) {
+      let hitTargets = proj.getData('hitTargets');
+      if (!(hitTargets instanceof Set)) {
+        hitTargets = new Set();
+        proj.setData('hitTargets', hitTargets);
+      }
+      if (hitTargets.has(en)) return;
+      hitTargets.add(en);
+      this.damageEnemy(en, dmg, skillId);
+      proj.setData('fireballTrackArmed', true);
+      proj.setData('targetRef', null);
+      if (proj.body) {
+        const v = proj.body.velocity;
+        const speed = Math.sqrt(v.x * v.x + v.y * v.y);
+        if (speed > 1) {
+          proj.x += (v.x / speed) * 6;
+          proj.y += (v.y / speed) * 6;
+        }
+      }
+      return;
+    }
     const swordMaxHits = proj.getData('maxHits') || 0;
     if (skillId === 'swordfly' && swordMaxHits > 0) {
       if (!this.isEnemyVisible(en)) return;
@@ -723,6 +1104,28 @@ export class CombatSystem {
     bus.emit('hud-refresh');
   }
 
+  applySwordLifesteal(skillId, dealtDamage) {
+    if (skillId !== 'swordfly') return;
+    if (this.scene.playerDead) return;
+    const lifestealPct = Math.max(0, P.buff.lifestealPct || 0);
+    if (lifestealPct <= 0) return;
+    if (P.hp >= P.maxHp) return;
+    const heal = Math.max(1, Math.round(dealtDamage * lifestealPct));
+    const beforeHp = P.hp;
+    P.hp = Math.min(P.maxHp, P.hp + heal);
+    const actualHeal = Math.max(0, P.hp - beforeHp);
+    if (actualHeal <= 0) return;
+    this.scene.textPool.show(this.scene.player.x + Phaser.Math.Between(-6, 6), this.scene.player.y - 34, '+' + actualHeal, {
+      fontSize: '14px',
+      color: '#ff6b6b',
+      stroke: '#000',
+      strokeThickness: 2,
+      depth: 21,
+      floatDist: 30,
+      duration: 620
+    });
+  }
+
   damageEnemy(en, dmg, skillId = null) {
     const { scene } = this;
     if (en.getData('dead')) return;
@@ -731,6 +1134,7 @@ export class CombatSystem {
     const finalDmg = isCrit ? Math.round(dmg * 2) : dmg;
     const hp = en.getData('hp') - finalDmg;
     en.setData('hp', hp);
+    this.applySwordLifesteal(skillId, finalDmg);
     scene.skillEffects?.onProjectileHit(en.x, en.y, skillId, isCrit);
     scene.entityAnimationSystem?.playEnemyHit(en);
     en.setTint(isCrit ? 0xffff44 : 0xffffff);
@@ -829,6 +1233,7 @@ export class CombatSystem {
     if (this.swordRing?.sprites?.length) this.clearSwordRingSprites();
     if (!this.swordStorm.nextFireAt) this.swordStorm.nextFireAt = skillNow;
     if (skillNow < this.swordStorm.nextFireAt) return;
+    const swordInterval = this.getSwordStormInterval();
 
     const lv = P.skillLevels?.[qDef.id] || 1;
     const mult = 1 + (P.buff.atkBoost || 0);
@@ -837,14 +1242,16 @@ export class CombatSystem {
     const lifetime = Math.max(SWORD_MIN_LIFETIME, Math.round(range * SWORD_RANGE_LIFETIME_FACTOR));
     const target = this.pickSwordTarget(closestQ, visibleTargets, range);
     if (target) {
-      const color = SWORD_COLOR_PALETTE[this.swordStorm.colorIndex % SWORD_COLOR_PALETTE.length];
-      const fired = this.shootSwordStorm(target, perSwordDamage, range, lifetime, color);
+      const bloodColor = this.getBloodSwordColor();
+      const color = bloodColor || SWORD_COLOR_PALETTE[this.swordStorm.colorIndex % SWORD_COLOR_PALETTE.length];
+      const trailColor = this.getBloodSwordTrailColor(color);
+      const fired = this.shootSwordStorm(target, perSwordDamage, range, lifetime, color, trailColor);
       if (fired) {
-        this.swordStorm.colorIndex++;
-        this.swordStorm.nextFireAt = skillNow + SWORD_STORM_INTERVAL;
+        if (!bloodColor) this.swordStorm.colorIndex++;
+        this.swordStorm.nextFireAt = skillNow + swordInterval;
         this.scene.showSkillName(qDef.name, qDef.color);
       } else {
-        this.swordStorm.nextFireAt = skillNow + SWORD_STORM_INTERVAL;
+        this.swordStorm.nextFireAt = skillNow + swordInterval;
       }
     }
 
@@ -895,7 +1302,14 @@ export class CombatSystem {
         if (def.atkBoost) P.buff.atkBoost = def.atkBoost;
         if (def.rangeBoost) P.buff.rangeBoost = def.rangeBoost;
         if (def.shieldPct) P.buff.shieldPct = def.shieldPct;
+        if (def.swordAtkSpeedBoost != null) P.buff.swordAtkSpeedBoost = Math.max(0, def.swordAtkSpeedBoost);
+        if (def.lifestealPct != null) P.buff.lifestealPct = Math.max(0, def.lifestealPct);
+        if (def.swordColor != null) P.buff.swordColor = def.swordColor;
+        if (def.swordTrailColor != null) P.buff.swordTrailColor = def.swordTrailColor;
         P.buffTimer = Math.max(P.buffTimer, def.duration || 5);
+        if (P.buff.swordColor > 0) {
+          this.tintActiveSwords(P.buff.swordColor, P.buff.swordTrailColor || P.buff.swordColor);
+        }
         scene.skillEffects?.onBuffCast(def.color || 0x66ffcc);
         scene.showSkillName(def.name, def.color || 0x66ffcc);
         bus.emit('status', def.name + ' 激活!', 1.5);
@@ -906,7 +1320,7 @@ export class CombatSystem {
           scene.skillCooldowns[def.id] = skillNow + cd;
           const lv = P.skillLevels?.[def.id] || 1;
           const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (lv - 1) * 0.1)));
-          if (this.castSixWayMiniFireballs(dmg, visibleTargets)) {
+          if (this.castGrowingFireball(dmg, visibleTargets)) {
             scene.showSkillName(def.name, def.color || 0xc95f36);
           }
         } else {
@@ -923,10 +1337,11 @@ export class CombatSystem {
       } else if (def.type === 'domain') {
         if (def.id === 'hailstorm') {
           if (!activeEnemies?.length) continue;
-          scene.skillCooldowns[def.id] = skillNow + cd;
           const dlv = P.skillLevels?.[def.id] || 1;
           const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.16)));
-          this.castCrimsonLaserBarrage(activeEnemies, dmg, def);
+          const casted = this.castCrimsonLaserBarrage(activeEnemies, dmg, def);
+          if (!casted) continue;
+          scene.skillCooldowns[def.id] = skillNow + cd;
           scene.showSkillName(def.name, def.color || 0xff2a2a);
           continue;
         }
@@ -993,7 +1408,12 @@ export class CombatSystem {
           const lv = P.skillLevels?.[def.id] || 1;
           const mult = 1 + (P.buff.atkBoost || 0);
           const dmg = Math.round(this.getScaledPlayerDamageBase() * (def.baseDmg || 1) * (1 + (lv - 1) * 0.18) * mult);
-          if (def.type === 'multi') {
+          if (def.id === 'firedomain') {
+            if (!this.castGiantSwordStrike(target, dmg, def)) {
+              scene.skillCooldowns[def.id] = skillNow;
+              continue;
+            }
+          } else if (def.type === 'multi') {
             this.doMultiProjectile(angle, dmg, def.count || 3, def.range, def.texture);
           } else {
             this.shootProjectile(def.id, angle, dmg, def.range);

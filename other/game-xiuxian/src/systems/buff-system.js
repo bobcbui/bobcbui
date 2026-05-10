@@ -13,6 +13,10 @@ export class BuffSystem {
         P.buff.shieldPct = 0;
         P.buff.atkBoost = 0;
         P.buff.rangeBoost = 0;
+        P.buff.swordAtkSpeedBoost = 0;
+        P.buff.lifestealPct = 0;
+        P.buff.swordColor = 0;
+        P.buff.swordTrailColor = 0;
         this.destroyShieldVisual();
         this.scene.shieldReflect = 0;
       }

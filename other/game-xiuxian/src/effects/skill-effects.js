@@ -1,5 +1,5 @@
 const PROJECTILE_STYLE = {
-  swordfly: { trail: 0x99ddff, glow: 0xdff7ff, scale: 1.04, pulse: false },
+  swordfly: { trail: 0x99ddff, glow: 0xdff7ff, scale: 0.72, pulse: false },
   fireball: { trail: 0xff7a32, glow: 0xffd199, scale: 1.12, pulse: true },
   thunderbolt: { trail: 0xffdd44, glow: 0xffffcc, scale: 1.1, pulse: false },
   thunder: { trail: 0xffdd44, glow: 0xffffcc, scale: 1.1, pulse: false },
@@ -10,7 +10,7 @@ const PROJECTILE_STYLE = {
 const DOMAIN_STYLE = {
   firedomain: { core: 0x7a1d12, stroke: 0xff5d2f, glow: 0xe23615, trail: 0xff8f4a, orbRadius: 20 },
   thunder: { core: 0x5a4312, stroke: 0xffcf3c, glow: 0xe39f1a, trail: 0xffe07d, orbRadius: 18 },
-  hailstorm: { core: 0x264676, stroke: 0x9fd9ff, glow: 0x5f93cb, trail: 0xdff6ff, orbRadius: 19 },
+  hailstorm: { core: 0x8f1a1a, stroke: 0xff3f3f, glow: 0xff6b6b, trail: 0xff9e9e, orbRadius: 19 },
   default: { core: 0x444444, stroke: 0xffffff, glow: 0x999999, trail: 0xffffff, orbRadius: 17 }
 };
 
@@ -391,10 +391,12 @@ export class SkillEffects {
       const angle = Math.atan2(dy, dx);
       const midX = fromX + dx * 0.5;
       const midY = fromY + dy * 0.5;
+      const coreWidth = this.lowFxMode ? 1.8 : 2.2;
+      const glowWidth = this.lowFxMode ? 4.8 : 6.2;
 
-      const core = this.scene.add.rectangle(midX, midY, dist, 3, color, 0.92).setDepth(15);
+      const core = this.scene.add.rectangle(midX, midY, dist, coreWidth, color, 0.92).setDepth(15);
       core.rotation = angle;
-      const glow = this.scene.add.rectangle(midX, midY, dist, 10, 0xff5454, 0.28).setDepth(14);
+      const glow = this.scene.add.rectangle(midX, midY, dist, glowWidth, 0xff5454, 0.28).setDepth(14);
       glow.rotation = angle;
 
       this.scene.tweens.add({
