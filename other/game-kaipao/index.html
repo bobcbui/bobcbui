@@ -2,89 +2,73 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>向妖兽开炮</title>
 <style>
-:root {
-  --panel-bg: rgba(20, 20, 40, 0.88);
-  --panel-border: rgba(100, 100, 180, 0.3);
-  --text: #e8e8f0;
-  --text-dim: rgba(200, 200, 220, 0.6);
-  --gold: #ffd700;
-  --hp: #e94560;
-  --accent: #7b68ee;
-  --accent-glow: rgba(123, 104, 238, 0.3);
-}
 * { box-sizing:border-box; margin:0; padding:0; }
-html,body { width:100%;height:100%;overflow:hidden;background:#0f0f23;color:var(--text);font-family:"Microsoft YaHei","Segoe UI",sans-serif;user-select:none; }
-#gameCanvas { position:fixed;inset:0;display:block;touch-action:none;background:#1a1a2e; }
+html,body { width:100%;height:100%;overflow:hidden;background:#0a0a1a;color:#e8e8f0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation; }
+#gameCanvas { position:fixed;inset:0;display:block;touch-action:none; }
 .ui-layer { position:fixed;inset:0;pointer-events:none;z-index:5; }
 
-/* HUD */
-#hud { position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(400px,90vw);padding:10px 16px;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;backdrop-filter:blur(8px);text-align:center; }
-#hud .hud-wave { font-size:18px;font-weight:900;color:var(--accent);margin-bottom:2px;text-shadow:0 0 10px var(--accent-glow); }
-#hud .hud-score { font-size:13px;color:var(--text-dim);margin-bottom:2px; }
-#hud .hud-gold { font-size:15px;font-weight:700;color:var(--gold);margin-bottom:6px; }
-#hud .hp-bar-wrap { display:flex;align-items:center;gap:8px; }
-#hud .hp-label { font-size:11px;color:var(--hp);font-weight:700;min-width:20px; }
-#hud .hp-bar-bg { flex:1;height:8px;border-radius:999px;background:rgba(233,69,96,0.15);overflow:hidden; }
-#hud .hp-bar-fill { height:100%;background:linear-gradient(90deg,#e94560,#ff6b6b);border-radius:999px;transition:width 0.2s;box-shadow:0 0 6px rgba(233,69,96,0.4); }
-#hud .hp-text { font-size:11px;color:var(--text-dim);min-width:55px;text-align:right; }
-#hud .hud-intermission { margin-top:6px;font-size:13px;color:#ffd700;font-weight:700; }
-#hud .hud-enemies { margin-top:4px;font-size:12px;color:var(--text-dim); }
+/* HUD - top-left */
+#hud { position:absolute;top:8px;left:8px;padding:8px 12px;background:rgba(10,10,26,0.8);border:1px solid rgba(100,100,180,0.2);border-radius:10px;min-width:100px;backdrop-filter:blur(4px); }
+.hud-stage { font-size:14px;font-weight:900;color:#ffd700; }
+.hud-level { font-size:11px;color:rgba(200,200,220,0.6);margin-top:1px; }
+.hp-wrap { display:flex;align-items:center;gap:6px;margin-top:4px; }
+.hp-bar { flex:1;height:5px;border-radius:999px;background:rgba(233,69,96,0.2);overflow:hidden; }
+.hp-fill { height:100%;background:linear-gradient(90deg,#e94560,#ff6b6b);border-radius:999px;transition:width 0.2s; }
+.hp-num { font-size:10px;color:rgba(200,200,220,0.7);min-width:25px;text-align:right; }
 
-/* Skill Bar */
-#skill-bar { position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;padding:8px 12px;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;backdrop-filter:blur(8px);pointer-events:auto; }
-.skill-btn { width:62px;height:62px;border-radius:12px;background:rgba(123,104,238,0.12);border:2px solid rgba(123,104,238,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden; }
-.skill-btn:hover { border-color:var(--accent);background:rgba(123,104,238,0.22);transform:translateY(-2px);box-shadow:0 4px 16px var(--accent-glow); }
-.skill-btn:active { transform:scale(0.95); }
-.skill-btn.on-cooldown { opacity:0.5;border-color:rgba(100,100,130,0.3);background:rgba(60,60,80,0.3);cursor:not-allowed; }
-.skill-btn.on-cooldown:hover { transform:none;box-shadow:none; }
-.skill-icon { font-size:22px; }
-.skill-name { font-size:11px;font-weight:700;color:var(--text);margin-top:1px; }
-.skill-cd { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#ff6b6b;background:rgba(0,0,0,0.5);border-radius:12px;display:none; }
-
-/* Upgrade Panel */
-.upgrade-panel { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,90vw);max-height:80vh;overflow-y:auto;padding:16px;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:16px;backdrop-filter:blur(12px);pointer-events:auto; }
-.upgrade-panel.hidden { display:none; }
-.upgrade-title { font-size:20px;font-weight:900;text-align:center;color:var(--accent);margin-bottom:4px;text-shadow:0 0 12px var(--accent-glow); }
-.upgrade-gold { text-align:center;font-size:16px;font-weight:700;color:var(--gold);margin-bottom:12px; }
-.upgrade-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px; }
-.upgrade-item { padding:10px;border-radius:10px;background:rgba(123,104,238,0.08);border:1px solid rgba(123,104,238,0.2);cursor:pointer;transition:all 0.15s; }
-.upgrade-item:hover { border-color:var(--accent);background:rgba(123,104,238,0.18);transform:scale(1.02); }
-.upgrade-item.maxed { opacity:0.4;cursor:not-allowed; }
-.upgrade-item.cannot-afford { opacity:0.5; }
-.upgrade-item.maxed:hover,.upgrade-item.cannot-afford:hover { transform:none;border-color:rgba(100,100,130,0.2);background:rgba(123,104,238,0.08); }
-.upgrade-name { font-size:14px;font-weight:700;color:var(--accent); }
-.upgrade-desc { font-size:11px;color:var(--text-dim);margin:2px 0; }
-.upgrade-lv { font-size:11px;color:var(--text-dim); }
-.upgrade-cost { font-size:13px;font-weight:700;color:var(--gold);margin-top:2px; }
-
-.btn-next-wave { display:block;width:100%;padding:12px;border:0;border-radius:10px;background:linear-gradient(180deg,#7b68ee,#5a4fcf);color:#fff;font-size:16px;font-weight:900;cursor:pointer;transition:all 0.15s;letter-spacing:2px; }
-.btn-next-wave:hover { background:linear-gradient(180deg,#8b7af0,#6a5fdf);box-shadow:0 4px 20px var(--accent-glow);transform:translateY(-1px); }
-
-/* Game Over */
-.gameover-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;background:rgba(0,0,0,0.7);z-index:20; }
-.gameover-overlay.hidden { display:none; }
-.gameover-box { padding:30px 40px;background:var(--panel-bg);border:2px solid var(--panel-border);border-radius:20px;text-align:center;backdrop-filter:blur(16px); }
-.gameover-box h2 { font-size:28px;color:#e94560;margin-bottom:16px;text-shadow:0 0 20px rgba(233,69,96,0.5); }
-.gameover-stat { font-size:16px;color:var(--text-dim);margin:6px 0; }
-.gameover-stat:last-of-type { color:var(--gold);font-weight:700;font-size:20px; }
-
-.btn-restart { margin-top:20px;padding:14px 40px;border:0;border-radius:12px;background:linear-gradient(180deg,#e94560,#c0392b);color:#fff;font-size:18px;font-weight:900;cursor:pointer;transition:all 0.15s;letter-spacing:2px; }
-.btn-restart:hover { background:linear-gradient(180deg,#f05570,#d0493b);box-shadow:0 4px 24px rgba(233,69,96,0.4);transform:translateY(-2px); }
+/* Skill Bar - top-right */
+#skillBar { position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;pointer-events:auto;max-height:60vh;overflow-y:auto; }
+.skill-btn { display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(30,30,60,0.85);border:1px solid rgba(100,100,180,0.2);border-radius:10px;cursor:pointer;transition:all 0.12s;min-width:120px;backdrop-filter:blur(4px); }
+.skill-btn:active { transform:scale(0.96);opacity:0.8; }
+.skill-btn.on-cd { opacity:0.45;filter:grayscale(0.5); }
+.sk-icon { font-size:18px;min-width:24px;text-align:center; }
+.sk-info { flex:1;min-width:0; }
+.sk-name { font-size:11px;font-weight:700;color:#d0d0e8;white-space:nowrap; }
+.sk-cd { font-size:10px;color:#ff6b6b;font-weight:700; }
+.sk-empty { font-size:11px;color:rgba(200,200,220,0.4);padding:8px;text-align:center;font-style:italic; }
 
 /* Status message */
-#status-msg { position:absolute;bottom:100px;left:50%;transform:translateX(-50%);font-size:16px;font-weight:700;color:#ffd700;pointer-events:none;opacity:0;transition:opacity 0.3s;text-shadow:0 2px 12px rgba(0,0,0,0.8);white-space:nowrap; }
-#status-msg.show { opacity:1; }
+#statusMsg { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:900;color:#ffd700;pointer-events:none;opacity:0;transition:opacity 0.3s;text-shadow:0 2px 16px rgba(0,0,0,0.9);white-space:nowrap;z-index:10; }
+#statusMsg.show { opacity:1; }
 
-@media (max-width:600px) {
-  .skill-btn { width:48px;height:48px; }
-  .skill-icon { font-size:18px; }
-  .skill-name { font-size:9px; }
-  .upgrade-grid { grid-template-columns:1fr; }
-  #hud { padding:8px 12px; }
-  #hud .hud-wave { font-size:15px; }
+/* Card Draw Overlay */
+.card-overlay { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;background:rgba(0,0,0,0.75);z-index:20;backdrop-filter:blur(6px); }
+.card-overlay.hidden { display:none; }
+.card-title { font-size:20px;font-weight:900;color:#ffd700;margin-bottom:16px;text-shadow:0 0 16px rgba(255,215,0,0.4); }
+.card-grid { display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:0 10px; }
+.card-item { width:min(110px,28vw);padding:14px 8px;background:rgba(30,30,60,0.9);border:2px solid rgba(123,104,238,0.4);border-radius:14px;text-align:center;cursor:pointer;transition:all 0.15s; }
+.card-item:active { transform:scale(0.95);border-color:#ffd700;background:rgba(50,30,80,0.9); }
+.card-icon { font-size:32px;margin-bottom:6px; }
+.card-name { font-size:12px;font-weight:700;color:#e0e0f0;margin-bottom:4px; }
+.card-desc { font-size:10px;color:rgba(200,200,220,0.6);line-height:1.3; }
+
+/* Game Over */
+.gameover-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;background:rgba(0,0,0,0.78);z-index:20;backdrop-filter:blur(6px); }
+.gameover-overlay.hidden { display:none; }
+.go-box { padding:24px 32px;background:rgba(20,20,50,0.92);border:2px solid rgba(200,50,50,0.4);border-radius:18px;text-align:center; }
+.go-box h2 { font-size:24px;color:#e94560;margin-bottom:14px;text-shadow:0 0 20px rgba(233,69,96,0.4); }
+.go-stat { font-size:14px;color:rgba(200,200,220,0.7);margin:4px 0; }
+.go-btn { margin-top:16px;padding:12px 36px;border:0;border-radius:12px;background:linear-gradient(180deg,#e94560,#b8304f);color:#fff;font-size:16px;font-weight:900;cursor:pointer;letter-spacing:1px; }
+
+/* Stage Complete */
+.stage-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;background:rgba(0,0,0,0.75);z-index:20;backdrop-filter:blur(6px); }
+.stage-overlay.hidden { display:none; }
+.st-box { padding:24px 32px;background:rgba(20,30,20,0.92);border:2px solid rgba(100,200,100,0.4);border-radius:18px;text-align:center; }
+.st-box h2 { font-size:24px;color:#4f8c48;margin-bottom:14px;text-shadow:0 0 20px rgba(79,140,72,0.4); }
+.st-stat { font-size:14px;color:rgba(200,220,200,0.7);margin:4px 0; }
+.st-btn { margin-top:16px;padding:12px 36px;border:0;border-radius:12px;background:linear-gradient(180deg,#4f8c48,#3a6e35);color:#fff;font-size:16px;font-weight:900;cursor:pointer;letter-spacing:1px; }
+
+@media (max-width:380px) {
+  .card-item { width:28vw;padding:10px 4px; }
+  .card-icon { font-size:26px; }
+  .skill-btn { min-width:100px;padding:5px 8px; }
+  .sk-icon { font-size:15px; }
+  .sk-name { font-size:10px; }
+  #hud { padding:6px 8px; }
+  .hud-stage { font-size:12px; }
 }
 </style>
 </head>
@@ -92,8 +76,8 @@ html,body { width:100%;height:100%;overflow:hidden;background:#0f0f23;color:var(
 <canvas id="gameCanvas"></canvas>
 <div class="ui-layer">
   <div id="hud"></div>
-  <div id="skill-bar"></div>
-  <div id="status-msg"></div>
+  <div id="skillBar"></div>
+  <div id="statusMsg"></div>
 </div>
 <script src="lib/phaser.min.js"></script>
 <script type="module" src="src/main.js"></script>

@@ -2,39 +2,57 @@ export const SKILL_DEFS = [
   {
     id: 'fireball',
     name: '火球术',
-    short: '火',
-    desc: '向前方发射一颗火球，对路径上的妖兽造成AOE伤害',
-    cooldown: 6,
-    damage: 1.5,
-    icon: '🔥'
+    icon: '🔥',
+    cooldown: 8,
+    desc: '发射火球灼烧路径'
   },
   {
     id: 'frost',
-    name: '冰霜新星',
-    short: '冰',
-    desc: '冻结场上所有妖兽3秒',
-    cooldown: 12,
-    freezeDuration: 3,
-    icon: '❄️'
+    name: '冰霜术',
+    icon: '❄️',
+    cooldown: 14,
+    desc: '冻结场上所有妖兽'
   },
   {
     id: 'lightning',
-    name: '闪电链',
-    short: '雷',
-    desc: '连锁闪电击中最近的5个妖兽',
-    cooldown: 8,
-    chainCount: 5,
-    damage: 1.0,
-    icon: '⚡'
+    name: '雷击术',
+    icon: '⚡',
+    cooldown: 10,
+    desc: '连锁雷电击穿敌群'
   },
   {
-    id: 'multishot',
-    name: '多重炮击',
-    short: '炮',
-    desc: '向多个方向同时发射炮弹',
-    cooldown: 10,
-    count: 8,
-    damage: 0.6,
-    icon: '💥'
+    id: 'multisword',
+    name: '万剑诀',
+    icon: '🗡️',
+    cooldown: 12,
+    desc: '释放多把飞剑攻击'
+  },
+  {
+    id: 'shield',
+    name: '护体盾',
+    icon: '🛡️',
+    cooldown: 20,
+    desc: '获得伤害吸收护盾'
+  },
+  {
+    id: 'heal',
+    name: '回春术',
+    icon: '💚',
+    cooldown: 25,
+    desc: '恢复大量生命值'
+  },
+  {
+    id: 'poison',
+    name: '毒雾术',
+    icon: '☠️',
+    cooldown: 15,
+    desc: '持续伤害范围内妖兽'
+  },
+  {
+    id: 'meteor',
+    name: '陨石术',
+    icon: '☄️',
+    cooldown: 18,
+    desc: '召唤陨石造成大范围伤害'
   }
 ];

@@ -1,4 +1,4 @@
-import { gameOver, waveActive } from '../core/state.js';
+import { gameOver, levelActive } from '../core/state.js';
 
 export class MovementSystem {
   constructor(scene) {
@@ -6,13 +6,13 @@ export class MovementSystem {
   }
 
   update(dt) {
-    if (gameOver || !waveActive) return;
+    if (gameOver || !levelActive) return;
     const player = this.scene.player;
     const enemies = this.scene.enemies.getChildren();
 
     for (const enemy of enemies) {
       if (!enemy.active) continue;
-      const speed = enemy.getData('speed') || 60;
+      const speed = enemy.getData('speed') || 50;
       const frozen = enemy.getData('frozen') || 0;
 
       if (frozen > 0) {

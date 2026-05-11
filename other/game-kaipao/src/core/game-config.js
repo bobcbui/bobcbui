@@ -3,12 +3,14 @@ import { MainScene } from './main-scene.js';
 export function createGameConfig(canvas) {
   const width = window.innerWidth;
   const height = window.innerHeight;
+  const gameWidth = Math.min(400, width);
+  const gameHeight = height;
 
   return {
     type: Phaser.CANVAS,
     canvas,
-    width,
-    height,
+    width: gameWidth,
+    height: gameHeight,
     backgroundColor: '#1a1a2e',
     physics: {
       default: 'arcade',
@@ -18,8 +20,8 @@ export function createGameConfig(canvas) {
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-      width,
-      height
+      width: gameWidth,
+      height: gameHeight
     }
   };
 }

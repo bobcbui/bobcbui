@@ -1,43 +1,30 @@
 export function bindGlobalActions() {
-  window._gameUpgrade = function(upgradeId) {
-    const { G, recalcStats } = window._stateModule;
-    const currentLv = G.upgradeLevels[upgradeId] || 0;
-    const { UPGRADE_DEFS, getUpgradeCost } = window._dataModule;
-    const def = UPGRADE_DEFS.find(u => u.id === upgradeId);
-    if (!def || currentLv >= def.maxLevel) return;
-    const cost = getUpgradeCost(upgradeId, currentLv);
-    if (G.gold < cost) return;
-    G.gold -= cost;
-    G.upgradeLevels[upgradeId] = currentLv + 1;
-    recalcStats();
-    const { renderHUD, renderUpgradePanel } = window._uiModule;
-    renderHUD();
-    renderUpgradePanel();
-  };
+  window._pickCard = function(index) {
+    const cards = window._pendingCards;
+    if (!cards || !cards[index]) return;
 
-  window._startNextWave = function() {
+    const overlay = document.getElementById('cardDrawOverlay');
+    if (overlay) overlay.classList.add('hidden');
+
     const scene = window._scene;
     if (scene) {
-      const panel = document.getElementById('upgrade-panel');
-      if (panel) panel.classList.add('hidden');
-      scene.startNextWave();
-      const { renderHUD, renderSkillBar } = window._uiModule;
-      renderHUD();
-      renderSkillBar();
+      scene.onCardChosen(cards[index]);
     }
   };
 
   window._restartGame = function() {
+    const overlay = document.getElementById('gameOverOverlay');
+    if (overlay) overlay.classList.add('hidden');
+
     const scene = window._scene;
-    if (scene) {
-      const panel = document.getElementById('gameover-panel');
-      if (panel) panel.classList.add('hidden');
-      scene.restartGame();
-      const { renderHUD, renderSkillBar, renderUpgradePanel } = window._uiModule;
-      renderHUD();
-      renderSkillBar();
-      const up = document.getElementById('upgrade-panel');
-      if (up) up.classList.add('hidden');
-    }
+    if (scene) scene.restartGame();
+  };
+
+  window._nextStage = function() {
+    const overlay = document.getElementById('stageOverlay');
+    if (overlay) overlay.classList.add('hidden');
+
+    const scene = window._scene;
+    if (scene) scene.startNextStage();
   };
 }
