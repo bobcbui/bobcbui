@@ -1,22 +1,23 @@
 export const MONSTER_DEFS = [
-  { type: 'common', name: '普通妖兽', hp: 30, speed: 60, damage: 10, gold: 5, texture: 'monster-common' },
-  { type: 'fast', name: '迅捷妖兽', hp: 15, speed: 120, damage: 8, gold: 8, texture: 'monster-fast' },
-  { type: 'tank', name: '巨型妖兽', hp: 100, speed: 35, damage: 20, gold: 15, texture: 'monster-tank' },
-  { type: 'boss', name: '妖兽首领', hp: 400, speed: 40, damage: 30, gold: 100, texture: 'monster-boss' }
+  { type: 'small', name: '小妖', hp: 20, speed: 50, damage: 8, gold: 3, scale: 0.9, color: '#e94560' },
+  { type: 'fast', name: '快妖', hp: 12, speed: 100, damage: 6, gold: 5, scale: 0.8, color: '#f5a623' },
+  { type: 'tank', name: '巨妖', hp: 80, speed: 30, damage: 15, gold: 12, scale: 1.2, color: '#6c5ce7' },
+  { type: 'boss', name: '妖王', hp: 300, speed: 35, damage: 25, gold: 50, scale: 1.6, color: '#d63031' }
 ];
 
 export function getMonsterDef(type) {
   return MONSTER_DEFS.find(m => m.type === type) || MONSTER_DEFS[0];
 }
 
-export function getMonsterHP(type, wave) {
+export function getMonsterHP(type, stage, level) {
   const def = getMonsterDef(type);
-  const scale = 1 + (wave - 1) * 1.5;
-  if (type === 'boss') return Math.floor(def.hp * scale * 2);
-  return Math.floor(def.hp * scale);
+  const stageScale = 1 + (stage - 1) * 2;
+  const levelScale = 1 + (level - 1) * 0.15;
+  if (type === 'boss') return Math.floor(def.hp * stageScale * levelScale * 2.5);
+  return Math.floor(def.hp * stageScale * levelScale);
 }
 
-export function getMonsterDamage(type, wave) {
+export function getMonsterDamage(type, stage) {
   const def = getMonsterDef(type);
-  return Math.floor(def.damage * (1 + (wave - 1) * 0.2));
+  return Math.floor(def.damage * (1 + (stage - 1) * 0.3));
 }

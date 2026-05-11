@@ -1,70 +1,97 @@
 import { bus } from './events.js';
-import { SKILL_DEFS, UPGRADE_DEFS } from '../data/index.js';
 
 export const G = {
   hp: 100,
   maxHp: 100,
   atk: 15,
-  atkSpeed: 1.5,
-  gold: 0,
-  score: 0,
-  wave: 0,
+  atkSpeed: 1.2,
+  swordLevel: 1,
+  stage: 1,
+  level: 1,
   kills: 0,
-  skillLevels: {},
-  upgradeLevels: {}
+  score: 0,
+  skills: [],
+  skillSlots: 5
 };
 
-export let waveActive = false;
-export let waveIntermission = true;
-export let waveTimer = 0;
-export let waveIntermissionTimer = 0;
-export let waveMonstersRemaining = 0;
-export let waveMonstersTotal = 0;
+export let waveLevel = 1;
+export let levelActive = false;
+export let levelIntermission = false;
+export let levelTimer = 0;
+export let monstersRemaining = 0;
+export let monstersTotal = 0;
 export let gameOver = false;
+export let cardDrawPhase = false;
 
-export function setWaveActive(v) { waveActive = v; }
-export function setWaveIntermission(v) { waveIntermission = v; }
-export function setWaveTimer(v) { waveTimer = v; }
-export function setWaveIntermissionTimer(v) { waveIntermissionTimer = v; }
-export function setWaveMonstersRemaining(v) { waveMonstersRemaining = v; }
-export function setWaveMonstersTotal(v) { waveMonstersTotal = v; }
+export function setLevel(v) { levelIntermission = false; levelActive = false; }
+export function setWaveLevel(v) { waveLevel = v; }
+export function setLevelActive(v) { levelActive = v; }
+export function setLevelIntermission(v) { levelIntermission = v; }
+export function setLevelTimer(v) { levelTimer = v; }
+export function setMonstersRemaining(v) { monstersRemaining = v; }
+export function setMonstersTotal(v) { monstersTotal = v; }
 export function setGameOver(v) { gameOver = v; }
+export function setCardDrawPhase(v) { cardDrawPhase = v; }
 
-export function initState() {
-  G.hp = G.maxHp;
+export function initGameState() {
+  G.hp = 100;
+  G.maxHp = 100;
   G.atk = 15;
-  G.atkSpeed = 1.5;
-  G.gold = 0;
-  G.score = 0;
-  G.wave = 0;
+  G.atkSpeed = 1.2;
+  G.swordLevel = 1;
+  G.stage = 1;
+  G.level = 1;
   G.kills = 0;
-  G.skillLevels = {};
-  G.upgradeLevels = {};
-  for (const sk of SKILL_DEFS) {
-    G.skillLevels[sk.id] = 1;
-  }
-  for (const up of UPGRADE_DEFS) {
-    G.upgradeLevels[up.id] = 0;
-  }
-  waveActive = false;
-  waveIntermission = true;
-  waveTimer = 0;
-  waveIntermissionTimer = 3;
-  waveMonstersRemaining = 0;
-  waveMonstersTotal = 0;
+  G.score = 0;
+  G.skills = [];
+  G.skillSlots = 5;
+  waveLevel = 1;
+  levelActive = false;
+  levelIntermission = false;
+  levelTimer = 0;
+  monstersRemaining = 0;
+  monstersTotal = 0;
   gameOver = false;
+  cardDrawPhase = false;
 }
 
 export function recalcStats() {
-  G.atk = 15 + (G.upgradeLevels.atk || 0) * 5;
-  G.atkSpeed = 1.5 + (G.upgradeLevels.atkSpeed || 0) * 0.3;
-  G.maxHp = 100 + (G.upgradeLevels.hp || 0) * 20;
+  G.atk = 15 + (G.swordLevel - 1) * 5;
+  G.atkSpeed = 1.2 + (G.swordLevel - 1) * 0.08;
+  G.maxHp = 100 + (G.swordLevel - 1) * 10;
   G.hp = Math.min(G.hp, G.maxHp);
 }
 
-export function getUpgradeCost(upgradeId) {
-  const lv = G.upgradeLevels[upgradeId] || 0;
-  const def = UPGRADE_DEFS.find(u => u.id === upgradeId);
-  if (!def) return 999999;
-  return Math.floor(def.baseCost * Math.pow(def.costScale, lv));
+export function hasSkill(skillId) {
+  return G.skills.some(s => s.id === skillId);
+}
+
+export function getSkillLevel(skillId) {
+  const sk = G.skills.find(s => s.id === skillId);
+  return sk ? sk.level : 0;
+}
+
+export function addSkill(skillId) {
+  if (G.skills.length >= G.skillSlots) return false;
+  if (hasSkill(skillId)) return false;
+  G.skills.push({ id: skillId, level: 1 });
+  return true;
+}
+
+export function upgradeSkill(skillId) {
+  const sk = G.skills.find(s => s.id === skillId);
+  if (sk) {
+    sk.level++;
+    return true;
+  }
+  return false;
+}
+
+export function upgradeSword() {
+  G.swordLevel++;
+  recalcStats();
+}
+
+export function getActiveSkills() {
+  return G.skills;
 }

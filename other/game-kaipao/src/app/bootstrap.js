@@ -3,7 +3,7 @@ import '../core/state.js';
 import '../core/save.js';
 import { createGameConfig } from '../core/game-config.js';
 import { setGame } from '../core/runtime.js';
-import { renderHUD, renderSkillBar } from '../ui/index.js';
+import { renderHUD, renderSkillList } from '../ui/index.js';
 import { bindGlobalActions } from '../ui/actions.js';
 import * as stateModule from '../core/state.js';
 import * as dataModule from '../data/index.js';
@@ -31,7 +31,7 @@ export function bootstrap() {
 
   window.addEventListener('load', () => {
     renderHUD();
-    renderSkillBar();
+    renderSkillList();
     startGame();
   });
 }

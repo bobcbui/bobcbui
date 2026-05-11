@@ -30,6 +30,18 @@ export let isCultivating = false;
 export let cultProgress = 0;
 export let breakPending = false;
 export let autoSaveTimer = 0;
+export let wallHp = 500;
+export let wallMaxHp = 500;
+export let defenseWave = 0;
+export let gameStarted = false;
+export const MAX_WAVES = 20;
+
+export function setWallHp(v){ wallHp = v; if (wallHp < 0) wallHp = 0; }
+export function setWallMaxHp(v){ wallMaxHp = v; }
+export function setDefenseWave(v){ defenseWave = v; }
+export function setGameStarted(v){ gameStarted = v; }
+export function setAutoSaveTimer(v){ autoSaveTimer = v; }
+export function setHotGen(v){ hotGen = v; }
 
 export let hotGen = -1;
 export const hudCache = { realm:'',level:-1,hp:-1,maxHp:-1,xp:-1,xpNext:-1,gold:-1,kills:-1 };
@@ -42,8 +54,6 @@ export function setLootTimer(v){ lootTimer = v; }
 export function setIsCultivating(v){ isCultivating = v; }
 export function setCultProgress(v){ cultProgress = v; }
 export function setBreakPending(v){ breakPending = v; }
-export function setAutoSaveTimer(v){ autoSaveTimer = v; }
-export function setHotGen(v){ hotGen = v; }
 
 export function recalcStats(){
   const r = getRealm(P.realm);

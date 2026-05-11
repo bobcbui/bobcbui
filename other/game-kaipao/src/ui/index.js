@@ -1,61 +1,72 @@
-import { G, waveActive, waveIntermission, waveIntermissionTimer, waveMonstersRemaining, waveMonstersTotal, gameOver } from '../core/state.js';
-import { SKILL_DEFS, UPGRADE_DEFS, getUpgradeCost } from '../data/index.js';
+import { G } from '../core/state.js';
+import { SKILL_DEFS } from '../data/skills.js';
 import { bus } from '../core/events.js';
-import { getScene } from '../core/runtime.js';
+import { getScene, getSkillCooldowns } from '../core/runtime.js';
+
 let _statusTimer = 0;
 
 bus.on('status', (msg, duration) => {
-  const el = document.getElementById('status-msg');
+  const el = document.getElementById('statusMsg');
   if (!el) return;
   el.textContent = msg;
   el.classList.add('show');
   _statusTimer = duration || 2;
 });
 
-function tickStatusMessage() {
+function tickStatus() {
   if (_statusTimer > 0) {
     _statusTimer -= 1;
     if (_statusTimer <= 0) {
-      const el = document.getElementById('status-msg');
+      const el = document.getElementById('statusMsg');
       if (el) el.classList.remove('show');
     }
-    setTimeout(tickStatusMessage, 1000);
+    setTimeout(tickStatus, 1000);
   }
 }
-tickStatusMessage();
+tickStatus();
 
 export function renderHUD() {
   const hud = document.getElementById('hud');
   if (!hud) return;
   hud.innerHTML = `
-    <div class="hud-wave">第 ${G.wave || 1} 波</div>
-    <div class="hud-score">分数: ${G.score}</div>
-    <div class="hud-gold">💰 ${G.gold}</div>
-    <div class="hp-bar-wrap">
-      <div class="hp-label">HP</div>
-      <div class="hp-bar-bg">
-        <div class="hp-bar-fill" style="width:${Math.max(0, G.hp / G.maxHp * 100)}%"></div>
+    <div class="hud-stage">第${G.stage || 1}关</div>
+    <div class="hud-level">${G.level || 1} / 20</div>
+    <div class="hp-wrap">
+      <div class="hp-bar">
+        <div class="hp-fill" style="width:${Math.max(0, G.hp / G.maxHp * 100)}%"></div>
       </div>
-      <div class="hp-text">${Math.ceil(G.hp)}/${G.maxHp}</div>
+      <div class="hp-num">${Math.ceil(G.hp)}</div>
     </div>
-    ${waveIntermission ? `<div class="hud-intermission">下一波: ${Math.ceil(waveIntermissionTimer)}秒</div>` : ''}
-    ${waveActive ? `<div class="hud-enemies">剩余妖兽: ${waveMonstersRemaining}</div>` : ''}
   `;
 }
 
-export function renderSkillBar() {
-  const bar = document.getElementById('skill-bar');
+export function renderSkillList() {
+  const bar = document.getElementById('skillBar');
   if (!bar) return;
+
+  const skills = G.skills;
   bar.innerHTML = '';
-  SKILL_DEFS.forEach(skill => {
+
+  skills.forEach(skill => {
+    const def = SKILL_DEFS.find(s => s.id === skill.id);
+    if (!def) return;
+
     const btn = document.createElement('div');
     btn.className = 'skill-btn';
-    btn.id = 'skill-' + skill.id;
+    btn.id = 'sk-' + skill.id;
+
+    const cd = (getSkillCooldowns()[skill.id] || 0).toFixed(1);
+    const onCd = cd > 0;
+
     btn.innerHTML = `
-      <div class="skill-icon">${skill.icon}</div>
-      <div class="skill-name">${skill.short}</div>
-      <div class="skill-cd" id="cd-${skill.id}"></div>
+      <div class="sk-icon">${def.icon}</div>
+      <div class="sk-info">
+        <div class="sk-name">${def.name} Lv.${skill.level}</div>
+        ${onCd ? `<div class="sk-cd">${cd}s</div>` : ''}
+      </div>
     `;
+    if (onCd) btn.classList.add('on-cd');
+
     btn.onclick = () => {
       const scene = getScene();
       if (scene && scene.skillSystem) {
@@ -64,76 +75,81 @@ export function renderSkillBar() {
     };
     bar.appendChild(btn);
   });
+
+  if (skills.length === 0) {
+    bar.innerHTML = '<div class="sk-empty">通关获得技能</div>';
+  }
 }
 
-export function renderUpgradePanel() {
-  let panel = document.getElementById('upgrade-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'upgrade-panel';
-    panel.className = 'upgrade-panel';
-    document.querySelector('.ui-layer').appendChild(panel);
+export function renderCardDraw(cards) {
+  let overlay = document.getElementById('cardDrawOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'cardDrawOverlay';
+    overlay.className = 'card-overlay';
+    document.querySelector('.ui-layer').appendChild(overlay);
   }
+  overlay.classList.remove('hidden');
 
-  if (!waveIntermission && !gameOver) {
-    panel.classList.add('hidden');
-    return;
-  }
+  let html = '<div class="card-title">🎴 选择一张卡牌</div>';
+  html += '<div class="card-grid">';
 
-  if (gameOver) {
-    panel.classList.add('hidden');
-    return;
-  }
-
-  panel.classList.remove('hidden');
-
-  let html = '<div class="upgrade-title">波次间隙 - 升级炮台</div>';
-  html += `<div class="upgrade-gold">💰 ${G.gold}</div>`;
-  html += '<div class="upgrade-grid">';
-
-  UPGRADE_DEFS.forEach(up => {
-    const currentLv = G.upgradeLevels[up.id] || 0;
-    const cost = getUpgradeCost(up.id, currentLv);
-    const maxed = currentLv >= up.maxLevel;
-    const canAfford = G.gold >= cost;
-
-    html += `<div class="upgrade-item ${maxed ? 'maxed' : ''} ${!canAfford && !maxed ? 'cannot-afford' : ''}" `;
-    html += `onclick="window._gameUpgrade('${up.id}')">`;
-    html += `<div class="upgrade-name">${up.name}</div>`;
-    html += `<div class="upgrade-desc">${up.desc}</div>`;
-    html += `<div class="upgrade-lv">Lv.${currentLv}/${up.maxLevel}</div>`;
-    html += `<div class="upgrade-cost">${maxed ? '已满级' : '💰' + cost}</div>`;
-    html += `</div>`;
+  cards.forEach((card, i) => {
+    html += `<div class="card-item" onclick="window._pickCard(${i})">
+      <div class="card-icon">${card.icon}</div>
+      <div class="card-name">${card.name}</div>
+      <div class="card-desc">${card.desc}</div>
+    </div>`;
   });
 
   html += '</div>';
-  html += `<button class="btn-next-wave" onclick="window._startNextWave()">开始第 ${G.wave + 1} 波</button>`;
-  panel.innerHTML = html;
+  overlay.innerHTML = html;
+  window._pendingCards = cards;
 }
 
 export function renderGameOver() {
-  let panel = document.getElementById('gameover-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'gameover-panel';
-    panel.className = 'gameover-overlay';
-    document.querySelector('.ui-layer').appendChild(panel);
+  let overlay = document.getElementById('gameOverOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'gameOverOverlay';
+    overlay.className = 'gameover-overlay';
+    document.querySelector('.ui-layer').appendChild(overlay);
   }
-  panel.classList.remove('hidden');
-  panel.innerHTML = `
-    <div class="gameover-box">
-      <h2>💀 炮台被摧毁</h2>
-      <div class="gameover-stat">存活波次: ${G.wave}</div>
-      <div class="gameover-stat">击杀妖兽: ${G.kills}</div>
-      <div class="gameover-stat">最终分数: ${G.score}</div>
-      <button class="btn-restart" onclick="window._restartGame()">重新开始</button>
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="go-box">
+      <h2>💀 修仙失败</h2>
+      <div class="go-stat">关卡: 第${G.stage}关 ${G.level}/20</div>
+      <div class="go-stat">击杀: ${G.kills} 妖兽</div>
+      <div class="go-stat">分数: ${G.score}</div>
+      <div class="go-stat" style="color:#ffd700">飞剑术 Lv.${G.swordLevel}</div>
+      <button class="go-btn" onclick="window._restartGame()">重新修炼</button>
     </div>
   `;
 }
 
-export function updateHUD() {
-  renderHUD();
+export function renderStageComplete() {
+  let overlay = document.getElementById('stageOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'stageOverlay';
+    overlay.className = 'stage-overlay';
+    document.querySelector('.ui-layer').appendChild(overlay);
+  }
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="st-box">
+      <h2>🎉 第${G.stage}关通过！</h2>
+      <div class="st-stat">飞剑术 Lv.${G.swordLevel}</div>
+      <div class="st-stat">技能数: ${G.skills.length}</div>
+      <div class="st-stat">分数: ${G.score}</div>
+      <button class="st-btn" onclick="window._nextStage()">进入第${G.stage + 1}关</button>
+    </div>
+  `;
+}
+
+export function renderLevelIntro() {
 }
 
 bus.on('hud-refresh', renderHUD);
-bus.on('skillbar-refresh', renderSkillBar);
+bus.on('skillbar-refresh', renderSkillList);

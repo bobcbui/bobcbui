@@ -1,4 +1,4 @@
-import { G, gameOver, waveActive, waveMonstersTotal, setWaveMonstersTotal } from '../core/state.js';
+import { G, gameOver, levelActive, cardDrawPhase } from '../core/state.js';
 import { getMonsterDef, getMonsterHP, getMonsterDamage } from '../data/monsters.js';
 
 export class SpawnSystem {
@@ -6,25 +6,27 @@ export class SpawnSystem {
     this.scene = scene;
     this.spawnQueue = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1.0;
+    this.spawnInterval = 1.2;
     this.spawning = false;
   }
 
-  startWave(config) {
+  startLevel(config) {
     this.spawnQueue = [];
-    this.spawnInterval = config.interval || 1.0;
+    this.spawnInterval = config.interval || 1.2;
     this.spawnTimer = 0;
     this.spawning = true;
 
+    let delay = 0;
     for (const entry of config.monsters) {
       for (let i = 0; i < entry.count; i++) {
-        this.spawnQueue.push({ type: entry.type, delay: i * this.spawnInterval * 0.3 });
+        this.spawnQueue.push({ type: entry.type, delay: delay });
+        delay += this.spawnInterval * 0.5;
       }
     }
   }
 
   update(dt) {
-    if (gameOver || !waveActive || !this.spawning) return;
+    if (gameOver || !levelActive || cardDrawPhase || !this.spawning) return;
 
     this.spawnTimer += dt;
 
@@ -43,13 +45,14 @@ export class SpawnSystem {
   spawnMonster(type) {
     const w = this.scene.scale.width;
     const def = getMonsterDef(type);
-    const hp = getMonsterHP(type, G.wave);
-    const dmg = getMonsterDamage(type, G.wave);
+    const hp = getMonsterHP(type, G.stage, G.level);
+    const dmg = getMonsterDamage(type, G.stage);
 
-    const x = Phaser.Math.Between(50, w - 50);
+    const x = Phaser.Math.Between(60, w - 60);
     const y = -30;
 
-    const enemy = this.scene.physics.add.sprite(x, y, def.texture);
+    const tex = 'monster-' + type;
+    const enemy = this.scene.physics.add.sprite(x, y, tex);
     enemy.setDepth(5);
     enemy.setData('type', type);
     enemy.setData('hp', hp);
@@ -59,12 +62,15 @@ export class SpawnSystem {
     enemy.setData('frozen', 0);
     enemy.setData('gold', def.gold);
     enemy.setData('boss', type === 'boss');
-
-    enemy.setDisplaySize(
-      type === 'boss' ? 48 : 32,
-      type === 'boss' ? 48 : 32
-    );
+    enemy.setDisplaySize(def.scale * 28, def.scale * 28);
 
     this.scene.enemies.add(enemy);
+  }
+
+  clearAll() {
+    this.spawnQueue = [];
+    this.spawning = false;
+    this.spawnTimer = 0;
+    this.scene.enemies.clear(true, true);
   }
 }

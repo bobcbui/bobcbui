@@ -1,6 +1,7 @@
 import { P, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
   setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar,
-  checkAchievements } from './state.js';
+  checkAchievements, wallHp, wallMaxHp, defenseWave, gameStarted, MAX_WAVES,
+  setWallHp, setDefenseWave, setGameStarted } from './state.js';
 import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES, COMBAT_TUNING } from '../data/index.js';
 import { installSceneSystems } from '../systems/index.js';
 import { bus } from './events.js';
@@ -34,6 +35,8 @@ export class MainScene extends Phaser.Scene {
   }
   create(){
     setScene(this);
+    window.startDefense = () => this.startDefense();
+    window.startNextWave = () => this._startNextWave();
     this.worldSize = WORLD.size;
     this._currentMap = { worldSize: WORLD.size, safeRadius: WORLD.safeRadius, id:'hehuan', name:'合欢宗', colorName:'#c9a96e' };
     this._currentMap.name = '古剑门';
@@ -100,11 +103,7 @@ export class MainScene extends Phaser.Scene {
     this._wasInSafe = true;
 
     loadGame();
-    bus.emit('status','读档成功',1.5);
     recalcStats();
-    for (let i = 0; i < COMBAT_TUNING.initialEnemyCount; i++) {
-      this.spawnSystem.spawnEnemy({ allowBoss: false });
-    }
     bus.emit('hud-refresh');
     bus.emit('hotbar-refresh');
     this.updateZoneLabel();
@@ -417,7 +416,8 @@ export class MainScene extends Phaser.Scene {
     const dt=delta/1000;
     const inSafe = this._inSafeZone();
     if (inSafe && !this._wasInSafe) {
-      this._wasInSafe = true;
+    this._wasInSafe = true;
+    this._waitingWave = false;
       this.clearEnemies();
       this.showWorldNotice('进入安全区', '#dfffd8');
       bus.emit('status', '已进入安全区', 1.2);
@@ -500,5 +500,81 @@ export class MainScene extends Phaser.Scene {
     this._hudTick = (this._hudTick || 0) + 1;
       if (this._hudTick > 6) { this._hudTick = 0; bus.emit('hud-refresh'); bus.emit('hotbar-refresh'); updateHotbarCooldowns(); this.updateZoneLabel(); }
     if (time % 2000 < delta * 1.5) bus.emit('check-achievements');
+    this.checkWaveCleared();
+    if (gameStarted) this._updateDefense();
+  }
+
+  _updateDefense() {
+    const wallY = this.worldSize - 300;
+    const bar = document.getElementById('wallHpBar');
+    const waveEl = document.getElementById('waveCounter');
+    if (bar) { bar.style.width = Math.max(0, wallHp / wallMaxHp * 100) + '%'; }
+    if (waveEl) { waveEl.textContent = defenseWave + '/' + MAX_WAVES; }
+    if (wallHp <= 0) {
+      setGameStarted(false);
+      const dm = document.getElementById('defeatModal');
+      const dw = document.getElementById('defeatWave');
+      if (dm) dm.classList.remove('hidden');
+      if (dw) dw.textContent = Math.max(0, defenseWave - 1);
+    }
+    this.enemies.children.iterate((en) => {
+      if (!en || en.getData('dead')) return;
+      if (en.y > wallY - 30) {
+        setWallHp(wallHp - Math.round(en.getData('atk') || 5) * 0.3);
+        en.setData('dead', true);
+        const lbl = en.getData('label'); if (lbl) lbl.destroy();
+        en.destroy();
+      }
+    });
+  }
+
+  startDefense() {
+    document.getElementById('mainMenu').style.display = 'none';
+    setGameStarted(true);
+    setWallHp(wallMaxHp);
+    setDefenseWave(0);
+    this.player.setPosition(this.worldSize / 2, this.worldSize - 400);
+    this.moveTarget.set(this.worldSize / 2, this.worldSize - 400);
+    this.clearEnemies();
+    this._startNextWave();
+    bus.emit('status', '⚔️ 镇守剑气长城！', 3);
+    const wallY = this.worldSize - 300;
+    this._wallGfx = this.add.graphics().setDepth(0);
+    this._wallGfx.fillStyle(0x8a7a6a, 0.7);
+    this._wallGfx.fillRect(0, wallY - 10, this.worldSize, 30);
+    this._wallGfx.fillStyle(0xc8b898, 0.4);
+    this._wallGfx.fillRect(0, wallY - 8, this.worldSize, 6);
+    document.getElementById('wallHud')?.classList.remove('hidden');
+  }
+
+  _startNextWave() {
+    if (defenseWave >= MAX_WAVES) {
+      bus.emit('status', '🎉 剑气长城守住了！全部' + MAX_WAVES + '波妖兽被击退！', 5);
+      setGameStarted(false);
+      return;
+    }
+    setDefenseWave(defenseWave + 1);
+    const count = Math.min(3 + defenseWave * 2, 25);
+    const isBossWave = defenseWave % 5 === 0;
+    for (let i = 0; i < count; i++) {
+      const en = this.spawnSystem.spawnEnemy({ allowBoss: isBossWave });
+      if (en) {
+        en.y = Phaser.Math.Between(100, 500);
+        en.x = Phaser.Math.Between(100, this.worldSize - 100);
+      }
+    }
+    bus.emit('status', '⚔️ 第 ' + defenseWave + ' 波来袭！', 2);
+  }
+
+  checkWaveCleared() {
+    if (!gameStarted || this._waitingWave) return;
+    if (this.enemies.countActive(true) === 0) {
+      this._waitingWave = true;
+      bus.emit('status', '妖兽退散，下一波准备中...', 2);
+      this.time.delayedCall(3000, () => {
+        this._waitingWave = false;
+        this._startNextWave();
+      });
+    }
   }
 }
