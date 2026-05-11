@@ -1,0 +1,49 @@
+export const TILE_SIZE = 64;
+export const GRID_COLS = 15;
+export const GRID_ROWS = 10;
+export const GAME_WIDTH = GRID_COLS * TILE_SIZE;
+export const GAME_HEIGHT = GRID_ROWS * TILE_SIZE + 80;
+export const HUD_HEIGHT = 80;
+export const MAP_HEIGHT = GRID_ROWS * TILE_SIZE;
+
+export const COLORS = {
+  PATH: 0xd4a656,
+  BUILDABLE: 0x4a8c3f,
+  BUILDABLE_HOVER: 0x5aac4f,
+  BUILDABLE_INVALID: 0xcc4444,
+  BLOCKED: 0x335577,
+  GRID_LINE: 0x3a7c2f,
+  RANGE_CIRCLE: 0xffffff,
+  RANGE_CIRCLE_ALPHA: 0.15,
+  TOWER_BASE: 0x888888,
+  ENEMY_NORMAL: 0xff4444,
+  ENEMY_FAST: 0xffaa00,
+  ENEMY_TANK: 0x9933cc,
+  ENEMY_BOSS: 0xff0066,
+  HP_BAR_BG: 0x333333,
+  HP_BAR_FILL: 0x00ff00,
+  HP_BAR_WARN: 0xffcc00,
+  HP_BAR_DANGER: 0xff0000,
+  PROJECTILE_ARROW: 0xffff88,
+  PROJECTILE_CANNON: 0x444444,
+  PROJECTILE_ICE: 0x88ccff,
+  PROJECTILE_LIGHTNING: 0xffff00,
+  UI_BG: 0x2a2a2a,
+  UI_BORDER: 0x565656,
+  UI_BUTTON: 0x446688,
+  UI_BUTTON_HOVER: 0x5588aa,
+  UI_BUTTON_DISABLED: 0x444444,
+  UI_TEXT: 0xffffff,
+  UI_GOLD: 0xffdd00,
+  UI_LIVES: 0xff6666,
+  UI_SKILL_BAR: 0x2266aa,
+};
+
+export const GAME_STATES = {
+  PREPARATION: 'preparation',
+  IN_WAVE: 'in_wave',
+  WAVE_COMPLETE: 'wave_complete',
+  PAUSED: 'paused',
+  GAME_OVER: 'game_over',
+  VICTORY: 'victory',
+};
