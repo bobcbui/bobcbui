@@ -45,7 +45,8 @@ export const WORLD = { width: 540, height: 960 };
 export const LANES = 5;
 export const LANE_WIDTH = Math.floor(WORLD.width / LANES);
 export const DEFENSE_LINE_Y = WORLD.height - 180;
-export const PLAYER_ZONE_TOP = WORLD.height - 240;
+// Reduce playable player zone height so player area is not so tall
+export const PLAYER_ZONE_TOP = WORLD.height - 160;
 
 const MONSTER_TEXTURE_MAP = [
   'monster-rabbit', 'monster-wolf', 'monster-spider',

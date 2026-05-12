@@ -2,6 +2,7 @@ import { bus } from './events.js';
 import { P, isCultivating, breakPending, setIsCultivating, setBreakPending, recalcStats, refreshSkills, initHotbar } from './state.js';
 import { getScene } from './runtime.js';
 import { REALMS, getRealm, getRealmIndex } from '../data/index.js';
+import * as ui from '../ui/bridge.js';
 
 export function tryBreakthrough(){
   if(P.realm==='feisheng'){ bus.emit('status','已至飞升，大道已成！',2); return; }
@@ -14,12 +15,7 @@ export function tryBreakthrough(){
   const next = REALMS[idx+1];
   if(!next) return;
   const chance = Math.min(90, 50 + idx*5);
-  document.getElementById('btTitle').textContent = '突破至 ' + next.name + '!';
-  document.getElementById('btDesc').textContent = '天劫将至，引雷淬体！ 消耗 '+btCost+' 灵石';
-  document.getElementById('btChance').textContent = chance + '%';
-  document.getElementById('btChance').style.color = chance>=70 ? 'var(--gold)' : 'var(--hp)';
-  document.getElementById('breakthrough-box').classList.remove('hidden');
-  document.getElementById('breakthrough-overlay').classList.add('show');
+  ui.showBreakthrough(next.name, btCost, chance);
   setBreakPending(true);
 }
 
@@ -54,8 +50,7 @@ export function doBreakthrough(){
 }
 
 export function cancelBreakthrough(){
-  document.getElementById('breakthrough-box').classList.add('hidden');
-  document.getElementById('breakthrough-overlay').classList.remove('show');
+  ui.hideBreakthrough();
   setBreakPending(false);
 }
 

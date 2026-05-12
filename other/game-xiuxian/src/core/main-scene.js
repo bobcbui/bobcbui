@@ -294,6 +294,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   _startNextWave(){
+    console.log('[MainScene] _startNextWave called, currentWave=', currentWave);
     const nw = currentWave + 1;
     if (currentWave >= this._maxWaveForLevel) {
       this.showWorldNotice('🎉 关卡通关！', '#ffd700');
@@ -327,6 +328,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     setWavePending(false);
+    console.log('[MainScene] wave', nw, 'spawned, count=', count, 'isBoss=', isBossWave);
     bus.emit('status', '⚔️ 第 ' + nw + ' 波来袭！', 2);
     bus.emit('wave-changed');
   }
@@ -335,10 +337,11 @@ export class MainScene extends Phaser.Scene {
     if (this._waitingWave) return;
     if (this.enemies.countActive(true) === 0) {
     this._waitingWave = true;
-
+    console.log('[MainScene] wave cleared, scheduling next wave...');
     setCurrentWave(this._levelStartWave - 1);
       bus.emit('status', '妖兽退散，下一波准备中...', 2);
       this.time.delayedCall(3000, () => {
+        console.log('[MainScene] delayedCall: starting next wave');
         this._waitingWave = false;
         this._startNextWave();
       });

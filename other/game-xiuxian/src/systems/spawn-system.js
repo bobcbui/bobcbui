@@ -13,6 +13,7 @@ export class SpawnSystem {
   spawnEnemy(options = {}) {
     const { scene } = this;
     const wave = currentWave || 1;
+    console.log('[SpawnSystem] spawnEnemy called for wave', wave, options);
     const tmpl = getEnemyTemplateByWave(wave);
 
     const { forceBoss = false, forceElite = false, allowBoss = true, allowElite = true } = options;
@@ -54,6 +55,7 @@ export class SpawnSystem {
 
     const enName = isBoss ? BOSS_NAMES[Math.floor(Math.random() * BOSS_NAMES.length)]
       : (isElite ? ('精英·' + tmpl.name) : tmpl.name);
+    console.log('[SpawnSystem] enemy created:', enName, 'at', x, y, 'isBoss=', isBoss, 'isElite=', isElite);
     en.setData('name', enName);
     en.setData('dead', false);
 

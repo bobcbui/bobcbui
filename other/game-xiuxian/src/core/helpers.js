@@ -1,16 +1,15 @@
 import { bus } from './events.js';
 import { setStatusTimer, setLootTimer } from './state.js';
+import * as ui from '../ui/bridge.js';
 
 function setStatus(text, dur) {
   setStatusTimer(dur || 2);
-  const el = document.getElementById('status');
-  if (el) { el.textContent = text; el.classList.add('show'); }
+  ui.showStatus(text, dur);
 }
 
 function setLoot(text) {
   setLootTimer(2.5);
-  const el = document.getElementById('loot-popup');
-  if (el) { el.textContent = text; el.classList.add('show'); }
+  ui.showLoot(text);
 }
 
 bus.on('status', setStatus);

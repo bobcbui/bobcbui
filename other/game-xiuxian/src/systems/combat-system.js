@@ -5,7 +5,9 @@ import { bus } from '../core/events.js';
 
 const SWORD_VOLLEY_COUNT = 3;
 const SWORD_VOLLEY_SPREAD = 0.28;
-const SWORD_TURN_RATE = 12;
+// Disable rotating orbit swords by setting ring count to 0
+const SWORD_RING_COUNT = 0;
+const SWORD_TURN_RATE = 0; // no turning/homing
 const SWORD_PROJECTILE_SPEED = 560;
 const SWORD_MIN_LIFETIME = 1900;
 const SWORD_RANGE_LIFETIME_FACTOR = 7.5;
@@ -15,8 +17,9 @@ const SWORD_MAX_HIT_COUNT = 10;
 const SWORD_HIT_COOLDOWN_MS = 120;
 const SWORD_STORM_SHOTS_PER_SEC = 3;
 const SWORD_STORM_INTERVAL = 1 / SWORD_STORM_SHOTS_PER_SEC;
-const SWORD_START_SCALE = 0.38;
-const SWORD_END_SCALE = 0.74;
+// Make basic sword projectile visually smaller
+const SWORD_START_SCALE = 0.28;
+const SWORD_END_SCALE = 0.52;
 const SWORD_GROW_DURATION_MS = 420;
 const GROWING_FIREBALL_START_SCALE = 1.08;
 const GROWING_FIREBALL_END_SCALE = 3.4;
@@ -24,9 +27,8 @@ const GROWING_FIREBALL_TRACK_TURN_RATE = 5.2;
 const CRIMSON_LASER_DURATION_SEC = 3;
 const CRIMSON_LASER_BEAM_TICK_MS = 120;
 const CRIMSON_LASER_DAMAGE_TICK_MS = 300;
-const SWORD_RING_COUNT = 99;
 const SWORD_RING_RADIUS = 40;
-const SWORD_RING_ROTATE_SPEED = 2.7;
+const SWORD_RING_ROTATE_SPEED = 0; // disabled
 const SWORD_RING_SHOT_LIMIT = 24;
 const SWORD_RING_LAYER_CAP = 33;
 const SWORD_RING_RADIUS_STEP = 18;
@@ -1178,6 +1180,8 @@ export class CombatSystem {
           strokeThickness: 3, depth: 25, floatDist: 80, duration: 1500
         });
         bus.emit('status', '🎉 升级！当前Lv.' + P.level, 2);
+        // If leveling up during a battle, trigger an in-level skill card pick
+        try { bus.emit('levelUpPick', P.level); } catch (e) { /* ignore */ }
       }
       const waveLv = en.getData('waveLv') || 1;
       recalcStats();

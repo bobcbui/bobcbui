@@ -251,3 +251,65 @@ document.querySelectorAll('#menu-tabs .tab').forEach(tab => {
     switchTab(tab.dataset.tab);
   });
 });
+
+// ---------------- Skill pick (in-level) ----------------
+function createSkillCard(skDef) {
+  const div = document.createElement('div');
+  div.style.cssText = 'width:160px;padding:10px;background:#fff;border-radius:8px;border:1px solid #eee;text-align:left;';
+  const title = document.createElement('div'); title.style.fontWeight = '700'; title.textContent = skDef.name + (P.skillLevels?.[skDef.id] ? (' Lv.' + P.skillLevels[skDef.id]) : '');
+  const desc = document.createElement('div'); desc.style.fontSize = '12px'; desc.style.color = 'var(--text2)'; desc.style.margin = '6px 0'; desc.textContent = skDef.desc;
+  const btn = document.createElement('button'); btn.className = 'btn-green'; btn.style.width='100%'; btn.textContent = (P.skillLevels?.[skDef.id] ? '升级' : '学习');
+  div.appendChild(title); div.appendChild(desc); div.appendChild(btn);
+  return { el: div, btn };
+}
+
+function showSkillPick(level) {
+  const modal = document.getElementById('skillPickModal');
+  const cardsCont = document.getElementById('skillCards');
+  if(!modal || !cardsCont) return;
+  cardsCont.innerHTML = '';
+  // pick 3 random skill defs (allow duplicates avoided)
+  const pool = SKILL_DEFS.slice();
+  const picks = [];
+  for(let i=0;i<3 && pool.length>0;i++){
+    const idx = Math.floor(Math.random()*pool.length);
+    picks.push(pool.splice(idx,1)[0]);
+  }
+  picks.forEach(sk => {
+    const card = createSkillCard(sk);
+    cardsCont.appendChild(card.el);
+    card.btn.addEventListener('click', ()=>{
+      // apply pick: increase skill level or learn
+      if(!P.skillLevels) P.skillLevels = {};
+      P.skillLevels[sk.id] = (P.skillLevels[sk.id] || 0) + 1;
+      if(!P.skills.includes(sk.id)) P.skills.push(sk.id);
+      // try to add to hotbar: find empty slot or replace first non-basic
+      let placed = false;
+      for(let i=0;i<P.hotbar.length;i++){
+        if(!P.hotbar[i] || !P.hotbar[i].id){ P.hotbar[i] = { kind:'skill', id: sk.id }; placed = true; break; }
+      }
+      if(!placed){
+        // replace first slot that's not swordfly
+        for(let i=0;i<P.hotbar.length;i++){
+          if(P.hotbar[i] && P.hotbar[i].id !== 'swordfly'){ P.hotbar[i] = { kind:'skill', id: sk.id }; placed = true; break; }
+        }
+      }
+      // refresh UI
+      recalcStats();
+      hotbarRender();
+      renderSkillsTab();
+      renderMeTab();
+      document.getElementById('skillPickModal')?.classList.add('hidden');
+    });
+  });
+  document.getElementById('skillPickClose')?.addEventListener('click', ()=>{ document.getElementById('skillPickModal')?.classList.add('hidden'); });
+  document.getElementById('skillPickSkip')?.addEventListener('click', ()=>{ document.getElementById('skillPickModal')?.classList.add('hidden'); });
+  modal.classList.remove('hidden');
+}
+
+bus.on('levelUpPick', (lvl) => {
+  // only show when in-battle (canvas visible)
+  const canvasHidden = document.getElementById('gameCanvas')?.classList.contains('hidden');
+  if(canvasHidden) return;
+  showSkillPick(lvl);
+});

@@ -94,17 +94,8 @@ export function refreshSkills(){
 
 export function initHotbar(){
   P.hotbar = [];
-  P.hotbar.push({ kind:'skill', id:'swordfly' });
-  const swaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
-  for(let i=0;i<4;i++){
-    const existing = P.hotbar?.[i+1];
-    if(existing && existing.id && swaps.some(s=>s.id===existing.id)){
-      P.hotbar.push(existing);
-    } else {
-      const defaults = ['earthmove','firedomain','thunder','hailstorm'];
-      P.hotbar.push({ kind:'skill', id:defaults[i]||swaps[i]?.id||null });
-    }
-  }
+  // Start with only the basic attack (swordfly). Other skills are learned via in-level draws
+  P.hotbar.push({ kind: 'skill', id: 'swordfly' });
 }
 
 refreshSkills();
