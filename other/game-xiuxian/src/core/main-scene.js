@@ -1,6 +1,6 @@
 import { P, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
   setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar,
-  checkAchievements, baseHp, baseMaxHp, currentWave,
+  baseHp, baseMaxHp, currentWave,
   setBaseHp, setCurrentWave, setWavePending } from './state.js';
 import { SKILL_DEFS, getRealm, getRealmIndex, WORLD, LANES, LANE_WIDTH, DEFENSE_LINE_Y, PLAYER_ZONE_TOP } from '../data/index.js';
 import { installSceneSystems } from '../systems/index.js';

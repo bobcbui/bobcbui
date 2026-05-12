@@ -7,7 +7,6 @@ import { MovementSystem } from './movement-system.js';
 import { SceneEffectsSystem } from './scene-effects-system.js';
 import { SpawnSystem } from './spawn-system.js';
 import { TextPool } from './text-pool.js';
-import { WaveSystem } from './wave-system.js';
 import { SkillEffects } from '../effects/skill-effects.js';
 
 export function installSceneSystems(scene) {
@@ -21,5 +20,4 @@ export function installSceneSystems(scene) {
   scene.spawnSystem = new SpawnSystem(scene);
   scene.aiSystem = new AISystem(scene);
   scene.combatSystem = new CombatSystem(scene);
-  scene.waveSystem = new WaveSystem(scene);
 }

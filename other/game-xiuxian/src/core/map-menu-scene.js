@@ -1,4 +1,4 @@
-import { WORLD, LEVELS, REALMS, getRealmIndex } from '../data/index.js';
+import { WORLD, LEVELS, getRealmIndex } from '../data/index.js';
 import { P, recalcStats, realmText } from './state.js';
 import { setScene } from './runtime.js';
 import { loadGame } from './save.js';
