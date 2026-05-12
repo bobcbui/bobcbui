@@ -297,9 +297,9 @@ export class MainScene extends Phaser.Scene {
     const nw = currentWave + 1;
     if (currentWave >= this._maxWaveForLevel) {
       this.showWorldNotice('🎉 关卡通关！', '#ffd700');
-      bus.emit('status', '关卡通关！即将返回...', 3);
+      bus.emit('status', '关卡通关！', 2.5);
       this.time.delayedCall(2000, () => {
-        this.scene.start('MapMenu');
+        if (window.returnToMenu) window.returnToMenu();
       });
       return;
     }
@@ -362,7 +362,7 @@ export class MainScene extends Phaser.Scene {
       this.clearEnemies();
       bus.emit('status', '防线失守...', 2);
       this.time.delayedCall(2000, () => {
-        this.scene.start('MapMenu');
+        if (window.returnToMenu) window.returnToMenu();
       });
     }
   }
