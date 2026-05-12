@@ -1,49 +1,28 @@
 export const REALMS = [
   { id:'mortal',name:'凡体',stages:1,hpBonus:0,atkBonus:0,defBonus:0,reqKills:0 },
-  { id:'liangi',name:'炼气期',stages:9,hpBonus:20,atkBonus:3,defBonus:2,reqKills:5 },
-  { id:'zhuji',name:'筑基期',stages:9,hpBonus:60,atkBonus:8,defBonus:5,reqKills:20 },
-  { id:'jindan',name:'金丹期',stages:9,hpBonus:150,atkBonus:18,defBonus:12,reqKills:60 },
-  { id:'yuanying',name:'元婴期',stages:9,hpBonus:400,atkBonus:40,defBonus:25,reqKills:150 },
-  { id:'huashen',name:'化神期',stages:9,hpBonus:1000,atkBonus:90,defBonus:55,reqKills:400 },
-  { id:'dacheng',name:'大乘期',stages:9,hpBonus:2500,atkBonus:200,defBonus:120,reqKills:1000 },
-  { id:'dujie',name:'渡劫期',stages:9,hpBonus:6000,atkBonus:450,defBonus:260,reqKills:2500 },
-  { id:'feisheng',name:'飞升境',stages:1,hpBonus:15000,atkBonus:1000,defBonus:600,reqKills:0 }
+  { id:'liangi',name:'炼气期',stages:7,hpBonus:30,atkBonus:5,defBonus:3,reqKills:10 },
+  { id:'zhuji',name:'筑基期',stages:7,hpBonus:100,atkBonus:15,defBonus:8,reqKills:40 },
+  { id:'jindan',name:'金丹期',stages:7,hpBonus:350,atkBonus:45,defBonus:25,reqKills:120 },
+  { id:'yuanying',name:'元婴期',stages:7,hpBonus:1200,atkBonus:140,defBonus:80,reqKills:350 },
 ];
 export function getRealm(rId){ return REALMS.find(r=>r.id===rId)||REALMS[0]; }
 export function getRealmIndex(rId){ return REALMS.findIndex(r=>r.id===rId); }
-
-const LEGACY_SKILL_DEFS = [
-  { id:'swordfly',name:'飞剑术',short:'剑',slot:'Q',baseDmg:0.7,range:280,desc:'锁定敌人，远距飞剑',type:'basic',color:0x6f9eb8,texture:'swordQi',cooldown:0.7 },
-  { id:'fireball',name:'火球术',short:'火',baseDmg:1.4,range:210,desc:'火球经过处留下10秒残焰，敌人踏入会持续受伤',type:'basic',color:0xc95f36,texture:'fireball',cooldown:1.2 },
-  { id:'swordrush',name:'御剑术',short:'御',baseDmg:0.7,range:200,desc:'三把飞剑齐射',type:'multi',color:0x99ddff,texture:'swordQi',count:3,cooldown:1.5 },
-  { id:'thunderbolt',name:'落雷',short:'雳',baseDmg:2.0,range:200,desc:'单体高伤雷击',type:'single',color:0xd6a742,texture:'bolt',cooldown:2.0 },
-  { id:'earthshield',name:'土盾',short:'土',desc:'土灵环绕，吸收30%伤害',type:'shield',shieldPct:0.3,duration:6,cooldown:8,color:0x8b6914 },
-  { id:'swordshield',name:'剑盾',short:'罡',desc:'剑气护体，减伤20%并反弹',type:'shield',shieldPct:0.2,reflectDmg:8,duration:5,cooldown:7,color:0x5599cc },
-  { id:'goldshield',name:'金盾',short:'金',desc:'金钟罩，减伤50%',type:'shield',shieldPct:0.5,duration:4,cooldown:12,color:0xffd700 },
-  { id:'speedbuff',name:'疾风步',short:'疾',desc:'移速+40%，持续6秒',type:'buff',speedBoost:0.4,duration:6,cooldown:10,color:0x66ffcc },
-  { id:'atkbuff',name:'战意',short:'战',desc:'攻速+30%，伤害+20%',type:'buff',speedBoost:0.15,atkBoost:0.2,duration:5,cooldown:12,color:0xff8866 },
-  { id:'rangebuff',name:'鹰眼',short:'眼',desc:'攻击距离+50%，持续8秒',type:'buff',rangeBoost:0.5,duration:8,cooldown:10,color:0x55aadd },
-  { id:'waterdomain',name:'水域术',short:'水',baseDmg:0.5,range:170,desc:'水域，伤害并迟缓敌人',type:'domain',aoeRadius:150,slow:0.4,cooldown:4,color:0x5aa6b1,texture:'water' },
-  { id:'thunder',name:'雷域',short:'雷',baseDmg:0.35,range:320,desc:'以自身为中心展开5秒雷域，范围广但伤害较低',type:'domain',aoeRadius:300,cooldown:30,duration:5,color:0xd6a742,texture:'bolt',selfCenter:true },
-  { id:'tornado',name:'风域',short:'风',baseDmg:0.6,range:190,desc:'风卷敌人，拉扯聚怪',type:'domain',aoeRadius:165,cooldown:4,color:0x9fb884,texture:'wind' },
-];
 
 export const SKILL_DEFS = [
   { id:'swordfly',name:'飞剑术',short:'剑',slot:'Q',baseDmg:0.7,range:300,desc:'锁定敌人，远距飞剑攻击',type:'basic',color:0x6f9eb8,texture:'swordQi',cooldown:0.65 },
   { id:'earthmove',name:'治疗',short:'疗',desc:'恢复10%最大生命值',type:'heal',healPct:0.1,cooldown:30,color:0x66d98f },
   { id:'firedomain',name:'巨剑术',short:'巨',baseDmg:1.55,range:9999,desc:'召出一把巨大的飞剑向前猛冲',type:'single',cooldown:8,color:0xffd06a,texture:'swordQi' },
-  { id:'thunder',name:'雷域',short:'雷',baseDmg:0.35,range:320,desc:'以自身为中心展开5秒雷域，范围广但伤害较低',type:'domain',aoeRadius:300,cooldown:30,duration:5,color:0xd6a742,texture:'bolt',selfCenter:true },
-  { id:'hailstorm',name:'高能射线',short:'射',baseDmg:0.35,range:9999,desc:'在地面召唤红球，并由红球持续发射激光攻击敌人',type:'domain',aoeRadius:145,duration:3,cooldown:10,color:0xff2a2a,texture:'bolt' },
+  { id:'thunder',name:'雷域',short:'雷',baseDmg:0.35,range:320,desc:'以自身为中心展开5秒雷域',type:'domain',aoeRadius:300,cooldown:30,duration:5,color:0xd6a742,texture:'bolt',selfCenter:true },
+  { id:'hailstorm',name:'高能射线',short:'射',baseDmg:0.35,range:9999,desc:'地面召唤红球，持续发射激光攻击敌人',type:'domain',aoeRadius:145,duration:3,cooldown:10,color:0xff2a2a,texture:'bolt' },
 ];
 
 const ENEMY_HP_TIER_MULT = Object.freeze({ normal: 1, elite: 2, boss: 5 });
 
 export const COMBAT_TUNING = Object.freeze({
-  maxActiveEnemies: 8,
-  initialEnemyCount: 4,
-  spawnInterval: Object.freeze({ empty: 1.8, refill: 2.6, capped: 3.4 }),
+  maxActiveEnemies: 14,
+  spawnInterval: Object.freeze({ empty: 1.6, refill: 2.4, capped: 3.2 }),
   playerDamageScale: 70,
-  enemyHpScale: 190,
+  enemyHpScale: 180,
   enemyHpTierMult: ENEMY_HP_TIER_MULT,
   hpBar: Object.freeze({ normalWidth: 28, bossWidth: 38, height: 5 })
 });
@@ -62,67 +41,46 @@ export const EQ_BASES = {
   amulet:{ hp:[10,40],def:[1,4] }
 };
 
-export const WORLD = { size: 8000, safeRadius: 350 };
+export const WORLD = { width: 540, height: 960 };
+export const LANES = 5;
+export const LANE_WIDTH = Math.floor(WORLD.width / LANES);
+export const DEFENSE_LINE_Y = WORLD.height - 180;
+export const PLAYER_ZONE_TOP = WORLD.height - 240;
 
-export const ZONES = [
-  { id:'hehuan',  name:'合欢宗',   minDist:0,    maxDist:700,  monsterLv:1,  color:0xf0e0c8, colorName:'#c9a96e' },
-  { id:'yaoshou', name:'妖兽谷',   minDist:700,  maxDist:1400, monsterLv:5,  color:0xb8a878, colorName:'#7a6020' },
-  { id:'xueshan', name:'雪山',     minDist:1400, maxDist:2200, monsterLv:9,  color:0xb8d8e8, colorName:'#5a8a9a' },
-  { id:'huoyan',  name:'火焰山',   minDist:2200, maxDist:3100, monsterLv:14, color:0xd89878, colorName:'#b84a2a' },
-  { id:'shenyuan',name:'深渊',     minDist:3100, maxDist:4000, monsterLv:19, color:0x8866aa, colorName:'#5a3a7a' },
-  { id:'wanjian', name:'万剑峰',   minDist:4000, maxDist:4700, monsterLv:24, color:0xaabbcc, colorName:'#6a8aaa' },
-  { id:'youming', name:'幽冥海',   minDist:4700, maxDist:5200, monsterLv:29, color:0x446688, colorName:'#3a5a7a' },
-  { id:'jiutian', name:'九天雷域', minDist:5200, maxDist:6000, monsterLv:34, color:0xccaa44, colorName:'#b89a2a' },
+const MONSTER_TEXTURE_MAP = [
+  'monster-rabbit', 'monster-wolf', 'monster-spider',
+  'monster-golem', 'monster-ice-spirit', 'monster-fire-demon',
+  'monster-serpent', 'monster-shadow', 'monster-ghost',
+  'monster-sword-spirit', 'monster-sword-golem', 'monster-thunder-beast',
+  'monster-thunder-spirit', 'monster-dragon'
 ];
 
-export const MAPS = [];
+const WAVE_ENEMY_TEMPLATES = [
+  { name:'妖狼',   hp:40,  atk:10, speed:35, xp:8,  gold:5,  atkType:'melee' },
+  { name:'石傀',   hp:55,  atk:12, speed:25, xp:10, gold:7,  atkType:'melee' },
+  { name:'毒蜂',   hp:28,  atk:14, speed:42, xp:9,  gold:6,  atkType:'ranged', atkRange:200, atkCD:3, projColor:0x88cc44 },
+  { name:'炎魔',   hp:80,  atk:22, speed:30, xp:18, gold:12, atkType:'ranged', atkRange:220, atkCD:3, projColor:0xff6633 },
+  { name:'冰魄',   hp:70,  atk:20, speed:26, xp:16, gold:10, atkType:'ranged', atkRange:210, atkCD:3, projColor:0x88ccff },
+  { name:'霜巨人', hp:120, atk:18, speed:20, xp:22, gold:15, atkType:'melee' },
+  { name:'火蛟',   hp:100, atk:28, speed:46, xp:25, gold:18, atkType:'ranged', atkRange:240, atkCD:2.5, projColor:0xff4422 },
+  { name:'影魔',   hp:140, atk:30, speed:36, xp:30, gold:22, atkType:'ranged', atkRange:230, atkCD:2.5, projColor:0x9944cc },
+  { name:'剑灵',   hp:160, atk:36, speed:40, xp:38, gold:28, atkType:'ranged', atkRange:260, atkCD:2.5, projColor:0x88bbff },
+  { name:'幽魂',   hp:200, atk:42, speed:42, xp:50, gold:35, atkType:'ranged', atkRange:250, atkCD:2.2, projColor:0x334488 },
+  { name:'海妖',   hp:240, atk:48, speed:36, xp:60, gold:42, atkType:'ranged', atkRange:280, atkCD:2.5, projColor:0x224488 },
+  { name:'雷兽',   hp:300, atk:55, speed:46, xp:75, gold:55, atkType:'ranged', atkRange:300, atkCD:2, projColor:0xccbb44 },
+];
 
-const sectZone = ZONES.find(zone => zone.id === 'hehuan');
-if (sectZone) sectZone.name = '古剑门';
+export function getEnemyTemplateByWave(wave) {
+  const idx = Math.min(Math.floor((wave - 1) / 3), WAVE_ENEMY_TEMPLATES.length - 1);
+  return WAVE_ENEMY_TEMPLATES[idx];
+}
 
-export const BESTIARY = {
-  hehuan:[
-    { name:'灵兔',hp:20,atk:4,speed:35,xp:3,gold:2,atkType:'melee' },
-    { name:'野狗',hp:28,atk:6,speed:45,xp:4,gold:3,atkType:'melee' },
-    { name:'毒蜂',hp:18,atk:9,speed:50,xp:4,gold:3,atkType:'ranged',atkRange:180,atkCD:3,projColor:0x88cc44 }
-  ],
-  yaoshou:[
-    { name:'妖狼',hp:40,atk:10,speed:45,xp:6,gold:4,atkType:'melee' },
-    { name:'石傀',hp:55,atk:12,speed:30,xp:8,gold:6,atkType:'melee' },
-    { name:'毒蝎',hp:35,atk:16,speed:50,xp:9,gold:7,atkType:'ranged',atkRange:200,atkCD:2.5,projColor:0x88cc44 }
-  ],
-  xueshan:[
-    { name:'雪狼',hp:70,atk:20,speed:50,xp:14,gold:10,atkType:'melee' },
-    { name:'冰魄',hp:85,atk:25,speed:30,xp:16,gold:12,atkType:'ranged',atkRange:220,atkCD:3,projColor:0x88ccff },
-    { name:'霜巨人',hp:110,atk:22,speed:25,xp:18,gold:15,atkType:'melee' }
-  ],
-  huoyan:[
-    { name:'炎魔',hp:140,atk:38,speed:35,xp:28,gold:20,atkType:'ranged',atkRange:240,atkCD:3,projColor:0xff6633 },
-    { name:'火蛟',hp:120,atk:45,speed:55,xp:32,gold:24,atkType:'ranged',atkRange:260,atkCD:2.8,projColor:0xff4422 },
-    { name:'熔岩兽',hp:200,atk:35,speed:28,xp:35,gold:28,atkType:'melee' }
-  ],
-  shenyuan:[
-    { name:'影魔',hp:250,atk:55,speed:40,xp:45,gold:35,atkType:'ranged',atkRange:250,atkCD:2.5,projColor:0x9944cc },
-    { name:'深渊领主',hp:350,atk:65,speed:30,xp:55,gold:45,atkType:'melee' },
-    { name:'噬魂者',hp:200,atk:70,speed:55,xp:50,gold:40,atkType:'ranged',atkRange:280,atkCD:2,projColor:0x6644dd }
-  ],
-  wanjian:[
-    { name:'剑灵',hp:380,atk:80,speed:45,xp:65,gold:50,atkType:'ranged',atkRange:300,atkCD:2.5,projColor:0x88bbff },
-    { name:'剑罡',hp:450,atk:75,speed:35,xp:70,gold:55,atkType:'melee' },
-    { name:'飞剑妖',hp:300,atk:90,speed:60,xp:75,gold:60,atkType:'ranged',atkRange:320,atkCD:2,projColor:0x6699dd }
-  ],
-  youming:[
-    { name:'幽魂',hp:500,atk:100,speed:50,xp:90,gold:70,atkType:'ranged',atkRange:280,atkCD:2.2,projColor:0x334488 },
-    { name:'海妖',hp:560,atk:110,speed:40,xp:95,gold:75,atkType:'ranged',atkRange:300,atkCD:2.5,projColor:0x224488 },
-    { name:'冥兽',hp:650,atk:95,speed:35,xp:100,gold:80,atkType:'melee' }
-  ],
-  jiutian:[
-    { name:'雷兽',hp:700,atk:130,speed:55,xp:120,gold:95,atkType:'ranged',atkRange:320,atkCD:2,projColor:0xccbb44 },
-    { name:'天雷将',hp:800,atk:140,speed:40,xp:130,gold:105,atkType:'ranged',atkRange:340,atkCD:2.5,projColor:0xffdd44 },
-    { name:'劫雷龙',hp:950,atk:120,speed:30,xp:140,gold:115,atkType:'melee' }
-  ]
-};
-export const BOSS_NAMES = ['妖兽王','雪山之主','炎帝分身','深渊魔神','万剑尊者','幽冥海皇','九霄雷帝','九尾天狐'];
+export function getEnemyTexture(tmpl) {
+  const idx = WAVE_ENEMY_TEMPLATES.indexOf(tmpl);
+  return MONSTER_TEXTURE_MAP[idx % MONSTER_TEXTURE_MAP.length] || 'monster-wolf';
+}
+
+export const BOSS_NAMES = ['妖兽王','雪山之主','炎帝分身','深渊魔神','万剑尊者','幽冥海皇','九霄雷帝'];
 
 export const ACHIEVEMENTS = [
   { id:'kill_10', name:'初出茅庐', desc:'击杀10只妖兽', icon:'⚔️', check:(p)=>p.kills>=10, reward:{gold:50} },
@@ -150,4 +108,16 @@ export const SHOP_ITEMS = [
   { id:'attr_reset', name:'洗髓丹', desc:'重置所有属性点', icon:'💊', cost:100, effect:'attr_reset' },
   { id:'skill_reset', name:'悟道丹', desc:'重置所有技能点', icon:'💊', cost:100, effect:'skill_reset' },
   { id:'gold_bag', name:'灵石袋', desc:'获得100灵石', icon:'💰', cost:50, effect:'gold_bag' },
+];
+
+export const LEVELS = [
+  { id:1, name:'古剑门', desc:'初入仙途', waves:5,  startWave:1,  icon:'🏯', x:0.5, y:0.92, realmReq:'mortal' },
+  { id:2, name:'妖兽谷', desc:'妖兽出没', waves:7,  startWave:2,  icon:'🐺', x:0.5, y:0.82, realmReq:'mortal' },
+  { id:3, name:'雪山',   desc:'冰天雪地', waves:9,  startWave:3,  icon:'🏔️', x:0.5, y:0.72, realmReq:'mortal' },
+  { id:4, name:'火焰山', desc:'烈焰焚天', waves:11, startWave:4,  icon:'🌋', x:0.5, y:0.62, realmReq:'liangi' },
+  { id:5, name:'深渊',   desc:'黑暗深渊', waves:13, startWave:5,  icon:'🕳️', x:0.5, y:0.52, realmReq:'liangi' },
+  { id:6, name:'万剑峰', desc:'万剑归宗', waves:15, startWave:6,  icon:'⚔️', x:0.5, y:0.42, realmReq:'zhuji' },
+  { id:7, name:'幽冥海', desc:'幽冥之海', waves:17, startWave:7,  icon:'🌊', x:0.5, y:0.32, realmReq:'zhuji' },
+  { id:8, name:'九天雷域', desc:'九天神雷', waves:20, startWave:8, icon:'⚡', x:0.5, y:0.22, realmReq:'jindan' },
+  { id:9, name:'仙府试炼', desc:'仙府传承', waves:25, startWave:9, icon:'🏛️', x:0.5, y:0.12, realmReq:'jindan' },
 ];

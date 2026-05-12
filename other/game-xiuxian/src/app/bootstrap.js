@@ -5,9 +5,8 @@ import '../core/save.js';
 import { createGameConfig } from '../core/game-config.js';
 import { setGame } from '../core/runtime.js';
 import { JoystickController } from '../input/joystick-controller.js';
-import { hotbarRender, updateHUD } from '../ui/index.js';
-import { bindGlobalActions, uiActions } from '../ui/actions.js';
-import { mountTopNav } from '../ui/nav-bar.js';
+import { hotbarRender } from '../ui/index.js';
+import { bindGlobalActions } from '../ui/actions.js';
 
 function markTouchDevice() {
   if (window.ontouchstart !== undefined || navigator.maxTouchPoints > 0) {
@@ -33,9 +32,7 @@ export function bootstrap() {
 
   window.addEventListener('load', () => {
     hotbarRender();
-    updateHUD();
     startGame();
-    mountTopNav(document.querySelector('.ui-layer'), uiActions);
     mountJoystick();
   });
 }

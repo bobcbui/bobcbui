@@ -1057,7 +1057,7 @@ export class CombatSystem {
   }
 
   onEnemyProjHit(proj) {
-    if (!proj.active || this.scene.playerDead || this.scene._inSafeZone()) { this.scene.freeProj(proj); return; }
+    if (!proj.active || this.scene.playerDead) { this.scene.freeProj(proj); return; }
     const dmg = proj.getData('damage') || 8;
     const sd = P.buff.shieldPct > 0 ? (1 - P.buff.shieldPct) : 1;
     P.hp = Math.max(0, P.hp - Math.round(dmg * sd));
@@ -1073,11 +1073,10 @@ export class CombatSystem {
       P.gold = Math.max(0, P.gold - lostGold);
       bus.emit('status', '💀 道殒！损失 ' + lostGold + ' 灵石', 3);
     }
-    bus.emit('hud-refresh');
   }
 
   onEnemyContact(en) {
-    if (en.getData('dead') || this.scene.playerDead || this.scene._inSafeZone()) return;
+    if (en.getData('dead') || this.scene.playerDead) return;
     const now = this.scene.time.now;
     const lastHit = en.getData('lastContactTime') || 0;
     if (now - lastHit < 600) return;
@@ -1101,7 +1100,6 @@ export class CombatSystem {
       if (this.scene.deathModal) this.scene.deathModal.classList.remove('hidden');
       bus.emit('status', '💀 道殒！损失 ' + lostGold + ' 灵石', 3);
     }
-    bus.emit('hud-refresh');
   }
 
   applySwordLifesteal(skillId, dealtDamage) {
@@ -1181,11 +1179,11 @@ export class CombatSystem {
         });
         bus.emit('status', '🎉 升级！当前Lv.' + P.level, 2);
       }
-      const zoneLv = en.getData('zoneLv') || 1;
+      const waveLv = en.getData('waveLv') || 1;
       recalcStats();
       const dropRate = isBoss ? 1.0 : (isElite ? 0.6 : 0.35);
       if (Math.random() < dropRate) {
-        const eq = genEquipment(zoneLv, isBoss ? 'legendary' : null);
+        const eq = genEquipment(waveLv, isBoss ? 'legendary' : null);
         if (eq.rarity === 'legendary' || eq.rarity === 'mythic') P.legendaryFound = true;
         const result = acquireEquipment(P, eq);
         if (result.stored) {
@@ -1196,13 +1194,11 @@ export class CombatSystem {
         }
       }
       if (Math.random() < 0.1 && P.inventory.length < 30) {
-        const dropGold = Math.round((10 + zoneLv * 5) * (isBoss ? 5 : 1));
+        const dropGold = Math.round((10 + waveLv * 5) * (isBoss ? 5 : 1));
         P.gold = Math.min(99999, P.gold + dropGold);
         P.totalGoldEarned = (P.totalGoldEarned || 0) + dropGold;
       }
       P.gold = Math.min(P.gold, 99999);
-      bus.emit('hud-refresh');
-      bus.emit('hotbar-refresh');
       bus.emit('save');
     }
   }
@@ -1286,7 +1282,6 @@ export class CombatSystem {
             duration: 760
           });
         }
-        bus.emit('hud-refresh');
       } else if (def.type === 'shield') {
         scene.skillCooldowns[def.id] = skillNow + cd;
         P.buff.shieldPct = def.shieldPct || 0;

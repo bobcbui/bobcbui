@@ -2,7 +2,9 @@ import { bus } from './events.js';
 import { setStatusTimer, setLootTimer } from './state.js';
 
 function setStatus(text, dur) {
-  setStatusTimer(0);
+  setStatusTimer(dur || 2);
+  const el = document.getElementById('status');
+  if (el) { el.textContent = text; el.classList.add('show'); }
 }
 
 function setLoot(text) {

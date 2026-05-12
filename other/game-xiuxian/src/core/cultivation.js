@@ -50,7 +50,6 @@ export function doBreakthrough(){
   }
   cancelBreakthrough();
   recalcStats();
-  bus.emit('hud-refresh');
   bus.emit('save');
 }
 

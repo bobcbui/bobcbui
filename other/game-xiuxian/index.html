@@ -3,119 +3,107 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>九天仙途 - 文字修仙世界</title>
+<title>九天仙途 - 剑气长城</title>
 <style>
 :root {
-  --panel-bg: rgba(255, 250, 232, 0.9);
-  --panel-border: rgba(128, 88, 44, 0.22);
-  --text: #3f2d1d;
-  --text-dim: rgba(63,45,29,0.64);
-  --gold: #b57a19;
-  --hp: #b94a3e;
-  --xp: #4f8c48;
-  --rare: #6f73a8;
+  --panel-bg: rgba(30, 20, 10, 0.94);
+  --panel-border: rgba(200, 160, 80, 0.25);
+  --text: #e8d5b0;
+  --gold: #ffd700;
+  --hp: #ff6a5f;
   --btn: linear-gradient(180deg,#f6dfac,#d9a64f);
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
-#gameCanvas { position:fixed;inset:0;display:block;touch-action:none;background:#efe3c0; }
+html,body { width:100%;height:100%;overflow:hidden;background:#1a0a00;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
+#gameCanvas { position:fixed;inset:0;display:block;touch-action:none;background:#1a0a00; }
 .ui-layer { position:fixed;inset:0;pointer-events:none; }
-.panel { background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;backdrop-filter:blur(12px); }
 .hidden { display:none!important; }
 
-/* Top HUD */
-#hud { position:absolute;top:10px;left:10px;width:260px;padding:10px; }
-#hud .realm { font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px; }
-#hud .realm-sub { font-size:11px;color:var(--text-dim);margin-bottom:6px; }
-#hud .bar-wrap { display:flex;align-items:center;gap:6px;margin-bottom:3px; }
-#hud .bar-wrap .label { font-size:11px;width:16px;text-align:right; }
-#hud .bar-bg { flex:1;height:7px;border-radius:999px;background:rgba(128,88,44,0.12);overflow:hidden; }
-#hud .bar-fill { height:100%;width:100%;transition:width .1s linear;border-radius:999px; }
-#hud .bar-text { font-size:10px;min-width:50px;text-align:right;color:var(--text-dim); }
+/* Right Control Panel */
+#ctrl-panel { position:absolute; right:0; top:0; bottom:0; width:200px; pointer-events:auto; display:flex; flex-direction:column; z-index:15; }
+#ctrl-tabs { display:flex; flex-direction:column; padding:8px 6px; gap:4px; }
+#ctrl-tabs button { padding:10px 6px; border:1px solid rgba(200,160,80,0.2); border-radius:8px; background:rgba(40,28,12,0.85); color:#c8a860; font-size:13px; font-weight:700; cursor:pointer; transition:.15s; }
+#ctrl-tabs button:hover { border-color:var(--gold); color:var(--gold); background:rgba(60,40,16,0.9); }
+#ctrl-tabs button.active { border-color:var(--gold); color:var(--gold); background:rgba(80,50,20,0.95); box-shadow:0 0 8px rgba(255,215,0,0.15); }
 
-/* Cultivation orb */
-#cult-orb { position:absolute;top:50%;left:50%;width:80px;height:80px;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:0;transition:opacity .3s; }
-#cult-orb.show { opacity:1; }
+#ctrl-content { flex:1; overflow-y:auto; padding:8px; }
+#ctrl-content .panel { background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:12px; padding:12px; }
+#ctrl-content h3 { font-size:14px; color:var(--gold); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid rgba(200,160,80,0.2); }
 
-/* Zone label */
-#zone-label { position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;pointer-events:none;opacity:0;transition:opacity .6s;text-shadow:0 2px 18px rgba(255,248,220,.95);letter-spacing:3px;z-index:2;background:rgba(63,45,29,0.35);padding:2px 18px;border-radius:12px; }
-#zone-label.show { opacity:.9; }
+.eq-slot { padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(200,160,80,0.12); margin-bottom:5px; font-size:11px; }
+.eq-slot .lbl { color:rgba(200,160,80,0.6); font-size:10px; }
+.eq-slot .val { color:#e8d5b0; }
+.eq-slot .empty { color:rgba(200,160,80,0.3); font-style:italic; }
 
-/* Bottom hotbar */
-#hotbar { display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:8px; }
-.slot { padding:4px 3px 5px;border:1px solid rgba(128,88,44,0.18);background:rgba(255,250,232,0.82);border-radius:8px;text-align:center;transition:.12s;pointer-events:auto;cursor:pointer;box-shadow:0 6px 20px rgba(112,82,38,0.12); }
-.slot:hover { border-color:rgba(128,88,44,0.34); }
-.slot.active { transform:translateY(-4px);border-color:var(--gold);background:rgba(250,226,168,0.9); }
-.slot .n { font-size:18px;font-weight:900;margin:1px 0; }
-.slot .m { font-size:10px;color:var(--text-dim);min-height:14px; }
+.inv-item { padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(200,160,80,0.12); margin-bottom:4px; cursor:pointer; font-size:11px; }
+.inv-item:hover { border-color:var(--gold); }
+.inv-item .in { font-weight:700; color:#e8d5b0; }
+.inv-item .im { font-size:10px; color:rgba(200,160,80,0.5); }
+.inv-item .is { font-size:10px; color:rgba(200,160,80,0.5); }
+.inv-item.equipped { border-color:var(--gold); }
+
+.skill-row { padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.04); margin-bottom:4px; font-size:12px; }
+.skill-row .sn { font-weight:700; color:var(--gold); }
+.skill-row .sd { font-size:10px; color:rgba(200,160,80,0.5); }
+
+.shop-row { padding:8px; border-radius:6px; background:rgba(255,255,255,0.04); border:1px solid rgba(200,160,80,0.1); margin-bottom:4px; }
+.shop-row .sh-name { font-size:12px; font-weight:700; color:var(--gold); }
+.shop-row .sh-desc { font-size:10px; color:rgba(200,160,80,0.5); margin:2px 0; }
+.shop-row .sh-cost { font-size:11px; color:var(--gold); }
+
+.ach-row { padding:6px 8px; border-radius:4px; margin-bottom:3px; font-size:11px; display:flex; align-items:center; gap:6px; }
+.ach-row.done { color:#88cc88; }
+.ach-row .ach-icon { font-size:14px; width:20px; text-align:center; }
+
+.btn { pointer-events:auto; border:0; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; color:#3f2d1d; background:var(--btn); cursor:pointer; }
+.btn-sm { padding:4px 8px; font-size:10px; }
+.btn-gold { background:linear-gradient(180deg,#f7d98e,#d19a38); color:#3f2d1d; }
+
+/* Top-right skill bar */
+#hotbar { position:absolute; top:10px; right:210px; display:flex; flex-direction:column; gap:5px; z-index:8; pointer-events:auto; }
+.slot { width:48px; padding:5px 2px; border:1px solid rgba(200,160,80,0.2); background:rgba(30,20,10,0.85); border-radius:8px; text-align:center; transition:.12s; cursor:pointer; }
+.slot:hover { border-color:var(--gold); }
+.slot.active { transform:translateX(-6px); border-color:var(--gold); background:rgba(80,50,20,0.9); }
+.slot .n { font-size:16px; font-weight:900; color:#e8d5b0; margin:1px 0; }
+.slot .m { font-size:9px; color:rgba(200,160,80,0.5); min-height:12px; }
 .slot.cd .m { color:var(--hp); }
 
-/* Status msg */
-#status { display:none!important;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .2s;text-shadow:0 2px 12px rgba(255,248,220,.9);white-space:nowrap; }
+/* Status */
+#status { display:none!important; position:absolute; bottom:70px; left:50%; transform:translateX(-50%); font-size:14px; font-weight:600; color:var(--gold); pointer-events:none; opacity:0; transition:opacity .2s; text-shadow:0 2px 12px rgba(0,0,0,.8); white-space:nowrap; }
 #status.show { opacity:1; }
 
-/* Modal - Character */
-.modal-overlay { position:absolute;inset:0;pointer-events:none;z-index:10; }
-.modal-overlay.show { pointer-events:auto; }
-.modal-overlay>.bg { position:absolute;inset:0;background:rgba(112,82,38,.16); }
-.modal-box { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 24px));max-height:85vh;overflow-y:auto;padding:16px;pointer-events:auto; }
-.modal-box h2 { font-size:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center; }
-.modal-box h2 .close { cursor:pointer;font-size:22px;color:var(--text-dim);padding:0 6px; }
-.modal-box h2 .close:hover { color:var(--text); }
+/* Modals */
+.modal-overlay { position:absolute; inset:0; pointer-events:none; z-index:20; }
+.modal-overlay>.bg { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+.modal-box { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(360px,calc(100vw - 24px)); padding:20px; pointer-events:auto; background:rgba(30,20,10,0.95); border:1px solid var(--panel-border); border-radius:14px; text-align:center; }
+.modal-box h2 { font-size:18px; margin-bottom:12px; }
 
-.eq-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px; }
-.eq-slot { padding:10px;border-radius:8px;background:rgba(255,255,255,.38);border:1px solid rgba(128,88,44,.14); }
-.eq-slot .lbl { font-size:11px;color:var(--text-dim);margin-bottom:4px; }
-.eq-slot .val { font-size:13px; }
-.eq-slot .empty { color:var(--text-dim);font-style:italic;font-size:12px; }
+/* Breakthrough */
+#breakthrough-overlay { position:absolute; inset:0; z-index:25; pointer-events:none; }
+#breakthrough-overlay.show { pointer-events:auto; }
+#breakthrough-overlay .bg { position:absolute; inset:0; background:rgba(0,0,0,.4); }
+#breakthrough-box { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(360px,calc(100vw - 24px)); padding:24px; text-align:center; pointer-events:auto; background:rgba(30,20,10,0.95); border:1px solid var(--panel-border); border-radius:14px; }
+#breakthrough-box h2 { font-size:22px; color:var(--gold); margin-bottom:8px; }
+#breakthrough-box p { font-size:14px; color:rgba(200,160,80,0.6); margin-bottom:16px; }
+#breakthrough-box .chance { font-size:28px; font-weight:900; color:var(--gold); margin-bottom:12px; }
 
-/* Attr grid */
-.attr-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
-.attr-row { padding:6px 8px; border-radius:8px; background:rgba(255,255,255,.38); border:1px solid rgba(128,88,44,.12); text-align:center; }
-.attr-row .attr-label { display:block; font-size:11px; color:var(--text-dim); }
-.attr-row .attr-val { display:block; font-size:17px; font-weight:700; margin:2px 0; }
-.attr-row .attr-desc { display:block; font-size:10px; color:var(--text-dim); margin-bottom:5px; }
+.flex { display:flex; gap:8px; align-items:center; justify-content:center; }
 
-/* Bag */
-.bag-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-height:50vh;overflow-y:auto; }
+/* Joystick */
+#joystick-zone { display:none; position:absolute; bottom:80px; left:50%; transform:translateX(-50%); width:130px; height:130px; pointer-events:auto; touch-action:none; z-index:5; border-radius:50%; border:2px solid rgba(200,160,80,0.15); background:rgba(255,250,232,0.04); }
+@media (max-width:768px) {
+  body.has-touch #joystick-zone { display:block; }
+  #status { bottom:128px; font-size:12px; }
+  #joystick-zone { left:24%; bottom:78px; }
+  #ctrl-panel { width:160px; }
+  #hotbar { right:168px; }
+  .slot { width:40px; }
+}
+#joystick-zone.active { border-color:rgba(200,160,80,0.3); background:rgba(255,250,232,0.1); }
+#joystick-thumb { position:absolute; top:50%; left:50%; width:54px; height:54px; border-radius:50%; background:rgba(240,210,140,0.3); border:2px solid rgba(200,160,80,0.3); transform:translate(-50%,-50%); pointer-events:none; }
 
-/* Skill list */
-.skill-list { display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto; }
-.skill-card { padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.42);border:1px solid rgba(128,88,44,.14); }
-.skill-card .sc-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:4px; }
-.skill-card .sc-name { font-weight:800;font-size:14px; }
-.skill-card .sc-lv { font-size:12px;color:var(--gold); }
-.skill-card .sc-desc { font-size:11px;color:var(--text-dim);margin-bottom:6px; }
-.skill-card .sc-actions { display:flex;gap:5px;align-items:center; }
-
-/* Achievement list */
-.ach-list { display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto; }
-.ach-item { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.38);border:1px solid rgba(128,88,44,.1); }
-.ach-item.done { border-color:var(--gold);background:rgba(250,226,168,.18); }
-.ach-item .ach-icon { font-size:20px;min-width:28px;text-align:center; }
-.ach-item .ach-info { flex:1; }
-.ach-item .ach-info .ach-name { font-size:13px;font-weight:700; }
-.ach-item .ach-info .ach-desc { font-size:11px;color:var(--text-dim); }
-.ach-item .ach-reward { font-size:11px;color:var(--gold);white-space:nowrap; }
-
-/* Shop */
-.shop-list { display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto; }
-.shop-item { display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.42);border:1px solid rgba(128,88,44,.14); }
-.shop-item .si-icon { font-size:24px; }
-.shop-item .si-info { flex:1; }
-.shop-item .si-info .si-name { font-size:13px;font-weight:700; }
-.shop-item .si-info .si-desc { font-size:11px;color:var(--text-dim); }
-.shop-item .si-cost { font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap;margin-right:8px; }
-
-.map-zone { padding:14px 12px;border-radius:10px;text-align:center;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:4px;pointer-events:auto; }
-.map-zone:hover { transform:scale(1.03);filter:brightness(1.1); }
-
-.inv-item { padding:8px 6px;border-radius:6px;background:rgba(255,255,255,.42);border:1px solid rgba(128,88,44,.14);text-align:center;cursor:pointer;font-size:11px;pointer-events:auto; }
-.inv-item:hover { border-color:var(--gold); }
-.inv-item .in { font-weight:700; }
-.inv-item .im { font-size:10px;color:var(--text-dim); }
-.inv-item .is { font-size:10px;color:var(--text-dim);margin-top:2px; }
-.inv-item.equipped { border-color:var(--gold);box-shadow:0 0 8px rgba(181,122,25,.25); }
+#damageFlash { position:fixed; inset:0; pointer-events:none; opacity:0; transition:opacity .2s; background:radial-gradient(circle,rgba(185,74,62,0)0%,rgba(185,74,62,0.10)55%,rgba(185,74,62,0.24)100%); z-index:3; }
+#saveNotif { position:absolute; top:60px; right:18px; font-size:12px; color:var(--text); pointer-events:none; opacity:0; transition:.3s; }
 
 .rarity-common { color:#aab; }
 .rarity-uncommon { color:#6de27a; }
@@ -123,109 +111,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .rarity-epic { color:#b388ff; }
 .rarity-legendary { color:#ffd866; }
 .rarity-mythic { color:#ff6a5f; }
-
-/* Buttons */
-.btn { pointer-events:auto;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;color:#3f2d1d;background:var(--btn);cursor:pointer;display:inline-flex;align-items:center;gap:6px; }
-.btn-sm { padding:5px 10px;font-size:12px;border-radius:8px; }
-.btn-sec { background:rgba(255,250,232,.86);border:1px solid rgba(128,88,44,.18);color:var(--text); }
-.btn-gold { background:linear-gradient(180deg,#f7d98e,#d19a38);color:#3f2d1d; }
-
-#top-nav {
-  position:absolute;
-  top:10px;
-  right:10px;
-  pointer-events:auto;
-  display:flex;
-  gap:5px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  z-index:8;
-}
-
-.flex { display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
-.flex-between { display:flex;justify-content:space-between;align-items:center; }
-.mt8 { margin-top:8px; }
-.mb8 { margin-bottom:8px; }
-.gap4 { gap:4px; }
-
-/* Breakthrough */
-#breakthrough-overlay { position:absolute;inset:0;z-index:20;pointer-events:none; }
-#breakthrough-overlay.show { pointer-events:auto; }
-#breakthrough-overlay .bg { position:absolute;inset:0;background:rgba(112,82,38,.22); }
-#breakthrough-box { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(400px,calc(100vw - 24px));padding:24px;text-align:center;pointer-events:auto; }
-#breakthrough-box h2 { font-size:22px;margin-bottom:8px; }
-#breakthrough-box p { font-size:14px;color:var(--text-dim);margin-bottom:16px; }
-#breakthrough-box .chance { font-size:28px;font-weight:900;margin-bottom:12px; }
-
-/* Loot popup */
-#loot-popup { position:absolute;bottom:90px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;pointer-events:none;font-size:13px;opacity:0;transition:opacity .3s;white-space:nowrap; }
-#loot-popup.show { opacity:1; }
-
-/* Mini-particles */
-.particle { position:fixed;pointer-events:none;border-radius:50%; }
-
-/* Virtual Joystick */
-#joystick-zone {
-  display:none;
-  position:absolute; bottom:80px; left:50%; transform:translateX(-50%); width:130px; height:130px;
-  pointer-events:auto; touch-action:none; z-index:5;
-  border-radius:50%; border:2px solid rgba(128,88,44,0.18);
-  background:rgba(255,250,232,0.06);
-}
-@media (max-width:768px) {
-  body.has-touch #joystick-zone { display:block; }
-  #top-nav {
-    top: calc(env(safe-area-inset-top, 0px) + 4px);
-    left: 6px;
-    right: 6px;
-    gap: 4px;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-  }
-  #top-nav .btn-sm {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 5px 2px;
-    font-size: 11px;
-    border-radius: 7px;
-  }
-  #hud {
-    top: calc(env(safe-area-inset-top, 0px) + 42px);
-    left: 6px;
-    width: calc(100vw - 12px);
-    padding: 8px;
-    border-radius: 10px;
-  }
-  #hud .realm { font-size:12px; }
-  #hud .realm-sub { font-size:10px; }
-  #hud .bar-wrap { gap:5px; margin-bottom:2px; }
-  #hud .bar-wrap .label { width:12px; font-size:10px; }
-  #hud .bar-text { display:none; }
-  #hotbar { gap:4px; margin-top:6px; }
-  .slot { min-height:48px; padding:4px 2px; border-radius:7px; }
-  .slot .n { font-size:15px; line-height:1.1; }
-  .slot .m { font-size:9px; }
-  #zone-label { top: calc(env(safe-area-inset-top, 0px) + 34px); font-size:16px; letter-spacing:2px; }
-  #status { bottom:128px; font-size:12px; }
-  #joystick-zone { left:24%; bottom:78px; }
-}
-#joystick-zone.active { border-color:rgba(128,88,44,0.35); background:rgba(255,250,232,0.14); }
-#joystick-thumb {
-  position:absolute; top:50%; left:50%; width:54px; height:54px;
-  border-radius:50%; background:rgba(240,210,140,0.42);
-  border:2px solid rgba(181,122,25,0.38);
-  transform:translate(-50%,-50%); pointer-events:none; transition:none;
-}
-
-@media(max-width:500px) {
-  #top-nav .btn-sm { padding:4px 1px; font-size:10px; }
-  #hud { width:calc(100vw - 10px);left:5px;padding:7px; }
-  .slot { min-height:44px; }
-  .slot .n { font-size:13px; }
-  .slot .k,.slot .m { font-size:8px; }
-  #joystick-zone { bottom:72px;left:25%;width:105px;height:105px; }
-  #joystick-thumb { width:44px;height:44px; }
-}
 </style>
 <script src="lib/phaser.min.js"></script>
 </head>
@@ -233,138 +118,40 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 <canvas id="gameCanvas"></canvas>
 
 <div class="ui-layer">
-  <!-- HUD -->
-  <div id="hud" class="panel">
-    <!-- wall defense HUD -->
-    <div id="wallHud" class="hidden" style="margin-bottom:6px;">
-      <div class="flex-between" style="font-size:11px;color:var(--gold);margin-bottom:2px;">
-        <span>🏰 剑气长城</span><span id="waveCounter" style="color:var(--text-dim);">0/20</span>
-      </div>
-      <div class="bar-bg" style="height:8px;border-radius:999px;background:rgba(128,88,44,0.15);overflow:hidden;">
-        <div id="wallHpBar" class="bar-fill" style="background:linear-gradient(90deg,#8a6a4a,#d4b896);height:100%;width:100%;"></div>
-      </div>
+  <!-- Control Panel (right side) -->
+  <div id="ctrl-panel">
+    <div id="ctrl-tabs">
+      <button onclick="switchPanelTab('equip')" id="tab-equip" class="active">⚔️ 装备</button>
+      <button onclick="switchPanelTab('skill')" id="tab-skill">📖 技能</button>
+      <button onclick="switchPanelTab('shop')" id="tab-shop">🏪 商城</button>
+      <button onclick="switchPanelTab('activity')" id="tab-activity">🎯 活动</button>
     </div>
-    <div class="flex-between">
-      <div><span class="realm" id="realmText">凡体</span><span class="realm-sub" id="realmStageText">初期</span></div>
-      <div><span class="realm-sub" id="levelText">Lv.1</span></div>
+    <div id="ctrl-content">
+      <div id="panel-equip" class="panel"></div>
+      <div id="panel-skill" class="panel hidden"></div>
+      <div id="panel-shop" class="panel hidden"></div>
+      <div id="panel-activity" class="panel hidden"></div>
     </div>
-    <div class="bar-wrap"><span class="label" style="color:var(--hp)">●</span><div class="bar-bg"><div id="hpFill" class="bar-fill" style="background:linear-gradient(90deg,var(--hp),#ffb164)"></div></div><span class="bar-text" id="hpText">100/100</span></div>
-    <div class="bar-wrap"><span class="label" style="color:var(--xp)">★</span><div class="bar-bg"><div id="xpFill" class="bar-fill" style="background:linear-gradient(90deg,var(--xp),#9effa0)"></div></div><span class="bar-text" id="xpText">0/10</span></div>
-    <div class="flex-between mt8" style="font-size:11px;color:var(--text-dim);">
-      <span>灵石 <strong id="moneyText" style="color:var(--gold)">0</strong></span>
-      <span>杀敌 <strong id="killText">0</strong></span>
-    </div>
-    <div id="hotbar"></div>
-  </div>
   </div>
 
-  <!-- Zone label -->
-  <div id="zone-label">古剑门</div>
+  <!-- Skill Bar -->
+  <div id="hotbar"></div>
+
   <!-- Status -->
   <div id="status">消息</div>
-  <!-- Loot popup -->
-  <div id="loot-popup" class="panel"></div>
 
   <div id="joystick-zone"><div id="joystick-thumb"></div></div>
 
-  <!-- Character Panel -->
-  <div id="charPanel" class="modal-overlay hidden">
-    <div class="bg" onclick="toggleCharPanel()"></div>
-    <div class="modal-box panel">
-      <h2><span>📜 角色面板</span><span class="close" onclick="toggleCharPanel()">✕</span></h2>
-      <div class="eq-grid">
-        <div class="eq-slot"><div class="lbl">境界</div><div class="val" id="cpRealm">凡体</div></div>
-        <div class="eq-slot"><div class="lbl">等级</div><div class="val" id="cpLevel">1</div></div>
-        <div class="eq-slot"><div class="lbl">攻击</div><div class="val" id="cpAtk">10</div></div>
-        <div class="eq-slot"><div class="lbl">防御</div><div class="val" id="cpDef">5</div></div>
-        <div class="eq-slot"><div class="lbl">生命</div><div class="val" id="cpHP">100</div></div>
-        <div class="eq-slot"><div class="lbl">速度</div><div class="val" id="cpSpeed">180</div></div>
-      </div>
-      <h3 style="font-size:14px;margin-bottom:6px;">⚔️ 装备</h3>
-      <div class="eq-grid" id="eqGrid">
-        <div class="eq-slot" data-slot="weapon"><div class="lbl">武器</div><div class="val empty" id="eq-weapon">空</div></div>
-        <div class="eq-slot" data-slot="helmet"><div class="lbl">头盔</div><div class="val empty" id="eq-helmet">空</div></div>
-        <div class="eq-slot" data-slot="armor"><div class="lbl">衣服</div><div class="val empty" id="eq-armor">空</div></div>
-        <div class="eq-slot" data-slot="boots"><div class="lbl">鞋子</div><div class="val empty" id="eq-boots">空</div></div>
-        <div class="eq-slot" data-slot="ring"><div class="lbl">戒指</div><div class="val empty" id="eq-ring">空</div></div>
-        <div class="eq-slot" data-slot="amulet"><div class="lbl">项链</div><div class="val empty" id="eq-amulet">空</div></div>
-      </div>
-      <h3 style="font-size:14px;margin-bottom:6px;">🔢 属性点: <strong id="cpAttrPoints">0</strong></h3>
-      <div class="attr-grid">
-        <div class="attr-row"><span class="attr-label">筋骨</span><span class="attr-val" id="attr-str">0</span><span class="attr-desc">攻+2</span><button class="btn btn-sm btn-gold" onclick="addAttr('str')">+</button></div>
-        <div class="attr-row"><span class="attr-label">体魄</span><span class="attr-val" id="attr-body">0</span><span class="attr-desc">命+12 防+0.8</span><button class="btn btn-sm btn-gold" onclick="addAttr('body')">+</button></div>
-        <div class="attr-row"><span class="attr-label">神识</span><span class="attr-val" id="attr-spirit">0</span><span class="attr-desc">攻+0.8</span><button class="btn btn-sm btn-gold" onclick="addAttr('spirit')">+</button></div>
-        <div class="attr-row"><span class="attr-label">身法</span><span class="attr-val" id="attr-agility">0</span><span class="attr-desc">速+5</span><button class="btn btn-sm btn-gold" onclick="addAttr('agility')">+</button></div>
-      </div>
-      <div class="flex mt8">
-        <button class="btn btn-sm btn-sec" onclick="toggleCharPanel()">关闭</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bag Panel -->
-  <div id="bagPanel" class="modal-overlay hidden">
-    <div class="bg" onclick="toggleBagPanel()"></div>
-    <div class="modal-box panel" style="width:min(620px,calc(100vw - 24px));">
-      <h2><span>🎒 背包</span><span class="close" onclick="toggleBagPanel()">✕</span></h2>
-      <div class="flex-between mb8"><span style="color:var(--text-dim);font-size:13px;" id="bagCount">0/30</span>
-        <div class="flex gap4">
-          <span style="font-size:12px;color:var(--text-dim);">点击装备 / 右键出售换灵石</span>
-          <button class="btn btn-sm btn-sec" id="bagSellAllBtn" onclick="sellAllBagItems()">一键售出</button>
-        </div>
-      </div>
-      <div class="bag-grid" id="bagGrid"></div>
-    </div>
-  </div>
-
-  <!-- Skill Panel -->
-  <div id="skillPanel" class="modal-overlay hidden">
-    <div class="bg" onclick="toggleSkillPanel()"></div>
-    <div class="modal-box panel" style="width:min(580px,calc(100vw - 24px));">
-      <h2><span>📖 技能</span><span class="close" onclick="toggleSkillPanel()">✕</span></h2>
-      <div class="skill-list" id="skillList"></div>
-    </div>
-  </div>
-
-  <!-- Achievement Panel -->
-  <div id="achPanel" class="modal-overlay hidden">
-    <div class="bg" onclick="toggleAchPanel()"></div>
-    <div class="modal-box panel" style="width:min(520px,calc(100vw - 24px));">
-      <h2><span>🏅 成就</span><span class="close" onclick="toggleAchPanel()">✕</span></h2>
-      <div class="flex-between mb8"><span style="color:var(--text-dim);font-size:13px;" id="achSummary"></span></div>
-      <div class="ach-list" id="achList"></div>
-    </div>
-  </div>
-
-  <!-- Shop Panel (百宝阁) -->
-  <div id="shopPanel" class="modal-overlay hidden">
-    <div class="bg" onclick="toggleShopPanel()"></div>
-    <div class="modal-box panel" style="width:min(560px,calc(100vw - 24px));">
-      <h2><span>🏪 百宝阁</span><span class="close" onclick="toggleShopPanel()">✕</span></h2>
-      <div class="flex-between mb8">
-        <span style="color:var(--text-dim);font-size:13px;">灵石 <strong id="shopGold" style="color:var(--gold)">0</strong></span>
-      </div>
-      <div class="shop-list" id="shopList"></div>
-    </div>
-  </div>
-
-  <!-- Main Menu -->
-  <div id="mainMenu" style="position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#1a0a00 0%,#2d1810 60%,#3d2818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
-    <div style="font-size:48px;font-weight:900;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.5);letter-spacing:8px;">九天仙途</div>
-    <div style="font-size:18px;color:rgba(255,215,0,0.6);letter-spacing:6px;">剑气长城</div>
-    <button id="startBtn" onclick="startDefense()" style="margin-top:40px;padding:16px 48px;font-size:22px;font-weight:900;border:2px solid #ffd700;border-radius:12px;background:linear-gradient(180deg,rgba(240,200,120,0.2),rgba(180,120,40,0.3));color:#ffd700;cursor:pointer;letter-spacing:4px;">⚔️ 闯 关 ⚔️</button>
-  </div>
-
-  <!-- Breakthrough modal -->
+  <!-- Breakthrough -->
   <div id="breakthrough-overlay">
     <div class="bg" onclick="cancelBreakthrough()"></div>
-    <div id="breakthrough-box" class="panel hidden">
+    <div id="breakthrough-box" class="hidden">
       <h2 id="btTitle">突破!</h2>
       <p id="btDesc">准备迎接天劫</p>
       <div class="chance" id="btChance">90%</div>
-      <div class="flex" style="justify-content:center;">
+      <div class="flex">
         <button class="btn btn-gold" id="btBtn" onclick="doBreakthrough()">突破!</button>
-        <button class="btn btn-sec" onclick="cancelBreakthrough()">再等等</button>
+        <button class="btn" onclick="cancelBreakthrough()">再等等</button>
       </div>
     </div>
   </div>
@@ -372,42 +159,15 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   <!-- Death modal -->
   <div id="deathModal" class="modal-overlay hidden">
     <div class="bg"></div>
-    <div class="modal-box panel" style="text-align:center;max-width:320px;">
-      <h2 style="color:var(--hp);justify-content:center;">💀 道殒</h2>
-      <p style="color:var(--text-dim);margin-bottom:16px;">修行之路多坎坷，重整旗鼓再战！</p>
+    <div class="modal-box">
+      <h2 style="color:var(--hp);">💀 道殒</h2>
+      <p style="color:rgba(200,160,80,0.6);margin-bottom:16px;">修行之路多坎坷，重整旗鼓再战！</p>
       <button class="btn btn-gold" id="respawnBtn">重生</button>
     </div>
   </div>
 
-  <!-- Defeat modal -->
-  <div id="defeatModal" class="modal-overlay hidden">
-    <div class="bg"></div>
-    <div class="modal-box panel" style="text-align:center;max-width:320px;">
-      <h2 style="color:var(--hp);justify-content:center;">🏚️ 城破</h2>
-      <p style="color:var(--text-dim);margin-bottom:12px;">剑气长城被妖兽攻破...</p>
-      <p style="color:var(--gold);font-weight:700;margin-bottom:16px;">坚守至 <span id="defeatWave">0</span> 波</p>
-      <button class="btn btn-gold" onclick="location.reload()">重新开始</button>
-    </div>
-  </div>
-
-  <!-- Settings modal -->
-  <div id="settingsPanel" class="modal-overlay hidden">
-    <div class="bg" onclick="toggleSettingsPanel()"></div>
-    <div class="modal-box panel" style="text-align:center;max-width:340px;">
-      <h2 style="justify-content:center;">⚙️ 设置</h2>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-        <button class="btn btn-gold" onclick="manualSave()">💾 手动保存</button>
-        <button class="btn" onclick="exportSaveData()">📤 导出存档</button>
-        <button class="btn btn-sec" onclick="importSaveData()">📥 导入存档</button>
-        <button class="btn btn-sec" style="color:var(--hp);" onclick="resetGameData()">🗑️ 重置游戏</button>
-      </div>
-      <button class="btn btn-sm btn-sec" style="margin-top:12px;" onclick="toggleSettingsPanel()">关闭</button>
-    </div>
-  </div>
-
-  <!-- Save notification -->
-  <div id="damageFlash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(circle,rgba(185,74,62,0)0%,rgba(185,74,62,0.10)55%,rgba(185,74,62,0.24)100%);z-index:3;"></div>
-  <div id="saveNotif" style="position:absolute;top:10px;right:10px;font-size:12px;color:var(--text-dim);pointer-events:none;opacity:0;transition:.3s;">已存档</div>
+  <div id="damageFlash"></div>
+  <div id="saveNotif">已存档</div>
 </div>
 
 <script type="module" src="src/main.js"></script>

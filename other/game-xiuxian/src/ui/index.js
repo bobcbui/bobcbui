@@ -1,5 +1,5 @@
-import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '../core/state.js';
-import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, RARITY_MULT } from '../data/index.js';
+import { P, hotGen, setHotGen, recalcStats, realmText } from '../core/state.js';
+import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS } from '../data/index.js';
 import { genEquipment, acquireEquipment } from '../core/equipment.js';
 import { bus } from '../core/events.js';
 import { getScene, getSkillCooldowns } from '../core/runtime.js';
@@ -25,282 +25,6 @@ export function hotbarRender(){
     el.innerHTML = `<div class="n">${name}</div><div class="m">${meta}</div>`;
     cont.appendChild(el);
   });
-}
-
-export function renderBagPanel(){
-  document.getElementById('bagCount').textContent = P.inventory.length+'/30';
-  const sellAllBtn = document.getElementById('bagSellAllBtn');
-  const totalSellPrice = P.inventory.reduce((sum, item) => {
-    if(!item) return sum;
-    const price = item.stats ? Math.round(Object.values(item.stats).reduce((acc,val)=>acc+val,0)*2) : 3;
-    return sum + price;
-  }, 0);
-  if(sellAllBtn){
-    sellAllBtn.disabled = P.inventory.length === 0;
-    sellAllBtn.textContent = P.inventory.length > 0 ? '一键售出(' + totalSellPrice + '💰)' : '一键售出';
-  }
-  const grid = document.getElementById('bagGrid');
-  grid.innerHTML = '';
-  P.inventory.forEach((item,i)=>{
-    const d = document.createElement('div');
-    d.className = 'inv-item rarity-'+(item.rarity||'common');
-    const isEq = Object.values(P.equipment).some(e=>e&&e.id===item.id);
-    let stats='';
-    if(item.stats){
-      const lb={atk:'攻',def:'防',hp:'命',speed:'速'};
-      stats = Object.entries(item.stats).map(([k,v])=>(lb[k]||k)+'+'+v).join(' ');
-    }
-    d.innerHTML = `<div class="in">${item.name}</div><div class="im">${EQ_NAMES[item.type]||item.type||'道具'}</div><div class="is">${stats}</div>`;
-    if(isEq) d.classList.add('equipped');
-    d.onclick = (e)=>{ e.stopPropagation(); showBagMenu(i); };
-    grid.appendChild(d);
-  });
-}
-
-function showBagMenu(idx){
-  const old = document.getElementById('bagMenuOverlay');
-  if(old) old.remove();
-  const item = P.inventory[idx];
-  if(!item) return;
-  const eqType = EQ_TYPES.includes(item.type);
-  const overlay = document.createElement('div');
-  overlay.id = 'bagMenuOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:30;pointer-events:auto;';
-  overlay.onclick = ()=>overlay.remove();
-  const box = document.createElement('div');
-  box.className = 'panel';
-  box.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px;min-width:240px;max-width:320px;pointer-events:auto;text-align:center;';
-  box.onclick = (e)=>e.stopPropagation();
-  const rc = eqType?(RARITY_COLORS[item.rarity]||'#aab'):'var(--text)';
-  const rl = eqType?(RARITY_LABEL[item.rarity]||''):'';
-  box.style.border = `2px solid ${rc}`;
-  box.style.boxShadow = `0 4px 24px ${rc}44`;
-  let html = `<div style="font-size:13px;color:${rc};margin-bottom:2px;">${rl}</div>`;
-  html += `<div style="font-size:18px;font-weight:900;color:${rc};margin-bottom:4px;">${item.name}</div>`;
-  html += `<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;">${EQ_NAMES[item.type]||item.type||'道具'}</div>`;
-  if(eqType && item.stats){
-    const cur = P.equipment[item.type];
-    const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
-    html += '<div style="text-align:left;font-size:12px;margin-bottom:10px;">';
-    const allKeys = new Set([...Object.keys(item.stats), ...(cur?.stats?Object.keys(cur.stats):[])]);
-    allKeys.forEach(k=>{
-      const v = item.stats[k]||0;
-      const cv = cur?.stats?.[k]||0;
-      const diff = v - cv;
-      const diffStr = diff>0?`<span style="color:#4f8c48">↑${diff}</span>`:diff<0?`<span style="color:#b94a3e">↓${Math.abs(diff)}</span>`:'';
-      const curStr = cur&&cv?` (${labels[k]||k} +${cv})`:'';
-      html += `<div>${labels[k]||k} +${v} ${diffStr}<span style="color:var(--text-dim);font-size:10px;">${curStr}</span></div>`;
-    });
-    if(cur){
-      html += `<div style="margin-top:4px;font-size:10px;color:var(--text-dim);">当前装备: ${cur.name}</div>`;
-    }
-    html += '</div>';
-  }
-  const isEquipped = Object.values(P.equipment).some(e=>e&&e.id===item.id);
-  if(eqType && !isEquipped){
-    html += `<button class="btn btn-sm btn-gold" style="margin:3px;" onclick="doBagEquip(${idx})">装备</button>`;
-  }
-  const sellPrice = item.stats ? Math.round(Object.values(item.stats).reduce((a,b)=>a+b,0)*2) : 3;
-  html += `<button class="btn btn-sm btn-sec" style="margin:3px;" onclick="doBagSell(${idx})">出售(${sellPrice}💰)</button>`;
-  html += `<br><button class="btn btn-sm btn-sec" style="margin:3px;" onclick="document.getElementById('bagMenuOverlay').remove()">取消</button>`;
-  box.innerHTML = html;
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-}
-
-export function doBagEquip(idx){
-  const item = P.inventory[idx];
-  if(!item || !EQ_TYPES.includes(item.type)) return;
-  const current = P.equipment[item.type];
-  P.equipment[item.type] = item;
-  P.inventory.splice(idx,1);
-  if(current) P.inventory.push(current);
-  recalcStats();
-  updateCharPanel(); updateHUD(); hotbarRender();
-  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
-  renderBagPanel();
-  bus.emit('save');
-  bus.emit('status', '装备 '+item.name,1.2);
-}
-
-export function doBagSell(idx){
-  const item = P.inventory[idx];
-  if(!item) return;
-  const sellPrice = item.stats ? Math.round(Object.values(item.stats).reduce((a,b)=>a+b,0)*2) : 3;
-  P.inventory.splice(idx,1);
-  P.gold = Math.min(99999, P.gold + sellPrice);
-  updateHUD();
-  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
-  renderBagPanel();
-  bus.emit('save');
-  bus.emit('status', '出售 '+item.name+' +'+sellPrice+'灵石',1.2);
-}
-
-export function sellAllBagItems(){
-  if(P.inventory.length === 0){
-    bus.emit('status', '背包里没有可出售的物品',1.2);
-    return;
-  }
-  const totalSellPrice = P.inventory.reduce((sum, item) => {
-    if(!item) return sum;
-    const price = item.stats ? Math.round(Object.values(item.stats).reduce((acc,val)=>acc+val,0)*2) : 3;
-    return sum + price;
-  }, 0);
-  const soldCount = P.inventory.length;
-  P.inventory.length = 0;
-  P.gold = Math.min(99999, P.gold + totalSellPrice);
-  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
-  updateHUD();
-  renderBagPanel();
-  bus.emit('save');
-  bus.emit('status', '一键售出 '+soldCount+' 件物品 +'+totalSellPrice+'灵石',1.5);
-}
-
-export function toggleBagPanel(){
-  const el = document.getElementById('bagPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderBagPanel();
-}
-
-export function renderSkillPanel(){
-  const list = document.getElementById('skillList');
-  list.innerHTML = '';
-
-  const qDef = SKILL_DEFS.find(s=>s.id==='swordfly');
-  const qCard = document.createElement('div');
-  qCard.className = 'skill-card';
-  qCard.style.borderColor='var(--gold)';
-  qCard.innerHTML = `<div class="sc-head"><span class="sc-name">${qDef.name}</span></div><div class="sc-desc">${qDef.desc} · 伤害x${qDef.baseDmg} · CD${qDef.cooldown}s · 射程${qDef.range}</div>`;
-  list.appendChild(qCard);
-
-  const allSwaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
-  allSwaps.forEach(def=>{
-    const cd = def.cooldown||0;
-    let info = def.desc;
-    if(def.baseDmg) info += ' · 伤害x'+def.baseDmg;
-    info += ' · CD'+cd+'s';
-    const card = document.createElement('div');
-    card.className = 'skill-card';
-    card.style.cssText = 'border-color:var(--gold);background:rgba(250,226,168,.15);';
-    card.innerHTML = `
-      <div class="sc-head"><span class="sc-name">${def.name}</span></div>
-      <div class="sc-desc">${info}</div>`;
-    list.appendChild(card);
-  });
-}
-
-export function showSlotPick(skillId){
-  bus.emit('status', '当前版本无法切换技能', 1.5);
-}
-
-export function toggleSkillPanel(){
-  const el = document.getElementById('skillPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderSkillPanel();
-}
-
-export function renderAchPanel(){
-  if(!ACHIEVEMENTS) return;
-  const list = document.getElementById('achList');
-  let done=0, total=ACHIEVEMENTS.length;
-  list.innerHTML = '';
-  ACHIEVEMENTS.forEach(a=>{
-    const earned = P.achievements[a.id];
-    const item = document.createElement('div');
-    item.className = 'ach-item' + (earned?' done':'');
-    const rwd = Object.entries(a.reward).map(([k,v])=>{
-      const lb = {gold:'灵石',attrPoints:'属性点',skillPoints:'技能点'};
-      return (lb[k]||k)+'+'+v;
-    }).join(' ');
-    item.innerHTML = `
-      <div class="ach-icon">${a.icon}</div>
-      <div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
-      <div class="ach-reward">${earned?'✅ 已达成':'🎁 '+rwd}</div>`;
-    if(earned) done++;
-    list.appendChild(item);
-  });
-  document.getElementById('achSummary').textContent = '已完成 '+done+'/'+total;
-}
-
-export function toggleAchPanel(){
-  const el = document.getElementById('achPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderAchPanel();
-}
-
-export function renderShopPanel(){
-  if(!SHOP_ITEMS) return;
-  document.getElementById('shopGold').textContent = P.gold;
-  const list = document.getElementById('shopList');
-  list.innerHTML = '';
-  SHOP_ITEMS.filter(item=>item.effect!=='skill_reset').forEach(item=>{
-    const card = document.createElement('div');
-    card.className = 'shop-item';
-    card.innerHTML = `
-      <div class="si-icon">${item.icon}</div>
-      <div class="si-info"><div class="si-name">${item.name}</div><div class="si-desc">${item.desc}</div></div>
-      <span class="si-cost">${item.cost}💰</span>
-      <button class="btn btn-sm btn-gold" onclick="buyShopItem('${item.id}')" ${P.gold<item.cost?'disabled':''}>购买</button>`;
-    list.appendChild(card);
-  });
-}
-
-export function toggleShopPanel(){
-  const el = document.getElementById('shopPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderShopPanel();
-}
-
-export function buyShopItem(itemId){
-  const item = SHOP_ITEMS?.find(s=>s.id===itemId);
-  if(!item || P.gold < item.cost || P.inventory.length>=30) return;
-  if(item.effect === 'skill_reset'){
-    bus.emit('status', '当前版本无需技能洗点',1.2);
-    return;
-  }
-  P.gold -= item.cost;
-  if(item.effect === 'gold_bag'){
-    P.gold = Math.min(99999, P.gold + 120);
-      bus.emit('status', '获得120灵石!',1.2);
-  } else if(item.effect === 'attr_reset'){
-    let total = P.attrs.str + P.attrs.body + P.attrs.spirit + P.attrs.agility;
-    P.attrs = {str:0,body:0,spirit:0,agility:0};
-    P.attrPoints += total;
-    recalcStats();
-    bus.emit('status', '属性点已重置!',1.2);
-  } else if(item.effect === 'skill_reset'){
-    for(const sk of SKILL_DEFS){ const lv = P.skillLevels?.[sk.id]||1; P.skillPoints += Math.max(0,lv-1); P.skillLevels[sk.id]=1; }
-    bus.emit('status', '技能点已重置!',1.2);
-  } else if(item.effect?.startsWith('eq_box_')){
-    const rarity = item.effect.replace('eq_box_','');
-    const eq = (genEquipment||function(){})(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
-    const result = acquireEquipment(P, eq);
-    if(result.stored){
-      if(eq && eq.id){ bus.emit('status', '获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name + (result.equipped ? '，已自动装备' : ''),2); }
-      if(result.changed) recalcStats();
-    }
-  }
-  updateHUD(); renderShopPanel(); renderBagPanel();
-  bus.emit('save');
-}
-
-export function equipSkill(skillId, slotIdx){
-  bus.emit('status', '当前版本无法切换技能', 1.5);
-}
-
-export function upgradeSkill(skillId){
-  bus.emit('status', '当前版本无法升级技能', 1.5);
-}
-
-export function addAttr(attr){
-  if((P.attrPoints || 0) <= 0) return;
-  if(!P.attrs) P.attrs = {str:0, body:0, spirit:0, agility:0};
-  P.attrs[attr] = (P.attrs[attr] || 0) + 1;
-  P.attrPoints -= 1;
-  recalcStats();
-  updateHUD();
-  updateCharPanel();
-  bus.emit('save');
 }
 
 export function updateHotbarCooldowns(){
@@ -330,75 +54,157 @@ export function updateHotbarCooldowns(){
   }
 }
 
-export function updateHUD(){
-  const rName = getRealm(P.realm).name;
-  if(hudCache.realm !== rName){
-    document.getElementById('realmText').textContent = rName;
-    hudCache.realm = rName;
-  }
-  const stLabels = ['初期','初期','初期','中期','中期','中期','后期','后期','圆满'];
-  const stageLbl = P.realm==='mortal'?'':(stLabels[Math.min(P.stage-1,8)]||'');
-  document.getElementById('realmStageText').textContent = stageLbl;
-  if(hudCache.level !== P.level){
-    document.getElementById('levelText').textContent = 'Lv.'+P.level;
-    hudCache.level = P.level;
-  }
-  const hpR = Math.round(P.hp), mhpR = Math.round(P.maxHp);
-  if(hudCache.hp !== hpR || hudCache.maxHp !== mhpR){
-    document.getElementById('hpText').textContent = hpR+'/'+mhpR;
-    document.getElementById('hpFill').style.width = (P.hp/P.maxHp*100)+'%';
-    hudCache.hp = hpR; hudCache.maxHp = mhpR;
-  }
-  if(hudCache.xp !== P.xp || hudCache.xpNext !== P.xpToNext){
-    document.getElementById('xpText').textContent = P.xp+'/'+P.xpToNext;
-    document.getElementById('xpFill').style.width = (P.xp/P.xpToNext*100)+'%';
-    hudCache.xp = P.xp; hudCache.xpNext = P.xpToNext;
-  }
-  if(hudCache.gold !== P.gold){
-    document.getElementById('moneyText').textContent = P.gold;
-    hudCache.gold = P.gold;
-  }
-  if(hudCache.kills !== P.kills){
-    document.getElementById('killText').textContent = P.kills;
-    hudCache.kills = P.kills;
-  }
-}
-
-export function toggleCharPanel(){
-  const el = document.getElementById('charPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) updateCharPanel();
-}
-
-export function updateCharPanel(){
-  const rt = (realmText||function(){return ''})();
-  document.getElementById('cpRealm').textContent = rt;
-  document.getElementById('cpLevel').textContent = 'Lv.'+P.level;
-  document.getElementById('cpAtk').textContent = Math.round(P.atk);
-  document.getElementById('cpDef').textContent = Math.round(P.def);
-  document.getElementById('cpHP').textContent = Math.round(P.hp)+'/'+Math.round(P.maxHp);
-  document.getElementById('cpSpeed').textContent = Math.round(P.speed);
-  document.getElementById('cpAttrPoints').textContent = P.attrPoints || 0;
-  document.getElementById('attr-str').textContent = P.attrs?.str || 0;
-  document.getElementById('attr-body').textContent = P.attrs?.body || 0;
-  document.getElementById('attr-spirit').textContent = P.attrs?.spirit || 0;
-  document.getElementById('attr-agility').textContent = P.attrs?.agility || 0;
+function renderEquipPanel(){
+  const el = document.getElementById('panel-equip');
+  if(!el) return;
+  let html = '<h3>角色信息</h3>';
+  html += '<div class="eq-slot"><span class="lbl">境界</span> <span class="val" style="color:var(--gold)">'+realmText()+'</span></div>';
+  html += '<div class="eq-slot"><span class="lbl">等级</span> <span class="val">Lv.'+P.level+' (XP:'+P.xp+'/'+P.xpToNext+')</span></div>';
+  html += '<div class="eq-slot"><span class="lbl">灵石</span> <span class="val" style="color:var(--gold)">'+P.gold+'</span></div>';
+  html += '<div class="eq-slot"><span class="lbl">攻击</span> <span class="val">'+Math.round(P.atk)+'</span></div>';
+  html += '<div class="eq-slot"><span class="lbl">防御</span> <span class="val">'+Math.round(P.def)+'</span></div>';
+  html += '<div class="eq-slot"><span class="lbl">生命</span> <span class="val">'+Math.round(P.hp)+'/'+Math.round(P.maxHp)+'</span></div>';
+  html += '<h3>装备 <span style="font-size:10px;color:rgba(200,160,80,0.5)">(点击背包物品装备)</span></h3>';
+  html += '<div id="panel-equip-slots">';
   for(const slot of EQ_TYPES){
     const eq = P.equipment[slot];
-    const el = document.getElementById('eq-'+slot);
     if(eq){
       const rc = RARITY_COLORS[eq.rarity]||'#aab';
-      const statsStr = Object.entries(eq.stats).map(([k,v])=>{
-        const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
-        return (labels[k]||k)+'+'+v;
-      }).join(' ');
-      el.innerHTML = `<span style="color:${rc}">${RARITY_LABEL[eq.rarity]||''} ${eq.name}</span><br><span style="font-size:11px;color:var(--text-dim)">${statsStr}</span>`;
-      el.className = 'val';
+      const stats = Object.entries(eq.stats).map(([k,v])=>{ const lb={atk:'攻',def:'防',hp:'命',speed:'速'}; return (lb[k]||k)+'+'+v; }).join(' ');
+      html += '<div class="eq-slot"><span class="lbl">'+EQ_NAMES[slot]+'</span> <span class="val" style="color:'+rc+'">'+eq.name+'</span><br><span style="font-size:10px;color:rgba(200,160,80,0.5)">'+stats+'</span></div>';
     } else {
-      el.textContent = '空'; el.className = 'val empty';
+      html += '<div class="eq-slot"><span class="lbl">'+EQ_NAMES[slot]+'</span> <span class="empty">空</span></div>';
     }
   }
+  html += '</div>';
+  html += '<h3>背包 <span style="font-size:10px;color:rgba(200,160,80,0.5)">('+P.inventory.length+'/30)</span>';
+  if(P.inventory.length>0) html += ' <button class="btn btn-sm btn-gold" onclick="sellAllBagItems()">一键售出</button>';
+  html += '</h3>';
+  html += '<div id="panel-bag-list">';
+  P.inventory.forEach((item,i)=>{
+    const isEq = Object.values(P.equipment).some(e=>e&&e.id===item.id);
+    let stats = '';
+    if(item.stats) stats = Object.entries(item.stats).map(([k,v])=>{ const lb={atk:'攻',def:'防',hp:'命',speed:'速'}; return (lb[k]||k)+'+'+v; }).join(' ');
+    html += '<div class="inv-item'+(isEq?' equipped':'')+'" onclick="doBagEquip('+i+')">';
+    html += '<div class="in">'+item.name+'</div>';
+    html += '<div class="im">'+EQ_NAMES[item.type]+'</div>';
+    html += '<div class="is">'+stats+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
 }
 
-bus.on('hud-refresh', updateHUD);
-bus.on('hotbar-refresh', hotbarRender);
+function renderSkillPanel(){
+  const el = document.getElementById('panel-skill');
+  if(!el) return;
+  let html = '<h3>技能列表</h3>';
+  SKILL_DEFS.forEach(def => {
+    const lv = P.skillLevels?.[def.id] || 1;
+    html += '<div class="skill-row"><span class="sn">'+def.name+'</span> Lv.'+lv;
+    html += '<br><span class="sd">'+def.desc+'</span></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderShopPanel(){
+  const el = document.getElementById('panel-shop');
+  if(!el) return;
+  let html = '<h3>百宝阁 <span style="font-size:10px">灵石:'+P.gold+'</span></h3>';
+  SHOP_ITEMS.forEach(item => {
+    html += '<div class="shop-row">';
+    html += '<div class="sh-name">'+item.icon+' '+item.name+'</div>';
+    html += '<div class="sh-desc">'+item.desc+'</div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+    html += '<span class="sh-cost">'+item.cost+'💰</span>';
+    html += '<button class="btn btn-sm btn-gold" onclick="buyShopItem(\''+item.id+'\')" '+(P.gold<item.cost?'disabled':'')+'>购买</button>';
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderActivityPanel(){
+  const el = document.getElementById('panel-activity');
+  if(!el) return;
+  let done = 0;
+  let html = '<h3>成就</h3>';
+  ACHIEVEMENTS.forEach(a => {
+    const earned = P.achievements[a.id];
+    if(earned) done++;
+    html += '<div class="ach-row'+(earned?' done':'')+'"><span class="ach-icon">'+(earned?'✅':a.icon)+'</span>';
+    html += '<span>'+a.name+'</span>';
+    html += '</div>';
+  });
+  html += '<div style="margin-top:8px;font-size:11px;color:rgba(200,160,80,0.5)">已完成 '+done+'/'+ACHIEVEMENTS.length+'</div>';
+  el.innerHTML = html;
+}
+
+window.switchPanelTab = function(tab) {
+  document.querySelectorAll('#ctrl-tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  document.querySelectorAll('#ctrl-content > div').forEach(d => d.classList.add('hidden'));
+  const panel = document.getElementById('panel-'+tab);
+  if(panel) panel.classList.remove('hidden');
+  if(tab==='equip') renderEquipPanel();
+  else if(tab==='skill') renderSkillPanel();
+  else if(tab==='shop') renderShopPanel();
+  else if(tab==='activity') renderActivityPanel();
+};
+
+window.doBagEquip = function(idx) {
+  const item = P.inventory[idx];
+  if(!item || !EQ_TYPES.includes(item.type)) return;
+  const current = P.equipment[item.type];
+  P.equipment[item.type] = item;
+  P.inventory.splice(idx,1);
+  if(current) P.inventory.push(current);
+  recalcStats();
+  renderEquipPanel();
+  hotbarRender();
+  bus.emit('save');
+  bus.emit('status', '装备 '+item.name,1.2);
+};
+
+window.sellAllBagItems = function() {
+  if(P.inventory.length === 0) return;
+  const total = P.inventory.reduce((s,i)=>s+(i?.stats?Math.round(Object.values(i.stats).reduce((a,b)=>a+b,0)*2):3),0);
+  const cnt = P.inventory.length;
+  P.inventory.length = 0;
+  P.gold = Math.min(99999, P.gold + total);
+  renderEquipPanel();
+  renderShopPanel();
+  bus.emit('save');
+  bus.emit('status', '售出 '+cnt+' 件 +'+total+'灵石',1.5);
+};
+
+window.buyShopItem = function(itemId) {
+  const item = SHOP_ITEMS.find(s=>s.id===itemId);
+  if(!item || P.gold < item.cost || P.inventory.length>=30) return;
+  P.gold -= item.cost;
+  if(item.effect === 'gold_bag'){
+    P.gold = Math.min(99999, P.gold + 120);
+    bus.emit('status', '获得120灵石!',1.2);
+  } else if(item.effect === 'attr_reset'){
+    let total = P.attrs.str + P.attrs.body + P.attrs.spirit + P.attrs.agility;
+    P.attrs = {str:0,body:0,spirit:0,agility:0};
+    P.attrPoints += total;
+    recalcStats();
+    bus.emit('status', '属性点已重置!',1.2);
+  } else if(item.effect?.startsWith('eq_box_')){
+    const rarity = item.effect.replace('eq_box_','');
+    const eq = genEquipment(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
+    if(eq){
+      const result = acquireEquipment(P, eq);
+      if(result.stored){
+        bus.emit('status', '获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name + (result.equipped?'(已装备)':''),2);
+        if(result.changed) recalcStats();
+      }
+    }
+  }
+  renderEquipPanel();
+  renderShopPanel();
+  hotbarRender();
+  bus.emit('save');
+};
+
+renderEquipPanel();

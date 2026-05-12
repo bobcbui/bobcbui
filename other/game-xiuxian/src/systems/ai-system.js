@@ -10,12 +10,15 @@ export class AISystem {
   update(dt, time, qRange, qR2) {
     const { scene } = this;
     scene.hpBarGfx.clear();
+
     let closestQ = null, bestQD2 = Infinity;
     const activeEnemies = [];
 
     scene.enemies.children.iterate((en) => {
       if (!en || en.getData('dead')) return;
-      const dx = scene.player.x - en.x, dy = scene.player.y - en.y;
+
+      const dx = scene.player.x - en.x;
+      const dy = scene.player.y - en.y;
       const d2 = dx * dx + dy * dy;
 
       if (d2 < qR2 && d2 < bestQD2) { bestQD2 = d2; closestQ = en; }
@@ -24,16 +27,18 @@ export class AISystem {
       const atkType = en.getData('atkType') || 'melee';
       const dist = Math.sqrt(d2);
       let speed = en.getData('speed') || 30;
+
       const freezeTimer = en.getData('freezeTimer') || 0;
       if (freezeTimer > 0) {
         en.setData('freezeTimer', Math.max(0, freezeTimer - dt));
         en.setVelocity(0, 0);
         en.setTint(0xbfefff);
-        const lbl = en.getData('label'); if (lbl) lbl.setPosition(en.x, en.y - 16);
+        const lbl = en.getData('label'); if (lbl) lbl.setPosition(en.x, en.y - 14);
         return;
       } else if (en.tintTopLeft === 0xbfefff) {
         en.clearTint();
       }
+
       const slowTimer = en.getData('slowTimer') || 0;
       if (slowTimer > 0) {
         speed *= 0.45;
@@ -44,29 +49,35 @@ export class AISystem {
         const atkRange = en.getData('atkRange') || 200;
         const atkCD = en.getData('atkCD') || 2.5;
         const lastAtk = en.getData('lastRangedAtk') || 0;
-        if (dist < atkRange * 1.2 && time - lastAtk > atkCD) {
+
+        if (dist < atkRange && time - lastAtk > atkCD) {
           en.setData('lastRangedAtk', time);
           scene.entityAnimationSystem?.playEnemyAttack(en);
+
           const proj = scene.getPooledProj(en.x, en.y, 'arrow', scene.enemyProjs);
           if (proj) {
             proj.setScale(0.7).setTint(en.getData('projColor') || 0xff4444);
             const angle = Phaser.Math.Angle.Between(en.x, en.y, scene.player.x, scene.player.y);
-            scene.physics.velocityFromRotation(angle, 280, proj.body.velocity);
+            scene.physics.velocityFromRotation(angle, 250, proj.body.velocity);
             proj.rotation = angle;
-            proj.setData('damage', Math.round((en.getData('atk') || 5) * 0.6));
+            proj.setData('damage', Math.round((en.getData('atk') || 5) * 0.5));
             scene.scheduleProjFree(proj, 2000);
           }
+          en.setVelocity(0, speed * 0.1);
+        } else if (dist < atkRange) {
+          en.setVelocity(0, speed * 0.15);
+        } else {
+          en.setVelocity(0, speed);
         }
-        if (dist > atkRange) scene.physics.moveToObject(en, scene.player, speed * 0.7);
       } else {
-        scene.physics.moveToObject(en, scene.player, speed);
+        en.setVelocity(0, speed);
       }
 
       const isBoss = en.getData('isBoss');
-      if (isBoss) {
+      if (isBoss && dist < 350) {
         const ultCD = en.getData('ultCD') || 8;
         const lastUlt = en.getData('lastUlt') || 0;
-        if (time - lastUlt > ultCD && dist < 300) {
+        if (time - lastUlt > ultCD) {
           const warning = en.getData('ultWarning');
           if (!warning || !warning.active) {
             en.setData('lastUlt', time);
@@ -89,7 +100,9 @@ export class AISystem {
         }
       }
 
-      const lbl = en.getData('label'); if (lbl) lbl.setPosition(en.x, en.y - 16);
+      const lbl = en.getData('label');
+      if (lbl) lbl.setPosition(en.x, en.y - 14);
+
       const bw = en.getData('barW') || COMBAT_TUNING.hpBar.normalWidth;
       const bh = COMBAT_TUNING.hpBar.height;
       const yPos = en.y - 24;
@@ -97,7 +110,8 @@ export class AISystem {
       const pct = Math.max(0, Math.min(1, cur / full));
       scene.hpBarGfx.fillStyle(0x8b7752, 0.35);
       scene.hpBarGfx.fillRect(en.x - bw / 2, yPos, bw, bh);
-      scene.hpBarGfx.fillStyle(pct > 0.6 ? 0x6de27a : pct > 0.3 ? 0xffd866 : 0xff6a5f, 1);
+      const hpColor = pct > 0.6 ? 0x6de27a : pct > 0.3 ? 0xffd866 : 0xff6a5f;
+      scene.hpBarGfx.fillStyle(hpColor, 1);
       scene.hpBarGfx.fillRect(en.x - bw / 2, yPos, Math.max(0, bw * pct), bh);
     });
 

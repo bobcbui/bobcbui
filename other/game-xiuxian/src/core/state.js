@@ -3,7 +3,7 @@ import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from '../
 
 export const P = {
   hp:100, maxHp:100,
-  atk:10, def:5, speed:220,
+  atk:10, def:5, speed:240,
   realm:'mortal', stage:1,
   level:1, xp:0, xpToNext:10,
   gold:0, kills:0,
@@ -20,40 +20,36 @@ export const P = {
   achievements:{}
 };
 
-export let waveNum = 0;
-export let waveTimer = 0;
+export let baseHp = 100;
+export let baseMaxHp = 100;
+export let currentWave = 0;
 export let wavePending = false;
-export let waveDelay = 8;
+export let waveDelayTimer = 0;
+
 export let statusTimer = 0;
 export let lootTimer = 0;
 export let isCultivating = false;
 export let cultProgress = 0;
 export let breakPending = false;
 export let autoSaveTimer = 0;
-export let wallHp = 500;
-export let wallMaxHp = 500;
-export let defenseWave = 0;
-export let gameStarted = false;
-export const MAX_WAVES = 20;
 
-export function setWallHp(v){ wallHp = v; if (wallHp < 0) wallHp = 0; }
-export function setWallMaxHp(v){ wallMaxHp = v; }
-export function setDefenseWave(v){ defenseWave = v; }
-export function setGameStarted(v){ gameStarted = v; }
-export function setAutoSaveTimer(v){ autoSaveTimer = v; }
-export function setHotGen(v){ hotGen = v; }
+export function setBaseHp(v){ baseHp = Math.max(0, Math.min(baseMaxHp, v)); }
+export function setBaseMaxHp(v){ baseMaxHp = v; }
+export function setCurrentWave(v){ currentWave = v; }
+export function setWavePending(v){ wavePending = v; }
+export function setWaveDelayTimer(v){ waveDelayTimer = v; }
 
 export let hotGen = -1;
-export const hudCache = { realm:'',level:-1,hp:-1,maxHp:-1,xp:-1,xpNext:-1,gold:-1,kills:-1 };
+export function setHotGen(v){ hotGen = v; }
 
-export function setWaveNum(v){ waveNum = v; }
-export function setWaveTimer(v){ waveTimer = v; }
-export function setWavePending(v){ wavePending = v; }
+export function setAutoSaveTimer(v){ autoSaveTimer = v; }
 export function setStatusTimer(v){ statusTimer = v; }
 export function setLootTimer(v){ lootTimer = v; }
 export function setIsCultivating(v){ isCultivating = v; }
 export function setCultProgress(v){ cultProgress = v; }
 export function setBreakPending(v){ breakPending = v; }
+
+export const hudCache = { realm:'',level:-1,hp:-1,maxHp:-1,xp:-1,xpNext:-1,gold:-1,kills:-1 };
 
 export function recalcStats(){
   const r = getRealm(P.realm);
@@ -98,10 +94,8 @@ export function refreshSkills(){
 
 export function initHotbar(){
   P.hotbar = [];
-  const current = P.hotbar?.[0];
   P.hotbar.push({ kind:'skill', id:'swordfly' });
   const swaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
-  const slotKeys = ['W','E','R','T'];
   for(let i=0;i<4;i++){
     const existing = P.hotbar?.[i+1];
     if(existing && existing.id && swaps.some(s=>s.id===existing.id)){
@@ -117,12 +111,10 @@ refreshSkills();
 initHotbar();
 
 export function checkAchievements(){
-  let changed = false;
   for(const a of ACHIEVEMENTS){
     if(P.achievements[a.id]) continue;
     if(a.check(P)){
       P.achievements[a.id] = true;
-      changed = true;
       if(a.reward.gold){ P.gold = Math.min(99999, P.gold + a.reward.gold); P.totalGoldEarned = (P.totalGoldEarned||0) + a.reward.gold; }
       if(a.reward.attrPoints) P.attrPoints = (P.attrPoints||0) + a.reward.attrPoints;
       if(a.reward.skillPoints) P.skillPoints = (P.skillPoints||0) + a.reward.skillPoints;
@@ -130,7 +122,6 @@ export function checkAchievements(){
       bus.emit('save');
     }
   }
-  if(changed){ bus.emit('hud-refresh'); }
 }
 
 bus.on('check-achievements', checkAchievements);

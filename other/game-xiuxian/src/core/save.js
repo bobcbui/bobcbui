@@ -1,5 +1,5 @@
 import { bus } from './events.js';
-import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from './state.js';
+import { P, currentWave, setCurrentWave, recalcStats, refreshSkills, initHotbar, setBaseHp, setBaseMaxHp, baseHp, baseMaxHp } from './state.js';
 import { SKILL_DEFS } from '../data/index.js';
 import { autoEquipBestEquipment } from './equipment.js';
 
@@ -12,7 +12,9 @@ function buildSaveData() {
          equipment: P.equipment, inventory: P.inventory, totalPlayTime: P.totalPlayTime,
          totalGoldEarned: P.totalGoldEarned, legendaryFound: P.legendaryFound, maxWave: P.maxWave,
          achievements: P.achievements },
-    wave: waveNum,
+    wave: currentWave,
+    baseHp: baseHp,
+    baseMaxHp: baseMaxHp,
     version: 1
   };
 }
@@ -55,8 +57,6 @@ export function importSaveData() {
         if (data.version !== 1) { bus.emit('status', '存档版本不兼容', 2); return; }
         applySaveData(data);
         bus.emit('status', '📥 存档已导入', 2);
-        bus.emit('hud-refresh');
-        bus.emit('hotbar-refresh');
       } catch (e) { bus.emit('status', '导入失败: 文件格式错误', 2); }
     };
     reader.readAsText(file);
@@ -68,11 +68,6 @@ export function resetGameData() {
   if (!confirm('确定要清除所有存档并重置游戏？此操作不可撤销。')) return;
   localStorage.removeItem('xiuxian_save');
   location.reload();
-}
-
-export function toggleSettingsPanel() {
-  const el = document.getElementById('settingsPanel');
-  el.classList.toggle('hidden');
 }
 
 export function manualSave() {
@@ -96,7 +91,9 @@ function applySaveData(data) {
   refreshSkills();
   initHotbar();
   autoEquipBestEquipment(P);
-  setWaveNum(data.wave || 0);
+  setCurrentWave(data.wave || 0);
+  setBaseHp(data.baseHp != null ? data.baseHp : 100);
+  setBaseMaxHp(data.baseMaxHp || 100);
   recalcStats();
 }
 
