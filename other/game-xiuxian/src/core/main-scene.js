@@ -335,9 +335,6 @@ export class MainScene extends Phaser.Scene {
     if (this._waitingWave) return;
     if (this.enemies.countActive(true) === 0) {
     this._waitingWave = true;
-    this._levelWaveCount = 5;
-    this._levelStartWave = 1;
-    this._maxWaveForLevel = 0;
 
     setCurrentWave(this._levelStartWave - 1);
       bus.emit('status', '妖兽退散，下一波准备中...', 2);
