@@ -213,10 +213,11 @@ window.sellAllBagItems = function () {
 window.startLevel = function (levelId) {
   const lv = LEVELS.find(l => l.id === levelId);
   if (!lv) return;
-
   const game = getGame();
   if (!game) return;
 
+  document.getElementById('deathModal')?.classList.add('hidden');
+  document.getElementById('breakthrough-overlay')?.classList.add('hidden');
   document.getElementById('menu-overlay').classList.add('hidden');
   document.getElementById('gameCanvas').classList.remove('hidden');
   document.getElementById('battle-ui').classList.add('show');
@@ -233,6 +234,8 @@ window.returnToMenu = function () {
   document.getElementById('menu-overlay').classList.remove('hidden');
   document.getElementById('gameCanvas').classList.add('hidden');
   document.getElementById('battle-ui').classList.remove('show');
+  document.getElementById('deathModal')?.classList.add('hidden');
+  document.getElementById('breakthrough-overlay')?.classList.add('hidden');
   renderAllTabs();
 };
 
