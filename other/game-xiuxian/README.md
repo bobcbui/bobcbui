@@ -3,7 +3,7 @@
 2D 修仙题材开放世界浏览器游戏，基于 Phaser 3 + 原生 JavaScript (ES Modules)，纯前端实现，无需服务器。
 
 ## 快速运行
-
+ 
 ```bash
 cd game-xiuxian
 python -m http.server 8000
