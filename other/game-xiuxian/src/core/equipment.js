@@ -1,6 +1,7 @@
 import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS } from '../data/index.js';
 
 const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','mythic'];
+const SET_IDS = ['sword', 'thunder', 'body'];
 
 export function genEquipment(monsterLv, forceRarity=null){
   const rarityRoll = Math.random();
@@ -34,7 +35,19 @@ export function genEquipment(monsterLv, forceRarity=null){
   const nameList = names[type];
   const idx = Math.min(['common','uncommon','rare','epic','legendary','mythic'].indexOf(rarity), nameList.length-1);
   const itemName = prefix + nameList[idx];
-  return { id:Date.now()+'_'+Math.random().toString(36).slice(2,6), type, name:itemName, rarity, stats };
+  const setId = RARITY_ORDER.indexOf(rarity) >= 2 ? SET_IDS[Math.floor(Math.random() * SET_IDS.length)] : null;
+  return { id:Date.now()+'_'+Math.random().toString(36).slice(2,6), type, name:itemName, rarity, stats, enhance:0, affixes:[], setId };
+}
+
+export function getEffectiveEquipmentStats(item) {
+  const result = {};
+  if (!item?.stats) return result;
+  const enhance = Math.max(0, item.enhance || 0);
+  const mult = 1 + enhance * 0.08;
+  for (const [key, value] of Object.entries(item.stats)) {
+    result[key] = Math.max(1, Math.round(value * mult));
+  }
+  return result;
 }
 
 export function getEquipmentScore(item){
@@ -44,7 +57,8 @@ export function getEquipmentScore(item){
   let score = 0;
   for(const [key, range] of Object.entries(base)){
     if(range[1] <= 0) continue;
-    score += (item.stats[key] || 0) / Math.max(1, range[1]);
+    const effective = getEffectiveEquipmentStats(item);
+    score += (effective[key] || 0) / Math.max(1, range[1]);
   }
   const rarityIdx = Math.max(0, RARITY_ORDER.indexOf(item.rarity));
   return score + rarityIdx * 0.01;

@@ -2,6 +2,7 @@ import '../data/index.js';
 import '../core/state.js';
 import '../core/helpers.js';
 import '../core/save.js';
+import { ensureProgressionState } from '../core/progression.js';
 import { createGameConfig } from '../core/game-config.js';
 import { setGame } from '../core/runtime.js';
 import { JoystickController } from '../input/joystick-controller.js';
@@ -28,6 +29,7 @@ function startGame() {
 }
 
 export function bootstrap() {
+  ensureProgressionState();
   bindGlobalActions();
   markTouchDevice();
 

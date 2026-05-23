@@ -2,6 +2,13 @@ import { bus } from './events.js';
 import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from './state.js';
 import { SKILL_DEFS } from '../data/index.js';
 import { autoEquipBestEquipment } from './equipment.js';
+import { getEl } from './dom.js';
+import { ensureProgressionState } from './progression.js';
+
+const SAVE_THROTTLE_MS = 1500;
+let savePending = false;
+let saveTimer = null;
+let lastSaveAt = 0;
 
 function buildSaveData() {
   return {
@@ -11,18 +18,47 @@ function buildSaveData() {
          attrs: P.attrs, skillLevels: P.skillLevels, skills: P.skills, hotbar: P.hotbar,
          equipment: P.equipment, inventory: P.inventory, totalPlayTime: P.totalPlayTime,
          totalGoldEarned: P.totalGoldEarned, legendaryFound: P.legendaryFound, maxWave: P.maxWave,
-         achievements: P.achievements },
+         achievements: P.achievements, materials: P.materials, bestiary: P.bestiary,
+         quests: P.quests, talents: P.talents, talentPoints: P.talentPoints,
+         skillEvolutions: P.skillEvolutions, dungeon: P.dungeon },
     wave: waveNum,
     version: 1
   };
 }
 
-export function saveGame() {
+export function saveGame({ notify = false } = {}) {
   try {
     localStorage.setItem('xiuxian_save', JSON.stringify(buildSaveData()));
-    const n = document.getElementById('saveNotif');
-    n.style.opacity = '1'; setTimeout(() => n.style.opacity = '0', 1200);
+    lastSaveAt = Date.now();
+    savePending = false;
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    if (notify) {
+      const n = getEl('saveNotif');
+      if (n) {
+        n.style.opacity = '1';
+        setTimeout(() => n.style.opacity = '0', 1200);
+      }
+    }
   } catch (e) {}
+}
+
+export function requestSave() {
+  savePending = true;
+  const wait = Math.max(0, SAVE_THROTTLE_MS - (Date.now() - lastSaveAt));
+  if (wait === 0) {
+    saveGame();
+    return;
+  }
+  if (!saveTimer) {
+    saveTimer = setTimeout(() => saveGame(), wait);
+  }
+}
+
+export function flushPendingSave() {
+  if (savePending) saveGame();
 }
 
 export function exportSaveData() {
@@ -71,12 +107,12 @@ export function resetGameData() {
 }
 
 export function toggleSettingsPanel() {
-  const el = document.getElementById('settingsPanel');
+  const el = getEl('settingsPanel');
   el.classList.toggle('hidden');
 }
 
 export function manualSave() {
-  saveGame();
+  saveGame({ notify: true });
   bus.emit('status', '💾 已保存', 1);
 }
 
@@ -90,8 +126,9 @@ function applySaveData(data) {
   if (P.legendaryFound == null) P.legendaryFound = false;
   if (P.maxWave == null) P.maxWave = 0;
   if (!P.achievements) P.achievements = {};
+  ensureProgressionState();
   for (const sk of SKILL_DEFS) {
-    P.skillLevels[sk.id] = 1;
+    if (!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
   }
   refreshSkills();
   initHotbar();
@@ -111,4 +148,5 @@ export function loadGame() {
   } catch (e) { return false; }
 }
 
-bus.on('save', saveGame);
+bus.on('save', requestSave);
+window.addEventListener('pagehide', flushPendingSave);

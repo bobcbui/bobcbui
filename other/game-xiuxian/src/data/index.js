@@ -39,9 +39,9 @@ export const SKILL_DEFS = [
 const ENEMY_HP_TIER_MULT = Object.freeze({ normal: 1, elite: 2, boss: 5 });
 
 export const COMBAT_TUNING = Object.freeze({
-  maxActiveEnemies: 8,
-  initialEnemyCount: 4,
-  spawnInterval: Object.freeze({ empty: 1.8, refill: 2.6, capped: 3.4 }),
+  maxActiveEnemies: 20,
+  initialEnemyCount: 12,
+  spawnInterval: Object.freeze({ empty: 0.6, refill: 1.0, capped: 1.5 }),
   playerDamageScale: 70,
   enemyHpScale: 190,
   enemyHpTierMult: ENEMY_HP_TIER_MULT,
@@ -82,44 +82,44 @@ if (sectZone) sectZone.name = '古剑门';
 
 export const BESTIARY = {
   hehuan:[
-    { name:'灵兔',hp:20,atk:4,speed:35,xp:3,gold:2,atkType:'melee' },
-    { name:'野狗',hp:28,atk:6,speed:45,xp:4,gold:3,atkType:'melee' },
-    { name:'毒蜂',hp:18,atk:9,speed:50,xp:4,gold:3,atkType:'ranged',atkRange:180,atkCD:3,projColor:0x88cc44 }
+    { name:'灵兔',hp:20,atk:4,speed:70,xp:3,gold:2,atkType:'melee' },
+    { name:'野狗',hp:28,atk:6,speed:85,xp:4,gold:3,atkType:'melee' },
+    { name:'毒蜂',hp:18,atk:9,speed:95,xp:4,gold:3,atkType:'melee' }
   ],
   yaoshou:[
-    { name:'妖狼',hp:40,atk:10,speed:45,xp:6,gold:4,atkType:'melee' },
-    { name:'石傀',hp:55,atk:12,speed:30,xp:8,gold:6,atkType:'melee' },
-    { name:'毒蝎',hp:35,atk:16,speed:50,xp:9,gold:7,atkType:'ranged',atkRange:200,atkCD:2.5,projColor:0x88cc44 }
+    { name:'妖狼',hp:40,atk:10,speed:80,xp:6,gold:4,atkType:'melee' },
+    { name:'石傀',hp:55,atk:12,speed:60,xp:8,gold:6,atkType:'melee' },
+    { name:'毒蝎',hp:35,atk:16,speed:90,xp:9,gold:7,atkType:'melee' }
   ],
   xueshan:[
-    { name:'雪狼',hp:70,atk:20,speed:50,xp:14,gold:10,atkType:'melee' },
-    { name:'冰魄',hp:85,atk:25,speed:30,xp:16,gold:12,atkType:'ranged',atkRange:220,atkCD:3,projColor:0x88ccff },
-    { name:'霜巨人',hp:110,atk:22,speed:25,xp:18,gold:15,atkType:'melee' }
+    { name:'雪狼',hp:70,atk:20,speed:85,xp:14,gold:10,atkType:'melee' },
+    { name:'冰魄',hp:85,atk:25,speed:65,xp:16,gold:12,atkType:'melee' },
+    { name:'霜巨人',hp:110,atk:22,speed:55,xp:18,gold:15,atkType:'melee' }
   ],
   huoyan:[
-    { name:'炎魔',hp:140,atk:38,speed:35,xp:28,gold:20,atkType:'ranged',atkRange:240,atkCD:3,projColor:0xff6633 },
-    { name:'火蛟',hp:120,atk:45,speed:55,xp:32,gold:24,atkType:'ranged',atkRange:260,atkCD:2.8,projColor:0xff4422 },
-    { name:'熔岩兽',hp:200,atk:35,speed:28,xp:35,gold:28,atkType:'melee' }
+    { name:'炎魔',hp:140,atk:38,speed:70,xp:28,gold:20,atkType:'melee' },
+    { name:'火蛟',hp:120,atk:45,speed:95,xp:32,gold:24,atkType:'melee' },
+    { name:'熔岩兽',hp:200,atk:35,speed:60,xp:35,gold:28,atkType:'melee' }
   ],
   shenyuan:[
-    { name:'影魔',hp:250,atk:55,speed:40,xp:45,gold:35,atkType:'ranged',atkRange:250,atkCD:2.5,projColor:0x9944cc },
-    { name:'深渊领主',hp:350,atk:65,speed:30,xp:55,gold:45,atkType:'melee' },
-    { name:'噬魂者',hp:200,atk:70,speed:55,xp:50,gold:40,atkType:'ranged',atkRange:280,atkCD:2,projColor:0x6644dd }
+    { name:'影魔',hp:250,atk:55,speed:75,xp:45,gold:35,atkType:'melee' },
+    { name:'深渊领主',hp:350,atk:65,speed:60,xp:55,gold:45,atkType:'melee' },
+    { name:'噬魂者',hp:200,atk:70,speed:90,xp:50,gold:40,atkType:'melee' }
   ],
   wanjian:[
-    { name:'剑灵',hp:380,atk:80,speed:45,xp:65,gold:50,atkType:'ranged',atkRange:300,atkCD:2.5,projColor:0x88bbff },
-    { name:'剑罡',hp:450,atk:75,speed:35,xp:70,gold:55,atkType:'melee' },
-    { name:'飞剑妖',hp:300,atk:90,speed:60,xp:75,gold:60,atkType:'ranged',atkRange:320,atkCD:2,projColor:0x6699dd }
+    { name:'剑灵',hp:380,atk:80,speed:80,xp:65,gold:50,atkType:'melee' },
+    { name:'剑罡',hp:450,atk:75,speed:65,xp:70,gold:55,atkType:'melee' },
+    { name:'飞剑妖',hp:300,atk:90,speed:100,xp:75,gold:60,atkType:'melee' }
   ],
   youming:[
-    { name:'幽魂',hp:500,atk:100,speed:50,xp:90,gold:70,atkType:'ranged',atkRange:280,atkCD:2.2,projColor:0x334488 },
-    { name:'海妖',hp:560,atk:110,speed:40,xp:95,gold:75,atkType:'ranged',atkRange:300,atkCD:2.5,projColor:0x224488 },
-    { name:'冥兽',hp:650,atk:95,speed:35,xp:100,gold:80,atkType:'melee' }
+    { name:'幽魂',hp:500,atk:100,speed:85,xp:90,gold:70,atkType:'melee' },
+    { name:'海妖',hp:560,atk:110,speed:70,xp:95,gold:75,atkType:'melee' },
+    { name:'冥兽',hp:650,atk:95,speed:60,xp:100,gold:80,atkType:'melee' }
   ],
   jiutian:[
-    { name:'雷兽',hp:700,atk:130,speed:55,xp:120,gold:95,atkType:'ranged',atkRange:320,atkCD:2,projColor:0xccbb44 },
-    { name:'天雷将',hp:800,atk:140,speed:40,xp:130,gold:105,atkType:'ranged',atkRange:340,atkCD:2.5,projColor:0xffdd44 },
-    { name:'劫雷龙',hp:950,atk:120,speed:30,xp:140,gold:115,atkType:'melee' }
+    { name:'雷兽',hp:700,atk:130,speed:90,xp:120,gold:95,atkType:'melee' },
+    { name:'天雷将',hp:800,atk:140,speed:70,xp:130,gold:105,atkType:'melee' },
+    { name:'劫雷龙',hp:950,atk:120,speed:60,xp:140,gold:115,atkType:'melee' }
   ]
 };
 export const BOSS_NAMES = ['妖兽王','雪山之主','炎帝分身','深渊魔神','万剑尊者','幽冥海皇','九霄雷帝','九尾天狐'];

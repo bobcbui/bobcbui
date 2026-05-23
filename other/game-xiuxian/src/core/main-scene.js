@@ -1,16 +1,14 @@
-import { P, isCultivating, cultProgress, statusTimer, lootTimer, autoSaveTimer,
-  setCultProgress, setAutoSaveTimer, setStatusTimer, setLootTimer, recalcStats, refreshSkills, initHotbar,
-  checkAchievements, wallHp, wallMaxHp, defenseWave, gameStarted, MAX_WAVES,
-  setWallHp, setDefenseWave, setGameStarted } from './state.js';
-import { MAPS, SKILL_DEFS, getRealm, getRealmIndex, WORLD, ZONES, COMBAT_TUNING } from '../data/index.js';
+import { P, recalcStats } from './state.js';
+import { SKILL_DEFS, WORLD, ZONES } from '../data/index.js';
 import { installSceneSystems } from '../systems/index.js';
 import { bus } from './events.js';
 import { loadGame } from './save.js';
 import { setScene, setSkillCooldowns } from './runtime.js';
 import { createGeneratedTextures } from './textures.js';
 import { toggleCultivate, tryBreakthrough } from './cultivation.js';
+import { getEl } from './dom.js';
 import { toggleCharPanel, toggleBagPanel, toggleSkillPanel, toggleAchPanel, toggleShopPanel,
-  hotbarRender, updateHUD, updateHotbarCooldowns, addAttr, upgradeSkill, equipSkill } from '../ui/index.js';
+  hotbarRender, updateHUD, addAttr, upgradeSkill, equipSkill } from '../ui/index.js';
 
 export class MainScene extends Phaser.Scene {
   constructor(){ super({key:'main'}); }
@@ -35,8 +33,9 @@ export class MainScene extends Phaser.Scene {
   }
   create(){
     setScene(this);
+    window.startAdventure = () => this.startAdventure();
     window.startDefense = () => this.startDefense();
-    window.startNextWave = () => this._startNextWave();
+    window.startNextWave = () => this.startNextWave();
     this.worldSize = WORLD.size;
     this._currentMap = { worldSize: WORLD.size, safeRadius: WORLD.safeRadius, id:'hehuan', name:'合欢宗', colorName:'#c9a96e' };
     this._currentMap.name = '古剑门';
@@ -94,8 +93,8 @@ export class MainScene extends Phaser.Scene {
     this.shieldTimer = 0;
     this.shieldReflect = 0;
 
-    this.deathModal = document.getElementById('deathModal');
-    const rb = document.getElementById('respawnBtn');
+    this.deathModal = getEl('deathModal');
+    const rb = getEl('respawnBtn');
     if(rb) rb.onclick = ()=>{ this.respawnPlayer(); };
 
     this.marker = null;
@@ -106,6 +105,19 @@ export class MainScene extends Phaser.Scene {
     recalcStats();
     bus.emit('hud-refresh');
     bus.emit('hotbar-refresh');
+    this.updateZoneLabel();
+  }
+
+  getSectSpawnPoint() {
+    return { x: this.worldSize / 2, y: this.worldSize / 2 };
+  }
+
+  placeAtSect() {
+    const p = this.getSectSpawnPoint();
+    this.player.setPosition(p.x, p.y);
+    this.moveTarget.set(p.x, p.y);
+    this.lastZoneId = null;
+    this._wasInSafe = true;
     this.updateZoneLabel();
   }
 
@@ -252,7 +264,7 @@ export class MainScene extends Phaser.Scene {
 
   updateZoneLabel(){
     const zone = this.getCurrentZone();
-    const el=document.getElementById('zone-label');
+    const el=getEl('zone-label');
     if(el){
       el.textContent=this.getZoneName(zone);
       el.style.color=zone.colorName||'#fff';
@@ -275,7 +287,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   damageFlash(t){
-    const el=document.getElementById('damageFlash');
+    const el=getEl('damageFlash');
     if(!el)return;
     el.style.opacity='1';
     clearTimeout(el._to);
@@ -303,8 +315,7 @@ export class MainScene extends Phaser.Scene {
     P.hp=P.maxHp;
     this.playerDead=false;
     this.player.setAlpha(1);
-    this.player.setPosition(this.worldSize/2,this.worldSize/2);
-    this.moveTarget.set(this.worldSize/2,this.worldSize/2);
+    this.placeAtSect();
     if(this.deathModal)this.deathModal.classList.add('hidden');
     recalcStats();
     bus.emit('status','转生归来',1.5);
@@ -414,167 +425,36 @@ export class MainScene extends Phaser.Scene {
 
   update(time,delta){
     const dt=delta/1000;
-    const inSafe = this._inSafeZone();
-    if (inSafe && !this._wasInSafe) {
-    this._wasInSafe = true;
-    this._waitingWave = false;
-      this.clearEnemies();
-      this.showWorldNotice('进入安全区', '#dfffd8');
-      bus.emit('status', '已进入安全区', 1.2);
-    } else if (!inSafe && this._wasInSafe) {
-      this._wasInSafe = false;
-      this.showWorldNotice('离开安全区', '#ffd866');
-      bus.emit('status', '已离开安全区', 1.2);
-    }
-    if (inSafe && this.enemies.countActive(true) > 0) this.clearEnemies();
+    const { inSafe } = this.playerStatusSystem?.update(dt) || { inSafe: this._inSafeZone() };
     P.totalPlayTime += dt;
-    this.spawnSystem.update(dt);
+    if (!inSafe) this.spawnSystem.update(dt);
     this.movementSystem.update();
     this.entityAnimationSystem?.update(dt);
     if (this.playerDead) this.player.setVelocity(0, 0);
-    if (isCultivating && !this.playerDead) {
-      const cultRate = 0.02 + getRealmIndex(P.realm) * 0.005;
-      let cp = cultProgress + cultRate * dt;
-      if (cp >= 1) {
-        cp = 0;
-        const r = getRealm(P.realm);
-        if (P.stage < r.stages) {
-          P.stage++; recalcStats(); refreshSkills(); initHotbar();
-          bus.emit('status', '🌊 ' + (r.name) + ' ' + (P.stage) + '层！', 2);
-          bus.emit('hud-refresh'); bus.emit('hotbar-refresh'); bus.emit('save');
-        } else { bus.emit('status', '⚡ 境界圆满，按 C 尝试突破！', 2); }
-      }
-      setCultProgress(cp);
-      if (Math.random() < 0.3) {
-        const px = this.player.x + Phaser.Math.Between(-20, 20), py = this.player.y + Phaser.Math.Between(-20, 20);
-        const dot = this.add.circle(px, py, 3, 0x88ddff, 0.6).setDepth(2);
-        this.tweens.add({ targets: dot, alpha: 0, y: py - 30, duration: 600, onComplete: () => dot.destroy() });
-      }
-    }
-    this.combatSystem.updateSwordProjectiles(dt);
-    this.skillEffects?.updateProjectileTrails();
-    this.updateFireballFields();
-    this.groundEffectSystem?.update(dt);
-    if (!this.playerDead && P.hp < P.maxHp) {
-      const noEnemies = this.enemies.countActive(true) === 0;
-      if (inSafe || noEnemies) {
-        const healRate = inSafe ? P.maxHp * 0.05 : P.maxHp * 0.02;
-        P.hp = Math.min(P.maxHp, P.hp + healRate * dt);
-      }
-    }
-    this.buffSystem.update(dt);
-    const skillNow = time / 1000;
-    const qDef = SKILL_DEFS.find(s => s.id === P.hotbar[0]?.id) || SKILL_DEFS.find(s => s.id === 'swordfly');
-    const view = this.cameras.main?.worldView;
-    const visibleRange = view
-      ? Math.sqrt(view.width * view.width + view.height * view.height) * 0.5 + 80
-      : (qDef.range || 280);
-    const qRange = qDef.id === 'swordfly'
-      ? Math.max(qDef.range || 280, visibleRange)
-      : (qDef.range || 280) * (1 + (P.buff.rangeBoost || 0));
-    const qR2 = qRange * qRange;
-    const { closestQ, activeEnemies } = this.aiSystem.update(dt, time / 1000, qRange, qR2);
-    this.sceneEffectsSystem?.update(dt, this.getCurrentZone());
-    if (!this.playerDead) {
-      if (!this.playerAura || !this.playerAura.active) {
-        const colors = [0x6de27a, 0x66ffcc, 0x88ccff, 0xffd700, 0xcc66ff, 0xff8866, 0xaa44ff, 0xffffff, 0xffdd00];
-        const cIdx = Math.min(getRealmIndex(P.realm), colors.length - 1);
-        this.playerAura = this.add.circle(this.player.x, this.player.y, 22, colors[cIdx] || 0x6de27a, 0.15).setDepth(1);
-        this.tweens.add({ targets: this.playerAura, alpha: 0.08, scale: 1.6, duration: 1200, yoyo: true, repeat: -1 });
-      } else this.playerAura.setPosition(this.player.x, this.player.y);
-    }
-    if (!this.playerDead && !this._inSafeZone()) {
-      this.combatSystem.useAutoAttack(skillNow, closestQ, activeEnemies, qDef);
-      this.combatSystem.useManualSkills(skillNow, activeEnemies);
-    }
+    this.cultivationProgressSystem?.update(dt);
+    this.combatLoopSystem?.update(dt, time, inSafe);
     this.waveSystem.update(dt);
-    let st = statusTimer;
-    if (st > 0) { st -= dt; if (st <= 0) { const el = document.getElementById('status'); if (el) el.classList.remove('show'); } }
-    setStatusTimer(st);
-    let lt = lootTimer;
-    if (lt > 0) { lt -= dt; if (lt <= 0) { const el = document.getElementById('loot-popup'); if (el) el.classList.remove('show'); } }
-    setLootTimer(lt);
-    let at = autoSaveTimer + dt;
-    if (at >= 30) { at = 0; bus.emit('save'); }
-    setAutoSaveTimer(at);
-    this._hudTick = (this._hudTick || 0) + 1;
-      if (this._hudTick > 6) { this._hudTick = 0; bus.emit('hud-refresh'); bus.emit('hotbar-refresh'); updateHotbarCooldowns(); this.updateZoneLabel(); }
-    if (time % 2000 < delta * 1.5) bus.emit('check-achievements');
-    this.checkWaveCleared();
-    if (gameStarted) this._updateDefense();
-  }
-
-  _updateDefense() {
-    const wallY = this.worldSize - 300;
-    const bar = document.getElementById('wallHpBar');
-    const waveEl = document.getElementById('waveCounter');
-    if (bar) { bar.style.width = Math.max(0, wallHp / wallMaxHp * 100) + '%'; }
-    if (waveEl) { waveEl.textContent = defenseWave + '/' + MAX_WAVES; }
-    if (wallHp <= 0) {
-      setGameStarted(false);
-      const dm = document.getElementById('defeatModal');
-      const dw = document.getElementById('defeatWave');
-      if (dm) dm.classList.remove('hidden');
-      if (dw) dw.textContent = Math.max(0, defenseWave - 1);
-    }
-    this.enemies.children.iterate((en) => {
-      if (!en || en.getData('dead')) return;
-      if (en.y > wallY - 30) {
-        setWallHp(wallHp - Math.round(en.getData('atk') || 5) * 0.3);
-        en.setData('dead', true);
-        const lbl = en.getData('label'); if (lbl) lbl.destroy();
-        en.destroy();
-      }
-    });
+    this.uiTickSystem?.update(dt, time);
+    this.defenseSystem?.update(dt);
   }
 
   startDefense() {
-    document.getElementById('mainMenu').style.display = 'none';
-    setGameStarted(true);
-    setWallHp(wallMaxHp);
-    setDefenseWave(0);
-    this.player.setPosition(this.worldSize / 2, this.worldSize - 400);
-    this.moveTarget.set(this.worldSize / 2, this.worldSize - 400);
-    this.clearEnemies();
-    this._startNextWave();
-    bus.emit('status', '⚔️ 镇守剑气长城！', 3);
-    const wallY = this.worldSize - 300;
-    this._wallGfx = this.add.graphics().setDepth(0);
-    this._wallGfx.fillStyle(0x8a7a6a, 0.7);
-    this._wallGfx.fillRect(0, wallY - 10, this.worldSize, 30);
-    this._wallGfx.fillStyle(0xc8b898, 0.4);
-    this._wallGfx.fillRect(0, wallY - 8, this.worldSize, 6);
-    document.getElementById('wallHud')?.classList.remove('hidden');
+    this.defenseSystem?.start();
   }
 
-  _startNextWave() {
-    if (defenseWave >= MAX_WAVES) {
-      bus.emit('status', '🎉 剑气长城守住了！全部' + MAX_WAVES + '波妖兽被击退！', 5);
-      setGameStarted(false);
-      return;
-    }
-    setDefenseWave(defenseWave + 1);
-    const count = Math.min(3 + defenseWave * 2, 25);
-    const isBossWave = defenseWave % 5 === 0;
-    for (let i = 0; i < count; i++) {
-      const en = this.spawnSystem.spawnEnemy({ allowBoss: isBossWave });
-      if (en) {
-        en.y = Phaser.Math.Between(100, 500);
-        en.x = Phaser.Math.Between(100, this.worldSize - 100);
-      }
-    }
-    bus.emit('status', '⚔️ 第 ' + defenseWave + ' 波来袭！', 2);
+  startAdventure() {
+    const mainMenu = getEl('mainMenu');
+    if (mainMenu) mainMenu.style.display = 'none';
+    this.clearEnemies();
+    this.placeAtSect();
+    bus.emit('status', '已入古剑门，修行开始', 2);
+  }
+
+  startNextWave() {
+    this.defenseSystem?.startNextWave();
   }
 
   checkWaveCleared() {
-    if (!gameStarted || this._waitingWave) return;
-    if (this.enemies.countActive(true) === 0) {
-      this._waitingWave = true;
-      bus.emit('status', '妖兽退散，下一波准备中...', 2);
-      this.time.delayedCall(3000, () => {
-        this._waitingWave = false;
-        this._startNextWave();
-      });
-    }
+    this.defenseSystem?.checkWaveCleared();
   }
 }

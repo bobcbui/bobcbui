@@ -1,13 +1,19 @@
 import { bus } from './events.js';
 import { setStatusTimer, setLootTimer } from './state.js';
+import { getEl } from './dom.js';
 
 function setStatus(text, dur) {
-  setStatusTimer(0);
+  setStatusTimer(dur || 2);
+  const el = getEl('status');
+  if (el) {
+    el.textContent = text;
+    el.classList.add('show');
+  }
 }
 
 function setLoot(text) {
   setLootTimer(2.5);
-  const el = document.getElementById('loot-popup');
+  const el = getEl('loot-popup');
   if (el) { el.textContent = text; el.classList.add('show'); }
 }
 

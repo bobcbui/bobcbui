@@ -9,6 +9,7 @@ export function mountTopNav(container, actions) {
     ['角色', 'btn-gold', actions.toggleCharPanel],
     ['背包', 'btn-sec', actions.toggleBagPanel],
     ['技能', 'btn-sec', actions.toggleSkillPanel],
+    ['玩法', 'btn-gold', actions.toggleGameplayPanel],
     ['成就', 'btn-sec', actions.toggleAchPanel],
     ['百宝阁', 'btn-gold', actions.toggleShopPanel],
     ['设置', 'btn-sec', actions.toggleSettingsPanel]

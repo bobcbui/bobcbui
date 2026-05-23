@@ -35,7 +35,7 @@ export class SpawnSystem {
     const active = scene.enemies.countActive(true);
     const target = COMBAT_TUNING.maxActiveEnemies;
     if (active < target) {
-      const batch = Math.min(target - active, active === 0 ? 2 : 1);
+      const batch = Math.min(target - active, active === 0 ? 4 : 2);
       for (let i = 0; i < batch; i++) this.spawnEnemy();
       this.spawnTimer = active === 0 ? COMBAT_TUNING.spawnInterval.empty : COMBAT_TUNING.spawnInterval.refill;
     } else {
@@ -53,12 +53,11 @@ export class SpawnSystem {
 
     const sz = scene.worldSize;
     let { x, y } = this.pickSpawnPoint();
-
-    const r = WORLD.safeRadius + 40;
+    const safeRadius = WORLD.safeRadius + 40;
     const cx = sz / 2, cy = sz / 2;
-    if (Math.abs(x-cx)<=r && Math.abs(y-cy)<=r) {
-      const angle = Math.atan2(y-cy, x-cx) + Phaser.Math.FloatBetween(-0.5, 0.5);
-      const dist = r + Phaser.Math.Between(60, 300);
+    if (Math.abs(x - cx) <= safeRadius && Math.abs(y - cy) <= safeRadius) {
+      const angle = Math.atan2(y - cy, x - cx) + Phaser.Math.FloatBetween(-0.5, 0.5);
+      const dist = safeRadius + Phaser.Math.Between(80, 360);
       x = Phaser.Math.Clamp(cx + Math.cos(angle) * dist, 30, sz - 30);
       y = Phaser.Math.Clamp(cy + Math.sin(angle) * dist, 30, sz - 30);
     }
