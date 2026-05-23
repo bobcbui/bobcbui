@@ -2,6 +2,7 @@ import { P, recalcStats } from '../core/state.js';
 import { SKILL_DEFS, RARITY_LABEL, RARITY_COLORS, COMBAT_TUNING } from '../data/index.js';
 import { genEquipment, acquireEquipment } from '../core/equipment.js';
 import { bus } from '../core/events.js';
+import { recordEnemyKill } from '../core/progression.js';
 
 const SWORD_VOLLEY_COUNT = 3;
 const SWORD_VOLLEY_SPREAD = 0.28;
@@ -71,7 +72,7 @@ export class CombatSystem {
   }
 
   getScaledPlayerDamageBase() {
-    return (P.atk + P.level * 0.5) * COMBAT_TUNING.playerDamageScale;
+    return (P.atk + P.level * 0.5) * COMBAT_TUNING.playerDamageScale * (1 + (P.mods?.skillDamage || 0));
   }
 
   splitDamage(totalDamage, count) {
@@ -438,7 +439,8 @@ export class CombatSystem {
 
   getSwordStormInterval() {
     const speedBoost = Math.max(0, P.buff.swordAtkSpeedBoost || 0);
-    const interval = SWORD_STORM_INTERVAL / (1 + speedBoost);
+    const cooldownReduction = Math.min(0.45, Math.max(0, P.mods?.cooldownReduction || 0));
+    const interval = SWORD_STORM_INTERVAL * (1 - cooldownReduction) / (1 + speedBoost);
     return Math.max(0.08, interval);
   }
 
@@ -1107,7 +1109,7 @@ export class CombatSystem {
   applySwordLifesteal(skillId, dealtDamage) {
     if (skillId !== 'swordfly') return;
     if (this.scene.playerDead) return;
-    const lifestealPct = Math.max(0, P.buff.lifestealPct || 0);
+    const lifestealPct = Math.max(0, (P.buff.lifestealPct || 0) + (P.mods?.lifestealPct || 0));
     if (lifestealPct <= 0) return;
     if (P.hp >= P.maxHp) return;
     const heal = Math.max(1, Math.round(dealtDamage * lifestealPct));
@@ -1129,7 +1131,7 @@ export class CombatSystem {
   damageEnemy(en, dmg, skillId = null) {
     const { scene } = this;
     if (en.getData('dead')) return;
-    const critChance = 0.15 + P.level * 0.003;
+    const critChance = 0.15 + P.level * 0.003 + (P.mods?.critChance || 0);
     const isCrit = Math.random() < critChance;
     const finalDmg = isCrit ? Math.round(dmg * 2) : dmg;
     const hp = en.getData('hp') - finalDmg;
@@ -1149,8 +1151,8 @@ export class CombatSystem {
       en.setData('dead', true);
       const lbl = en.getData('label'); if (lbl) lbl.destroy();
       const ex = en.x, ey = en.y;
-      const xp = en.getData('xp') || 1;
-      const gold = en.getData('gold') || 1;
+      const xp = Math.round((en.getData('xp') || 1) * (1 + (P.mods?.xpBonus || 0)));
+      const gold = Math.round((en.getData('gold') || 1) * (1 + (P.mods?.goldBonus || 0)));
       const isBoss = en.getData('isBoss');
       const isElite = en.getData('isElite');
       en.setVelocity(0, 0); en.body.enable = false;
@@ -1163,6 +1165,7 @@ export class CombatSystem {
       const streakBonus = scene.killStreak >= 5 ? Math.round(xp * (scene.killStreak * 0.1)) : 0;
       P.xp += xp + streakBonus; P.gold += gold; P.kills++;
       P.totalGoldEarned = (P.totalGoldEarned || 0) + gold;
+      recordEnemyKill(en);
       if (scene.killStreak >= 3) {
         scene.textPool.show(en.x, en.y - 30, '连杀x' + scene.killStreak + (streakBonus ? ' +' + streakBonus + 'exp' : ''), {
           fontSize: '16px', color: '#ff8844', stroke: '#000',
@@ -1183,7 +1186,7 @@ export class CombatSystem {
       }
       const zoneLv = en.getData('zoneLv') || 1;
       recalcStats();
-      const dropRate = isBoss ? 1.0 : (isElite ? 0.6 : 0.35);
+      const dropRate = Math.min(0.95, (isBoss ? 1.0 : (isElite ? 0.6 : 0.35)) + (P.mods?.dropRate || 0));
       if (Math.random() < dropRate) {
         const eq = genEquipment(zoneLv, isBoss ? 'legendary' : null);
         if (eq.rarity === 'legendary' || eq.rarity === 'mythic') P.legendaryFound = true;
@@ -1196,7 +1199,7 @@ export class CombatSystem {
         }
       }
       if (Math.random() < 0.1 && P.inventory.length < 30) {
-        const dropGold = Math.round((10 + zoneLv * 5) * (isBoss ? 5 : 1));
+        const dropGold = Math.round((10 + zoneLv * 5) * (isBoss ? 5 : 1) * (1 + (P.mods?.goldBonus || 0)));
         P.gold = Math.min(99999, P.gold + dropGold);
         P.totalGoldEarned = (P.totalGoldEarned || 0) + dropGold;
       }
@@ -1210,7 +1213,7 @@ export class CombatSystem {
   useAutoAttack(skillNow, closestQ, activeEnemies, qDef) {
     if (qDef.id !== 'swordfly') {
       if (skillNow >= (this.scene.skillCooldowns[qDef.id] || 0) && closestQ) {
-        const qCD = qDef.cooldown || 0.7;
+        const qCD = (qDef.cooldown || 0.7) * (1 - Math.min(0.45, P.mods?.cooldownReduction || 0));
         this.scene.skillCooldowns[qDef.id] = skillNow + qCD;
         const lv = P.skillLevels?.[qDef.id] || 1;
         const mult = 1 + (P.buff.atkBoost || 0);
@@ -1264,7 +1267,7 @@ export class CombatSystem {
       const def = SKILL_DEFS.find(s => s.id === P.hotbar[si]?.id);
       if (!def || def.type === 'basic') continue;
       if (skillNow < (scene.skillCooldowns[def.id] || 0)) continue;
-      const cd = def.cooldown || 2;
+      const cd = (def.cooldown || 2) * (1 - Math.min(0.45, P.mods?.cooldownReduction || 0));
 
       if (def.type === 'heal') {
         scene.skillCooldowns[def.id] = skillNow + cd;

@@ -1,8 +1,28 @@
 import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '../core/state.js';
 import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, RARITY_MULT } from '../data/index.js';
 import { genEquipment, acquireEquipment } from '../core/equipment.js';
+import { getEffectiveEquipmentStats } from '../core/equipment.js';
 import { bus } from '../core/events.js';
 import { getScene, getSkillCooldowns } from '../core/runtime.js';
+import {
+  MATERIALS,
+  RECIPES,
+  SKILL_EVOLUTIONS,
+  TALENTS,
+  claimBestiaryReward,
+  claimQuest,
+  craftRecipe,
+  enhanceEquipped,
+  ensureProgressionState,
+  evolveSkill,
+  formatAffix,
+  formatCost,
+  getSetName,
+  learnTalent,
+  reforgeEquipped,
+  resetQuests,
+  startDungeon
+} from '../core/progression.js';
 
 export function hotbarRender(){
   const cont = document.getElementById('hotbar');
@@ -48,7 +68,7 @@ export function renderBagPanel(){
     let stats='';
     if(item.stats){
       const lb={atk:'攻',def:'防',hp:'命',speed:'速'};
-      stats = Object.entries(item.stats).map(([k,v])=>(lb[k]||k)+'+'+v).join(' ');
+      stats = Object.entries(getEffectiveEquipmentStats(item)).map(([k,v])=>(lb[k]||k)+'+'+v).join(' ');
     }
     d.innerHTML = `<div class="in">${item.name}</div><div class="im">${EQ_NAMES[item.type]||item.type||'道具'}</div><div class="is">${stats}</div>`;
     if(isEq) d.classList.add('equipped');
@@ -82,10 +102,12 @@ function showBagMenu(idx){
     const cur = P.equipment[item.type];
     const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
     html += '<div style="text-align:left;font-size:12px;margin-bottom:10px;">';
-    const allKeys = new Set([...Object.keys(item.stats), ...(cur?.stats?Object.keys(cur.stats):[])]);
+    const itemStats = getEffectiveEquipmentStats(item);
+    const curStats = getEffectiveEquipmentStats(cur);
+    const allKeys = new Set([...Object.keys(itemStats), ...Object.keys(curStats)]);
     allKeys.forEach(k=>{
-      const v = item.stats[k]||0;
-      const cv = cur?.stats?.[k]||0;
+      const v = itemStats[k]||0;
+      const cv = curStats[k]||0;
       const diff = v - cv;
       const diffStr = diff>0?`<span style="color:#4f8c48">↑${diff}</span>`:diff<0?`<span style="color:#b94a3e">↓${Math.abs(diff)}</span>`:'';
       const curStr = cur&&cv?` (${labels[k]||k} +${cv})`:'';
@@ -94,6 +116,10 @@ function showBagMenu(idx){
     if(cur){
       html += `<div style="margin-top:4px;font-size:10px;color:var(--text-dim);">当前装备: ${cur.name}</div>`;
     }
+    const setName = getSetName(item);
+    if(setName) html += `<div style="font-size:11px;color:var(--gold);">套装: ${setName}</div>`;
+    const affix = (item.affixes || []).map(formatAffix).join(' ');
+    if(affix) html += `<div style="font-size:11px;color:var(--gold);">词条: ${affix}</div>`;
     html += '</div>';
   }
   const isEquipped = Object.values(P.equipment).some(e=>e&&e.id===item.id);
@@ -251,6 +277,98 @@ export function toggleShopPanel(){
   if(!el.classList.contains('hidden')) renderShopPanel();
 }
 
+export function renderGameplayPanel(){
+  ensureProgressionState();
+  const list = document.getElementById('gameplayList');
+  if(!list) return;
+  list.innerHTML = '';
+
+  const materials = Object.entries(MATERIALS)
+    .map(([id, name]) => `${name}: ${P.materials?.[id] || 0}`)
+    .join('　');
+  list.appendChild(sectionCard('材料', `<div class="sc-desc">${materials}</div>`));
+
+  const eqRows = EQ_TYPES.map(slot => {
+    const eq = P.equipment?.[slot];
+    if(!eq) return `<div class="skill-card"><div class="sc-head"><span class="sc-name">${EQ_NAMES[slot]}</span></div><div class="sc-desc">未装备</div></div>`;
+    const stats = getEffectiveEquipmentStats(eq);
+    const statText = Object.entries(stats).map(([k,v]) => `${{atk:'攻',def:'防',hp:'命',speed:'速'}[k]||k}+${v}`).join(' ');
+    const affix = (eq.affixes || []).map(formatAffix).join(' ');
+    const setName = getSetName(eq);
+    return `<div class="skill-card">
+      <div class="sc-head"><span class="sc-name">${EQ_NAMES[slot]} ${eq.name} +${eq.enhance || 0}</span></div>
+      <div class="sc-desc">${RARITY_LABEL[eq.rarity] || ''} ${setName ? ' · '+setName : ''} · ${statText}${affix ? ' · '+affix : ''}</div>
+      <button class="btn btn-sm btn-gold" onclick="enhanceEquipped('${slot}');renderGameplayPanel();updateCharPanel();">强化</button>
+      <button class="btn btn-sm btn-sec" onclick="reforgeEquipped('${slot}');renderGameplayPanel();updateCharPanel();">洗炼</button>
+    </div>`;
+  }).join('');
+  list.appendChild(sectionCard('装备养成', eqRows));
+
+  const recipeRows = RECIPES.map(r => `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">${r.name}</span></div>
+    <div class="sc-desc">${r.effect} · ${formatCost(r.cost)}</div>
+    <button class="btn btn-sm btn-gold" onclick="craftRecipe('${r.id}');renderGameplayPanel();">炼制</button>
+  </div>`).join('');
+  list.appendChild(sectionCard('炼丹', recipeRows));
+
+  const questRows = (P.quests || []).map(q => `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">${q.name}</span><span>${q.progress || 0}/${q.target}</span></div>
+    <div class="sc-desc">${q.type === 'boss' ? '击杀首领' : '击杀妖兽'} · 奖励灵石${q.reward.gold || 0}</div>
+    <button class="btn btn-sm btn-gold" onclick="claimQuest('${q.id}');renderGameplayPanel();" ${q.progress >= q.target && !q.claimed ? '' : 'disabled'}>${q.claimed ? '已领取' : '领取'}</button>
+  </div>`).join('');
+  list.appendChild(sectionCard('宗门任务', questRows + `<button class="btn btn-sm btn-sec" onclick="resetQuests();renderGameplayPanel();">刷新任务</button>`));
+
+  const dungeon = P.dungeon || {};
+  list.appendChild(sectionCard('秘境副本', `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">妖雾秘境</span><span>${dungeon.active ? (dungeon.kills || 0)+'/'+(dungeon.target || 0) : '未开启'}</span></div>
+    <div class="sc-desc">限时清剿玩法雏形，完成后获得妖核、星尘、天赋点。</div>
+    <button class="btn btn-sm btn-gold" onclick="startDungeon();renderGameplayPanel();" ${dungeon.active ? 'disabled' : ''}>进入秘境</button>
+  </div>`));
+
+  list.appendChild(sectionCard('剑气长城', `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">镇守长城</span></div>
+    <div class="sc-desc">从古剑门出发挑战兽潮波次，适合需要集中刷怪和材料时进入。</div>
+    <button class="btn btn-sm btn-gold" onclick="startDefense();toggleGameplayPanel();">前往镇守</button>
+  </div>`));
+
+  const skillRows = SKILL_EVOLUTIONS.map(ev => `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">${ev.name}</span></div>
+    <div class="sc-desc">${ev.desc} · ${formatCost(ev.cost)}</div>
+    <button class="btn btn-sm btn-gold" onclick="evolveSkill('${ev.id}');renderGameplayPanel();" ${P.skillEvolutions?.[ev.id] ? 'disabled' : ''}>${P.skillEvolutions?.[ev.id] ? '已进阶' : '进阶'}</button>
+  </div>`).join('');
+  list.appendChild(sectionCard('技能进阶', skillRows));
+
+  const bestiaryEntries = Object.entries(P.bestiary || {})
+    .sort((a,b) => (b[1].kills || 0) - (a[1].kills || 0))
+    .slice(0, 10);
+  const bestiaryRows = bestiaryEntries.length ? bestiaryEntries.map(([name, entry]) => `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">${name}</span><span>${entry.kills || 0}杀</span></div>
+    <div class="sc-desc">10杀可领取图鉴奖励：属性点+1、星尘+1。</div>
+    <button class="btn btn-sm btn-gold" onclick="claimBestiaryReward('${name}');renderGameplayPanel();" ${(entry.kills || 0) >= 10 && !entry.rewardClaimed ? '' : 'disabled'}>${entry.rewardClaimed ? '已领取' : '领取'}</button>
+  </div>`).join('') : '<div class="sc-desc">击杀怪物后解锁图鉴。</div>';
+  list.appendChild(sectionCard('怪物图鉴', bestiaryRows));
+
+  const talentRows = TALENTS.map(t => `<div class="skill-card">
+    <div class="sc-head"><span class="sc-name">${t.name}</span></div>
+    <div class="sc-desc">${t.desc} · 消耗${t.cost}天赋点</div>
+    <button class="btn btn-sm btn-gold" onclick="learnTalent('${t.id}');renderGameplayPanel();updateCharPanel();" ${P.talents?.[t.id] ? 'disabled' : ''}>${P.talents?.[t.id] ? '已领悟' : '领悟'}</button>
+  </div>`).join('');
+  list.appendChild(sectionCard('境界天赋', `<div class="sc-desc">天赋点: ${P.talentPoints || 0}</div>${talentRows}`));
+}
+
+function sectionCard(title, innerHtml) {
+  const wrap = document.createElement('div');
+  wrap.className = 'skill-card';
+  wrap.innerHTML = `<div class="sc-head"><span class="sc-name">${title}</span></div>${innerHtml}`;
+  return wrap;
+}
+
+export function toggleGameplayPanel(){
+  const el = document.getElementById('gameplayPanel');
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')) renderGameplayPanel();
+}
+
 export function buyShopItem(itemId){
   const item = SHOP_ITEMS?.find(s=>s.id===itemId);
   if(!item || P.gold < item.cost || P.inventory.length>=30) return;
@@ -388,11 +506,13 @@ export function updateCharPanel(){
     const el = document.getElementById('eq-'+slot);
     if(eq){
       const rc = RARITY_COLORS[eq.rarity]||'#aab';
-      const statsStr = Object.entries(eq.stats).map(([k,v])=>{
+      const statsStr = Object.entries(getEffectiveEquipmentStats(eq)).map(([k,v])=>{
         const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
         return (labels[k]||k)+'+'+v;
       }).join(' ');
-      el.innerHTML = `<span style="color:${rc}">${RARITY_LABEL[eq.rarity]||''} ${eq.name}</span><br><span style="font-size:11px;color:var(--text-dim)">${statsStr}</span>`;
+      const affix = (eq.affixes || []).map(formatAffix).join(' ');
+      const setName = getSetName(eq);
+      el.innerHTML = `<span style="color:${rc}">${RARITY_LABEL[eq.rarity]||''} ${eq.name} +${eq.enhance || 0}</span><br><span style="font-size:11px;color:var(--text-dim)">${statsStr}${setName ? ' · '+setName : ''}${affix ? ' · '+affix : ''}</span>`;
       el.className = 'val';
     } else {
       el.textContent = '空'; el.className = 'val empty';
