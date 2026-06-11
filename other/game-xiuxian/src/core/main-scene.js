@@ -9,6 +9,9 @@ import { toggleCultivate, tryBreakthrough } from './cultivation.js';
 import { getEl } from './dom.js';
 import { toggleCharPanel, toggleBagPanel, toggleSkillPanel, toggleAchPanel, toggleShopPanel,
   hotbarRender, updateHUD, addAttr, upgradeSkill, equipSkill } from '../ui/index.js';
+import { reportLoading } from '../app/loader.js';
+import { mountTopNav, mountBottomNav } from '../ui/nav-bar.js';
+import { uiActions } from '../ui/actions.js';
 
 export class MainScene extends Phaser.Scene {
   constructor(){ super({key:'main'}); }
@@ -29,11 +32,14 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload(){
+    if (typeof reportLoading === 'function') reportLoading(40, '生成纹理资源...');
     createGeneratedTextures(this);
+    if (typeof reportLoading === 'function') reportLoading(60, '纹理加载完成');
   }
   create(){
     setScene(this);
-    window.startAdventure = () => this.startAdventure();
+    if (typeof reportLoading === 'function') reportLoading(65, '初始化场景...');
+    // Don't override window.startAdventure - it's set by bootstrap.js with loading bar logic
     window.startDefense = () => this.startDefense();
     window.startNextWave = () => this.startNextWave();
     this.worldSize = WORLD.size;
@@ -102,10 +108,35 @@ export class MainScene extends Phaser.Scene {
     this._wasInSafe = true;
 
     loadGame();
+    if (typeof reportLoading === 'function') reportLoading(75, '加载存档...');
     recalcStats();
     bus.emit('hud-refresh');
     bus.emit('hotbar-refresh');
+    if (typeof reportLoading === 'function') reportLoading(85, '加载完成...');
     this.updateZoneLabel();
+
+    // Mount navigation bars
+    const uiLayer = document.querySelector('.ui-layer');
+    if (uiLayer) {
+      mountTopNav(uiLayer, uiActions);
+      mountBottomNav(uiActions);
+    }
+
+    // Auto-start adventure and complete loading
+    const doAutoStart = () => {
+      if (typeof reportLoading === 'function') reportLoading(100, '进入游戏...');
+      this.startAdventure();
+      const lbWrap = document.getElementById('loading-bar-wrap');
+      const startBtn = document.getElementById('startBtn');
+      if (lbWrap) lbWrap.classList.add('hidden');
+      if (startBtn) { startBtn.style.display = 'none'; }
+    };
+    // Use requestAnimationFrame to ensure the first frame render completes
+    if (typeof reportLoading === 'function') {
+      setTimeout(doAutoStart, 400);
+    } else {
+      doAutoStart();
+    }
   }
 
   getSectSpawnPoint() {

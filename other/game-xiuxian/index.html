@@ -2,11 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>九天仙途 - 文字修仙世界</title>
 <style>
 :root {
-  --panel-bg: rgba(255, 250, 232, 0.9);
+  --panel-bg: rgba(255, 250, 232, 0.92);
   --panel-border: rgba(128, 88, 44, 0.22);
   --text: #3f2d1d;
   --text-dim: rgba(63,45,29,0.64);
@@ -15,6 +17,9 @@
   --xp: #4f8c48;
   --rare: #6f73a8;
   --btn: linear-gradient(180deg,#f6dfac,#d9a64f);
+  --tab-active: rgba(250,226,168,0.85);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
 }
 * { box-sizing:border-box; margin:0; padding:0; }
 html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
@@ -23,8 +28,32 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .panel { background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;backdrop-filter:blur(12px); }
 .hidden { display:none!important; }
 
-/* Top HUD */
-#hud { position:absolute;top:10px;left:10px;width:260px;padding:10px; }
+/* ===== Loading Bar ===== */
+#loading-bar-wrap {
+  width: 280px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,215,0,0.15);
+  overflow: hidden;
+  border: 1px solid rgba(255,215,0,0.2);
+  margin-top: 12px;
+}
+#loading-bar-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b57a19, #ffd700);
+  transition: width 0.3s ease;
+}
+#loading-text {
+  font-size: 13px;
+  color: rgba(255,215,0,0.6);
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+/* ===== HUD (Desktop) ===== */
+#hud { position:absolute;top:10px;left:10px;width:260px;padding:10px;z-index:4; }
 #hud .realm { font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px; }
 #hud .realm-sub { font-size:11px;color:var(--text-dim);margin-bottom:6px; }
 #hud .bar-wrap { display:flex;align-items:center;gap:6px;margin-bottom:3px; }
@@ -32,6 +61,8 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 #hud .bar-bg { flex:1;height:7px;border-radius:999px;background:rgba(128,88,44,0.12);overflow:hidden; }
 #hud .bar-fill { height:100%;width:100%;transition:width .1s linear;border-radius:999px; }
 #hud .bar-text { font-size:10px;min-width:50px;text-align:right;color:var(--text-dim); }
+/* HUD toggle (mobile) */
+#hud-toggle { display:none; position:absolute;top:6px;left:6px;z-index:5;width:36px;height:36px;border-radius:10px;background:var(--panel-bg);border:1px solid var(--panel-border);pointer-events:auto;cursor:pointer;align-items:center;justify-content:center;font-size:16px; }
 
 /* Cultivation orb */
 #cult-orb { position:absolute;top:50%;left:50%;width:80px;height:80px;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;opacity:0;transition:opacity .3s; }
@@ -41,7 +72,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 #zone-label { position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;pointer-events:none;opacity:0;transition:opacity .6s;text-shadow:0 2px 18px rgba(255,248,220,.95);letter-spacing:3px;z-index:2;background:rgba(63,45,29,0.35);padding:2px 18px;border-radius:12px; }
 #zone-label.show { opacity:.9; }
 
-/* Bottom hotbar */
+/* Hotbar */
 #hotbar { display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:8px; }
 .slot { padding:4px 3px 5px;border:1px solid rgba(128,88,44,0.18);background:rgba(255,250,232,0.82);border-radius:8px;text-align:center;transition:.12s;pointer-events:auto;cursor:pointer;box-shadow:0 6px 20px rgba(112,82,38,0.12); }
 .slot:hover { border-color:rgba(128,88,44,0.34); }
@@ -51,11 +82,11 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .slot.cd .m { color:var(--hp); }
 
 /* Status msg */
-#status { display:none!important;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .2s;text-shadow:0 2px 12px rgba(255,248,220,.9);white-space:nowrap; }
+#status { display:none!important;position:absolute;bottom:90px;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .2s;text-shadow:0 2px 12px rgba(255,248,220,.9);white-space:nowrap;z-index:6; }
 #status.show { opacity:1; }
 
-/* Modal - Character */
-.modal-overlay { position:absolute;inset:0;pointer-events:none;z-index:10; }
+/* Modals */
+.modal-overlay { position:fixed;inset:0;pointer-events:none;z-index:10; }
 .modal-overlay.show { pointer-events:auto; }
 .modal-overlay>.bg { position:absolute;inset:0;background:rgba(112,82,38,.16); }
 .modal-box { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 24px));max-height:85vh;overflow-y:auto;padding:16px;pointer-events:auto; }
@@ -69,17 +100,14 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .eq-slot .val { font-size:13px; }
 .eq-slot .empty { color:var(--text-dim);font-style:italic;font-size:12px; }
 
-/* Attr grid */
 .attr-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
 .attr-row { padding:6px 8px; border-radius:8px; background:rgba(255,255,255,.38); border:1px solid rgba(128,88,44,.12); text-align:center; }
 .attr-row .attr-label { display:block; font-size:11px; color:var(--text-dim); }
 .attr-row .attr-val { display:block; font-size:17px; font-weight:700; margin:2px 0; }
 .attr-row .attr-desc { display:block; font-size:10px; color:var(--text-dim); margin-bottom:5px; }
 
-/* Bag */
 .bag-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-height:50vh;overflow-y:auto; }
 
-/* Skill list */
 .skill-list { display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto; }
 .skill-card { padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.42);border:1px solid rgba(128,88,44,.14); }
 .skill-card .sc-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:4px; }
@@ -88,7 +116,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .skill-card .sc-desc { font-size:11px;color:var(--text-dim);margin-bottom:6px; }
 .skill-card .sc-actions { display:flex;gap:5px;align-items:center; }
 
-/* Achievement list */
 .ach-list { display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto; }
 .ach-item { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.38);border:1px solid rgba(128,88,44,.1); }
 .ach-item.done { border-color:var(--gold);background:rgba(250,226,168,.18); }
@@ -98,7 +125,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .ach-item .ach-info .ach-desc { font-size:11px;color:var(--text-dim); }
 .ach-item .ach-reward { font-size:11px;color:var(--gold);white-space:nowrap; }
 
-/* Shop */
 .shop-list { display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto; }
 .shop-item { display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.42);border:1px solid rgba(128,88,44,.14); }
 .shop-item .si-icon { font-size:24px; }
@@ -130,6 +156,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .btn-sec { background:rgba(255,250,232,.86);border:1px solid rgba(128,88,44,.18);color:var(--text); }
 .btn-gold { background:linear-gradient(180deg,#f7d98e,#d19a38);color:#3f2d1d; }
 
+/* Top Nav (desktop) */
 #top-nav {
   position:absolute;
   top:10px;
@@ -142,6 +169,9 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   z-index:8;
 }
 
+/* Bottom Nav (mobile) */
+#bottom-nav { display:none; }
+
 .flex { display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
 .flex-between { display:flex;justify-content:space-between;align-items:center; }
 .mt8 { margin-top:8px; }
@@ -149,7 +179,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .gap4 { gap:4px; }
 
 /* Breakthrough */
-#breakthrough-overlay { position:absolute;inset:0;z-index:20;pointer-events:none; }
+#breakthrough-overlay { position:fixed;inset:0;z-index:20;pointer-events:none; }
 #breakthrough-overlay.show { pointer-events:auto; }
 #breakthrough-overlay .bg { position:absolute;inset:0;background:rgba(112,82,38,.22); }
 #breakthrough-box { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(400px,calc(100vw - 24px));padding:24px;text-align:center;pointer-events:auto; }
@@ -158,7 +188,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 #breakthrough-box .chance { font-size:28px;font-weight:900;margin-bottom:12px; }
 
 /* Loot popup */
-#loot-popup { position:absolute;bottom:90px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;pointer-events:none;font-size:13px;opacity:0;transition:opacity .3s;white-space:nowrap; }
+#loot-popup { position:absolute;bottom:100px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;pointer-events:none;font-size:13px;opacity:0;transition:opacity .3s;white-space:nowrap;z-index:6; }
 #loot-popup.show { opacity:1; }
 
 /* Mini-particles */
@@ -172,43 +202,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   border-radius:50%; border:2px solid rgba(128,88,44,0.18);
   background:rgba(255,250,232,0.06);
 }
-@media (max-width:768px) {
-  body.has-touch #joystick-zone { display:block; }
-  #top-nav {
-    top: calc(env(safe-area-inset-top, 0px) + 4px);
-    left: 6px;
-    right: 6px;
-    gap: 4px;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-  }
-  #top-nav .btn-sm {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 5px 2px;
-    font-size: 11px;
-    border-radius: 7px;
-  }
-  #hud {
-    top: calc(env(safe-area-inset-top, 0px) + 42px);
-    left: 6px;
-    width: calc(100vw - 12px);
-    padding: 8px;
-    border-radius: 10px;
-  }
-  #hud .realm { font-size:12px; }
-  #hud .realm-sub { font-size:10px; }
-  #hud .bar-wrap { gap:5px; margin-bottom:2px; }
-  #hud .bar-wrap .label { width:12px; font-size:10px; }
-  #hud .bar-text { display:none; }
-  #hotbar { gap:4px; margin-top:6px; }
-  .slot { min-height:48px; padding:4px 2px; border-radius:7px; }
-  .slot .n { font-size:15px; line-height:1.1; }
-  .slot .m { font-size:9px; }
-  #zone-label { top: calc(env(safe-area-inset-top, 0px) + 34px); font-size:16px; letter-spacing:2px; }
-  #status { bottom:128px; font-size:12px; }
-  #joystick-zone { left:24%; bottom:78px; }
-}
 #joystick-zone.active { border-color:rgba(128,88,44,0.35); background:rgba(255,250,232,0.14); }
 #joystick-thumb {
   position:absolute; top:50%; left:50%; width:54px; height:54px;
@@ -217,14 +210,190 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   transform:translate(-50%,-50%); pointer-events:none; transition:none;
 }
 
-@media(max-width:500px) {
-  #top-nav .btn-sm { padding:4px 1px; font-size:10px; }
-  #hud { width:calc(100vw - 10px);left:5px;padding:7px; }
-  .slot { min-height:44px; }
-  .slot .n { font-size:13px; }
-  .slot .k,.slot .m { font-size:8px; }
-  #joystick-zone { bottom:72px;left:25%;width:105px;height:105px; }
-  #joystick-thumb { width:44px;height:44px; }
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  /* Hide desktop top nav, show bottom nav */
+  #top-nav { display:none !important; }
+  #bottom-nav {
+    display:flex;
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height: 56px;
+    background: rgba(255,250,232,0.95);
+    border-top: 1px solid var(--panel-border);
+    backdrop-filter: blur(12px);
+    z-index: 15;
+    pointer-events:auto;
+    padding-bottom: var(--safe-bottom);
+    align-items: stretch;
+  }
+  #bottom-nav .tab-btn {
+    flex: 1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border:0;
+    background:transparent;
+    color: var(--text-dim);
+    font-size: 10px;
+    gap: 1px;
+    cursor:pointer;
+    padding: 4px 2px;
+    transition: color 0.15s;
+    pointer-events:auto;
+  }
+  #bottom-nav .tab-btn .tab-icon { font-size: 20px; line-height:1.2; }
+  #bottom-nav .tab-btn .tab-label { font-size: 9px; }
+  #bottom-nav .tab-btn:active { color: var(--gold); }
+
+  /* HUD - mini top bar (collapsed by default) */
+  #hud {
+    top: calc(var(--safe-top) + 4px);
+    left: 46px;
+    right: 6px;
+    width: auto;
+    padding: 5px 8px;
+    border-radius: 10px;
+    z-index: 4;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  #hud.collapsed {
+    transform: translateY(0);
+  }
+  #hud:not(.collapsed) {
+    /* expanded mode - shown when user taps hud-toggle */
+  }
+  /* HUD collapsed: only show realm + hp + xp, hide extras */
+  #hud.collapsed .realm { font-size:11px; margin-bottom:0; }
+  #hud.collapsed .realm-sub { display:none; }
+  #hud.collapsed #levelText { display:none; }
+  #hud.collapsed .bar-text { display:none; }
+  #hud.collapsed .flex-between.mt8 { display:none; }
+  #hud.collapsed #hotbar { display:none; }
+  #hud.collapsed #wallHud { display:none; }
+  #hud.collapsed .bar-wrap { margin-bottom:1px; }
+  #hud.collapsed .bar-wrap .label { width:10px; font-size:9px; }
+  #hud.collapsed .bar-bg { height:5px; }
+
+  /* HUD toggle button */
+  #hud-toggle {
+    display:flex;
+    top: calc(var(--safe-top) + 4px);
+    left: 6px;
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+    border-radius: 8px;
+  }
+
+  /* Zone label adjustments */
+  #zone-label {
+    top: calc(var(--safe-top) + 42px);
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding: 1px 12px;
+  }
+
+  /* Hotbar - repositioned for mobile */
+  #hotbar {
+    position: fixed;
+    bottom: calc(56px + var(--safe-bottom) + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+    margin: 0;
+    z-index: 6;
+    width: min(300px, calc(100vw - 40px));
+  }
+  .slot { min-height:40px; padding:3px 2px; border-radius:6px; }
+  .slot .n { font-size:14px; line-height:1.1; }
+  .slot .m { font-size:8px; }
+
+  /* Status above hotbar */
+  #status { bottom: calc(56px + var(--safe-bottom) + 56px); font-size:12px; }
+
+  /* Loot above hotbar */
+  #loot-popup { bottom: calc(56px + var(--safe-bottom) + 52px); font-size:12px; }
+
+  /* Joystick repositioned */
+  #joystick-zone {
+    left: 50px;
+    bottom: calc(56px + var(--safe-bottom) + 14px);
+    width: 110px;
+    height: 110px;
+  }
+  #joystick-thumb { width:46px; height:46px; }
+
+  /* Modals full screen on mobile */
+  .modal-box {
+    width: calc(100vw - 12px) !important;
+    max-height: 70vh !important;
+    padding: 12px;
+    top: auto;
+    bottom: calc(56px + var(--safe-bottom) + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+  .modal-overlay.show .modal-box {
+    /* animate in */
+  }
+  .modal-box h2 { font-size:16px; }
+  .eq-grid { grid-template-columns:1fr 1fr; gap:5px; }
+  .eq-slot { padding:6px; }
+  .attr-grid { grid-template-columns:repeat(4,1fr); gap:4px; }
+  .bag-grid { grid-template-columns:repeat(4,1fr); gap:4px; }
+  .skill-card { padding:8px 10px; }
+  .inv-item { padding:6px 4px; font-size:10px; }
+
+  /* Bag sell all button compact */
+  #bagSellAllBtn { font-size:10px; padding:4px 8px; }
+
+  /* Breakthrough box */
+  #breakthrough-box { width:min(340px,calc(100vw - 20px)); padding:18px; }
+
+  /* Death modal */
+  #deathModal .modal-box { max-width:280px; }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  #hud-toggle { width:30px; height:30px; font-size:13px; }
+  #hud { padding:4px 6px; }
+  #hud.collapsed .bar-wrap .label { display:none; }
+  #hud.collapsed .bar-bg { height:4px; }
+  #hotbar { width: calc(100vw - 24px); gap:2px; }
+  .slot { min-height:36px; padding:2px 1px; }
+  .slot .n { font-size:12px; }
+  .slot .m { font-size:7px; }
+  #joystick-zone { width:90px; height:90px; left:40px; }
+  #joystick-thumb { width:38px; height:38px; }
+  #bottom-nav { height: 48px; }
+  #bottom-nav .tab-btn .tab-icon { font-size: 17px; }
+  #bottom-nav .tab-btn .tab-label { font-size: 8px; }
+}
+
+/* Landscape phones */
+@media (max-height: 500px) and (orientation: landscape) {
+  #bottom-nav { height: 42px; }
+  #bottom-nav .tab-btn .tab-icon { font-size: 16px; }
+  #bottom-nav .tab-btn .tab-label { font-size: 8px; }
+  #hud.collapsed .realm { font-size:10px; }
+  #hud.collapsed .bar-wrap { margin-bottom:0; }
+  #hotbar { bottom: calc(42px + var(--safe-bottom) + 4px); }
+  #hotbar { width: min(260px, calc(100vw - 80px)); }
+  .slot { min-height:32px; }
+  .slot .n { font-size:11px; }
+  #status { bottom: calc(42px + var(--safe-bottom) + 44px); font-size:11px; }
+  #joystick-zone { width:80px; height:80px; bottom: calc(42px + var(--safe-bottom) + 6px); }
+  #joystick-thumb { width:34px; height:34px; }
 }
 </style>
 <script src="lib/phaser.min.js"></script>
@@ -233,8 +402,11 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 <canvas id="gameCanvas"></canvas>
 
 <div class="ui-layer">
+  <!-- HUD toggle button (mobile only) -->
+  <button id="hud-toggle" onclick="toggleHudExpand()">📊</button>
+
   <!-- HUD -->
-  <div id="hud" class="panel">
+  <div id="hud" class="panel collapsed">
     <!-- wall defense HUD -->
     <div id="wallHud" class="hidden" style="margin-bottom:6px;">
       <div class="flex-between" style="font-size:11px;color:var(--gold);margin-bottom:2px;">
@@ -255,7 +427,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
       <span>杀敌 <strong id="killText">0</strong></span>
     </div>
     <div id="hotbar"></div>
-  </div>
   </div>
 
   <!-- Zone label -->
@@ -357,11 +528,19 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
     </div>
   </div>
 
+  <!-- Bottom Nav (mobile) -->
+  <div id="bottom-nav"></div>
+
   <!-- Main Menu -->
-  <div id="mainMenu" style="position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#1a0a00 0%,#2d1810 60%,#3d2818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+  <div id="mainMenu" style="position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#1a0a00 0%,#2d1810 60%,#3d2818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
     <div style="font-size:48px;font-weight:900;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.5);letter-spacing:8px;">九天仙途</div>
     <div style="font-size:18px;color:rgba(255,215,0,0.6);letter-spacing:6px;">古剑门</div>
-    <button id="startBtn" onclick="startAdventure()" style="margin-top:40px;padding:16px 48px;font-size:22px;font-weight:900;border:2px solid #ffd700;border-radius:12px;background:linear-gradient(180deg,rgba(240,200,120,0.2),rgba(180,120,40,0.3));color:#ffd700;cursor:pointer;letter-spacing:4px;">⚔️ 入 门 ⚔️</button>
+    <!-- Loading bar -->
+    <div id="loading-bar-wrap" class="hidden">
+      <div id="loading-bar-fill"></div>
+    </div>
+    <div id="loading-text" style="font-size:13px;color:rgba(255,215,0,0.6);letter-spacing:2px;min-height:20px;"></div>
+    <button id="startBtn" onclick="startAdventure()" style="margin-top:24px;padding:16px 48px;font-size:22px;font-weight:900;border:2px solid #ffd700;border-radius:12px;background:linear-gradient(180deg,rgba(240,200,120,0.2),rgba(180,120,40,0.3));color:#ffd700;cursor:pointer;letter-spacing:4px;">⚔️ 入 门 ⚔️</button>
   </div>
 
   <!-- Breakthrough modal -->

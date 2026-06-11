@@ -410,6 +410,14 @@ export function upgradeSkill(skillId){
   bus.emit('status', '当前版本无法升级技能', 1.5);
 }
 
+export function toggleHudExpand() {
+  const hud = document.getElementById('hud');
+  if (!hud) return;
+  hud.classList.toggle('collapsed');
+  const btn = document.getElementById('hud-toggle');
+  if (btn) btn.textContent = hud.classList.contains('collapsed') ? '📊' : '📋';
+}
+
 export function addAttr(attr){
   if((P.attrPoints || 0) <= 0) return;
   if(!P.attrs) P.attrs = {str:0, body:0, spirit:0, agility:0};

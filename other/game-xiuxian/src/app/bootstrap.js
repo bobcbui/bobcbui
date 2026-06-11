@@ -6,9 +6,10 @@ import { ensureProgressionState } from '../core/progression.js';
 import { createGameConfig } from '../core/game-config.js';
 import { setGame } from '../core/runtime.js';
 import { JoystickController } from '../input/joystick-controller.js';
-import { hotbarRender, updateHUD } from '../ui/index.js';
+import { hotbarRender, updateHUD, toggleHudExpand } from '../ui/index.js';
 import { bindGlobalActions, uiActions } from '../ui/actions.js';
-import { mountTopNav } from '../ui/nav-bar.js';
+import { mountTopNav, mountBottomNav } from '../ui/nav-bar.js';
+import { reportLoading, showLoadingBar, setStartBtnEnabled } from './loader.js';
 
 function markTouchDevice() {
   if (window.ontouchstart !== undefined || navigator.maxTouchPoints > 0) {
@@ -33,11 +34,19 @@ export function bootstrap() {
   bindGlobalActions();
   markTouchDevice();
 
+  // Auto-start game on page load
   window.addEventListener('load', () => {
+    showLoadingBar();
+    setStartBtnEnabled(false);
+    reportLoading(5, '启动游戏引擎...');
+
     hotbarRender();
     updateHUD();
+    reportLoading(20, '创建游戏场景...');
+
     startGame();
-    mountTopNav(document.querySelector('.ui-layer'), uiActions);
     mountJoystick();
   });
+
+  window.toggleHudExpand = toggleHudExpand;
 }
