@@ -12,6 +12,7 @@ import {
   toggleCharPanel,
   toggleShopPanel,
   toggleGameplayPanel,
+  toggleHudExpand,
   toggleSkillPanel,
   updateHotbarCooldowns,
   upgradeSkill
@@ -71,6 +72,7 @@ export const uiActions = {
   toggleCharPanel,
   toggleCultivate,
   toggleGameplayPanel,
+  toggleHudExpand,
   toggleSettingsPanel,
   toggleShopPanel,
   toggleSkillPanel,

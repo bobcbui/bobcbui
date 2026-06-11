@@ -1,9 +1,12 @@
 export function mountTopNav(container, actions) {
   if (!container) return;
 
-  const navBar = document.createElement('div');
-  navBar.id = 'top-nav';
-  navBar.className = 'top-nav';
+  const navBar = document.getElementById('top-nav');
+  if (navBar) navBar.remove();
+
+  const newNav = document.createElement('div');
+  newNav.id = 'top-nav';
+  newNav.className = 'top-nav';
 
   const items = [
     ['角色', 'btn-gold', actions.toggleCharPanel],
@@ -21,8 +24,35 @@ export function mountTopNav(container, actions) {
     button.className = `btn btn-sm ${tone}`;
     button.textContent = label;
     button.addEventListener('click', onClick);
-    navBar.appendChild(button);
+    newNav.appendChild(button);
   }
 
-  container.appendChild(navBar);
+  container.appendChild(newNav);
+}
+
+export function mountBottomNav(actions) {
+  const cont = document.getElementById('bottom-nav');
+  if (!cont) return;
+  cont.innerHTML = '';
+
+  const items = [
+    ['🧑', '角色', actions.toggleCharPanel],
+    ['🎒', '背包', actions.toggleBagPanel],
+    ['📖', '技能', actions.toggleSkillPanel],
+    ['🎮', '玩法', actions.toggleGameplayPanel],
+    ['🏅', '成就', actions.toggleAchPanel],
+    ['🏪', '商店', actions.toggleShopPanel],
+    ['⚙️', '设置', actions.toggleSettingsPanel]
+  ];
+
+  for (const [icon, label, onClick] of items) {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerHTML = `<span class="tab-icon">${icon}</span><span class="tab-label">${label}</span>`;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onClick();
+    });
+    cont.appendChild(btn);
+  }
 }
