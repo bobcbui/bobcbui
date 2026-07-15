@@ -7,41 +7,18 @@
     <link rel="stylesheet" href="static/styles.css">
     <script src="/static/components/SiteHeader.js"></script>
 </head>
-<body>
+<body class="home-page">
     <div id="app">
         <site-header></site-header>
 
-        <main>
+        <main class="home-main">
             <section class="hero-section">
                 <h1 class="hero-title" id="hero-title">学 IT 改命，先改掉熬夜不写注释的命</h1>
                 <h2 class="hero-desc" id="hero-desc">一个专门收留打工人、半吊子站长和深夜技术幻想家的赛博据点</h2>
             </section>
 
-            <section class="vp-features">
-                <a class="vp-feature" href="/page/study.html">
-                    <h3 class="vp-feature-title">📖 卷王指南</h3>
-                    <p class="vp-feature-description">学不学得会另说，气势一定要先卷起来。这里收录一批适合深夜自我感动的学习路线。</p>
-                </a>
-                <a class="vp-feature" href="/page/dev.html">
-                    <h3 class="vp-feature-title">💻 牛马法宝</h3>
-                    <p class="vp-feature-description">从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。</p>
-                </a>
-                <a class="vp-feature" href="/page/counselor.html">
-                    <h3 class="vp-feature-title">🏥 ICU 防丢指南</h3>
-                    <p class="vp-feature-description">系统快不行了先别哭，先插氧气。专治线上抽风、祖传项目和选型后悔症。</p>
-                </a>
-                <a class="vp-feature" href="/page/outsource.html">
-                    <h3 class="vp-feature-title">🤝 在线卖身</h3>
-                    <p class="vp-feature-description">哪里有脏活累活和没人接的锅，哪里就有新鲜出栏的技术牛马前来报到。</p>
-                </a>
-                <a class="vp-feature" href="/page/e-commerce.html">
-                    <h3 class="vp-feature-title">☁️ 黑心云</h3>
-                    <p class="vp-feature-description">卖云服务器、迁移、备份和监控，主打机器别炸、人别醒、发布别靠祈祷。</p>
-                </a>
-                <a class="vp-feature" href="/page/media.html">
-                    <h3 class="vp-feature-title">🤖 赛博水军</h3>
-                    <p class="vp-feature-description">粉丝可以没有，气势必须拉满。账号定位、内容节奏和排面建设一条龙瞎忙活。</p>
-                </a>
+            <section class="nav-grid" id="nav-grid">
+                <div class="loading-indicator">加载导航数据中...</div>
             </section>
         </main>
     </div>
@@ -53,9 +30,59 @@
             { title: '不保证年薪百万，至少保证梗味纯正', desc: '从卷王指南到黑心云，把技术人的苦中作乐尽量写得像回事' }
         ];
         const hero = heroOptions[Math.floor(Math.random() * heroOptions.length)];
-
         document.getElementById('hero-title').textContent = hero.title;
         document.getElementById('hero-desc').textContent = hero.desc;
+
+        (async function loadNav() {
+            const grid = document.getElementById('nav-grid');
+            try {
+                const res = await fetch('/nav.xml');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const xmlText = await res.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'text/xml');
+
+                const groups = xml.querySelectorAll('group');
+                grid.innerHTML = '';
+
+                groups.forEach(function (group) {
+                    const name = group.getAttribute('name');
+                    const emoji = group.getAttribute('emoji') || '🔗';
+                    const desc = group.getAttribute('desc') || '';
+
+                    const card = document.createElement('div');
+                    card.className = 'nav-group';
+
+                    const header = document.createElement('div');
+                    header.className = 'nav-group-header';
+                    header.innerHTML = '<span class="nav-group-emoji">' + emoji + '</span>' +
+                        '<h3 class="nav-group-title">' + name + '</h3>';
+                    card.appendChild(header);
+
+                    if (desc) {
+                        const p = document.createElement('p');
+                        p.className = 'nav-group-desc';
+                        p.textContent = desc;
+                        card.appendChild(p);
+                    }
+
+                    const links = document.createElement('div');
+                    links.className = 'nav-group-links';
+                    const items = group.querySelectorAll('item');
+                    items.forEach(function (item) {
+                        const a = document.createElement('a');
+                        a.href = item.getAttribute('href');
+                        a.textContent = item.textContent;
+                        links.appendChild(a);
+                    });
+                    card.appendChild(links);
+
+                    grid.appendChild(card);
+                });
+            } catch (e) {
+                grid.innerHTML = '<div class="nav-error">导航数据加载失败，请刷新重试。' + e.message + '</div>';
+            }
+        })();
     </script>
 </body>
 </html>

@@ -3,6 +3,11 @@
     <header class="site-header">
       <div class="header-inner container">
         <a class="logo" href="/" aria-label="返回首页">牛马程序员</a>
+        <form class="home-header-search" action="https://www.baidu.com/s" method="get" target="_blank" aria-label="导航搜索">
+          <label class="sr-only" for="home-header-search-input">搜索</label>
+          <input id="home-header-search-input" name="wd" type="search" placeholder="搜索网页、工具或内容" autocomplete="off">
+          <button type="submit" aria-label="开始搜索">⌕</button>
+        </form>
         <div class="header-left">
           <nav class="center-nav desktop-nav" aria-label="主导航">
             <ul>
@@ -16,6 +21,7 @@
               <li><a href="/page/blog.html">摸鱼日记</a></li>
             </ul>
           </nav>
+          </div>
           <details class="mobile-nav">
             <summary aria-label="打开导航菜单">
               <span class="mobile-nav-icon" aria-hidden="true">
@@ -23,7 +29,6 @@
                 <span></span>
                 <span></span>
               </span>
-              <span class="mobile-nav-label">菜单</span>
             </summary>
             <nav class="center-nav mobile-nav-panel" aria-label="移动端主导航">
               <ul>
@@ -38,7 +43,6 @@
               </ul>
             </nav>
           </details>
-        </div>
       </div>
     </header>
   `.trim();
