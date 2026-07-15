@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>关于牛马</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/components/SiteHeader.js"></script>
+  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
+  <script type="module" src="/static/components/SiteHeader.js"></script>
+  <script type="module" src="/static/pages/ContentPage.js"></script>
   <style>img{max-width:100%;} pre{white-space:pre-wrap;}</style>
 </head>
-<body>
-  <div id="app">
-    <site-header></site-header>
-    <main>
+<body class="article-page">
+  <site-header class="site-header"></site-header>
+  <main id="content-page" class="article-page" v-cloak>
+    <article-layout>
       <div id="content">
         <h1>关于牛马</h1>
 
@@ -35,7 +37,7 @@
 
         <p>如果你也在被 Bug、需求、排期和群消息连环殴打，欢迎来这里抱团取暖。</p>
       </div>
-    </main>
-  </div>
+    </article-layout>
+  </main>
 </body>
 </html>

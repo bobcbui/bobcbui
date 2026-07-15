@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>摸鱼日记</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/components/SiteHeader.js"></script>
+  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
+  <script type="module" src="/static/components/SiteHeader.js"></script>
+  <script type="module" src="/static/pages/ContentPage.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
 </head>
-<body>
-  <div id="app">
-    <site-header></site-header>
-    <main>
+<body class="article-page">
+  <site-header class="site-header"></site-header>
+  <main id="content-page" class="article-page" v-cloak>
+    <article-layout>
       <div id="content">
         <h1>摸鱼日记</h1>
 
@@ -36,7 +38,7 @@
 
         <p>内容会慢慢补，毕竟白天要上班，晚上还得假装自己热爱技术。</p>
       </div>
-    </main>
-  </div>
+    </article-layout>
+  </main>
 </body>
 </html>
