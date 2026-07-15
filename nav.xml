@@ -3,12 +3,16 @@
 <navigation>
   <site name="牛马程序员" description="带你成为真正的牛马" />
 
-  <group name="卷王指南" emoji="📖" desc="学不学得会另说，气势一定要先卷起来。这里收录一批适合深夜自我感动的学习路线。">
-    <item href="/page/study.html">学习路线</item>
+  <group name="指南" emoji="📖" desc="学不学得会另说，气势一定要先卷起来。这里收录一批适合深夜自我感动的学习路线。">
+    <item href="/page/study.html">指南</item>
+    <item href="/page/study.html">工作</item>
+    <item href="/page/study.html">OPC</item>
+    <item href="/page/study.html">运营</item>
+    <item href="/page/study.html">AI</item>
+    <item href="/page/study.html">AI</item>
   </group>
 
-  <group name="牛马法宝" emoji="💻" desc="从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。">
-    <item href="/page/dev.html">法宝首页</item>
+  <group name="工具" emoji="💻" desc="从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。">
     <item href="/tools/base64.html">Base64 编解码</item>
     <item href="/tools/json.html">JSON 格式化</item>
     <item href="/tools/corn.html">Cron 表达式</item>
@@ -16,31 +20,22 @@
     <item href="/tools/time.html">时间戳转换</item>
   </group>
 
-  <group name="ICU 防丢指南" emoji="🏥" desc="系统快不行了先别哭，先插氧气。专治线上抽风、祖传项目和选型后悔症。">
-    <item href="/page/counselor.html">ICU 首页</item>
+  <group name="云服务" emoji="☁️" desc="卖云服务器、迁移、备份和监控，主打机器别炸、人别醒、发布别靠祈祷。">
+    <item href="/page/e-commerce.html">服务器</item>
+    <item href="/page/e-commerce.html">中转站</item>
+    <item href="/page/e-commerce.html">API服务</item>
+    <item href="/page/e-commerce.html">数据查询</item>
   </group>
 
-  <group name="在线卖身" emoji="🤝" desc="哪里有脏活累活和没人接的锅，哪里就有新鲜出栏的技术牛马前来报到。">
-    <item href="/page/outsource.html">卖身首页</item>
-  </group>
-
-  <group name="黑心云" emoji="☁️" desc="卖云服务器、迁移、备份和监控，主打机器别炸、人别醒、发布别靠祈祷。">
-    <item href="/page/e-commerce.html">云服务首页</item>
-  </group>
-
-  <group name="赛博水军" emoji="🤖" desc="粉丝可以没有，气势必须拉满。账号定位、内容节奏和排面建设一条龙瞎忙活。">
-    <item href="/page/media.html">水军首页</item>
-  </group>
-
-  <group name="摸鱼游戏" emoji="🎮" desc="上班摸鱼必备小游戏，老板来了秒切换。">
+  <group name="游戏" emoji="🎮" desc="上班摸鱼必备小游戏，老板来了秒切换。">
     <item href="/other/game-gupiao/">炒股模拟器</item>
     <item href="/other/game-kaipao/">开炮游戏</item>
     <item href="/other/game-tafang/">塔防游戏</item>
     <item href="/other/game-xiuxian/">修仙模拟器</item>
   </group>
 
-  <group name="关于 &amp; 博客" emoji="📝" desc="关于本站和摸鱼日记。">
-    <item href="/page/about.html">关于牛马</item>
-    <item href="/page/blog.html">摸鱼日记</item>
+  <group name="关于" emoji="📝" desc="关于本站和摸鱼日记。">
+    <item href="/page/about.html">关于</item>
+    <item href="/page/blog.html">日记</item>
   </group>
 </navigation>

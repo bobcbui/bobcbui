@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>赛博水军</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script src="/static/components/SiteHeader.js"></script>
+  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
+  <script type="module" src="/static/components/SiteHeader.js"></script>
+  <script type="module" src="/static/pages/ContentPage.js"></script>
   <style>pre{white-space:pre-wrap;}</style>
 </head>
-<body>
-  <div id="app">
-    <site-header></site-header>
-    <main>
+<body class="article-page">
+  <site-header class="site-header"></site-header>
+  <main id="content-page" class="article-page" v-cloak>
+    <article-layout>
       <div id="content">
         <h1>赛博水军</h1>
 
@@ -36,7 +38,7 @@
 
         <p>联系渠道见<a href="about.html">关于牛马</a>。</p>
       </div>
-    </main>
-  </div>
+    </article-layout>
+  </main>
 </body>
 </html>
