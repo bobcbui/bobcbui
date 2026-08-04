@@ -3,47 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>在线卖身</title>
+  <title>后端工程</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
-  <script type="module" src="/static/components/SiteHeader.js"></script>
-  <script type="module" src="/static/pages/ContentPage.js"></script>
-  <style>pre{white-space:pre-wrap;}</style>
+  <script defer src="/static/alpine.js"></script>
+  <script defer src="/libs/alpine.min.js"></script>
 </head>
 <body class="article-page">
-  <site-header class="site-header"></site-header>
-  <main id="content-page" class="article-page" v-cloak>
-    <article-layout>
+  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+  <main class="article-page">
+    <article class="article-layout">
       <div id="content">
-        <h1>在线卖身</h1>
+        <h1>后端工程</h1>
 
-        <p>名字虽然不体面，服务态度还是尽量体面。适合短期补位、赶节点、接手半成品，和那些大家嘴上说简单但谁都不想做的活。</p>
+        <p>后端负责处理数据、业务规则和服务之间的协作。学习后端时，除了会写接口，还要关注可靠性、安全性、可观察性和维护成本。</p>
 
-        <h2>合作模式</h2>
-
+        <h2>核心主题</h2>
         <ul>
-          <li><strong>短期补位</strong>：哪块缺人补哪块，像技术创可贴一样先贴上去。</li>
-          <li><strong>原型落地</strong>：先把脑内 PPT 变成一个能点、能看、能糊弄甲方的版本。</li>
-          <li><strong>老项目接手</strong>：先判断这是修修补补还能活，还是已经建议准备后事。</li>
+          <li><strong>API 设计</strong>：资源、请求方法、状态码、分页和错误响应。</li>
+          <li><strong>数据存储</strong>：表结构、查询、事务、索引和备份。</li>
+          <li><strong>服务质量</strong>：超时、重试、限流、幂等和降级。</li>
+          <li><strong>安全边界</strong>：认证、授权、输入校验和敏感数据保护。</li>
+          <li><strong>部署运维</strong>：配置、日志、监控、发布和回滚。</li>
         </ul>
 
-        <h2>适合的活</h2>
+        <h2>从一个小服务开始</h2>
+        <ol>
+          <li>先定义一个清晰的数据模型和最小功能。</li>
+          <li>实现正常请求，再补充参数错误和资源不存在等情况。</li>
+          <li>为关键逻辑写测试，并记录足够定位问题的日志。</li>
+          <li>在本地、测试环境和生产环境使用明确的配置边界。</li>
+        </ol>
 
-        <ul>
-          <li>管理后台、工具页、落地页、自动化脚本</li>
-          <li>小型内容站、运营支持页、数据整理这类看着不酷但特别费人的活</li>
-          <li>需要文档补全和交接说明的临时项目，不让后来的人边接边骂</li>
-        </ul>
-
-        <h2>合作原则</h2>
-
-        <ul>
-          <li>边界说清楚，免得做到一半突然发现需求自己长腿了。</li>
-          <li>能交付可维护的东西，就尽量别留下赛博地雷。</li>
-          <li>不吹全能，但接了的活尽量不装死。</li>
-        </ul>
+        <p>真正的工程能力体现在系统出错时仍然可理解、可定位、可恢复，而不仅是接口在演示环境里返回了正确结果。</p>
       </div>
-    </article-layout>
+      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
+    </article>
   </main>
 </body>
 </html>

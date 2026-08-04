@@ -3,13 +3,15 @@
 <navigation>
   <site name="牛马程序员" description="带你成为真正的牛马" />
 
-  <group name="指南" emoji="📖" desc="学不学得会另说，气势一定要先卷起来。这里收录一批适合深夜自我感动的学习路线。">
-    <item href="/page/study.html">指南</item>
-    <item href="/page/study.html">工作</item>
-    <item href="/page/study.html">OPC</item>
-    <item href="/page/study.html">运营</item>
-    <item href="/page/study.html">AI</item>
-    <item href="/page/study.html">AI</item>
+  <group name="学习路线" emoji="📚" desc="英语、编程和技术基础，从能看懂到能做出来，按自己的节奏持续积累。">
+    <item href="/page/study.html">学习总览</item>
+    <item href="/page/english.html">英语学习</item>
+    <item href="/page/dev.html">编程学习</item>
+    <item href="/page/e-commerce.html">前端开发</item>
+    <item href="/page/outsource.html">后端工程</item>
+    <item href="/page/counselor.html">计算机基础</item>
+    <item href="/page/media.html">AI 与技术工具</item>
+    <item href="/page/blog.html">学习笔记</item>
   </group>
 
   <group name="工具" emoji="💻" desc="从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。">
@@ -20,11 +22,11 @@
     <item href="/tools/time.html">时间戳转换</item>
   </group>
 
-  <group name="云服务" emoji="☁️" desc="卖云服务器、迁移、备份和监控，主打机器别炸、人别醒、发布别靠祈祷。">
-    <item href="/page/e-commerce.html">服务器</item>
-    <item href="/page/e-commerce.html">中转站</item>
-    <item href="/page/e-commerce.html">API服务</item>
-    <item href="/page/e-commerce.html">数据查询</item>
+  <group name="实践方向" emoji="🧩" desc="把知识放进真实项目里，练习拆解问题、写代码、调试和交付。">
+    <item href="/page/outsource.html">后端工程</item>
+    <item href="/page/e-commerce.html">前端开发</item>
+    <item href="/page/media.html">AI 与自动化</item>
+    <item href="/page/counselor.html">系统与网络</item>
   </group>
 
   <group name="游戏" emoji="🎮" desc="上班摸鱼必备小游戏，老板来了秒切换。">
@@ -34,8 +36,8 @@
     <item href="/other/game-xiuxian/">修仙模拟器</item>
   </group>
 
-  <group name="关于" emoji="📝" desc="关于本站和摸鱼日记。">
-    <item href="/page/about.html">关于</item>
-    <item href="/page/blog.html">日记</item>
+  <group name="关于本站" emoji="📝" desc="本站的学习方向、内容安排和持续记录。">
+    <item href="/page/about.html">关于学习站</item>
+    <item href="/page/blog.html">学习笔记</item>
   </group>
 </navigation>
