@@ -1,19 +1,12 @@
 import { defineComponent, mountPage } from '/static/core.js';
 import { loadNavigation } from '/static/data/navigation.js';
-import AppShell from '/static/components/AppShell.js';
 import NavGroup from '/static/components/NavGroup.js';
 
-const heroOptions = [
-    { title: '学 IT 改命，先改掉熬夜不写注释的命', desc: '一个专门收留打工人、半吊子站长和深夜技术幻想家的赛博据点' },
-    { title: '只要需求提得够离谱，方案就会显得很有创造力', desc: '这里有学习笔记、摸鱼工具、项目急救和一些写着写着就破防的复盘' },
-    { title: '不保证年薪百万，至少保证梗味纯正', desc: '从卷王指南到黑心云，把技术人的苦中作乐尽量写得像回事' }
-];
-
 const HomePage = defineComponent({
-    components: { AppShell, NavGroup },
+    name: 'HomePage',
+    components: { NavGroup },
     data() {
         return {
-            hero: heroOptions[Math.floor(Math.random() * heroOptions.length)],
             groups: [],
             query: '',
             isLoading: true,
@@ -33,8 +26,16 @@ const HomePage = defineComponent({
         }
     },
     async mounted() {
-        this.onQuery = (event) => { this.query = event.detail || ''; };
-        window.addEventListener('navigation:query', this.onQuery);
+        this.onShortcut = (event) => {
+            if (event.key === '/' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+                const tag = document.activeElement?.tagName;
+                if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+                    event.preventDefault();
+                    document.querySelector('#site-search')?.focus();
+                }
+            }
+        };
+        document.addEventListener('keydown', this.onShortcut);
         try {
             this.groups = (await loadNavigation()).filter((group) => !['在线卖身', '赛博水军', 'ICU 防丢指南'].includes(group.name));
         } catch (error) {
@@ -44,23 +45,60 @@ const HomePage = defineComponent({
         }
     },
     beforeUnmount() {
-        window.removeEventListener('navigation:query', this.onQuery);
+        document.removeEventListener('keydown', this.onShortcut);
+    },
+    methods: {
+        searchWeb() {
+            const keyword = this.query.trim();
+            if (keyword) window.open(`https://www.baidu.com/s?wd=${encodeURIComponent(keyword)}`, '_blank', 'noopener');
+        }
     },
     template: `
-        <app-shell page-class="home-main">
-            <section class="hero-section">
-                <h1 class="hero-title">{{ hero.title }}</h1>
-                <p class="hero-desc">{{ hero.desc }}</p>
-            </section>
-            <section class="nav-grid" aria-label="网站导航" aria-live="polite">
-                <template v-if="isLoading">
-                    <div v-for="item in 6" :key="item" class="nav-group nav-skeleton" aria-hidden="true"></div>
-                </template>
-                <nav-group v-for="group in filteredGroups" :key="group.name" :group="group" />
-                <p v-if="!isLoading && !errorMessage && !filteredGroups.length" class="nav-empty">没有找到匹配的导航入口。</p>
-                <p v-if="errorMessage" class="nav-error">导航数据加载失败，请刷新重试。{{ errorMessage }}</p>
-            </section>
-        </app-shell>
+        <main class="home-main">
+            <div class="home-layout">
+                <aside class="side-rail" aria-label="网站目录">
+                    <div class="side-rail-inner">
+                        <div v-for="group in groups" :key="group.name" class="side-group">
+                            <h2><span aria-hidden="true">{{ group.emoji }}</span>{{ group.name }}</h2>
+                            <a v-for="(item, index) in group.items" :key="item.title + index" :href="item.href">{{ item.title }}</a>
+                        </div>
+                    </div>
+                </aside>
+
+                <section class="home-content">
+                    <section class="hero-section">
+                        <div class="hero-copy">
+                            <h1 class="hero-title">欢迎来到<span>牛马程序员</span> 👋</h1>
+                            <p class="hero-desc">一个收留打工人、半吊子站长和深夜技术幻想家的赛博据点。今天也要带着 Bug<br class="desktop-break"> 优雅上班。</p>
+                        </div>
+                        <div class="hero-badge">⚡ 本站已稳定运行</div>
+                    </section>
+
+                    <form class="content-search" role="search" @submit.prevent="searchWeb">
+                        <span class="search-icon" aria-hidden="true">⌕</span>
+                        <label class="sr-only" for="site-search">筛选本站导航</label>
+                        <input id="site-search" v-model="query" type="search" placeholder="筛选本站导航（按 / 聚焦）" autocomplete="off">
+                        <button type="submit">百度搜索</button>
+                    </form>
+
+                    <section class="stats-grid" aria-label="站点统计">
+                        <article class="stat-card"><span class="stat-icon">🔧</span><div><strong>20</strong><small>导航入口</small></div></article>
+                        <article class="stat-card"><span class="stat-icon">▤</span><div><strong>5</strong><small>实用工具</small></div></article>
+                        <article class="stat-card"><span class="stat-icon">🎮</span><div><strong>3</strong><small>摸鱼游戏</small></div></article>
+                        <article class="stat-card"><span class="stat-icon">▯</span><div><strong>8</strong><small>内容文章</small></div></article>
+                    </section>
+
+                    <section class="nav-grid" aria-label="网站导航" aria-live="polite">
+                        <template v-if="isLoading">
+                            <div v-for="item in 6" :key="item" class="nav-group nav-skeleton" aria-hidden="true"></div>
+                        </template>
+                        <nav-group v-for="group in filteredGroups" :key="group.name" :group="group" />
+                        <p v-if="!isLoading && !errorMessage && !filteredGroups.length" class="nav-empty">没有找到匹配的导航入口。</p>
+                        <p v-if="errorMessage" class="nav-error">导航数据加载失败，请刷新重试。{{ errorMessage }}</p>
+                    </section>
+                </section>
+            </div>
+        </main>
     `
 });
 
