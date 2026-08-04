@@ -1,48 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>卷王指南</title>
-    <link rel="stylesheet" href="../static/styles.css">
-    <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
-    <script type="module" src="/static/components/SiteHeader.js"></script>
-    <script type="module" src="/static/pages/ContentPage.js"></script>
-    <style>pre{white-space:pre-wrap;}</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习中心</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script defer src="/static/alpine.js"></script>
+  <script defer src="/libs/alpine.min.js"></script>
 </head>
 <body class="article-page">
-    <site-header class="site-header"></site-header>
-    <main id="content-page" class="article-page" v-cloak>
-        <article-layout>
-            <div id="content">
-                <h1>卷王指南</h1>
+  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+  <main class="article-page">
+    <article class="article-layout">
+      <div id="content">
+        <h1>学习中心</h1>
 
-                <p>这里收留所有“想学点东西改变人生，结果先改成了熬夜作息”的朋友。内容主打一个边学边骂，边卷边记。</p>
+        <p>把学习拆成几个可以持续推进的方向：用英语获取资料，用编程解决问题，再用计算机基础和工程实践把知识串起来。</p>
 
-                <h2>当前整理中的方向</h2>
+        <h2>四条主线</h2>
+        <ul>
+          <li><a href="english.html"><strong>英语学习</strong></a>：先能读懂技术文档，再逐步提升听说和表达。</li>
+          <li><a href="dev.html"><strong>编程学习</strong></a>：掌握一门语言，并通过小项目训练抽象和调试能力。</li>
+          <li><a href="counselor.html"><strong>计算机基础</strong></a>：理解操作系统、网络、数据库和算法的基本规律。</li>
+          <li><a href="media.html"><strong>AI 与技术工具</strong></a>：学会使用工具提高效率，同时保持验证和判断。</li>
+        </ul>
 
-                <ul>
-                    <li><strong>Java</strong>：从语法、框架到部署，慢慢走向“看得懂报错但不一定解决得了”。</li>
-                    <li><strong>Python</strong>：脚本自动化、数据处理和各种“这个能不能顺手写一下”的万能杂活。</li>
-                    <li><strong>AI 编程</strong>：研究怎么把 AI 变成靠谱助手，而不是高级随机建议生成器。</li>
-                </ul>
+        <h2>推荐节奏</h2>
+        <ol>
+          <li>每天安排一小段英语输入，积累真实语境中的词汇和表达。</li>
+          <li>每周完成一个可运行的小练习，不只看教程和视频。</li>
+          <li>遇到问题先写出自己的猜测，再查资料或向工具提问。</li>
+          <li>每隔一段时间整理笔记，把零散知识连接成自己的方法。</li>
+        </ol>
 
-                <h2>先用得上的内容</h2>
-
-                <ul>
-                    <li><a href="/page/dev.html">牛马法宝：常用开发工具</a></li>
-                    <li><a href="/tools/json.html">JSON 工具</a></li>
-                    <li><a href="/tools/date.html">日期分析</a></li>
-                    <li><a href="/tools/time.html">时间工具</a></li>
-                </ul>
-
-                <h2>备注</h2>
-
-                <p>长文内容还在慢慢填，毕竟白天要打工，晚上还要假装自己是在主动学习而不是焦虑自救。</p>
-
-                <p>如果你也在纠结学什么、怎么学、学完能不能少挨两顿骂，可以先看看<a href="about.html">关于牛马</a>。</p>
-            </div>
-        </article-layout>
-    </main>
+        <h2>不要急着追求完整</h2>
+        <p>学习路线不是必须一次选对的地图。先从一个具体问题开始，在实践中发现缺口，再回头补基础，通常比等待“准备好以后再开始”更有效。</p>
+      </div>
+      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
+    </article>
+  </main>
 </body>
 </html>

@@ -3,42 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>摸鱼日记</title>
+  <title>学习笔记</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
-  <script type="module" src="/static/components/SiteHeader.js"></script>
-  <script type="module" src="/static/pages/ContentPage.js"></script>
-  <style>pre{white-space:pre-wrap;}</style>
+  <script defer src="/static/alpine.js"></script>
+  <script defer src="/libs/alpine.min.js"></script>
 </head>
 <body class="article-page">
-  <site-header class="site-header"></site-header>
-  <main id="content-page" class="article-page" v-cloak>
-    <article-layout>
+  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+  <main class="article-page">
+    <article class="article-layout">
       <div id="content">
-        <h1>摸鱼日记</h1>
+        <h1>学习笔记</h1>
 
-        <p>这里记一些上班不方便发朋友圈、下班又懒得写长文的碎碎念。技术含量不一定稳定，精神状态通常比较稳定地不太稳定。</p>
+        <p>这里记录学习过程中的小结、实验和问题。内容不追求一次写完，重点是把思路留下，方便以后继续验证和补充。</p>
 
-        <h2>最近在记</h2>
-
+        <h2>正在整理</h2>
         <ul>
-          <li><strong>工具为什么总是越做越多</strong>：因为每次想省 5 分钟，最后都会额外花 3 小时顺手重构一下。</li>
-          <li><strong>老项目急救指南</strong>：打开工程第一眼先别骂，先看看还有没有日志、注释和活着的同事。</li>
-          <li><strong>账号定位这件事</strong>：你以为自己在做内容，其实大多数时候是在和空气深情对话。</li>
-          <li><strong>外包合作守则</strong>：最可怕的不是需求变更，是一句“这个应该很简单吧”。</li>
+          <li><strong>JavaScript 异步编程</strong>：从 Promise、事件循环到实际的请求和错误处理。</li>
+          <li><strong>技术英语阅读</strong>：如何拆解官方文档里的长句、术语和示例代码。</li>
+          <li><strong>小项目复盘</strong>：从需求拆分、接口设计到部署上线，记录每次选择的原因。</li>
+          <li><strong>AI 辅助学习</strong>：让 AI 帮忙解释、出题和检查思路，而不是直接代替思考。</li>
         </ul>
 
-        <h2>在路上</h2>
+        <h2>一篇笔记的结构</h2>
+        <ol>
+          <li>先写清楚要解决的问题和已有的背景。</li>
+          <li>用最小例子验证概念，避免只停留在摘抄。</li>
+          <li>记录遇到的错误、排查过程和最终结论。</li>
+          <li>补充可以继续练习的方向。</li>
+        </ol>
 
-        <ul>
-          <li>一批越写越像情绪宣泄的开发小工具说明</li>
-          <li>电商项目那些“不说都快忘了自己怎么亏的”复盘</li>
-          <li>AI 辅助写代码，到底是提效还是高级复制粘贴实录</li>
-        </ul>
-
-        <p>内容会慢慢补，毕竟白天要上班，晚上还得假装自己热爱技术。</p>
+        <p>学习不是收集更多链接，而是让下一次遇到类似问题时，能够更快建立假设并验证。</p>
       </div>
-    </article-layout>
+      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
+    </article>
   </main>
 </body>
 </html>

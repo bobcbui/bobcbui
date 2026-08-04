@@ -21,7 +21,7 @@ body {
 
 body.menu-open { overflow: hidden; }
 
-[v-cloak] { display: none !important; }
+[x-cloak] { display: none !important; }
 
 h1, h2, h3, h4, p, ul, ol { margin-top: 0; }
 h1, h2, h3, h4 {

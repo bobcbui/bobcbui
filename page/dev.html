@@ -1,81 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>牛马法宝导航</title>
-    <link rel="stylesheet" href="../static/styles.css">
-    <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
-    <script type="module" src="/static/components/SiteHeader.js"></script>
-    <script type="module" src="/static/pages/ContentPage.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编程学习</title>
+  <link rel="stylesheet" href="../static/styles.css">
+  <script defer src="/static/alpine.js"></script>
+  <script defer src="/libs/alpine.min.js"></script>
 </head>
 <body class="article-page">
-    <site-header class="site-header"></site-header>
-    <main id="content-page" class="article-page" v-cloak>
-        <article-layout>
-            <div id="content" class="dev-nav-shell">
-                <div class="dev-nav-page">
-                    <section class="dev-nav-intro">
-                        <p class="dev-nav-kicker">Navigation</p>
-                        <h1 class="dev-nav-title">牛马法宝导航页</h1>
-                        <p class="dev-nav-desc">这个页面专门收纳 `tools` 和 `other` 目录里的入口。找在线小工具、实验项目和独立页面，都从这里直接进。</p>
-                    </section>
+  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+  <main class="article-page">
+    <article class="article-layout">
+      <div id="content">
+        <h1>编程学习</h1>
 
-                    <section class="dev-nav-section">
-                        <div class="dev-nav-section-head">
-                            <h2 class="dev-nav-heading">Tools</h2>
-                            <p class="dev-nav-subtitle">浏览器里直接能打开使用的小工具。</p>
-                        </div>
-                        <div class="dev-nav-grid">
-                            <a class="dev-nav-card" href="/tools/base64.html">
-                                <span class="dev-nav-card-meta">Tool</span>
-                                <h3 class="dev-nav-card-title">Base64 工具</h3>
-                                <p class="dev-nav-card-desc">支持文本、文件和图片的 Base64 编解码。</p>
-                            </a>
-                            <a class="dev-nav-card" href="/tools/json.html">
-                                <span class="dev-nav-card-meta">Tool</span>
-                                <h3 class="dev-nav-card-title">JSON 处理工具</h3>
-                                <p class="dev-nav-card-desc">格式化、压缩、排序、校验，一页里把 JSON 处理完。</p>
-                            </a>
-                            <a class="dev-nav-card" href="/tools/corn.html">
-                                <span class="dev-nav-card-meta">Tool</span>
-                                <h3 class="dev-nav-card-title">Cron 表达式工具</h3>
-                                <p class="dev-nav-card-desc">快速查看 Cron 表达式的运行时间和调度含义。</p>
-                            </a>
-                            <a class="dev-nav-card" href="/tools/date.html">
-                                <span class="dev-nav-card-meta">Tool</span>
-                                <h3 class="dev-nav-card-title">日期分析</h3>
-                                <p class="dev-nav-card-desc">查看公历、农历、节气和节日信息的日历工具。</p>
-                            </a>
-                            <a class="dev-nav-card" href="/tools/time.html">
-                                <span class="dev-nav-card-meta">Tool</span>
-                                <h3 class="dev-nav-card-title">时间工具</h3>
-                                <p class="dev-nav-card-desc">显示当前时间，并支持多种主题切换。</p>
-                            </a>
-                        </div>
-                    </section>
+        <p>编程学习的核心不是记住更多语法，而是把问题拆开、建立清晰的模型，再用代码验证自己的想法。</p>
 
-                    <section class="dev-nav-section">
-                        <div class="dev-nav-section-head">
-                            <h2 class="dev-nav-heading">Other</h2>
-                            <p class="dev-nav-subtitle">放在 `other` 目录下的独立实验页和小项目。</p>
-                        </div>
-                        <div class="dev-nav-grid">
-                            <a class="dev-nav-card" href="/other/3d-word/">
-                                <span class="dev-nav-card-meta">Other</span>
-                                <h3 class="dev-nav-card-title">Voxel Realm Frontier</h3>
-                                <p class="dev-nav-card-desc">一个独立的 3D 实验项目入口，包含完整的运行页面。</p>
-                            </a>
-                            <a class="dev-nav-card" href="/other/super-bft/">
-                                <span class="dev-nav-card-meta">Other</span>
-                                <h3 class="dev-nav-card-title">Super BFT</h3>
-                                <p class="dev-nav-card-desc">预留的实验目录入口，当前可作为后续扩展的导航占位。</p>
-                            </a>
-                        </div>
-                    </section>
-                </div>
-            </div>
-        </article-layout>
-    </main>
+        <h2>学习顺序</h2>
+        <ol>
+          <li><strong>语言基础</strong>：变量、函数、条件、循环、模块和错误处理。</li>
+          <li><strong>数据结构</strong>：数组、对象、栈、队列、集合和映射。</li>
+          <li><strong>程序设计</strong>：拆分职责、复用逻辑、组织文件和维护状态。</li>
+          <li><strong>工程实践</strong>：Git、测试、日志、配置管理和部署。</li>
+        </ol>
+
+        <h2>适合练习的项目</h2>
+        <ul>
+          <li>命令行记事本：练习文件读写、参数解析和数据持久化。</li>
+          <li>待办清单：练习表单、状态管理、筛选和本地存储。</li>
+          <li>API 小服务：练习路由、参数校验、数据库和错误响应。</li>
+          <li>个人知识库：练习内容组织、搜索、部署和持续更新。</li>
+        </ul>
+
+        <h2>遇到 Bug 时</h2>
+        <p>先稳定复现，再缩小范围；记录输入、预期结果和实际结果；一次只改一个变量。调试过程本身就是理解程序运行规律的过程。</p>
+      </div>
+      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
+    </article>
+  </main>
 </body>
 </html>

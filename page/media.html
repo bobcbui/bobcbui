@@ -3,42 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>赛博水军</title>
+  <title>AI 与技术工具</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
-  <script type="module" src="/static/components/SiteHeader.js"></script>
-  <script type="module" src="/static/pages/ContentPage.js"></script>
-  <style>pre{white-space:pre-wrap;}</style>
+  <script defer src="/static/alpine.js"></script>
+  <script defer src="/libs/alpine.min.js"></script>
 </head>
 <body class="article-page">
-  <site-header class="site-header"></site-header>
-  <main id="content-page" class="article-page" v-cloak>
-    <article-layout>
+  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+  <main class="article-page">
+    <article class="article-layout">
       <div id="content">
-        <h1>赛博水军</h1>
+        <h1>AI 与技术工具</h1>
 
-        <p>名字叫得很张扬，实际上做的是一些老老实实的内容脏活。适合账号刚起步、内容节奏稀碎、想做点排面又没空天天盯的人。</p>
+        <p>工具的价值在于减少重复劳动、帮助我们看见问题和加快验证，而不是把判断能力完全交出去。使用 AI 时尤其需要明确目标、提供上下文并检查结果。</p>
 
-        <h2>能做的事</h2>
-
+        <h2>AI 辅助学习</h2>
         <ul>
-          <li>账号定位：先决定你要当高冷专家，还是接地气互联网野生选手。</li>
-          <li>内容规划：把“想到啥发啥”升级成“至少看起来像认真规划过”。</li>
-          <li>素材协作：图文、短视频、AI 辅助，一顿操作先把更新节奏续上。</li>
-          <li>数据回看：看清到底是真有人喜欢，还是只是自己转发得很勤快。</li>
+          <li>让 AI 用不同难度解释一个概念，再用自己的话复述。</li>
+          <li>让 AI 根据知识点出练习题，并要求说明每个答案的理由。</li>
+          <li>让 AI 帮忙检查代码的边界条件，但自己运行测试并确认行为。</li>
+          <li>把长文档拆成问题阅读，不把未经验证的回答当成事实。</li>
         </ul>
 
-        <h2>更适合</h2>
+        <h2>工具选择思路</h2>
+        <ol>
+          <li>先确认问题是否值得自动化，避免为了用工具而增加复杂度。</li>
+          <li>比较输入成本、输出质量、可重复性和维护成本。</li>
+          <li>涉及隐私、账号、生产数据时，先确认数据边界和权限。</li>
+          <li>保留关键过程和结果，让别人能够复现或接手。</li>
+        </ol>
 
-        <ul>
-          <li>三天打鱼两天装死、更新完全随缘的账号</li>
-          <li>有产品有服务，但一开口还是像产品说明书的团队</li>
-          <li>想先把内容阵地搭起来，再考虑怎么买量的人</li>
-        </ul>
-
-        <p>联系渠道见<a href="about.html">关于牛马</a>。</p>
+        <h2>值得练习的自动化</h2>
+        <p>可以从批量整理文件、格式化数据、生成简单报告、检查链接和辅助测试开始。这些任务边界清楚，容易验证，也能帮助理解脚本和工具链。</p>
       </div>
-    </article-layout>
+      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
+    </article>
   </main>
 </body>
 </html>

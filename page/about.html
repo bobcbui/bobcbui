@@ -3,41 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>关于牛马</title>
+  <title>关于这个学习站</title>
   <link rel="stylesheet" href="../static/styles.css">
-  <script type="importmap">{"imports":{"vue":"/libs/vue.esm-browser.prod.js"}}</script>
-  <script type="module" src="/static/components/SiteHeader.js"></script>
-  <script type="module" src="/static/pages/ContentPage.js"></script>
-  <style>img{max-width:100%;} pre{white-space:pre-wrap;}</style>
+  <script defer src="/static/alpine.js"></script>
+  <script defer src="/libs/alpine.min.js"></script>
 </head>
 <body class="article-page">
-  <site-header class="site-header"></site-header>
-  <main id="content-page" class="article-page" v-cloak>
-    <article-layout>
+  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+  <main class="article-page">
+    <article class="article-layout">
       <div id="content">
-        <h1>关于牛马</h1>
+        <h1>关于这个学习站</h1>
 
-        <p>这里不是成功学展厅，这里更像打工人深夜临时搭出来的赛博草台班子。我们一边写笔记、一边做工具、一边接点活，顺便互相提醒不要被需求折磨到失去人形。</p>
+        <p>这里是一个面向自学者的知识整理站，记录英语、编程和计算机技术的学习路径、实践过程与问题总结。</p>
 
-        <h2>这里在做什么</h2>
-
+        <h2>这里会收录什么</h2>
         <ul>
-          <li>把踩过的坑写下来，免得下次还能精准再踩一遍。</li>
-          <li>把顺手的小工具放站里，争取少切两个网页。</li>
-          <li>给那些“能不能帮忙看看”的祖传项目临时续一口命。</li>
+          <li>英语学习：词汇、语法、阅读、听力和技术英语。</li>
+          <li>编程学习：语言基础、数据结构、算法和工程实践。</li>
+          <li>技术专题：前端、后端、数据库、网络、系统和 AI 工具。</li>
+          <li>学习记录：把看过的资料、做过的练习和踩过的坑留下来。</li>
         </ul>
 
-        <h2>小小厂训</h2>
+        <h2>内容原则</h2>
+        <ol>
+          <li>先用简单的语言解释概念，再补充必要的专业术语。</li>
+          <li>尽量配合例子和练习，让知识能够落到代码或实际任务上。</li>
+          <li>记录真实的理解过程，不把暂时不会的问题假装成已经掌握。</li>
+        </ol>
 
-        <ul>
-          <li>能讲人话，就别装架构仙人。</li>
-          <li>能先跑起来，就别先写三十页宏伟蓝图。</li>
-          <li>吹牛可以，交付还是得真交。</li>
-        </ul>
-
-        <p>如果你也在被 Bug、需求、排期和群消息连环殴打，欢迎来这里抱团取暖。</p>
+        <h2>适合怎样开始</h2>
+        <p>如果你还没有明确方向，可以先看<a href="study.html">学习总览</a>；想提升技术资料阅读能力，可以从<a href="english.html">英语学习</a>开始；已经在写代码，则可以进入<a href="dev.html">编程学习</a>。</p>
       </div>
-    </article-layout>
+      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
+    </article>
   </main>
 </body>
 </html>
