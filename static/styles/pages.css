@@ -746,6 +746,9 @@ main.article-page { max-width: calc(var(--article-max-width) + var(--page-gutter
     background: rgba(255, 255, 255, 0.9);
     border-bottom-color: #e9e4e7;
 }
+.content-page .header-inner {
+    max-width: 1240px;
+}
 .learning-page {
     max-width: 1240px;
     padding-top: 40px;
