@@ -56,6 +56,36 @@
                         <article class="stat-card"><span class="stat-icon">✎</span><div><strong>1</strong><small>持续记录</small></div></article>
                     </section>
 
+                    <section class="home-feature-grid" aria-label="每日内容">
+                        <article class="home-feature-card daily-english-card">
+                            <div class="feature-card-header">
+                                <div><p class="feature-kicker">DAILY ENGLISH</p><h2 x-text="dailyEnglish.title"></h2></div>
+                                <time x-text="dailyEnglish.date"></time>
+                            </div>
+                            <p class="daily-english-text" x-text="dailyEnglish.text"></p>
+                            <p class="daily-english-translation"><strong>译</strong><span x-text="dailyEnglish.translation"></span></p>
+                            <div class="daily-english-words" aria-label="今日词汇">
+                                <template x-for="word in dailyEnglish.words" :key="word.term"><span><strong x-text="word.term"></strong><small x-text="word.meaning"></small></span></template>
+                            </div>
+                            <a class="feature-card-link" href="/page/english.html">进入英语学习 <span aria-hidden="true">→</span></a>
+                        </article>
+
+                        <article class="home-feature-card github-trends-card">
+                            <div class="feature-card-header"><div><p class="feature-kicker">GITHUB TRENDS</p><h2>近 7 天热门仓库</h2></div><a class="feature-card-source" href="https://github.com/trending" target="_blank" rel="noopener">GitHub ↗</a></div>
+                            <p x-show="trendsLoading" class="feature-card-loading">正在加载 GitHub 趋势…</p>
+                            <p x-show="trendsError" class="feature-card-loading" x-text="trendsError"></p>
+                            <div class="github-repo-list" x-show="!trendsLoading && !trendsError">
+                                <template x-for="repo in trendingRepos" :key="repo.name">
+                                    <a class="github-repo" :href="repo.url" target="_blank" rel="noopener">
+                                        <span class="github-repo-main"><strong x-text="repo.name"></strong><small x-text="repo.description"></small></span>
+                                        <span class="github-repo-meta"><small x-text="repo.language"></small><b>★ <span x-text="formatStars(repo.stars)"></span></b></span>
+                                    </a>
+                                </template>
+                            </div>
+                            <a class="feature-card-link" href="https://github.com/trending" target="_blank" rel="noopener">查看 GitHub Trending <span aria-hidden="true">→</span></a>
+                        </article>
+                    </section>
+
                     <section class="nav-grid" aria-label="网站导航" aria-live="polite">
                         <template x-for="item in (isLoading ? 6 : 0)" :key="item">
                             <div class="nav-group nav-skeleton" aria-hidden="true"></div>
