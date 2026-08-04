@@ -55,6 +55,28 @@
         return navigationPromise;
     }
 
+    async function loadGitHubTrends() {
+        const today = new Date();
+        const since = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+        const startDate = since.toISOString().slice(0, 10);
+        const endDate = today.toISOString().slice(0, 10);
+        const query = encodeURIComponent(`created:${startDate}..${endDate}`);
+        const response = await fetch(`https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc&per_page=5`, {
+            headers: { Accept: 'application/vnd.github+json' }
+        });
+
+        if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`);
+
+        const data = await response.json();
+        return (data.items || []).map((repo) => ({
+            name: repo.full_name,
+            url: repo.html_url,
+            description: repo.description || '暂无项目简介',
+            language: repo.language || '多语言',
+            stars: repo.stargazers_count || 0
+        }));
+    }
+
     document.querySelectorAll('site-header').forEach((element) => {
         element.innerHTML = siteHeaderTemplate;
     });
@@ -93,6 +115,20 @@
             query: '',
             isLoading: true,
             errorMessage: '',
+            trendingRepos: [],
+            trendsLoading: true,
+            trendsError: '',
+            dailyEnglish: {
+                date: new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(new Date()),
+                title: 'Small Steps, Real Progress',
+                text: 'Small steps build reliable systems. Read one page, write one example, and review one mistake today. Progress becomes easier to notice when the action is small enough to repeat.',
+                translation: '小步前进，才能建立可靠的系统。今天读一页资料、写一个例子，再复盘一个错误。当行动小到可以重复，进步就更容易被看见。',
+                words: [
+                    { term: 'reliable', meaning: '可靠的' },
+                    { term: 'review', meaning: '复盘；回顾' },
+                    { term: 'repeat', meaning: '重复' }
+                ]
+            },
 
             get filteredGroups() {
                 const keyword = this.query.trim().toLocaleLowerCase();
@@ -106,6 +142,7 @@
             },
 
             async init() {
+                this.loadTrends();
                 try {
                     this.groups = (await loadNavigation()).filter((group) => !['在线卖身', '赛博水军', 'ICU 防丢指南'].includes(group.name));
                 } catch (error) {
@@ -113,6 +150,21 @@
                 } finally {
                     this.isLoading = false;
                 }
+            },
+
+            async loadTrends() {
+                try {
+                    this.trendingRepos = await loadGitHubTrends();
+                } catch (error) {
+                    this.trendsError = 'GitHub 趋势暂时无法加载';
+                    console.warn('GitHub 趋势加载失败：', error);
+                } finally {
+                    this.trendsLoading = false;
+                }
+            },
+
+            formatStars(value) {
+                return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value;
             },
 
             focusShortcut(event) {
