@@ -19,26 +19,6 @@
     >
       <main class="home-main">
         <div class="home-layout">
-          <aside class="side-rail" aria-label="网站目录">
-            <div class="side-rail-inner">
-              <div class="side-rail-label"><span>⌘</span>学习目录</div>
-              <template x-for="group in groups" :key="group.name">
-                <div class="side-group">
-                  <h2>
-                    <span aria-hidden="true" x-text="group.emoji"></span
-                    ><span x-text="group.name"></span>
-                  </h2>
-                  <template
-                    x-for="(item, index) in group.items"
-                    :key="item.title + index"
-                  >
-                    <a :href="item.href" x-text="item.title"></a>
-                  </template>
-                </div>
-              </template>
-            </div>
-          </aside>
-
           <section class="home-content">
             <section class="hero-section">
               <div class="hero-copy">
