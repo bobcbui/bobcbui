@@ -8,36 +8,46 @@
   <script defer src="/static/alpine.js"></script>
   <script defer src="/libs/alpine.min.js"></script>
 </head>
-<body class="article-page">
+<body class="content-page">
   <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="article-page">
-    <article class="article-layout">
-      <div id="content">
+  <main class="learning-page">
+    <section class="learning-hero">
+      <div class="learning-hero-copy">
+        <p class="learning-kicker">Learning roadmap · 01</p>
         <h1>学习中心</h1>
-
-        <p>把学习拆成几个可以持续推进的方向：用英语获取资料，用编程解决问题，再用计算机基础和工程实践把知识串起来。</p>
-
-        <h2>四条主线</h2>
-        <ul>
-          <li><a href="english.html"><strong>英语学习</strong></a>：先能读懂技术文档，再逐步提升听说和表达。</li>
-          <li><a href="dev.html"><strong>编程学习</strong></a>：掌握一门语言，并通过小项目训练抽象和调试能力。</li>
-          <li><a href="counselor.html"><strong>计算机基础</strong></a>：理解操作系统、网络、数据库和算法的基本规律。</li>
-          <li><a href="media.html"><strong>AI 与技术工具</strong></a>：学会使用工具提高效率，同时保持验证和判断。</li>
-        </ul>
-
-        <h2>推荐节奏</h2>
-        <ol>
-          <li>每天安排一小段英语输入，积累真实语境中的词汇和表达。</li>
-          <li>每周完成一个可运行的小练习，不只看教程和视频。</li>
-          <li>遇到问题先写出自己的猜测，再查资料或向工具提问。</li>
-          <li>每隔一段时间整理笔记，把零散知识连接成自己的方法。</li>
-        </ol>
-
-        <h2>不要急着追求完整</h2>
-        <p>学习路线不是必须一次选对的地图。先从一个具体问题开始，在实践中发现缺口，再回头补基础，通常比等待“准备好以后再开始”更有效。</p>
+        <p class="learning-lead">把英语、编程和计算机技术拆成可以持续推进的小目标，用输入、练习、项目和复盘建立真正能用的能力。</p>
       </div>
-      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
-    </article>
+      <div class="learning-hero-aside"><span>START HERE</span><strong>先找到一个具体问题</strong><small>从今天能完成的一个小练习开始，不必等到准备充分。</small></div>
+    </section>
+    <nav class="learning-toolbar" aria-label="学习方向">
+      <a href="english.html">英语学习</a><a href="dev.html">编程学习</a><a href="counselor.html">计算机基础</a><a href="media.html">AI 与工具</a><a href="blog.html">学习笔记</a>
+    </nav>
+    <section class="learning-grid">
+      <article class="learning-card learning-card-wide">
+        <div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>四条主线</h2><p class="learning-card-intro">不同方向相互支持，不需要一次把所有内容学完。</p></div></div>
+        <div class="learning-link-grid">
+          <a class="learning-link-card" href="english.html"><strong>英语学习</strong><small>读懂技术文档，练习听说与表达。</small></a>
+          <a class="learning-link-card" href="dev.html"><strong>编程学习</strong><small>从语言基础走向问题拆解和项目实践。</small></a>
+          <a class="learning-link-card" href="counselor.html"><strong>计算机基础</strong><small>理解系统、网络、数据库和算法。</small></a>
+          <a class="learning-link-card" href="e-commerce.html"><strong>前端开发</strong><small>把页面结构、样式和交互做完整。</small></a>
+          <a class="learning-link-card" href="outsource.html"><strong>后端工程</strong><small>学习 API、数据、可靠性和部署。</small></a>
+          <a class="learning-link-card" href="media.html"><strong>AI 与工具</strong><small>用工具加速验证，同时保留判断。</small></a>
+        </div>
+      </article>
+      <article class="learning-card">
+        <div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>每周节奏</h2><p class="learning-card-intro">把大目标变成可检查的动作。</p></div></div>
+        <ul class="learning-checklist"><li>每天 20 分钟英语输入</li><li>完成 3 次代码练习</li><li>做一次小项目功能</li><li>周末整理一篇笔记</li></ul>
+      </article>
+      <article class="learning-card">
+        <div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>学习闭环</h2><p class="learning-card-intro">不要只收藏资料，要让知识经过手。</p></div></div>
+        <ul class="learning-list"><li>输入：读文档、看示例、听课程。</li><li>理解：用自己的话解释核心概念。</li><li>实践：写代码、做实验、解决一个问题。</li><li>复盘：记录错误、结论和下一步。</li></ul>
+      </article>
+      <article class="learning-card learning-card-wide">
+        <div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>推荐入口</h2><p class="learning-card-intro">根据当前状态选择一个入口，不必从头浏览所有内容。</p></div></div>
+        <div class="learning-columns"><ul class="learning-list"><li><strong>刚开始：</strong>先看英语学习和编程学习的基础清单。</li><li><strong>已经会写代码：</strong>进入前端或后端页面做项目拆解。</li></ul><ul class="learning-list"><li><strong>遇到瓶颈：</strong>回到计算机基础，补上运行原理。</li><li><strong>想提高效率：</strong>了解 AI 与工具，再建立自己的工作流。</li></ul></div>
+        <p class="learning-note">学习路线不是固定地图。先行动，再根据遇到的问题调整方向，通常比等待一个完美计划更有效。</p>
+      </article>
+    </section>
   </main>
 </body>
 </html>

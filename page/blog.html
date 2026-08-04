@@ -8,35 +8,17 @@
   <script defer src="/static/alpine.js"></script>
   <script defer src="/libs/alpine.min.js"></script>
 </head>
-<body class="article-page">
+<body class="content-page">
   <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="article-page">
-    <article class="article-layout">
-      <div id="content">
-        <h1>学习笔记</h1>
-
-        <p>这里记录学习过程中的小结、实验和问题。内容不追求一次写完，重点是把思路留下，方便以后继续验证和补充。</p>
-
-        <h2>正在整理</h2>
-        <ul>
-          <li><strong>JavaScript 异步编程</strong>：从 Promise、事件循环到实际的请求和错误处理。</li>
-          <li><strong>技术英语阅读</strong>：如何拆解官方文档里的长句、术语和示例代码。</li>
-          <li><strong>小项目复盘</strong>：从需求拆分、接口设计到部署上线，记录每次选择的原因。</li>
-          <li><strong>AI 辅助学习</strong>：让 AI 帮忙解释、出题和检查思路，而不是直接代替思考。</li>
-        </ul>
-
-        <h2>一篇笔记的结构</h2>
-        <ol>
-          <li>先写清楚要解决的问题和已有的背景。</li>
-          <li>用最小例子验证概念，避免只停留在摘抄。</li>
-          <li>记录遇到的错误、排查过程和最终结论。</li>
-          <li>补充可以继续练习的方向。</li>
-        </ol>
-
-        <p>学习不是收集更多链接，而是让下一次遇到类似问题时，能够更快建立假设并验证。</p>
-      </div>
-      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
-    </article>
+  <main class="learning-page">
+    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">Notes & review · 09</p><h1>学习笔记</h1><p class="learning-lead">把看过的资料、做过的实验和遇到的问题整理下来。笔记不追求一次写完，重要的是下次还能快速找到并继续。</p></div><div class="learning-hero-aside"><span>WRITE IT DOWN</span><strong>把理解留下来</strong><small>写下问题、过程、结论和下一步，学习才会形成自己的路径。</small></div></section>
+    <nav class="learning-toolbar" aria-label="笔记方向"><a href="study.html">学习总览</a><a href="english.html">英语学习</a><a href="dev.html">编程学习</a><a href="counselor.html">计算机基础</a></nav>
+    <section class="learning-grid">
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>正在整理的主题</h2><p class="learning-card-intro">从真实问题出发，把零散内容连接起来。</p></div></div><div class="learning-link-grid"><div class="learning-link-card"><strong>JavaScript 异步</strong><small>Promise、事件循环和请求错误处理。</small></div><div class="learning-link-card"><strong>技术英语阅读</strong><small>拆解长句、术语和官方示例。</small></div><div class="learning-link-card"><strong>小项目复盘</strong><small>从需求、接口到部署的选择。</small></div><div class="learning-link-card"><strong>AI 辅助学习</strong><small>解释、出题、检查和验证。</small></div><div class="learning-link-card"><strong>调试记录</strong><small>如何从现象逐步缩小范围。</small></div><div class="learning-link-card"><strong>工具实践</strong><small>哪些重复工作值得自动化。</small></div></div></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>一篇笔记包含什么</h2><p class="learning-card-intro">结构清楚，未来才容易复用。</p></div></div><ul class="learning-checklist"><li>问题和背景</li><li>最小可运行例子</li><li>排查与验证过程</li><li>结论和后续练习</li></ul></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>复习方式</h2><p class="learning-card-intro">不要只重新阅读。</p></div></div><ul class="learning-list"><li>遮住结论，先自己解释。</li><li>重新运行示例并修改一个条件。</li><li>把内容讲给别人或 AI 听。</li><li>补充现在才发现的边界。</li></ul></article>
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>学习记录工作流</h2><p class="learning-card-intro">让记录成为学习的一部分，而不是额外负担。</p></div></div><div class="learning-columns"><ul class="learning-list"><li><strong>收集：</strong>只保存和当前问题有关的资料。</li><li><strong>实验：</strong>用最小例子确认自己是否理解。</li><li><strong>表达：</strong>用自己的话写出关键结论。</li></ul><ul class="learning-list"><li><strong>连接：</strong>关联到已有的概念和项目。</li><li><strong>复习：</strong>隔一段时间重新回答问题。</li><li><strong>更新：</strong>发现旧结论不准确时及时修正。</li></ul></div></article>
+    </section>
   </main>
 </body>
 </html>

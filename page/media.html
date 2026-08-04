@@ -8,36 +8,17 @@
   <script defer src="/static/alpine.js"></script>
   <script defer src="/libs/alpine.min.js"></script>
 </head>
-<body class="article-page">
+<body class="content-page">
   <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="article-page">
-    <article class="article-layout">
-      <div id="content">
-        <h1>AI 与技术工具</h1>
-
-        <p>工具的价值在于减少重复劳动、帮助我们看见问题和加快验证，而不是把判断能力完全交出去。使用 AI 时尤其需要明确目标、提供上下文并检查结果。</p>
-
-        <h2>AI 辅助学习</h2>
-        <ul>
-          <li>让 AI 用不同难度解释一个概念，再用自己的话复述。</li>
-          <li>让 AI 根据知识点出练习题，并要求说明每个答案的理由。</li>
-          <li>让 AI 帮忙检查代码的边界条件，但自己运行测试并确认行为。</li>
-          <li>把长文档拆成问题阅读，不把未经验证的回答当成事实。</li>
-        </ul>
-
-        <h2>工具选择思路</h2>
-        <ol>
-          <li>先确认问题是否值得自动化，避免为了用工具而增加复杂度。</li>
-          <li>比较输入成本、输出质量、可重复性和维护成本。</li>
-          <li>涉及隐私、账号、生产数据时，先确认数据边界和权限。</li>
-          <li>保留关键过程和结果，让别人能够复现或接手。</li>
-        </ol>
-
-        <h2>值得练习的自动化</h2>
-        <p>可以从批量整理文件、格式化数据、生成简单报告、检查链接和辅助测试开始。这些任务边界清楚，容易验证，也能帮助理解脚本和工具链。</p>
-      </div>
-      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
-    </article>
+  <main class="learning-page">
+    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">AI & tools · 07</p><h1>AI 与技术工具</h1><p class="learning-lead">工具应该减少重复劳动、帮助我们看见问题和加快验证，而不是让判断能力完全交出去。</p></div><div class="learning-hero-aside"><span>THINK · TRY · CHECK</span><strong>先问问题，再用工具</strong><small>提供上下文、验证结果、保留关键过程。</small></div></section>
+    <nav class="learning-toolbar" aria-label="AI 与工具方向"><a href="study.html">学习总览</a><a href="english.html">技术英语</a><a href="dev.html">编程学习</a><a href="outsource.html">后端工程</a></nav>
+    <section class="learning-grid">
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>AI 辅助学习的四种用法</h2><p class="learning-card-intro">把 AI 放在合适的位置，而不是让它替你完成全部思考。</p></div></div><div class="learning-link-grid"><div class="learning-link-card"><strong>解释概念</strong><small>要求用不同难度和例子说明。</small></div><div class="learning-link-card"><strong>生成练习</strong><small>根据知识点出题并解释答案。</small></div><div class="learning-link-card"><strong>检查代码</strong><small>关注边界条件和潜在风险。</small></div><div class="learning-link-card"><strong>整理资料</strong><small>提取结构、关键词和待验证结论。</small></div><div class="learning-link-card"><strong>模拟对话</strong><small>练习英语表达和技术说明。</small></div><div class="learning-link-card"><strong>辅助自动化</strong><small>从边界清楚的小任务开始。</small></div></div></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>提问模板</h2><p class="learning-card-intro">上下文越清楚，结果越容易验证。</p></div></div><ul class="learning-checklist"><li>说明目标和已有背景</li><li>给出最小可复现例子</li><li>指定输出格式和限制</li><li>要求列出假设与风险</li></ul></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>必须自己确认</h2><p class="learning-card-intro">方便不代表正确。</p></div></div><ul class="learning-list"><li>事实、版本和 API 是否真实存在？</li><li>代码是否能运行，边界是否覆盖？</li><li>是否包含隐私、密钥或生产数据？</li><li>是否理解结果，而不是只复制结果？</li></ul></article>
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>适合自动化的任务</h2><p class="learning-card-intro">从输入、输出和验收标准都清楚的工作开始。</p></div></div><div class="learning-columns"><ul class="learning-list"><li>批量整理文件和重命名资源。</li><li>格式化数据、生成简单报告。</li><li>检查链接、配置和重复内容。</li></ul><ul class="learning-list"><li>生成测试样例和边界清单。</li><li>把长文档转换为结构化摘要。</li><li>辅助整理学习卡片和复习计划。</li></ul></div></article>
+    </section>
   </main>
 </body>
 </html>

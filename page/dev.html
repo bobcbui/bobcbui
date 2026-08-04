@@ -8,36 +8,17 @@
   <script defer src="/static/alpine.js"></script>
   <script defer src="/libs/alpine.min.js"></script>
 </head>
-<body class="article-page">
+<body class="content-page">
   <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="article-page">
-    <article class="article-layout">
-      <div id="content">
-        <h1>编程学习</h1>
-
-        <p>编程学习的核心不是记住更多语法，而是把问题拆开、建立清晰的模型，再用代码验证自己的想法。</p>
-
-        <h2>学习顺序</h2>
-        <ol>
-          <li><strong>语言基础</strong>：变量、函数、条件、循环、模块和错误处理。</li>
-          <li><strong>数据结构</strong>：数组、对象、栈、队列、集合和映射。</li>
-          <li><strong>程序设计</strong>：拆分职责、复用逻辑、组织文件和维护状态。</li>
-          <li><strong>工程实践</strong>：Git、测试、日志、配置管理和部署。</li>
-        </ol>
-
-        <h2>适合练习的项目</h2>
-        <ul>
-          <li>命令行记事本：练习文件读写、参数解析和数据持久化。</li>
-          <li>待办清单：练习表单、状态管理、筛选和本地存储。</li>
-          <li>API 小服务：练习路由、参数校验、数据库和错误响应。</li>
-          <li>个人知识库：练习内容组织、搜索、部署和持续更新。</li>
-        </ul>
-
-        <h2>遇到 Bug 时</h2>
-        <p>先稳定复现，再缩小范围；记录输入、预期结果和实际结果；一次只改一个变量。调试过程本身就是理解程序运行规律的过程。</p>
-      </div>
-      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
-    </article>
+  <main class="learning-page">
+    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">Programming · 03</p><h1>编程学习</h1><p class="learning-lead">编程不是背语法，而是把问题拆开、建立模型、写出假设，再用代码和测试验证它。</p></div><div class="learning-hero-aside"><span>BUILD TO LEARN</span><strong>边做项目边补基础</strong><small>每个知识点都配一个可以运行、可以修改的小练习。</small></div></section>
+    <nav class="learning-toolbar" aria-label="编程学习方向"><a href="study.html">学习总览</a><a href="english.html">技术英语</a><a href="e-commerce.html">前端开发</a><a href="outsource.html">后端工程</a><a href="counselor.html">计算机基础</a></nav>
+    <section class="learning-grid">
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>学习阶梯</h2><p class="learning-card-intro">从写出代码到能维护一个真实项目。</p></div></div><div class="learning-link-grid"><div class="learning-link-card"><strong>语言基础</strong><small>变量、函数、条件、循环和模块。</small></div><div class="learning-link-card"><strong>数据结构</strong><small>数组、对象、栈、队列、集合和映射。</small></div><div class="learning-link-card"><strong>程序设计</strong><small>拆分职责、复用逻辑和组织状态。</small></div><div class="learning-link-card"><strong>调试能力</strong><small>复现、定位、验证和记录问题。</small></div><div class="learning-link-card"><strong>工程实践</strong><small>Git、测试、日志、配置和发布。</small></div><div class="learning-link-card"><strong>代码阅读</strong><small>从入口、数据流和边界理解项目。</small></div></div></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>练习项目</h2><p class="learning-card-intro">选择规模小但闭环完整的项目。</p></div></div><ul class="learning-list"><li>命令行记事本：文件和参数。</li><li>待办清单：状态、筛选和存储。</li><li>API 小服务：路由、校验和数据。</li><li>个人知识库：搜索、部署和更新。</li></ul></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>调试清单</h2><p class="learning-card-intro">先观察，再修改。</p></div></div><ul class="learning-checklist"><li>稳定复现问题</li><li>记录预期与实际结果</li><li>缩小到最小示例</li><li>一次只改一个变量</li></ul></article>
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>写出可维护的代码</h2><p class="learning-card-intro">好代码不只是在今天运行，还要让未来的自己和别人看得懂。</p></div></div><div class="learning-columns"><ul class="learning-list"><li>给函数和变量起能表达意图的名字。</li><li>让每个模块只承担清晰的一类职责。</li><li>把复杂条件拆成可测试的小逻辑。</li></ul><ul class="learning-list"><li>对外部输入做校验，对失败情况做处理。</li><li>用注释解释为什么，而不是重复代码做什么。</li><li>定期删除已经不需要的复杂度。</li></ul></div></article>
+    </section>
   </main>
 </body>
 </html>
