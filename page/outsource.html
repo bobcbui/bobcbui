@@ -1,24 +1,119 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>后端工程</title>
-  <link rel="stylesheet" href="../static/styles.css">
-  <script defer src="/static/alpine.js"></script>
-  <script defer src="/libs/alpine.min.js"></script>
-</head>
-<body class="content-page">
-  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="learning-page">
-    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">Backend engineering · 06</p><h1>后端工程</h1><p class="learning-lead">后端负责处理数据、业务规则和服务协作。除了写接口，还要关注可靠性、安全性、可观察性和维护成本。</p></div><div class="learning-hero-aside"><span>SHIP WITH CONFIDENCE</span><strong>让系统可理解、可恢复</strong><small>正常路径要跑通，异常路径也要有答案。</small></div></section>
-    <nav class="learning-toolbar" aria-label="后端学习方向"><a href="study.html">学习总览</a><a href="dev.html">编程学习</a><a href="counselor.html">计算机基础</a><a href="media.html">AI 与工具</a></nav>
-    <section class="learning-grid">
-      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>后端核心主题</h2><p class="learning-card-intro">把接口背后的数据和运行环境一起考虑。</p></div></div><div class="learning-link-grid"><div class="learning-link-card"><strong>API 设计</strong><small>资源、方法、状态码和分页。</small></div><div class="learning-link-card"><strong>数据存储</strong><small>表结构、查询、索引和事务。</small></div><div class="learning-link-card"><strong>身份安全</strong><small>认证、授权、校验和敏感数据。</small></div><div class="learning-link-card"><strong>可靠性</strong><small>超时、重试、限流和幂等。</small></div><div class="learning-link-card"><strong>可观察性</strong><small>日志、指标、追踪和告警。</small></div><div class="learning-link-card"><strong>部署发布</strong><small>配置、环境、回滚和备份。</small></div></div></article>
-      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>从小服务开始</h2><p class="learning-card-intro">把功能做成一个完整闭环。</p></div></div><ul class="learning-checklist"><li>定义数据模型</li><li>设计最小 API</li><li>处理错误输入</li><li>补测试与日志</li></ul></article>
-      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>接口检查表</h2><p class="learning-card-intro">每个接口都要回答这些问题。</p></div></div><ul class="learning-list"><li>谁可以调用，能访问哪些数据？</li><li>参数缺失或格式错误如何响应？</li><li>重复请求会不会造成重复写入？</li><li>依赖服务失败时能否及时返回？</li></ul></article>
-      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>工程质量</h2><p class="learning-card-intro">演示环境能返回结果，只是起点。</p></div></div><div class="learning-columns"><ul class="learning-list"><li>让配置和代码分离，避免把密钥写进仓库。</li><li>为关键路径保留结构化日志，方便定位问题。</li><li>为数据变更准备备份、迁移和恢复策略。</li></ul><ul class="learning-list"><li>为外部调用设置超时，避免请求无限等待。</li><li>让发布过程可重复，并准备明确的回滚方式。</li><li>监控真正影响用户的指标，而不是只收集数字。</li></ul></div></article>
-    </section>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>后端工程</title>
+    <link rel="stylesheet" href="../static/styles.css" />
+    <script defer src="/static/alpine.js"></script>
+    <script defer src="/libs/alpine.min.js"></script>
+  </head>
+  <body class="content-page">
+    <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+    <main class="learning-page">
+      <section class="learning-hero">
+        <div class="learning-hero-copy">
+          <p class="learning-kicker">Backend engineering · 06</p>
+          <h1>后端工程</h1>
+          <p class="learning-lead">
+            后端负责处理数据、业务规则和服务协作。除了写接口，还要关注可靠性、安全性、可观察性和维护成本。
+          </p>
+        </div>
+        <div class="learning-hero-aside">
+          <span>SHIP WITH CONFIDENCE</span><strong>让系统可理解、可恢复</strong
+          ><small>正常路径要跑通，异常路径也要有答案。</small>
+        </div>
+      </section>
+      <nav class="learning-toolbar" aria-label="后端学习方向">
+        <a href="study.html">学习总览</a><a href="dev.html">编程学习</a
+        ><a href="counselor.html">计算机基础</a
+        ><a href="media.html">AI 与工具</a>
+      </nav>
+      <section class="learning-grid">
+        <article class="learning-card learning-card-wide">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">01</span>
+            <div>
+              <h2>后端核心主题</h2>
+              <p class="learning-card-intro">
+                把接口背后的数据和运行环境一起考虑。
+              </p>
+            </div>
+          </div>
+          <div class="learning-link-grid">
+            <div class="learning-link-card">
+              <strong>API 设计</strong><small>资源、方法、状态码和分页。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>数据存储</strong><small>表结构、查询、索引和事务。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>身份安全</strong
+              ><small>认证、授权、校验和敏感数据。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>可靠性</strong><small>超时、重试、限流和幂等。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>可观察性</strong><small>日志、指标、追踪和告警。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>部署发布</strong><small>配置、环境、回滚和备份。</small>
+            </div>
+          </div>
+        </article>
+        <article class="learning-card">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">02</span>
+            <div>
+              <h2>从小服务开始</h2>
+              <p class="learning-card-intro">把功能做成一个完整闭环。</p>
+            </div>
+          </div>
+          <ul class="learning-checklist">
+            <li>定义数据模型</li>
+            <li>设计最小 API</li>
+            <li>处理错误输入</li>
+            <li>补测试与日志</li>
+          </ul>
+        </article>
+        <article class="learning-card">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">03</span>
+            <div>
+              <h2>接口检查表</h2>
+              <p class="learning-card-intro">每个接口都要回答这些问题。</p>
+            </div>
+          </div>
+          <ul class="learning-list">
+            <li>谁可以调用，能访问哪些数据？</li>
+            <li>参数缺失或格式错误如何响应？</li>
+            <li>重复请求会不会造成重复写入？</li>
+            <li>依赖服务失败时能否及时返回？</li>
+          </ul>
+        </article>
+        <article class="learning-card learning-card-wide">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">04</span>
+            <div>
+              <h2>工程质量</h2>
+              <p class="learning-card-intro">演示环境能返回结果，只是起点。</p>
+            </div>
+          </div>
+          <div class="learning-columns">
+            <ul class="learning-list">
+              <li>让配置和代码分离，避免把密钥写进仓库。</li>
+              <li>为关键路径保留结构化日志，方便定位问题。</li>
+              <li>为数据变更准备备份、迁移和恢复策略。</li>
+            </ul>
+            <ul class="learning-list">
+              <li>为外部调用设置超时，避免请求无限等待。</li>
+              <li>让发布过程可重复，并准备明确的回滚方式。</li>
+              <li>监控真正影响用户的指标，而不是只收集数字。</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
 </html>
