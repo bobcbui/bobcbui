@@ -20,10 +20,10 @@ export default defineComponent({
             <div class="nav-group-header">
                 <span class="nav-group-emoji" aria-hidden="true">{{ group.emoji }}</span>
                 <h2 class="nav-group-title">{{ group.name }}</h2>
-                <p v-if="group.desc" class="nav-group-desc">{{ group.desc }}</p>
             </div>
+            <p v-if="group.desc" class="nav-group-desc">{{ group.desc }}</p>
             <div class="nav-group-links">
-                <a v-for="item in visibleItems" :key="item.href" :href="item.href">{{ item.title }}</a>
+                <a v-for="(item, index) in visibleItems" :key="item.href + index" :href="item.href"><span aria-hidden="true">•</span>{{ item.title }}</a>
             </div>
             <button v-if="hasMore" class="nav-group-toggle" type="button" @click="expanded = !expanded">
                 {{ expanded ? '收起入口' : '展开全部入口' }}

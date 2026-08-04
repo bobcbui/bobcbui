@@ -1,10 +1,8 @@
 import { defineComponent, mountComponent } from '/static/core.js';
-import { getPrimaryNavigation, loadNavigation } from '/static/data/navigation.js';
-import NavSearch from '/static/components/NavSearch.js';
+import { loadNavigation } from '/static/data/navigation.js';
 
 const SiteHeader = defineComponent({
     name: 'SiteHeader',
-    components: { NavSearch },
     data() {
         return {
             navItems: [],
@@ -14,7 +12,10 @@ const SiteHeader = defineComponent({
     },
     async mounted() {
         try {
-            this.navItems = getPrimaryNavigation(await loadNavigation());
+            this.navItems = (await loadNavigation()).map((group) => ({
+                title: group.name,
+                href: group.items[0]?.href || '#'
+            }));
         } catch (error) {
             console.warn('页头导航加载失败：', error);
         }
@@ -37,7 +38,6 @@ const SiteHeader = defineComponent({
     template: `
         <div class="header-inner">
             <a class="logo" href="/" aria-label="返回首页">牛马程序员</a>
-            <nav-search v-if="isHome" />
             <div class="header-left">
                 <nav class="center-nav desktop-nav" aria-label="主导航">
                     <ul>
@@ -47,6 +47,7 @@ const SiteHeader = defineComponent({
                     </ul>
                 </nav>
             </div>
+            <div class="header-status"><span aria-hidden="true"></span>工具在线</div>
             <details v-if="!isHome" class="mobile-nav" :open="menuOpen">
                 <summary aria-label="打开导航菜单" @click.prevent="menuOpen = !menuOpen">
                     <span class="mobile-nav-icon" aria-hidden="true"><span></span><span></span><span></span></span>
