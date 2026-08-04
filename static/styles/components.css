@@ -82,9 +82,11 @@ site-header.site-header {
 .mobile-nav-panel {
     position: fixed;
     top: var(--header-height);
+    bottom: 0;
     left: 0;
     right: 0;
-    max-height: calc(100dvh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
+    max-height: none;
     padding: var(--space-3) var(--page-gutter) var(--space-6);
     overflow-y: auto;
     background: rgba(255, 248, 250, 0.98);
