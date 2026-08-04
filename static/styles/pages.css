@@ -737,3 +737,332 @@ main.article-page { max-width: calc(var(--article-max-width) + var(--page-gutter
     .hero-note small { max-width: none; }
     .nav-group-links { grid-template-columns: 1fr; }
 }
+
+/* Learning content pages */
+.content-page {
+    background: #f7f6f7;
+}
+.content-page .site-header {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom-color: #e9e4e7;
+}
+.learning-page {
+    max-width: 1240px;
+    padding-top: 40px;
+    padding-bottom: 72px;
+}
+.learning-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 28px;
+    align-items: center;
+    min-height: 230px;
+    margin-bottom: 24px;
+    padding: 36px 42px;
+    overflow: hidden;
+    border: 1px solid #eadce2;
+    border-radius: 24px;
+    background: linear-gradient(120deg, #ffffff 0%, #fff8fa 66%, #fff0f5 100%);
+    box-shadow: 0 16px 36px rgba(82, 52, 64, 0.07);
+}
+.learning-hero-copy {
+    position: relative;
+    z-index: 1;
+}
+.learning-kicker {
+    margin-bottom: 10px;
+    color: #d94775;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.learning-hero h1 {
+    max-width: 760px;
+    margin-bottom: 12px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.055em;
+}
+.learning-lead {
+    max-width: 720px;
+    margin-bottom: 0;
+    color: #786b72;
+    font-size: 15px;
+    line-height: 1.85;
+}
+.learning-hero-aside {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(219, 75, 120, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+}
+.learning-hero-aside strong {
+    color: #563d48;
+    font-size: 13px;
+}
+.learning-hero-aside span {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 28px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #fff0f5;
+    color: #d94775;
+    font-size: 11px;
+    font-weight: 800;
+}
+.learning-hero-aside small {
+    color: #917b85;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.learning-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.learning-toolbar a {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    padding: 0 12px;
+    border: 1px solid #eadfe3;
+    border-radius: 999px;
+    background: #fff;
+    color: #786871;
+    font-size: 12px;
+    font-weight: 700;
+}
+.learning-toolbar a:hover {
+    border-color: #e5a3b8;
+    background: #fff0f5;
+    color: #c93868;
+}
+.learning-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+.learning-card {
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid #e9dfe3;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(82, 52, 64, 0.045);
+}
+.learning-card-wide {
+    grid-column: 1 / -1;
+}
+.learning-card-heading {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+.learning-card-number {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #fff0f5;
+    color: #d94775;
+    font-size: 12px;
+    font-weight: 800;
+}
+.learning-card h2 {
+    margin-bottom: 4px;
+    font-size: 18px;
+}
+.learning-card-intro {
+    margin: 0;
+    color: #907d86;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.learning-card h3 {
+    margin: 20px 0 8px;
+    color: #4d3d45;
+    font-size: 14px;
+}
+.learning-card h3:first-child {
+    margin-top: 0;
+}
+.learning-list,
+.learning-checklist {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.learning-list li,
+.learning-checklist li {
+    position: relative;
+    padding-left: 19px;
+    color: #665860;
+    font-size: 13px;
+    line-height: 1.7;
+}
+.learning-list li::before {
+    content: "";
+    position: absolute;
+    top: 0.7em;
+    left: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e59bb1;
+}
+.learning-checklist li {
+    padding: 10px 12px 10px 34px;
+    border: 1px solid #f0e3e7;
+    border-radius: 10px;
+    background: #fffafb;
+}
+.learning-checklist li::before {
+    content: "✓";
+    position: absolute;
+    top: 9px;
+    left: 12px;
+    color: #d94775;
+    font-weight: 800;
+}
+.learning-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 28px;
+}
+.learning-link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.learning-link-card {
+    display: grid;
+    gap: 4px;
+    min-height: 84px;
+    padding: 14px;
+    border: 1px solid #eee1e5;
+    border-radius: 12px;
+    background: #fffafb;
+}
+.learning-link-card:hover {
+    border-color: #e5a3b8;
+    background: #fff0f5;
+}
+.learning-link-card strong {
+    color: #563d48;
+    font-size: 13px;
+}
+.learning-link-card small {
+    color: #947f89;
+    font-size: 11px;
+    line-height: 1.5;
+}
+.learning-note {
+    margin: 18px 0 0;
+    padding: 13px 15px;
+    border-left: 3px solid #e5a0b7;
+    background: #fff5f8;
+    color: #806d76;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+    .learning-page {
+        padding-top: 24px;
+        padding-bottom: 44px;
+    }
+    .learning-hero {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 28px 22px;
+    }
+    .learning-hero-aside {
+        max-width: none;
+    }
+    .learning-grid,
+    .learning-columns {
+        grid-template-columns: 1fr;
+    }
+    .learning-card-wide {
+        grid-column: auto;
+    }
+    .learning-link-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .learning-link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Keep cards and links stable while the pointer moves over them. */
+.side-group a:hover,
+.nav-group-links a:hover,
+.dev-nav-card:hover,
+.learning-toolbar a:hover,
+.learning-link-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+.side-group a:hover {
+    background: transparent;
+    color: #62565c;
+}
+.nav-group-links a:hover {
+    padding-inline: 0;
+    background: transparent;
+    color: #655860;
+}
+.dev-nav-card:hover {
+    border-color: var(--color-border);
+    background: var(--color-bg);
+}
+.learning-toolbar a:hover {
+    border-color: #eadfe3;
+    background: #fff;
+    color: #786871;
+}
+.learning-link-card:hover {
+    border-color: #eee1e5;
+    background: #fffafb;
+}
+
+/* Sharper visual language: keep the layout calm and less pill-shaped. */
+.home-page .hero-section,
+.learning-hero {
+    border-radius: 16px;
+}
+.home-page .content-search {
+    border-radius: 12px;
+}
+.home-page .stat-card {
+    border-radius: 10px;
+}
+.home-page .nav-group,
+.learning-card {
+    border-radius: 12px;
+}
+.hero-primary,
+.hero-secondary,
+.learning-toolbar a {
+    border-radius: 8px;
+}
+.hero-note,
+.learning-link-card {
+    border-radius: 10px;
+}
+.learning-checklist li {
+    border-radius: 8px;
+}

@@ -8,35 +8,17 @@
   <script defer src="/static/alpine.js"></script>
   <script defer src="/libs/alpine.min.js"></script>
 </head>
-<body class="article-page">
+<body class="content-page">
   <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="article-page">
-    <article class="article-layout">
-      <div id="content">
-        <h1>计算机基础</h1>
-
-        <p>基础知识像一张地图：不一定每天直接使用，但能帮助我们理解程序为什么这样运行，以及问题应该从哪里查起。</p>
-
-        <h2>需要建立的几种模型</h2>
-        <ul>
-          <li><strong>操作系统</strong>：进程、线程、内存、文件和权限。</li>
-          <li><strong>网络</strong>：IP、DNS、TCP、HTTP、TLS 和常见的请求链路。</li>
-          <li><strong>数据库</strong>：表结构、索引、事务、查询计划和数据一致性。</li>
-          <li><strong>算法</strong>：复杂度、查找、排序、递归和常见的空间换时间。</li>
-          <li><strong>安全</strong>：身份认证、授权、输入校验和最小权限。</li>
-        </ul>
-
-        <h2>从现象反推原因</h2>
-        <ol>
-          <li>页面打不开：先区分 DNS、网络连接、服务进程和应用响应。</li>
-          <li>接口变慢：观察请求链路、数据库查询、外部依赖和资源使用情况。</li>
-          <li>程序占用内存：确认增长对象、缓存策略、请求生命周期和释放时机。</li>
-        </ol>
-
-        <p>基础不是一次学完的课程，而是在写项目、读日志和排查问题时不断回看的参考框架。</p>
-      </div>
-      <footer class="article-footer"><span>学习站</span><a class="article-back" href="/">返回首页</a></footer>
-    </article>
+  <main class="learning-page">
+    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">Computer science · 04</p><h1>计算机基础</h1><p class="learning-lead">基础知识是一张地图，帮助我们理解程序为什么这样运行，也帮助我们在出问题时知道应该从哪里查起。</p></div><div class="learning-hero-aside"><span>UNDER THE HOOD</span><strong>理解系统如何工作</strong><small>从现象反推链路，把“玄学报错”变成可以验证的问题。</small></div></section>
+    <nav class="learning-toolbar" aria-label="基础主题"><a href="study.html">学习总览</a><a href="dev.html">编程学习</a><a href="outsource.html">后端工程</a><a href="media.html">AI 与工具</a></nav>
+    <section class="learning-grid">
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>五个基础模型</h2><p class="learning-card-intro">把抽象概念连接到常见的开发问题。</p></div></div><div class="learning-link-grid"><div class="learning-link-card"><strong>操作系统</strong><small>进程、线程、内存、文件和权限。</small></div><div class="learning-link-card"><strong>网络</strong><small>IP、DNS、TCP、HTTP 和 TLS。</small></div><div class="learning-link-card"><strong>数据库</strong><small>表结构、索引、事务和一致性。</small></div><div class="learning-link-card"><strong>算法</strong><small>复杂度、查找、排序和递归。</small></div><div class="learning-link-card"><strong>安全</strong><small>认证、授权、校验和最小权限。</small></div><div class="learning-link-card"><strong>架构</strong><small>模块、依赖、边界和演进。</small></div></div></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>从现象找原因</h2><p class="learning-card-intro">先判断问题属于哪条链路。</p></div></div><ul class="learning-list"><li>页面打不开：DNS、连接、进程还是应用响应？</li><li>接口变慢：查询、外部依赖还是资源使用？</li><li>内存增长：对象、缓存、生命周期还是释放？</li><li>权限失败：身份、角色、资源边界还是配置？</li></ul></article>
+      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>练习方法</h2><p class="learning-card-intro">通过小实验观察变化。</p></div></div><ul class="learning-checklist"><li>画出请求或数据流</li><li>只修改一个条件</li><li>用日志或工具观察</li><li>写下最终解释</li></ul></article>
+      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>基础知识的连接</h2><p class="learning-card-intro">一个完整请求会经过浏览器、网络、服务、数据库和操作系统。</p></div></div><div class="learning-columns"><ul class="learning-list"><li><strong>浏览器：</strong>解析页面、发起请求、渲染响应。</li><li><strong>网络：</strong>解析域名、建立连接、传输数据。</li><li><strong>服务：</strong>校验参数、执行逻辑、返回结果。</li></ul><ul class="learning-list"><li><strong>数据库：</strong>查询和修改持久化数据。</li><li><strong>系统：</strong>分配 CPU、内存、文件和网络资源。</li><li><strong>安全：</strong>控制谁可以做什么。</li></ul></div></article>
+    </section>
   </main>
 </body>
 </html>
