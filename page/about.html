@@ -1,24 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>关于这个学习站</title>
-  <link rel="stylesheet" href="../static/styles.css">
-  <script defer src="/static/alpine.js"></script>
-  <script defer src="/libs/alpine.min.js"></script>
-</head>
-<body class="content-page">
-  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="learning-page">
-    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">About this learning lab · 08</p><h1>关于这个学习站</h1><p class="learning-lead">这里整理英语、编程和计算机技术的学习路径，把看过的资料、做过的练习和踩过的坑变成可以继续使用的知识。</p></div><div class="learning-hero-aside"><span>KEEP BUILDING</span><strong>边学边做，持续更新</strong><small>不追求一次完成，先让每个方向都有可以开始的入口。</small></div></section>
-    <nav class="learning-toolbar" aria-label="站点内容"><a href="study.html">学习总览</a><a href="english.html">英语学习</a><a href="dev.html">编程学习</a><a href="blog.html">学习笔记</a></nav>
-    <section class="learning-grid">
-      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>内容地图</h2><p class="learning-card-intro">从基础到实践，逐步搭建自己的知识系统。</p></div></div><div class="learning-link-grid"><a class="learning-link-card" href="english.html"><strong>英语学习</strong><small>词汇、阅读、听力和技术表达。</small></a><a class="learning-link-card" href="dev.html"><strong>编程学习</strong><small>语言基础、算法和项目实践。</small></a><a class="learning-link-card" href="counselor.html"><strong>计算机基础</strong><small>系统、网络、数据库和安全。</small></a><a class="learning-link-card" href="e-commerce.html"><strong>前端开发</strong><small>HTML、CSS、JavaScript 和体验。</small></a><a class="learning-link-card" href="outsource.html"><strong>后端工程</strong><small>API、数据、部署和可靠性。</small></a><a class="learning-link-card" href="media.html"><strong>AI 与工具</strong><small>效率、验证和负责任地使用工具。</small></a></div></article>
-      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>内容原则</h2><p class="learning-card-intro">让知识尽量接近真实使用。</p></div></div><ul class="learning-checklist"><li>先用人话解释概念</li><li>配合例子和练习</li><li>记录错误与验证过程</li><li>给出可以继续的下一步</li></ul></article>
-      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>适合怎样开始</h2><p class="learning-card-intro">按当前问题选择入口。</p></div></div><ul class="learning-list"><li>没有方向：从学习中心开始。</li><li>读文档吃力：从英语学习开始。</li><li>刚开始写代码：先看编程学习。</li><li>已经有项目：进入前端或后端。</li></ul></article>
-      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>持续整理的方向</h2><p class="learning-card-intro">内容会根据学习和实践过程逐步补充。</p></div></div><div class="learning-columns"><ul class="learning-list"><li>把长文档拆成容易复习的知识卡片。</li><li>为常见技术问题补充最小可运行示例。</li><li>整理英语和技术术语之间的对应关系。</li></ul><ul class="learning-list"><li>记录项目从需求到部署的完整过程。</li><li>补充适合初学者的练习和检查清单。</li><li>持续修正过时、含糊或难以验证的内容。</li></ul></div><p class="learning-note">如果一个页面看完后能让你知道下一步该做什么，它就完成了最重要的任务。</p></article>
-    </section>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>关于这个学习站</title>
+    <link rel="stylesheet" href="../static/styles.css" />
+    <script defer src="/static/alpine.js"></script>
+    <script defer src="/libs/alpine.min.js"></script>
+  </head>
+  <body class="content-page">
+    <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+    <main class="learning-page">
+      <section class="learning-hero">
+        <div class="learning-hero-copy">
+          <p class="learning-kicker">About this learning lab · 08</p>
+          <h1>关于这个学习站</h1>
+          <p class="learning-lead">
+            这里整理英语、编程和计算机技术的学习路径，把看过的资料、做过的练习和踩过的坑变成可以继续使用的知识。
+          </p>
+        </div>
+        <div class="learning-hero-aside">
+          <span>KEEP BUILDING</span><strong>边学边做，持续更新</strong
+          ><small>不追求一次完成，先让每个方向都有可以开始的入口。</small>
+        </div>
+      </section>
+      <nav class="learning-toolbar" aria-label="站点内容">
+        <a href="study.html">学习总览</a><a href="english.html">英语学习</a
+        ><a href="dev.html">编程学习</a><a href="blog.html">学习笔记</a>
+      </nav>
+      <section class="learning-grid">
+        <article class="learning-card learning-card-wide">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">01</span>
+            <div>
+              <h2>内容地图</h2>
+              <p class="learning-card-intro">
+                从基础到实践，逐步搭建自己的知识系统。
+              </p>
+            </div>
+          </div>
+          <div class="learning-link-grid">
+            <a class="learning-link-card" href="english.html"
+              ><strong>英语学习</strong
+              ><small>词汇、阅读、听力和技术表达。</small></a
+            ><a class="learning-link-card" href="dev.html"
+              ><strong>编程学习</strong
+              ><small>语言基础、算法和项目实践。</small></a
+            ><a class="learning-link-card" href="counselor.html"
+              ><strong>计算机基础</strong
+              ><small>系统、网络、数据库和安全。</small></a
+            ><a class="learning-link-card" href="e-commerce.html"
+              ><strong>前端开发</strong
+              ><small>HTML、CSS、JavaScript 和体验。</small></a
+            ><a class="learning-link-card" href="outsource.html"
+              ><strong>后端工程</strong
+              ><small>API、数据、部署和可靠性。</small></a
+            ><a class="learning-link-card" href="media.html"
+              ><strong>AI 与工具</strong
+              ><small>效率、验证和负责任地使用工具。</small></a
+            >
+          </div>
+        </article>
+        <article class="learning-card">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">02</span>
+            <div>
+              <h2>内容原则</h2>
+              <p class="learning-card-intro">让知识尽量接近真实使用。</p>
+            </div>
+          </div>
+          <ul class="learning-checklist">
+            <li>先用人话解释概念</li>
+            <li>配合例子和练习</li>
+            <li>记录错误与验证过程</li>
+            <li>给出可以继续的下一步</li>
+          </ul>
+        </article>
+        <article class="learning-card">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">03</span>
+            <div>
+              <h2>适合怎样开始</h2>
+              <p class="learning-card-intro">按当前问题选择入口。</p>
+            </div>
+          </div>
+          <ul class="learning-list">
+            <li>没有方向：从学习中心开始。</li>
+            <li>读文档吃力：从英语学习开始。</li>
+            <li>刚开始写代码：先看编程学习。</li>
+            <li>已经有项目：进入前端或后端。</li>
+          </ul>
+        </article>
+        <article class="learning-card learning-card-wide">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">04</span>
+            <div>
+              <h2>持续整理的方向</h2>
+              <p class="learning-card-intro">
+                内容会根据学习和实践过程逐步补充。
+              </p>
+            </div>
+          </div>
+          <div class="learning-columns">
+            <ul class="learning-list">
+              <li>把长文档拆成容易复习的知识卡片。</li>
+              <li>为常见技术问题补充最小可运行示例。</li>
+              <li>整理英语和技术术语之间的对应关系。</li>
+            </ul>
+            <ul class="learning-list">
+              <li>记录项目从需求到部署的完整过程。</li>
+              <li>补充适合初学者的练习和检查清单。</li>
+              <li>持续修正过时、含糊或难以验证的内容。</li>
+            </ul>
+          </div>
+          <p class="learning-note">
+            如果一个页面看完后能让你知道下一步该做什么，它就完成了最重要的任务。
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
 </html>

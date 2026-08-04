@@ -1,24 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>英语学习</title>
-  <link rel="stylesheet" href="../static/styles.css">
-  <script defer src="/static/alpine.js"></script>
-  <script defer src="/libs/alpine.min.js"></script>
-</head>
-<body class="content-page">
-  <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
-  <main class="learning-page">
-    <section class="learning-hero"><div class="learning-hero-copy"><p class="learning-kicker">English for technology · 02</p><h1>英语学习</h1><p class="learning-lead">从看懂技术文档开始，逐步建立词汇、语法、阅读、听力和表达能力，让英语成为获取知识的工具。</p></div><div class="learning-hero-aside"><span>30 MIN / DAY</span><strong>每天一点真实输入</strong><small>读一段、听一遍、写几句，比偶尔突击更容易坚持。</small></div></section>
-    <nav class="learning-toolbar" aria-label="英语学习方向"><a href="study.html">学习总览</a><a href="dev.html">编程学习</a><a href="blog.html">学习笔记</a></nav>
-    <section class="learning-grid">
-      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">01</span><div><h2>五项能力</h2><p class="learning-card-intro">先服务于真实使用，再逐步提高准确度和流利度。</p></div></div><div class="learning-link-grid"><div class="learning-link-card"><strong>词汇</strong><small>高频词、技术术语和固定搭配。</small></div><div class="learning-link-card"><strong>语法</strong><small>句子结构、从句、时态和被动语态。</small></div><div class="learning-link-card"><strong>阅读</strong><small>抓主旨、限制条件和示例中的细节。</small></div><div class="learning-link-card"><strong>听力</strong><small>课程、演讲和开发者访谈的精听。</small></div><div class="learning-link-card"><strong>表达</strong><small>用简单英文描述代码和问题。</small></div><div class="learning-link-card"><strong>技术写作</strong><small>提交说明、Issue 和项目文档。</small></div></div></article>
-      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">02</span><div><h2>每日练习</h2><p class="learning-card-intro">固定一个短流程，降低开始成本。</p></div></div><ul class="learning-checklist"><li>复习 10 个高频词</li><li>阅读一段技术资料</li><li>听读同一段内容</li><li>写 3 句学习总结</li></ul></article>
-      <article class="learning-card"><div class="learning-card-heading"><span class="learning-card-number">03</span><div><h2>技术阅读</h2><p class="learning-card-intro">不要被长句和生词拖住。</p></div></div><ul class="learning-list"><li>先看标题、示例和小节结构。</li><li>只查询影响主旨的关键词。</li><li>找出主语、动作和限制条件。</li><li>用自己的话复述，再回看原文。</li></ul></article>
-      <article class="learning-card learning-card-wide"><div class="learning-card-heading"><span class="learning-card-number">04</span><div><h2>技术英语词组</h2><p class="learning-card-intro">词组比孤立单词更接近实际工作。</p></div></div><div class="learning-columns"><ul class="learning-list"><li><code>handle an error</code>：处理错误</li><li><code>make a request</code>：发起请求</li><li><code>parse the response</code>：解析响应</li></ul><ul class="learning-list"><li><code>keep track of</code>：跟踪、记录</li><li><code>be responsible for</code>：负责</li><li><code>figure out why</code>：弄清楚原因</li></ul></div><p class="learning-note">阅读技术资料时不必追求逐字翻译，先理解功能和关系，再回头补充表达细节。</p></article>
-    </section>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>英语学习</title>
+    <link rel="stylesheet" href="../static/styles.css" />
+    <script defer src="/static/alpine.js"></script>
+    <script defer src="/libs/alpine.min.js"></script>
+  </head>
+  <body class="content-page">
+    <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
+    <main class="learning-page">
+      <section class="learning-hero">
+        <div class="learning-hero-copy">
+          <p class="learning-kicker">English for technology · 02</p>
+          <h1>英语学习</h1>
+          <p class="learning-lead">
+            从看懂技术文档开始，逐步建立词汇、语法、阅读、听力和表达能力，让英语成为获取知识的工具。
+          </p>
+        </div>
+        <div class="learning-hero-aside">
+          <span>30 MIN / DAY</span><strong>每天一点真实输入</strong
+          ><small>读一段、听一遍、写几句，比偶尔突击更容易坚持。</small>
+        </div>
+      </section>
+      <nav class="learning-toolbar" aria-label="英语学习方向">
+        <a href="study.html">学习总览</a><a href="dev.html">编程学习</a
+        ><a href="blog.html">学习笔记</a>
+      </nav>
+      <section class="learning-grid">
+        <article class="learning-card learning-card-wide">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">01</span>
+            <div>
+              <h2>五项能力</h2>
+              <p class="learning-card-intro">
+                先服务于真实使用，再逐步提高准确度和流利度。
+              </p>
+            </div>
+          </div>
+          <div class="learning-link-grid">
+            <div class="learning-link-card">
+              <strong>词汇</strong><small>高频词、技术术语和固定搭配。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>语法</strong
+              ><small>句子结构、从句、时态和被动语态。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>阅读</strong
+              ><small>抓主旨、限制条件和示例中的细节。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>听力</strong><small>课程、演讲和开发者访谈的精听。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>表达</strong><small>用简单英文描述代码和问题。</small>
+            </div>
+            <div class="learning-link-card">
+              <strong>技术写作</strong
+              ><small>提交说明、Issue 和项目文档。</small>
+            </div>
+          </div>
+        </article>
+        <article class="learning-card">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">02</span>
+            <div>
+              <h2>每日练习</h2>
+              <p class="learning-card-intro">固定一个短流程，降低开始成本。</p>
+            </div>
+          </div>
+          <ul class="learning-checklist">
+            <li>复习 10 个高频词</li>
+            <li>阅读一段技术资料</li>
+            <li>听读同一段内容</li>
+            <li>写 3 句学习总结</li>
+          </ul>
+        </article>
+        <article class="learning-card">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">03</span>
+            <div>
+              <h2>技术阅读</h2>
+              <p class="learning-card-intro">不要被长句和生词拖住。</p>
+            </div>
+          </div>
+          <ul class="learning-list">
+            <li>先看标题、示例和小节结构。</li>
+            <li>只查询影响主旨的关键词。</li>
+            <li>找出主语、动作和限制条件。</li>
+            <li>用自己的话复述，再回看原文。</li>
+          </ul>
+        </article>
+        <article class="learning-card learning-card-wide">
+          <div class="learning-card-heading">
+            <span class="learning-card-number">04</span>
+            <div>
+              <h2>技术英语词组</h2>
+              <p class="learning-card-intro">词组比孤立单词更接近实际工作。</p>
+            </div>
+          </div>
+          <div class="learning-columns">
+            <ul class="learning-list">
+              <li><code>handle an error</code>：处理错误</li>
+              <li><code>make a request</code>：发起请求</li>
+              <li><code>parse the response</code>：解析响应</li>
+            </ul>
+            <ul class="learning-list">
+              <li><code>keep track of</code>：跟踪、记录</li>
+              <li><code>be responsible for</code>：负责</li>
+              <li><code>figure out why</code>：弄清楚原因</li>
+            </ul>
+          </div>
+          <p class="learning-note">
+            阅读技术资料时不必追求逐字翻译，先理解功能和关系，再回头补充表达细节。
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
 </html>

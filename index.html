@@ -1,118 +1,241 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>牛马程序员 - 带你成为真正的牛马</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css" />
     <script defer src="/static/alpine.js"></script>
     <script defer src="/libs/alpine.min.js"></script>
-</head>
-<body class="home-page">
+  </head>
+  <body class="home-page">
     <site-header class="site-header" x-data="siteHeader" x-cloak></site-header>
 
-    <div id="home-app" x-data="homePage" x-cloak @keydown.window="focusShortcut($event)">
-        <main class="home-main">
-            <div class="home-layout">
-                <aside class="side-rail" aria-label="网站目录">
-                    <div class="side-rail-inner">
-                        <div class="side-rail-label"><span>⌘</span>学习目录</div>
-                        <template x-for="group in groups" :key="group.name">
-                            <div class="side-group">
-                                <h2><span aria-hidden="true" x-text="group.emoji"></span><span x-text="group.name"></span></h2>
-                                <template x-for="(item, index) in group.items" :key="item.title + index">
-                                    <a :href="item.href" x-text="item.title"></a>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-                </aside>
-
-                <section class="home-content">
-                    <section class="hero-section">
-                        <div class="hero-copy">
-                            <p class="hero-kicker">LEARNING LAB <span>·</span> 持续更新中</p>
-                            <h1 class="hero-title">把今天学会的，<br>变成明天会用的。</h1>
-                            <p class="hero-desc">从英语、编程到计算机技术，按自己的节奏建立一套真正能用的知识体系。</p>
-                            <div class="hero-actions">
-                                <a class="hero-primary" href="/page/study.html">开始学习 <span aria-hidden="true">→</span></a>
-                                <a class="hero-secondary" href="/page/english.html">先从英语开始</a>
-                            </div>
-                        </div>
-                        <div class="hero-note"><span>✦</span><strong>今日建议</strong><small>读一段英文文档，写一个小练习。</small></div>
-                    </section>
-
-                    <form class="content-search" role="search" @submit.prevent="searchWeb">
-                        <span class="search-icon" aria-hidden="true">⌕</span>
-                        <label class="sr-only" for="site-search">筛选本站导航</label>
-                        <input id="site-search" x-model="query" type="search" placeholder="筛选本站导航（按 / 聚焦）" autocomplete="off">
-                        <button type="submit">百度搜索</button>
-                    </form>
-
-                    <section class="stats-grid" aria-label="站点统计">
-                        <article class="stat-card"><span class="stat-icon">◎</span><div><strong>8</strong><small>学习主题</small></div></article>
-                        <article class="stat-card"><span class="stat-icon">⌘</span><div><strong>5</strong><small>实用工具</small></div></article>
-                        <article class="stat-card"><span class="stat-icon">↗</span><div><strong>4</strong><small>实践方向</small></div></article>
-                        <article class="stat-card"><span class="stat-icon">✎</span><div><strong>1</strong><small>持续记录</small></div></article>
-                    </section>
-
-                    <section class="home-feature-grid" aria-label="每日内容">
-                        <article class="home-feature-card daily-english-card">
-                            <div class="feature-card-header">
-                                <div><p class="feature-kicker">DAILY ENGLISH</p><h2 x-text="dailyEnglish.title"></h2></div>
-                                <time x-text="dailyEnglish.date"></time>
-                            </div>
-                            <p class="daily-english-text" x-text="dailyEnglish.text"></p>
-                            <p class="daily-english-translation"><strong>译</strong><span x-text="dailyEnglish.translation"></span></p>
-                            <div class="daily-english-words" aria-label="今日词汇">
-                                <template x-for="word in dailyEnglish.words" :key="word.term"><span><strong x-text="word.term"></strong><small x-text="word.meaning"></small></span></template>
-                            </div>
-                            <a class="feature-card-link" href="/page/english.html">进入英语学习 <span aria-hidden="true">→</span></a>
-                        </article>
-
-                        <article class="home-feature-card github-trends-card">
-                            <div class="feature-card-header"><div><p class="feature-kicker">GITHUB TRENDS</p><h2>近 7 天热门仓库</h2></div><a class="feature-card-source" href="https://github.com/trending" target="_blank" rel="noopener">GitHub ↗</a></div>
-                            <p x-show="trendsLoading" class="feature-card-loading">正在加载 GitHub 趋势…</p>
-                            <p x-show="trendsError" class="feature-card-loading" x-text="trendsError"></p>
-                            <div class="github-repo-list" x-show="!trendsLoading && !trendsError">
-                                <template x-for="repo in trendingRepos" :key="repo.name">
-                                    <a class="github-repo" :href="repo.url" target="_blank" rel="noopener">
-                                        <span class="github-repo-main"><strong x-text="repo.name"></strong><small x-text="repo.description"></small></span>
-                                        <span class="github-repo-meta"><small x-text="repo.language"></small><b>★ <span x-text="formatStars(repo.stars)"></span></b></span>
-                                    </a>
-                                </template>
-                            </div>
-                            <a class="feature-card-link" href="https://github.com/trending" target="_blank" rel="noopener">查看 GitHub Trending <span aria-hidden="true">→</span></a>
-                        </article>
-                    </section>
-
-                    <section class="nav-grid" aria-label="网站导航" aria-live="polite">
-                        <template x-for="item in (isLoading ? 6 : 0)" :key="item">
-                            <div class="nav-group nav-skeleton" aria-hidden="true"></div>
-                        </template>
-
-                        <template x-for="group in filteredGroups" :key="group.name">
-                            <article class="nav-group" x-data="navGroup(group)">
-                                <div class="nav-group-header">
-                                    <span class="nav-group-emoji" aria-hidden="true" x-text="group.emoji"></span>
-                                    <h2 class="nav-group-title" x-text="group.name"></h2>
-                                </div>
-                                <p class="nav-group-desc" x-show="group.desc" x-text="group.desc"></p>
-                                <div class="nav-group-links">
-                                    <template x-for="(item, index) in visibleItems" :key="item.href + index">
-                                        <a :href="item.href"><span aria-hidden="true">•</span><span x-text="item.title"></span></a>
-                                    </template>
-                                </div>
-                                <button class="nav-group-toggle" type="button" x-show="hasMore" @click="expanded = !expanded" x-text="expanded ? '收起入口' : '展开全部入口'"></button>
-                            </article>
-                        </template>
-
-                        <p x-show="!isLoading && !errorMessage && !filteredGroups.length" class="nav-empty">没有找到匹配的导航入口。</p>
-                        <p x-show="errorMessage" class="nav-error">导航数据加载失败，请刷新重试。<span x-text="errorMessage"></span></p>
-                    </section>
-                </section>
+    <div
+      id="home-app"
+      x-data="homePage"
+      x-cloak
+      @keydown.window="focusShortcut($event)"
+    >
+      <main class="home-main">
+        <div class="home-layout">
+          <aside class="side-rail" aria-label="网站目录">
+            <div class="side-rail-inner">
+              <div class="side-rail-label"><span>⌘</span>学习目录</div>
+              <template x-for="group in groups" :key="group.name">
+                <div class="side-group">
+                  <h2>
+                    <span aria-hidden="true" x-text="group.emoji"></span
+                    ><span x-text="group.name"></span>
+                  </h2>
+                  <template
+                    x-for="(item, index) in group.items"
+                    :key="item.title + index"
+                  >
+                    <a :href="item.href" x-text="item.title"></a>
+                  </template>
+                </div>
+              </template>
             </div>
-        </main>
+          </aside>
+
+          <section class="home-content">
+            <section class="hero-section">
+              <div class="hero-copy">
+                <p class="hero-kicker">
+                  LEARNING LAB <span>·</span> 持续更新中
+                </p>
+                <h1 class="hero-title">把今天学会的，<br />变成明天会用的。</h1>
+                <p class="hero-desc">
+                  从英语、编程到计算机技术，按自己的节奏建立一套真正能用的知识体系。
+                </p>
+                <div class="hero-actions">
+                  <a class="hero-primary" href="/page/study.html"
+                    >开始学习 <span aria-hidden="true">→</span></a
+                  >
+                  <a class="hero-secondary" href="/page/english.html"
+                    >先从英语开始</a
+                  >
+                </div>
+              </div>
+              <div class="hero-note">
+                <span>✦</span><strong>今日建议</strong
+                ><small>读一段英文文档，写一个小练习。</small>
+              </div>
+            </section>
+
+            <form
+              class="content-search"
+              role="search"
+              @submit.prevent="searchWeb"
+            >
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <label class="sr-only" for="site-search">筛选本站导航</label>
+              <input
+                id="site-search"
+                x-model="query"
+                type="search"
+                placeholder="筛选本站导航（按 / 聚焦）"
+                autocomplete="off"
+              />
+              <button type="submit">百度搜索</button>
+            </form>
+
+            <section class="stats-grid" aria-label="站点统计">
+              <article class="stat-card">
+                <span class="stat-icon">◎</span>
+                <div><strong>8</strong><small>学习主题</small></div>
+              </article>
+              <article class="stat-card">
+                <span class="stat-icon">⌘</span>
+                <div><strong>5</strong><small>实用工具</small></div>
+              </article>
+              <article class="stat-card">
+                <span class="stat-icon">↗</span>
+                <div><strong>4</strong><small>实践方向</small></div>
+              </article>
+              <article class="stat-card">
+                <span class="stat-icon">✎</span>
+                <div><strong>1</strong><small>持续记录</small></div>
+              </article>
+            </section>
+
+            <section class="home-feature-grid" aria-label="每日内容">
+              <article class="home-feature-card daily-english-card">
+                <div class="feature-card-header">
+                  <div>
+                    <p class="feature-kicker">DAILY ENGLISH</p>
+                    <h2 x-text="dailyEnglish.title"></h2>
+                  </div>
+                  <time x-text="dailyEnglish.date"></time>
+                </div>
+                <p class="daily-english-text" x-text="dailyEnglish.text"></p>
+                <p class="daily-english-translation">
+                  <strong>译</strong
+                  ><span x-text="dailyEnglish.translation"></span>
+                </p>
+                <div class="daily-english-words" aria-label="今日词汇">
+                  <template x-for="word in dailyEnglish.words" :key="word.term"
+                    ><span
+                      ><strong x-text="word.term"></strong
+                      ><small x-text="word.meaning"></small></span
+                  ></template>
+                </div>
+                <a class="feature-card-link" href="/page/english.html"
+                  >进入英语学习 <span aria-hidden="true">→</span></a
+                >
+              </article>
+
+              <article class="home-feature-card github-trends-card">
+                <div class="feature-card-header">
+                  <div>
+                    <p class="feature-kicker">GITHUB TRENDS</p>
+                    <h2>近 7 天热门仓库</h2>
+                  </div>
+                  <a
+                    class="feature-card-source"
+                    href="https://github.com/trending"
+                    target="_blank"
+                    rel="noopener"
+                    >GitHub ↗</a
+                  >
+                </div>
+                <p x-show="trendsLoading" class="feature-card-loading">
+                  正在加载 GitHub 趋势…
+                </p>
+                <p
+                  x-show="trendsError"
+                  class="feature-card-loading"
+                  x-text="trendsError"
+                ></p>
+                <div
+                  class="github-repo-list"
+                  x-show="!trendsLoading && !trendsError"
+                >
+                  <template x-for="repo in trendingRepos" :key="repo.name">
+                    <a
+                      class="github-repo"
+                      :href="repo.url"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      <span class="github-repo-main"
+                        ><strong x-text="repo.name"></strong
+                        ><small x-text="repo.description"></small
+                      ></span>
+                      <span class="github-repo-meta"
+                        ><small x-text="repo.language"></small
+                        ><b>★ <span x-text="formatStars(repo.stars)"></span></b
+                      ></span>
+                    </a>
+                  </template>
+                </div>
+                <a
+                  class="feature-card-link"
+                  href="https://github.com/trending"
+                  target="_blank"
+                  rel="noopener"
+                  >查看 GitHub Trending <span aria-hidden="true">→</span></a
+                >
+              </article>
+            </section>
+
+            <section class="nav-grid" aria-label="网站导航" aria-live="polite">
+              <template x-for="item in (isLoading ? 6 : 0)" :key="item">
+                <div class="nav-group nav-skeleton" aria-hidden="true"></div>
+              </template>
+
+              <template x-for="group in filteredGroups" :key="group.name">
+                <article class="nav-group" x-data="navGroup(group)">
+                  <div class="nav-group-header">
+                    <span
+                      class="nav-group-emoji"
+                      aria-hidden="true"
+                      x-text="group.emoji"
+                    ></span>
+                    <h2 class="nav-group-title" x-text="group.name"></h2>
+                  </div>
+                  <p
+                    class="nav-group-desc"
+                    x-show="group.desc"
+                    x-text="group.desc"
+                  ></p>
+                  <div class="nav-group-links">
+                    <template
+                      x-for="(item, index) in visibleItems"
+                      :key="item.href + index"
+                    >
+                      <a :href="item.href"
+                        ><span aria-hidden="true">•</span
+                        ><span x-text="item.title"></span
+                      ></a>
+                    </template>
+                  </div>
+                  <button
+                    class="nav-group-toggle"
+                    type="button"
+                    x-show="hasMore"
+                    @click="expanded = !expanded"
+                    x-text="expanded ? '收起入口' : '展开全部入口'"
+                  ></button>
+                </article>
+              </template>
+
+              <p
+                x-show="!isLoading && !errorMessage && !filteredGroups.length"
+                class="nav-empty"
+              >
+                没有找到匹配的导航入口。
+              </p>
+              <p x-show="errorMessage" class="nav-error">
+                导航数据加载失败，请刷新重试。<span
+                  x-text="errorMessage"
+                ></span>
+              </p>
+            </section>
+          </section>
+        </div>
+      </main>
     </div>
-</body>
+  </body>
 </html>
