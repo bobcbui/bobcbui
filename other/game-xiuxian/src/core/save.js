@@ -1,14 +1,12 @@
 /* ============================================================================
- * 存档：读档、保存（手动 + 30s 自动）、导入、导出、重置与 v1 兼容
- * localStorage key：xiuxian_save；格式 { P, wave, version: 1 }
+ * 存档：读档、保存（手动 + 30s 自动）、导入、导出、重置
+ * localStorage key：xiuxian_save；v2 = 总等级/关卡进度（局内状态不入存档）
+ * v1 旧存档读取时迁移 achievements/kills 后按 v2 默认初始化。
  * ========================================================================== */
 
 import { bus } from '@/core/events.js';
-import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from '@/core/state.js';
-import { SKILL_DEFS } from '@/data/index.js';
-import { autoEquipBestEquipment } from '@/core/equipment.js';
+import { P, totalXpToNext, recalcStats } from '@/core/state.js';
 import { getEl } from '@/core/dom.js';
-import { ensureProgressionState } from '@/core/progression.js';
 
 const SAVE_KEY = 'xiuxian_save';
 const SAVE_THROTTLE_MS = 1500;
@@ -18,17 +16,17 @@ let lastSaveAt = 0;
 
 function buildSaveData() {
   return {
-    P: { hp: P.hp, maxHp: P.maxHp, atk: P.atk, def: P.def, speed: P.speed,
-         realm: P.realm, stage: P.stage, level: P.level, xp: P.xp, xpToNext: P.xpToNext,
-         gold: P.gold, kills: P.kills, attrPoints: P.attrPoints, skillPoints: P.skillPoints,
-         attrs: P.attrs, skillLevels: P.skillLevels, skills: P.skills, hotbar: P.hotbar,
-         equipment: P.equipment, inventory: P.inventory, totalPlayTime: P.totalPlayTime,
-         totalGoldEarned: P.totalGoldEarned, legendaryFound: P.legendaryFound, maxWave: P.maxWave,
-         achievements: P.achievements, materials: P.materials, bestiary: P.bestiary,
-         quests: P.quests, talents: P.talents, talentPoints: P.talentPoints,
-         skillEvolutions: P.skillEvolutions, dungeon: P.dungeon },
-    wave: waveNum,
-    version: 1
+    version: 2,
+    totalLevel: P.totalLevel,
+    totalXp: P.totalXp,
+    totalXpToNext: P.totalXpToNext,
+    maxClearedStage: P.maxClearedStage,
+    totalKills: P.totalKills,
+    equipment: P.equipment,
+    inventory: P.inventory,
+    selectedStage: P.selectedStage,
+    totalPlayTime: P.totalPlayTime,
+    achievements: P.achievements
   };
 }
 
@@ -94,11 +92,10 @@ export function importSaveData() {
     reader.onload = () => {
       try {
         const data = JSON.parse(reader.result);
-        if (data.version !== 1) { bus.emit('status', '存档版本不兼容', 2); return; }
+        if (data.version !== 2) { bus.emit('status', '存档版本不兼容', 2); return; }
         applySaveData(data);
         bus.emit('status', '📥 存档已导入', 2);
         bus.emit('hud-refresh');
-        bus.emit('hotbar-refresh');
       } catch (e) { bus.emit('status', '导入失败: 文件格式错误', 2); }
     };
     reader.readAsText(file);
@@ -122,25 +119,29 @@ export function manualSave() {
   bus.emit('status', '💾 已保存', 1);
 }
 
-/** 将旧存档字段补全到当前默认结构；缺失字段/非法数值一律回退，不让坏存档阻止启动 */
+/** 应用存档；缺失字段/非法数值一律回退默认，不让坏存档阻止启动 */
 function applySaveData(data) {
-  Object.assign(P, data.P);
-  if (!P.attrs) P.attrs = { str: 0, body: 0, spirit: 0, agility: 0 };
-  if (P.attrPoints == null) P.attrPoints = 0;
-  if (P.skillPoints == null) P.skillPoints = 0;
-  if (!P.skillLevels) P.skillLevels = {};
-  if (P.totalGoldEarned == null) P.totalGoldEarned = 0;
-  if (P.legendaryFound == null) P.legendaryFound = false;
-  if (P.maxWave == null) P.maxWave = 0;
-  if (!P.achievements) P.achievements = {};
-  ensureProgressionState();
-  for (const sk of SKILL_DEFS) {
-    if (!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
-  }
-  refreshSkills();
-  initHotbar();
-  autoEquipBestEquipment(P);
-  setWaveNum(data.wave || 0);
+  P.totalLevel = Math.max(1, data.totalLevel || 1);
+  P.totalXp = Math.max(0, data.totalXp || 0);
+  P.totalXpToNext = data.totalXpToNext || totalXpToNext(P.totalLevel);
+  P.maxClearedStage = Math.max(0, data.maxClearedStage || 0);
+  P.totalKills = Math.max(0, data.totalKills || 0);
+  P.totalPlayTime = Math.max(0, data.totalPlayTime || 0);
+  P.achievements = (data.achievements && typeof data.achievements === 'object') ? data.achievements : {};
+  P.equipment = (data.equipment && typeof data.equipment === 'object') ? data.equipment : {};
+  P.inventory = Array.isArray(data.inventory) ? data.inventory.filter(i => i && i.stats) : [];
+  P.selectedStage = Math.max(1, Math.min(data.selectedStage || 1, (P.maxClearedStage || 0) + 1));
+  recalcStats();
+}
+
+/** v1 旧存档迁移：保留成就与击杀数，其余按 v2 默认初始化 */
+function applyLegacySaveData(data) {
+  P.achievements = (data.P?.achievements && typeof data.P.achievements === 'object') ? data.P.achievements : {};
+  P.totalKills = Math.max(0, data.P?.kills || 0);
+  P.totalLevel = 1;
+  P.totalXp = 0;
+  P.totalXpToNext = totalXpToNext(1);
+  P.maxClearedStage = 0;
   recalcStats();
 }
 
@@ -149,8 +150,9 @@ export function loadGame() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    if (data.version !== 1) return false;
-    applySaveData(data);
+    if (data.version === 2) applySaveData(data);
+    else if (data.version === 1) applyLegacySaveData(data);
+    else return false;
     return true;
   } catch (e) { return false; }
 }

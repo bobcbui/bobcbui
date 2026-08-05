@@ -1,128 +1,80 @@
-/* 装备：程序化生成（部位/品质/属性/名称池来自 data.json）、穿戴与背包管理 */
+/* ============================================================================
+ * 装备系统（轻量版）：关卡结算掉落、永久穿戴、属性加成
+ * 6 部位 / 6 品质；品质概率随关卡等级提升；无词条/强化/套装。
+ * ========================================================================== */
 
-import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS, EQ_PREFIXES, EQ_NAME_POOLS } from '@/data/index.js';
+import { P, recalcStats } from './state.js';
+import { EQ_TYPES, EQ_NAMES, RARITY_LABEL, RARITY_MULT, EQ_BASES, EQ_PREFIXES, EQ_NAME_POOLS } from '../data/index.js';
+import { bus } from './events.js';
 
-const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','mythic'];
-const SET_IDS = ['sword', 'thunder', 'body'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
 
-export function genEquipment(monsterLv, forceRarity=null){
-  const rarityRoll = Math.random();
-  let rarity;
-  if(forceRarity) rarity = forceRarity;
-  else if(monsterLv>=15 && rarityRoll<0.02) rarity = 'mythic';
-  else if(monsterLv>=10 && rarityRoll<0.06) rarity = 'legendary';
-  else if(monsterLv>=7 && rarityRoll<0.15) rarity = 'epic';
-  else if(monsterLv>=4 && rarityRoll<0.35) rarity = 'rare';
-  else if(monsterLv>=2 && rarityRoll<0.65) rarity = 'uncommon';
-  else rarity = 'common';
+/** 按关卡等级生成一件装备（品质概率随关卡提升） */
+export function genEquipment(stageLevel) {
+  const roll = Math.random();
+  let rarity = 'common';
+  if (stageLevel >= 9 && roll < 0.03) rarity = 'mythic';
+  else if (stageLevel >= 6 && roll < 0.08) rarity = 'legendary';
+  else if (stageLevel >= 4 && roll < 0.2) rarity = 'epic';
+  else if (stageLevel >= 2 && roll < 0.4) rarity = 'rare';
+  else if (roll < 0.65) rarity = 'uncommon';
 
-  const type = EQ_TYPES[Math.floor(Math.random()*EQ_TYPES.length)];
+  const type = EQ_TYPES[Math.floor(Math.random() * EQ_TYPES.length)];
   const base = EQ_BASES[type];
   const mult = RARITY_MULT[rarity];
   const stats = {};
-  for(const [key,range] of Object.entries(base)){
-    if(range[1]<=0) continue;
-    const val = Math.max(1, Math.round((range[0] + Math.random()*(range[1]-range[0])) * mult * (0.8 + Math.random()*0.4)));
+  for (const [key, range] of Object.entries(base)) {
+    if (range[1] <= 0) continue;
+    const val = Math.max(1, Math.round((range[0] + Math.random() * (range[1] - range[0])) * mult));
     stats[key] = val;
   }
   const prefix = EQ_PREFIXES[rarity] || '';
   const nameList = EQ_NAME_POOLS[type] || [];
-  const idx = Math.min(RARITY_ORDER.indexOf(rarity), nameList.length-1);
-  const itemName = prefix + (nameList[idx] || '无名');
-  const setId = RARITY_ORDER.indexOf(rarity) >= 2 ? SET_IDS[Math.floor(Math.random() * SET_IDS.length)] : null;
-  return { id:Date.now()+'_'+Math.random().toString(36).slice(2,6), type, name:itemName, rarity, stats, enhance:0, affixes:[], setId };
+  const idx = Math.min(RARITY_ORDER.indexOf(rarity), nameList.length - 1);
+  const name = prefix + (nameList[idx] || '无名');
+  return { id: Date.now() + '_' + Math.random().toString(36).slice(2, 6), type, name, rarity, stats };
 }
 
-export function getEffectiveEquipmentStats(item) {
-  const result = {};
-  if (!item?.stats) return result;
-  const enhance = Math.max(0, item.enhance || 0);
-  const mult = 1 + enhance * 0.08;
-  for (const [key, value] of Object.entries(item.stats)) {
-    result[key] = Math.max(1, Math.round(value * mult));
-  }
-  return result;
+/** 装备属性展示文本（"攻+5 防+2"） */
+export function formatEquipStats(eq) {
+  if (!eq?.stats) return '';
+  const lb = { atk: '攻', def: '防', hp: '命', speed: '速' };
+  return Object.entries(eq.stats).map(([k, v]) => (lb[k] || k) + '+' + v).join(' ');
 }
 
-export function getEquipmentScore(item){
-  if(!item || !item.type || !item.stats) return Number.NEGATIVE_INFINITY;
-  const base = EQ_BASES[item.type];
-  if(!base) return Number.NEGATIVE_INFINITY;
-  let score = 0;
-  for(const [key, range] of Object.entries(base)){
-    if(range[1] <= 0) continue;
-    const effective = getEffectiveEquipmentStats(item);
-    score += (effective[key] || 0) / Math.max(1, range[1]);
-  }
-  const rarityIdx = Math.max(0, RARITY_ORDER.indexOf(item.rarity));
-  return score + rarityIdx * 0.01;
+/** 装备/卸下 */
+export function equipItem(itemId) {
+  const item = P.inventory.find(i => i && i.id === itemId);
+  if (!item || !EQ_TYPES.includes(item.type)) return false;
+  const current = P.equipment[item.type];
+  P.equipment[item.type] = item;
+  P.inventory = P.inventory.filter(i => i !== item);
+  if (current) P.inventory.push(current);
+  recalcStats();
+  bus.emit('hud-refresh');
+  bus.emit('save');
+  bus.emit('status', '装备 ' + item.name, 1.2);
+  return true;
 }
 
-export function isBetterEquipment(candidate, current){
-  if(!candidate) return false;
-  if(!current) return true;
-  if(candidate.type !== current.type) return false;
-  const candidateScore = getEquipmentScore(candidate);
-  const currentScore = getEquipmentScore(current);
-  if(candidateScore !== currentScore) return candidateScore > currentScore;
-  return String(candidate.id || '') > String(current.id || '');
+export function unequipItem(slot) {
+  const item = P.equipment[slot];
+  if (!item) return false;
+  if (P.inventory.length >= 30) { bus.emit('status', '背包已满', 1.2); return false; }
+  delete P.equipment[slot];
+  P.inventory.push(item);
+  recalcStats();
+  bus.emit('hud-refresh');
+  bus.emit('save');
+  bus.emit('status', '卸下 ' + item.name, 1.2);
+  return true;
 }
 
-export function autoEquipBestEquipment(playerState){
-  if(!playerState) return false;
-  if(!playerState.equipment) playerState.equipment = {};
-  if(!Array.isArray(playerState.inventory)) playerState.inventory = [];
-
-  const nextEquipment = { ...playerState.equipment };
-  const nextInventory = [];
-
-  for(const item of playerState.inventory){
-    if(!item || !EQ_TYPES.includes(item.type)){
-      nextInventory.push(item);
-      continue;
-    }
-    const current = nextEquipment[item.type];
-    if(isBetterEquipment(item, current)){
-      if(current) nextInventory.push(current);
-      nextEquipment[item.type] = item;
-    } else {
-      nextInventory.push(item);
-    }
-  }
-
-  let changed = false;
-  for(const slot of EQ_TYPES){
-    if((playerState.equipment?.[slot]?.id || null) !== (nextEquipment[slot]?.id || null)){
-      changed = true;
-      break;
-    }
-  }
-  if(!changed && playerState.inventory.length !== nextInventory.length) changed = true;
-
-  playerState.equipment = nextEquipment;
-  playerState.inventory = nextInventory;
-  return changed;
+/** 装备数据渲染用辅助 */
+export function getEquipLabel(slot) {
+  return EQ_NAMES[slot] || slot;
 }
 
-export function acquireEquipment(playerState, item){
-  if(!item || !EQ_TYPES.includes(item.type)) return { stored:false, equipped:false, changed:false };
-  if(!playerState.equipment) playerState.equipment = {};
-  if(!Array.isArray(playerState.inventory)) playerState.inventory = [];
-
-  const roomInBag = playerState.inventory.length < 30;
-  if(!roomInBag){
-    if(!playerState.equipment[item.type]){
-      playerState.equipment[item.type] = item;
-      return { stored:true, equipped:true, changed:true };
-    }
-    return { stored:false, equipped:false, changed:false };
-  }
-
-  playerState.inventory.push(item);
-  const changed = autoEquipBestEquipment(playerState);
-  return {
-    stored:true,
-    equipped: playerState.equipment?.[item.type]?.id === item.id,
-    changed
-  };
+export function getRarityLabel(rarity) {
+  return RARITY_LABEL[rarity] || rarity;
 }

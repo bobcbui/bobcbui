@@ -1,542 +1,208 @@
 /* ============================================================================
- * UI：HUD、热栏、角色/背包/技能/成就/商店/玩法面板
+ * UI：主页（底部 4 页菜单：关卡/装备/技能/活动）、局内 HUD、抽卡面板、结算面板
  * 所有可点击元素通过 data-action + data-arg 由全局事件委托触发（见 actions.js）
  * ========================================================================== */
 
-import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '@/core/state.js';
-import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, MATERIALS, RECIPES, SKILL_EVOLUTIONS, TALENTS } from '@/data/index.js';
-import { genEquipment, acquireEquipment, getEffectiveEquipmentStats } from '@/core/equipment.js';
+import { P, gameStarted, waveNum, hudCache } from '@/core/state.js';
+import { SKILL_CARDS, UPGRADE_CARDS, PROGRESSION, ACHIEVEMENTS, EQ_TYPES, EQ_NAMES, RARITY_LABEL } from '@/data/index.js';
 import { bus } from '@/core/events.js';
-import { getScene, getSkillCooldowns } from '@/core/runtime.js';
-import {
-  claimBestiaryReward,
-  claimQuest,
-  craftRecipe,
-  enhanceEquipped,
-  ensureProgressionState,
-  evolveSkill,
-  formatAffix,
-  formatCost,
-  getSetName,
-  learnTalent,
-  reforgeEquipped,
-  resetQuests,
-  startDungeon
-} from '@/core/progression.js';
+import { getEl } from '@/core/dom.js';
+import { formatEquipStats } from '@/core/equipment.js';
 
-/* ---- 热栏 ---- */
-export function hotbarRender(){
-  const cont = document.getElementById('hotbar');
-  if(!cont) return;
-  const sig = JSON.stringify(P.hotbar.map(h => h.id + '_' + (P.skillLevels?.[h.id] || 1)));
-  if(sig === hotGen) return;
-  setHotGen(sig);
-  cont.innerHTML = '';
-  P.hotbar.forEach((item,i)=>{
-    const el = document.createElement('div');
-    el.className = 'slot';
-    let name='', meta='';
-    if(item.kind==='skill'){
-      const def = SKILL_DEFS.find(s=>s.id===item.id);
-      if(def){
-        name = def.short||def.name.charAt(0);
-        meta = 'Lv.'+(P.skillLevels?.[def.id]||1);
-      }
+/* ================= 主页（局外） ================= */
+
+export function renderMenu(){
+  // 顶部总等级栏
+  const set = (id, text) => { const el = getEl(id); if (el) el.textContent = text; };
+  set('menuTotalLevel', P.totalLevel);
+  const xpFillEl = getEl('menuTotalXpFill');
+  if (xpFillEl) xpFillEl.style.width = Math.min(100, P.totalXp / P.totalXpToNext * 100) + '%';
+  set('menuTotalXpText', P.totalXp + '/' + P.totalXpToNext);
+  set('menuAtkBonus', (P.totalLevel - 1) * PROGRESSION.totalAtkPerLevel);
+  set('menuHpBonus', (P.totalLevel - 1) * PROGRESSION.totalHpPerLevel);
+  set('menuMaxStage', P.maxClearedStage);
+  renderMenuPages();
+}
+
+/* ---- 主页底部菜单：4 页切换 ---- */
+export function menuTab(tabId){
+  const tabs = ['stage', 'equip', 'skill', 'activity'];
+  for (const id of tabs) {
+    const tab = getEl('menu-tab-' + id);
+    if (tab) tab.classList.toggle('active', id === tabId);
+    const page = getEl('page-' + id);
+    if (page) page.classList.toggle('hidden', id !== tabId);
+  }
+  if (tabId === 'stage') renderStagePage();
+  if (tabId === 'equip') renderEquipPage();
+  if (tabId === 'skill') renderSkillPage();
+  if (tabId === 'activity') renderActivityPage();
+}
+
+function renderMenuPages(){
+  const activeTab = document.querySelector('#menu-tabs .menu-tab.active');
+  menuTab(activeTab ? activeTab.getAttribute('data-arg') : 'stage');
+}
+
+/* ---- 第一页：关卡选择（上一关/下一关） ---- */
+export function renderStagePage(){
+  const max = P.maxClearedStage + 1;
+  if (P.selectedStage < 1) P.selectedStage = 1;
+  if (P.selectedStage > max) P.selectedStage = max;
+  const set = (id, text) => { const el = getEl(id); if (el) el.textContent = text; };
+  set('selStage', P.selectedStage);
+  set('selStageInfo', '最高通关：第 ' + P.maxClearedStage + ' 关 · 怪物强度 ×' + (1 + (P.selectedStage - 1) * PROGRESSION.enemyScalePerStage).toFixed(2));
+  const prevBtn = getEl('prevStageBtn');
+  const nextBtn = getEl('nextStageBtn');
+  const enterBtn = getEl('enterStageBtn');
+  if (prevBtn) prevBtn.disabled = P.selectedStage <= 1;
+  if (nextBtn) nextBtn.disabled = P.selectedStage >= max;
+  if (enterBtn) enterBtn.textContent = '⚔️ 进入第 ' + P.selectedStage + ' 关 ⚔️';
+}
+
+export function prevStage(){
+  if (P.selectedStage > 1) { P.selectedStage -= 1; renderStagePage(); }
+}
+
+export function nextStage(){
+  if (P.selectedStage < P.maxClearedStage + 1) { P.selectedStage += 1; renderStagePage(); }
+}
+
+/* ---- 第二页：装备 ---- */
+export function renderEquipPage(){
+  const eqList = getEl('equipList');
+  if (!eqList) return;
+  // 已穿戴 6 部位
+  let html = '<div class="equip-grid">';
+  for (const slot of EQ_TYPES) {
+    const eq = P.equipment?.[slot];
+    if (eq) {
+      const rc = RARITY_LABEL[eq.rarity] || '';
+      html += `<div class="equip-slot">
+        <div class="equip-name" style="color:var(--gold)">${rc} ${eq.name}</div>
+        <div class="equip-stats">${formatEquipStats(eq)}</div>
+        <button class="btn btn-sm btn-sec" data-action="unequipItem" data-arg="${slot}">卸下</button>
+      </div>`;
+    } else {
+      html += `<div class="equip-slot empty"><div class="equip-name">${EQ_NAMES[slot]}</div><div class="equip-stats">未装备</div></div>`;
     }
-    el.innerHTML = `<div class="n">${name}</div><div class="m">${meta}</div>`;
+  }
+  html += '</div>';
+  // 背包
+  html += `<div class="equip-bag-title">背包 (${P.inventory.length}/30) — 点击装备</div><div class="equip-bag">`;
+  if (P.inventory.length === 0) {
+    html += '<div class="equip-empty">通关/战败结算可获得装备</div>';
+  }
+  for (const item of P.inventory) {
+    const rc = RARITY_LABEL[item.rarity] || '';
+    const equipped = Object.values(P.equipment).some(e => e && e.id === item.id);
+    html += `<div class="equip-item${equipped ? ' equipped' : ''}" data-action="equipItem" data-arg="${item.id}">
+      <div class="equip-item-name">${rc} ${item.name}</div>
+      <div class="equip-item-stats">${EQ_NAMES[item.type]} · ${formatEquipStats(item)}</div>
+    </div>`;
+  }
+  html += '</div>';
+  eqList.innerHTML = html;
+}
+
+/* ---- 第三页：技能图鉴 ---- */
+export function renderSkillPage(){
+  const list = getEl('skillPageList');
+  if (!list) return;
+  let html = '<div class="page-section-title">技能卡</div><div class="card-dex">';
+  for (const c of SKILL_CARDS) {
+    html += `<div class="dex-card card-skill"><div class="card-icon">${c.icon}</div><div class="card-name">${c.name}</div><div class="card-desc">${c.desc}</div></div>`;
+  }
+  html += '</div><div class="page-section-title">强化卡</div><div class="card-dex">';
+  for (const c of UPGRADE_CARDS) {
+    html += `<div class="dex-card card-upgrade"><div class="card-icon">${c.icon}</div><div class="card-name">${c.name}</div><div class="card-desc">${c.desc}</div></div>`;
+  }
+  html += '</div>';
+  list.innerHTML = html;
+}
+
+/* ---- 第四页：活动 ---- */
+export function renderActivityPage(){
+  const list = getEl('activityPageList');
+  if (!list) return;
+  let html = '<div class="page-section-title">成就</div>';
+  let done = 0;
+  for (const a of ACHIEVEMENTS) {
+    const earned = P.achievements[a.id];
+    if (earned) done++;
+    html += `<div class="act-item${earned ? ' done' : ''}">
+      <span class="act-icon">${a.icon}</span>
+      <span class="act-info">${a.name} — ${a.desc}</span>
+      <span class="act-state">${earned ? '✅' : '🎁'}</span>
+    </div>`;
+  }
+  html += `<div class="act-summary">已完成 ${done}/${ACHIEVEMENTS.length}</div>`;
+  html += '<div class="page-section-title">活动</div>';
+  html += '<div class="act-placeholder">🎉 活动筹备中，敬请期待</div>';
+  list.innerHTML = html;
+}
+
+/* ================= 局内 HUD ================= */
+
+export function updateHUD(){
+  if (!gameStarted) return;
+  const set = (id, text) => { const el = getEl(id); if (el) el.textContent = text; };
+  const setW = (id, w) => { const el = getEl(id); if (el) el.style.width = w + '%'; };
+
+  set('stageText', P.stageLevel);
+  set('waveCounter', waveNum + '/' + PROGRESSION.wavesPerStage);
+
+  const hpR = Math.round(P.hp), mhpR = Math.round(P.maxHp);
+  if (hudCache.hp !== hpR || hudCache.maxHp !== mhpR) {
+    set('hpText', hpR + '/' + mhpR);
+    setW('hpFill', P.hp / P.maxHp * 100);
+    hudCache.hp = hpR; hudCache.maxHp = mhpR;
+  }
+  if (hudCache.xp !== P.xp || hudCache.xpNext !== P.xpToNext) {
+    set('xpText', P.xp + '/' + P.xpToNext);
+    setW('xpFill', P.xp / P.xpToNext * 100);
+    hudCache.xp = P.xp; hudCache.xpNext = P.xpToNext;
+  }
+  if (hudCache.level !== P.level) { set('levelText', P.level); hudCache.level = P.level; }
+  if (hudCache.kills !== P.kills) { set('killText', P.kills); hudCache.kills = P.kills; }
+  if (hudCache.totalLevel !== P.totalLevel) { set('totalLevelText', P.totalLevel); hudCache.totalLevel = P.totalLevel; }
+  renderCardsHud();
+}
+
+/** 已获得卡牌摘要（技能 + 强化叠层数） */
+function renderCardsHud(){
+  const cont = getEl('cardsHud');
+  if (!cont) return;
+  const parts = [];
+  for (const id of P.skills) {
+    const card = SKILL_CARDS.find(c => c.id === id);
+    if (card) parts.push(card.icon + '×' + (P.skillLevels?.[id] || 1));
+  }
+  for (const card of UPGRADE_CARDS) {
+    const count = P.mods[card.effect] ? Math.round(P.mods[card.effect] / card.value) : 0;
+    if (count > 0) parts.push(card.icon + '×' + count);
+  }
+  cont.textContent = parts.length ? parts.join('  ') : '';
+}
+
+/* ================= 抽卡面板 ================= */
+
+export function renderCardOptions(options){
+  const cont = getEl('cardOptions');
+  if (!cont) return;
+  cont.innerHTML = '';
+  options.forEach((card) => {
+    const el = document.createElement('div');
+    el.className = 'card-option ' + (card.kind === 'skill' ? 'card-skill' : 'card-upgrade');
+    const lv = card.kind === 'skill' ? (P.skillLevels?.[card.id] || 0) : 0;
+    el.innerHTML = `
+      <div class="card-icon">${card.icon}</div>
+      <div class="card-name">${card.name}${lv > 0 ? ' Lv.' + (lv + 1) : ''}</div>
+      <div class="card-desc">${card.desc}</div>`;
+    el.setAttribute('data-action', 'pickCard');
+    el.setAttribute('data-arg', card.id);
     cont.appendChild(el);
   });
 }
 
-/* ---- HUD ---- */
-export function updateHUD(){
-  const rName = getRealm(P.realm).name;
-  if(hudCache.realm !== rName){
-    document.getElementById('realmText').textContent = rName;
-    hudCache.realm = rName;
-  }
-  const stLabels = ['初期','初期','初期','中期','中期','中期','后期','后期','圆满'];
-  const stageLbl = P.realm==='mortal'?'':(stLabels[Math.min(P.stage-1,8)]||'');
-  document.getElementById('realmStageText').textContent = stageLbl;
-  if(hudCache.level !== P.level){
-    document.getElementById('levelText').textContent = 'Lv.'+P.level;
-    hudCache.level = P.level;
-  }
-  const hpR = Math.round(P.hp), mhpR = Math.round(P.maxHp);
-  if(hudCache.hp !== hpR || hudCache.maxHp !== mhpR){
-    document.getElementById('hpText').textContent = hpR+'/'+mhpR;
-    document.getElementById('hpFill').style.width = (P.hp/P.maxHp*100)+'%';
-    hudCache.hp = hpR; hudCache.maxHp = mhpR;
-  }
-  if(hudCache.xp !== P.xp || hudCache.xpNext !== P.xpToNext){
-    document.getElementById('xpText').textContent = P.xp+'/'+P.xpToNext;
-    document.getElementById('xpFill').style.width = (P.xp/P.xpToNext*100)+'%';
-    hudCache.xp = P.xp; hudCache.xpNext = P.xpToNext;
-  }
-  if(hudCache.gold !== P.gold){
-    document.getElementById('moneyText').textContent = P.gold;
-    hudCache.gold = P.gold;
-  }
-  if(hudCache.kills !== P.kills){
-    document.getElementById('killText').textContent = P.kills;
-    hudCache.kills = P.kills;
-  }
-}
-
-export function updateHotbarCooldowns(){
-  const cont = document.getElementById('hotbar');
-  if(!cont) return;
-  const slots = cont.children;
-  const cds = getSkillCooldowns();
-  const scene = getScene();
-  const now = scene?.time?.now ? scene.time.now/1000 : 0;
-  for(let i=0;i<Math.min(5,slots.length);i++){
-    const item = P.hotbar[i];
-    if(item && item.kind==='skill' && item.id){
-      const def = SKILL_DEFS.find(s=>s.id===item.id);
-      const cdEnd = cds[item.id] || 0;
-      const remain = Math.max(0, cdEnd - now);
-      const metaEl = slots[i].querySelector('.m');
-      if(metaEl){
-        if(remain > 0.05){
-          metaEl.textContent = remain.toFixed(1)+'s';
-          slots[i].classList.add('cd');
-        } else {
-          metaEl.textContent = '就绪';
-          slots[i].classList.remove('cd');
-        }
-      }
-    }
-  }
-}
-
-/* ---- 角色面板 ---- */
-export function toggleCharPanel(){
-  const el = document.getElementById('charPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) updateCharPanel();
-}
-
-export function updateCharPanel(){
-  const rt = (realmText||function(){return ''})();
-  document.getElementById('cpRealm').textContent = rt;
-  document.getElementById('cpLevel').textContent = 'Lv.'+P.level;
-  document.getElementById('cpAtk').textContent = Math.round(P.atk);
-  document.getElementById('cpDef').textContent = Math.round(P.def);
-  document.getElementById('cpHP').textContent = Math.round(P.hp)+'/'+Math.round(P.maxHp);
-  document.getElementById('cpSpeed').textContent = Math.round(P.speed);
-  document.getElementById('cpAttrPoints').textContent = P.attrPoints || 0;
-  document.getElementById('attr-str').textContent = P.attrs?.str || 0;
-  document.getElementById('attr-body').textContent = P.attrs?.body || 0;
-  document.getElementById('attr-spirit').textContent = P.attrs?.spirit || 0;
-  document.getElementById('attr-agility').textContent = P.attrs?.agility || 0;
-  for(const slot of EQ_TYPES){
-    const eq = P.equipment[slot];
-    const el = document.getElementById('eq-'+slot);
-    if(eq){
-      const rc = RARITY_COLORS[eq.rarity]||'#aab';
-      const statsStr = Object.entries(getEffectiveEquipmentStats(eq)).map(([k,v])=>{
-        const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
-        return (labels[k]||k)+'+'+v;
-      }).join(' ');
-      const affix = (eq.affixes || []).map(formatAffix).join(' ');
-      const setName = getSetName(eq);
-      el.innerHTML = `<span style="color:${rc}">${RARITY_LABEL[eq.rarity]||''} ${eq.name} +${eq.enhance || 0}</span><br><span style="font-size:11px;color:var(--text-dim)">${statsStr}${setName ? ' · '+setName : ''}${affix ? ' · '+affix : ''}</span>`;
-      el.className = 'val';
-    } else {
-      el.textContent = '空'; el.className = 'val empty';
-    }
-  }
-}
-
-export function addAttr(attr){
-  if((P.attrPoints || 0) <= 0) return;
-  if(!P.attrs) P.attrs = {str:0, body:0, spirit:0, agility:0};
-  P.attrs[attr] = (P.attrs[attr] || 0) + 1;
-  P.attrPoints -= 1;
-  recalcStats();
-  updateHUD();
-  updateCharPanel();
-  bus.emit('save');
-}
-
-export function toggleHudExpand() {
-  const hud = document.getElementById('hud');
-  if (!hud) return;
-  hud.classList.toggle('collapsed');
-  const btn = document.getElementById('hud-toggle');
-  if (btn) btn.textContent = hud.classList.contains('collapsed') ? '📊' : '📋';
-}
-
-/* ---- 背包 ---- */
-export function renderBagPanel(){
-  document.getElementById('bagCount').textContent = P.inventory.length+'/30';
-  const sellAllBtn = document.getElementById('bagSellAllBtn');
-  const totalSellPrice = P.inventory.reduce((sum, item) => {
-    if(!item) return sum;
-    const price = item.stats ? Math.round(Object.values(item.stats).reduce((acc,val)=>acc+val,0)*2) : 3;
-    return sum + price;
-  }, 0);
-  if(sellAllBtn){
-    sellAllBtn.disabled = P.inventory.length === 0;
-    sellAllBtn.textContent = P.inventory.length > 0 ? '一键售出(' + totalSellPrice + '💰)' : '一键售出';
-  }
-  const grid = document.getElementById('bagGrid');
-  grid.innerHTML = '';
-  P.inventory.forEach((item,i)=>{
-    const d = document.createElement('div');
-    d.className = 'inv-item rarity-'+(item.rarity||'common');
-    const isEq = Object.values(P.equipment).some(e=>e&&e.id===item.id);
-    let stats='';
-    if(item.stats){
-      const lb={atk:'攻',def:'防',hp:'命',speed:'速'};
-      stats = Object.entries(getEffectiveEquipmentStats(item)).map(([k,v])=>(lb[k]||k)+'+'+v).join(' ');
-    }
-    d.innerHTML = `<div class="in">${item.name}</div><div class="im">${EQ_NAMES[item.type]||item.type||'道具'}</div><div class="is">${stats}</div>`;
-    if(isEq) d.classList.add('equipped');
-    d.addEventListener('click', (e)=>{ e.stopPropagation(); showBagMenu(i); });
-    grid.appendChild(d);
-  });
-}
-
-function showBagMenu(idx){
-  const old = document.getElementById('bagMenuOverlay');
-  if(old) old.remove();
-  const item = P.inventory[idx];
-  if(!item) return;
-  const eqType = EQ_TYPES.includes(item.type);
-  const overlay = document.createElement('div');
-  overlay.id = 'bagMenuOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:30;pointer-events:auto;';
-  overlay.addEventListener('click', ()=>overlay.remove());
-  const box = document.createElement('div');
-  box.className = 'panel';
-  box.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px;min-width:240px;max-width:320px;pointer-events:auto;text-align:center;';
-  box.addEventListener('click', (e)=>e.stopPropagation());
-  const rc = eqType?(RARITY_COLORS[item.rarity]||'#aab'):'var(--text)';
-  const rl = eqType?(RARITY_LABEL[item.rarity]||''):'';
-  box.style.border = `2px solid ${rc}`;
-  box.style.boxShadow = `0 4px 24px ${rc}44`;
-  let html = `<div style="font-size:13px;color:${rc};margin-bottom:2px;">${rl}</div>`;
-  html += `<div style="font-size:18px;font-weight:900;color:${rc};margin-bottom:4px;">${item.name}</div>`;
-  html += `<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;">${EQ_NAMES[item.type]||item.type||'道具'}</div>`;
-  if(eqType && item.stats){
-    const cur = P.equipment[item.type];
-    const labels = {atk:'攻击',def:'防御',hp:'生命',speed:'速度'};
-    html += '<div style="text-align:left;font-size:12px;margin-bottom:10px;">';
-    const itemStats = getEffectiveEquipmentStats(item);
-    const curStats = getEffectiveEquipmentStats(cur);
-    const allKeys = new Set([...Object.keys(itemStats), ...Object.keys(curStats)]);
-    allKeys.forEach(k=>{
-      const v = itemStats[k]||0;
-      const cv = curStats[k]||0;
-      const diff = v - cv;
-      const diffStr = diff>0?`<span style="color:#4f8c48">↑${diff}</span>`:diff<0?`<span style="color:#b94a3e">↓${Math.abs(diff)}</span>`:'';
-      const curStr = cur&&cv?` (${labels[k]||k} +${cv})`:'';
-      html += `<div>${labels[k]||k} +${v} ${diffStr}<span style="color:var(--text-dim);font-size:10px;">${curStr}</span></div>`;
-    });
-    if(cur){
-      html += `<div style="margin-top:4px;font-size:10px;color:var(--text-dim);">当前装备: ${cur.name}</div>`;
-    }
-    const setName = getSetName(item);
-    if(setName) html += `<div style="font-size:11px;color:var(--gold);">套装: ${setName}</div>`;
-    const affix = (item.affixes || []).map(formatAffix).join(' ');
-    if(affix) html += `<div style="font-size:11px;color:var(--gold);">词条: ${affix}</div>`;
-    html += '</div>';
-  }
-  const isEquipped = Object.values(P.equipment).some(e=>e&&e.id===item.id);
-  if(eqType && !isEquipped){
-    html += `<button class="btn btn-sm btn-gold" style="margin:3px;" data-action="doBagEquip" data-arg="${idx}">装备</button>`;
-  }
-  const sellPrice = item.stats ? Math.round(Object.values(item.stats).reduce((a,b)=>a+b,0)*2) : 3;
-  html += `<button class="btn btn-sm btn-sec" style="margin:3px;" data-action="doBagSell" data-arg="${idx}">出售(${sellPrice}💰)</button>`;
-  html += `<br><button class="btn btn-sm btn-sec" style="margin:3px;" data-action="closeBagMenu">取消</button>`;
-  box.innerHTML = html;
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-}
-
-export function doBagEquip(idx){
-  idx = Number(idx);
-  const item = P.inventory[idx];
-  if(!item || !EQ_TYPES.includes(item.type)) return;
-  const current = P.equipment[item.type];
-  P.equipment[item.type] = item;
-  P.inventory.splice(idx,1);
-  if(current) P.inventory.push(current);
-  recalcStats();
-  updateCharPanel(); updateHUD(); hotbarRender();
-  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
-  renderBagPanel();
-  bus.emit('save');
-  bus.emit('status', '装备 '+item.name,1.2);
-}
-
-export function doBagSell(idx){
-  idx = Number(idx);
-  const item = P.inventory[idx];
-  if(!item) return;
-  const sellPrice = item.stats ? Math.round(Object.values(item.stats).reduce((a,b)=>a+b,0)*2) : 3;
-  P.inventory.splice(idx,1);
-  P.gold = Math.min(99999, P.gold + sellPrice);
-  updateHUD();
-  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
-  renderBagPanel();
-  bus.emit('save');
-  bus.emit('status', '出售 '+item.name+' +'+sellPrice+'灵石',1.2);
-}
-
-export function sellAllBagItems(){
-  if(P.inventory.length === 0){
-    bus.emit('status', '背包里没有可出售的物品',1.2);
-    return;
-  }
-  const totalSellPrice = P.inventory.reduce((sum, item) => {
-    if(!item) return sum;
-    const price = item.stats ? Math.round(Object.values(item.stats).reduce((acc,val)=>acc+val,0)*2) : 3;
-    return sum + price;
-  }, 0);
-  const soldCount = P.inventory.length;
-  P.inventory.length = 0;
-  P.gold = Math.min(99999, P.gold + totalSellPrice);
-  const menu = document.getElementById('bagMenuOverlay'); if(menu) menu.remove();
-  updateHUD();
-  renderBagPanel();
-  bus.emit('save');
-  bus.emit('status', '一键售出 '+soldCount+' 件物品 +'+totalSellPrice+'灵石',1.5);
-}
-
-export function toggleBagPanel(){
-  const el = document.getElementById('bagPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderBagPanel();
-}
-
-/* ---- 技能面板 ---- */
-export function renderSkillPanel(){
-  const list = document.getElementById('skillList');
-  list.innerHTML = '';
-
-  const qDef = SKILL_DEFS.find(s=>s.id==='swordfly');
-  const qCard = document.createElement('div');
-  qCard.className = 'skill-card';
-  qCard.style.borderColor='var(--gold)';
-  qCard.innerHTML = `<div class="sc-head"><span class="sc-name">${qDef.name}</span></div><div class="sc-desc">${qDef.desc} · 伤害x${qDef.baseDmg} · CD${qDef.cooldown}s · 射程${qDef.range}</div>`;
-  list.appendChild(qCard);
-
-  const allSwaps = SKILL_DEFS.filter(s=>s.id!=='swordfly');
-  allSwaps.forEach(def=>{
-    const cd = def.cooldown||0;
-    let info = def.desc;
-    if(def.baseDmg) info += ' · 伤害x'+def.baseDmg;
-    info += ' · CD'+cd+'s';
-    const card = document.createElement('div');
-    card.className = 'skill-card';
-    card.style.cssText = 'border-color:var(--gold);background:rgba(250,226,168,.15);';
-    card.innerHTML = `
-      <div class="sc-head"><span class="sc-name">${def.name}</span></div>
-      <div class="sc-desc">${info}</div>`;
-    list.appendChild(card);
-  });
-}
-
-export function toggleSkillPanel(){
-  const el = document.getElementById('skillPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderSkillPanel();
-}
-
-export function showSlotPick(skillId){
-  bus.emit('status', '当前版本无法切换技能', 1.5);
-}
-
-export function equipSkill(skillId, slotIdx){
-  bus.emit('status', '当前版本无法切换技能', 1.5);
-}
-
-export function upgradeSkill(skillId){
-  bus.emit('status', '当前版本无法升级技能', 1.5);
-}
-
-/* ---- 成就面板 ---- */
-export function renderAchPanel(){
-  if(!ACHIEVEMENTS) return;
-  const list = document.getElementById('achList');
-  let done=0, total=ACHIEVEMENTS.length;
-  list.innerHTML = '';
-  ACHIEVEMENTS.forEach(a=>{
-    const earned = P.achievements[a.id];
-    const item = document.createElement('div');
-    item.className = 'ach-item' + (earned?' done':'');
-    const rwd = Object.entries(a.reward).map(([k,v])=>{
-      const lb = {gold:'灵石',attrPoints:'属性点',skillPoints:'技能点'};
-      return (lb[k]||k)+'+'+v;
-    }).join(' ');
-    item.innerHTML = `
-      <div class="ach-icon">${a.icon}</div>
-      <div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
-      <div class="ach-reward">${earned?'✅ 已达成':'🎁 '+rwd}</div>`;
-    if(earned) done++;
-    list.appendChild(item);
-  });
-  document.getElementById('achSummary').textContent = '已完成 '+done+'/'+total;
-}
-
-export function toggleAchPanel(){
-  const el = document.getElementById('achPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderAchPanel();
-}
-
-/* ---- 商店 ---- */
-export function renderShopPanel(){
-  if(!SHOP_ITEMS) return;
-  document.getElementById('shopGold').textContent = P.gold;
-  const list = document.getElementById('shopList');
-  list.innerHTML = '';
-  SHOP_ITEMS.filter(item=>item.effect!=='skill_reset').forEach(item=>{
-    const card = document.createElement('div');
-    card.className = 'shop-item';
-    card.innerHTML = `
-      <div class="si-icon">${item.icon}</div>
-      <div class="si-info"><div class="si-name">${item.name}</div><div class="si-desc">${item.desc}</div></div>
-      <span class="si-cost">${item.cost}💰</span>
-      <button class="btn btn-sm btn-gold" data-action="buyShopItem" data-arg="${item.id}" ${P.gold<item.cost?'disabled':''}>购买</button>`;
-    list.appendChild(card);
-  });
-}
-
-export function toggleShopPanel(){
-  const el = document.getElementById('shopPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderShopPanel();
-}
-
-export function buyShopItem(itemId){
-  const item = SHOP_ITEMS?.find(s=>s.id===itemId);
-  if(!item || P.gold < item.cost || P.inventory.length>=30) return;
-  if(item.effect === 'skill_reset'){
-    bus.emit('status', '当前版本无需技能洗点',1.2);
-    return;
-  }
-  P.gold -= item.cost;
-  if(item.effect === 'gold_bag'){
-    P.gold = Math.min(99999, P.gold + 120);
-      bus.emit('status', '获得120灵石!',1.2);
-  } else if(item.effect === 'attr_reset'){
-    let total = P.attrs.str + P.attrs.body + P.attrs.spirit + P.attrs.agility;
-    P.attrs = {str:0,body:0,spirit:0,agility:0};
-    P.attrPoints += total;
-    recalcStats();
-    bus.emit('status', '属性点已重置!',1.2);
-  } else if(item.effect === 'skill_reset'){
-    for(const sk of SKILL_DEFS){ const lv = P.skillLevels?.[sk.id]||1; P.skillPoints += Math.max(0,lv-1); P.skillLevels[sk.id]=1; }
-    bus.emit('status', '技能点已重置!',1.2);
-  } else if(item.effect?.startsWith('eq_box_')){
-    const rarity = item.effect.replace('eq_box_','');
-    const eq = genEquipment(rarity==='common'?2:(rarity==='uncommon'?4:(rarity==='rare'?7:(rarity==='epic'?12:18))), rarity);
-    const result = acquireEquipment(P, eq);
-    if(result.stored){
-      if(eq && eq.id){ bus.emit('status', '获得 '+RARITY_LABEL[eq.rarity]+' '+eq.name + (result.equipped ? '，已自动装备' : ''),2); }
-      if(result.changed) recalcStats();
-    }
-  }
-  updateHUD(); renderShopPanel(); renderBagPanel();
-  bus.emit('save');
-}
-
-/* ---- 玩法面板（材料/装备养成/炼丹/任务/秘境/长城/进阶/图鉴/天赋） ---- */
-export function renderGameplayPanel(){
-  ensureProgressionState();
-  const list = document.getElementById('gameplayList');
-  if(!list) return;
-  list.innerHTML = '';
-
-  const materials = Object.entries(MATERIALS)
-    .map(([id, name]) => `${name}: ${P.materials?.[id] || 0}`)
-    .join('　');
-  list.appendChild(sectionCard('材料', `<div class="sc-desc">${materials}</div>`));
-
-  const eqRows = EQ_TYPES.map(slot => {
-    const eq = P.equipment?.[slot];
-    if(!eq) return `<div class="skill-card"><div class="sc-head"><span class="sc-name">${EQ_NAMES[slot]}</span></div><div class="sc-desc">未装备</div></div>`;
-    const stats = getEffectiveEquipmentStats(eq);
-    const statText = Object.entries(stats).map(([k,v]) => `${{atk:'攻',def:'防',hp:'命',speed:'速'}[k]||k}+${v}`).join(' ');
-    const affix = (eq.affixes || []).map(formatAffix).join(' ');
-    const setName = getSetName(eq);
-    return `<div class="skill-card">
-      <div class="sc-head"><span class="sc-name">${EQ_NAMES[slot]} ${eq.name} +${eq.enhance || 0}</span></div>
-      <div class="sc-desc">${RARITY_LABEL[eq.rarity] || ''} ${setName ? ' · '+setName : ''} · ${statText}${affix ? ' · '+affix : ''}</div>
-      <button class="btn btn-sm btn-gold" data-action="enhanceAndRefresh" data-arg="${slot}">强化</button>
-      <button class="btn btn-sm btn-sec" data-action="reforgeAndRefresh" data-arg="${slot}">洗炼</button>
-    </div>`;
-  }).join('');
-  list.appendChild(sectionCard('装备养成', eqRows));
-
-  const recipeRows = RECIPES.map(r => `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">${r.name}</span></div>
-    <div class="sc-desc">${r.effect} · ${formatCost(r.cost)}</div>
-    <button class="btn btn-sm btn-gold" data-action="craftAndRefresh" data-arg="${r.id}">炼制</button>
-  </div>`).join('');
-  list.appendChild(sectionCard('炼丹', recipeRows));
-
-  const questRows = (P.quests || []).map(q => `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">${q.name}</span><span>${q.progress || 0}/${q.target}</span></div>
-    <div class="sc-desc">${q.type === 'boss' ? '击杀首领' : '击杀妖兽'} · 奖励灵石${q.reward.gold || 0}</div>
-    <button class="btn btn-sm btn-gold" data-action="claimQuestAndRefresh" data-arg="${q.id}" ${q.progress >= q.target && !q.claimed ? '' : 'disabled'}>${q.claimed ? '已领取' : '领取'}</button>
-  </div>`).join('');
-  list.appendChild(sectionCard('宗门任务', questRows + `<button class="btn btn-sm btn-sec" data-action="resetQuestsAndRefresh">刷新任务</button>`));
-
-  const dungeon = P.dungeon || {};
-  list.appendChild(sectionCard('秘境副本', `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">妖雾秘境</span><span>${dungeon.active ? (dungeon.kills || 0)+'/'+(dungeon.target || 0) : '未开启'}</span></div>
-    <div class="sc-desc">限时清剿玩法雏形，完成后获得妖核、星尘、天赋点。</div>
-    <button class="btn btn-sm btn-gold" data-action="dungeonAndRefresh" ${dungeon.active ? 'disabled' : ''}>进入秘境</button>
-  </div>`));
-
-  list.appendChild(sectionCard('剑气长城', `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">镇守长城</span></div>
-    <div class="sc-desc">从古剑门出发挑战兽潮波次，适合需要集中刷怪和材料时进入。</div>
-    <button class="btn btn-sm btn-gold" data-action="enterDefense">前往镇守</button>
-  </div>`));
-
-  const skillRows = SKILL_EVOLUTIONS.map(ev => `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">${ev.name}</span></div>
-    <div class="sc-desc">${ev.desc} · ${formatCost(ev.cost)}</div>
-    <button class="btn btn-sm btn-gold" data-action="evolveAndRefresh" data-arg="${ev.id}" ${P.skillEvolutions?.[ev.id] ? 'disabled' : ''}>${P.skillEvolutions?.[ev.id] ? '已进阶' : '进阶'}</button>
-  </div>`).join('');
-  list.appendChild(sectionCard('技能进阶', skillRows));
-
-  const bestiaryEntries = Object.entries(P.bestiary || {})
-    .sort((a,b) => (b[1].kills || 0) - (a[1].kills || 0))
-    .slice(0, 10);
-  const bestiaryRows = bestiaryEntries.length ? bestiaryEntries.map(([name, entry]) => `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">${name}</span><span>${entry.kills || 0}杀</span></div>
-    <div class="sc-desc">10杀可领取图鉴奖励：属性点+1、星尘+1。</div>
-    <button class="btn btn-sm btn-gold" data-action="claimBestiaryAndRefresh" data-arg="${name}" ${(entry.kills || 0) >= 10 && !entry.rewardClaimed ? '' : 'disabled'}>${entry.rewardClaimed ? '已领取' : '领取'}</button>
-  </div>`).join('') : '<div class="sc-desc">击杀怪物后解锁图鉴。</div>';
-  list.appendChild(sectionCard('怪物图鉴', bestiaryRows));
-
-  const talentRows = TALENTS.map(t => `<div class="skill-card">
-    <div class="sc-head"><span class="sc-name">${t.name}</span></div>
-    <div class="sc-desc">${t.desc} · 消耗${t.cost}天赋点</div>
-    <button class="btn btn-sm btn-gold" data-action="learnTalentAndRefresh" data-arg="${t.id}" ${P.talents?.[t.id] ? 'disabled' : ''}>${P.talents?.[t.id] ? '已领悟' : '领悟'}</button>
-  </div>`).join('');
-  list.appendChild(sectionCard('境界天赋', `<div class="sc-desc">天赋点: ${P.talentPoints || 0}</div>${talentRows}`));
-}
-
-function sectionCard(title, innerHtml) {
-  const wrap = document.createElement('div');
-  wrap.className = 'skill-card';
-  wrap.innerHTML = `<div class="sc-head"><span class="sc-name">${title}</span></div>${innerHtml}`;
-  return wrap;
-}
-
-export function toggleGameplayPanel(){
-  const el = document.getElementById('gameplayPanel');
-  el.classList.toggle('hidden');
-  if(!el.classList.contains('hidden')) renderGameplayPanel();
-}
-
 bus.on('hud-refresh', updateHUD);
-bus.on('hotbar-refresh', hotbarRender);

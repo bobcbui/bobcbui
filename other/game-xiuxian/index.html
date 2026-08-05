@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>九天仙途 - 文字修仙世界</title>
+<title>百世修仙 - 文字修仙世界</title>
 <link rel="stylesheet" href="resources/style.css">
 <script src="lib/phaser.min.js"></script>
 <script type="importmap">
@@ -17,182 +17,101 @@
 </script>
 </head>
 <body>
+<div id="gameWrap">
 <canvas id="gameCanvas"></canvas>
 
 <div class="ui-layer">
-  <!-- HUD toggle button (mobile only) -->
-  <button id="hud-toggle" data-action="toggleHudExpand">📊</button>
-
-  <!-- HUD -->
-  <div id="hud" class="panel collapsed">
-    <!-- wall defense HUD -->
-    <div id="wallHud" class="hidden">
-      <div class="flex-between">
-        <span>🏰 剑气长城</span><span id="waveCounter">0/20</span>
-      </div>
-      <div class="bar-bg">
-        <div id="wallHpBar" class="bar-fill"></div>
-      </div>
-    </div>
+  <!-- 局内 HUD -->
+  <div id="hud" class="panel">
     <div class="flex-between">
-      <div><span class="realm" id="realmText">凡体</span><span class="realm-sub" id="realmStageText">初期</span></div>
-      <div><span class="realm-sub" id="levelText">Lv.1</span></div>
+      <span>第 <strong id="stageText">1</strong> 关</span>
+      <span>波次 <span id="waveCounter">0/5</span></span>
     </div>
     <div class="bar-wrap"><span class="label">●</span><div class="bar-bg"><div id="hpFill" class="bar-fill"></div></div><span class="bar-text" id="hpText">100/100</span></div>
-    <div class="bar-wrap"><span class="label">★</span><div class="bar-bg"><div id="xpFill" class="bar-fill"></div></div><span class="bar-text" id="xpText">0/10</span></div>
+    <div class="bar-wrap"><span class="label">★</span><div class="bar-bg"><div id="xpFill" class="bar-fill"></div></div><span class="bar-text" id="xpText">0/5</span></div>
     <div class="flex-between mt8">
-      <span>灵石 <strong id="moneyText">0</strong></span>
-      <span>杀敌 <strong id="killText">0</strong></span>
+      <span>Lv.<span id="levelText">1</span></span>
+      <span>击杀 <strong id="killText">0</strong></span>
+      <span>总等级 <strong id="totalLevelText">1</strong></span>
     </div>
-    <div id="hotbar"></div>
+    <div id="cardsHud"></div>
   </div>
 
-  <!-- Zone label -->
-  <div id="zone-label">古剑门</div>
   <!-- Status -->
   <div id="status">消息</div>
   <!-- Loot popup -->
   <div id="loot-popup" class="panel"></div>
 
-  <div id="joystick-zone"><div id="joystick-thumb"></div></div>
-
-  <!-- Character Panel -->
-  <div id="charPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleCharPanel"></div>
-    <div class="modal-box panel">
-      <h2><span>📜 角色面板</span><span class="close" data-action="toggleCharPanel">✕</span></h2>
-      <div class="eq-grid">
-        <div class="eq-slot"><div class="lbl">境界</div><div class="val" id="cpRealm">凡体</div></div>
-        <div class="eq-slot"><div class="lbl">等级</div><div class="val" id="cpLevel">1</div></div>
-        <div class="eq-slot"><div class="lbl">攻击</div><div class="val" id="cpAtk">10</div></div>
-        <div class="eq-slot"><div class="lbl">防御</div><div class="val" id="cpDef">5</div></div>
-        <div class="eq-slot"><div class="lbl">生命</div><div class="val" id="cpHP">100</div></div>
-        <div class="eq-slot"><div class="lbl">速度</div><div class="val" id="cpSpeed">180</div></div>
-      </div>
-      <h3>⚔️ 装备</h3>
-      <div class="eq-grid" id="eqGrid">
-        <div class="eq-slot" data-slot="weapon"><div class="lbl">武器</div><div class="val empty" id="eq-weapon">空</div></div>
-        <div class="eq-slot" data-slot="helmet"><div class="lbl">头盔</div><div class="val empty" id="eq-helmet">空</div></div>
-        <div class="eq-slot" data-slot="armor"><div class="lbl">衣服</div><div class="val empty" id="eq-armor">空</div></div>
-        <div class="eq-slot" data-slot="boots"><div class="lbl">鞋子</div><div class="val empty" id="eq-boots">空</div></div>
-        <div class="eq-slot" data-slot="ring"><div class="lbl">戒指</div><div class="val empty" id="eq-ring">空</div></div>
-        <div class="eq-slot" data-slot="amulet"><div class="lbl">项链</div><div class="val empty" id="eq-amulet">空</div></div>
-      </div>
-      <h3>🔢 属性点: <strong id="cpAttrPoints">0</strong></h3>
-      <div class="attr-grid">
-        <div class="attr-row"><span class="attr-label">筋骨</span><span class="attr-val" id="attr-str">0</span><span class="attr-desc">攻+2</span><button class="btn btn-sm btn-gold" data-action="addAttr" data-arg="str">+</button></div>
-        <div class="attr-row"><span class="attr-label">体魄</span><span class="attr-val" id="attr-body">0</span><span class="attr-desc">命+12 防+0.8</span><button class="btn btn-sm btn-gold" data-action="addAttr" data-arg="body">+</button></div>
-        <div class="attr-row"><span class="attr-label">神识</span><span class="attr-val" id="attr-spirit">0</span><span class="attr-desc">攻+0.8</span><button class="btn btn-sm btn-gold" data-action="addAttr" data-arg="spirit">+</button></div>
-        <div class="attr-row"><span class="attr-label">身法</span><span class="attr-val" id="attr-agility">0</span><span class="attr-desc">速+5</span><button class="btn btn-sm btn-gold" data-action="addAttr" data-arg="agility">+</button></div>
-      </div>
-      <div class="flex mt8">
-        <button class="btn btn-sm btn-sec" data-action="toggleCharPanel">关闭</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bag Panel -->
-  <div id="bagPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleBagPanel"></div>
-    <div class="modal-box panel">
-      <h2><span>🎒 背包</span><span class="close" data-action="toggleBagPanel">✕</span></h2>
-      <div class="flex-between mb8"><span id="bagCount">0/30</span>
-        <div class="flex gap4">
-          <span class="hint">点击装备 / 右键出售换灵石</span>
-          <button class="btn btn-sm btn-sec" id="bagSellAllBtn" data-action="sellAllBagItems">一键售出</button>
-        </div>
-      </div>
-      <div class="bag-grid" id="bagGrid"></div>
-    </div>
-  </div>
-
-  <!-- Skill Panel -->
-  <div id="skillPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleSkillPanel"></div>
-    <div class="modal-box panel">
-      <h2><span>📖 技能</span><span class="close" data-action="toggleSkillPanel">✕</span></h2>
-      <div class="skill-list" id="skillList"></div>
-    </div>
-  </div>
-
-  <!-- Achievement Panel -->
-  <div id="achPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleAchPanel"></div>
-    <div class="modal-box panel">
-      <h2><span>🏅 成就</span><span class="close" data-action="toggleAchPanel">✕</span></h2>
-      <div class="flex-between mb8"><span id="achSummary"></span></div>
-      <div class="ach-list" id="achList"></div>
-    </div>
-  </div>
-
-  <!-- Shop Panel (百宝阁) -->
-  <div id="shopPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleShopPanel"></div>
-    <div class="modal-box panel">
-      <h2><span>🏪 百宝阁</span><span class="close" data-action="toggleShopPanel">✕</span></h2>
-      <div class="flex-between mb8">
-        <span>灵石 <strong id="shopGold">0</strong></span>
-      </div>
-      <div class="shop-list" id="shopList"></div>
-    </div>
-  </div>
-
-  <!-- Gameplay Panel -->
-  <div id="gameplayPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleGameplayPanel"></div>
-    <div class="modal-box panel">
-      <h2><span>🧭 玩法</span><span class="close" data-action="toggleGameplayPanel">✕</span></h2>
-      <div class="skill-list" id="gameplayList"></div>
-    </div>
-  </div>
-
-  <!-- Bottom Nav (mobile) -->
-  <div id="bottom-nav"></div>
-
-  <!-- Main Menu -->
+  <!-- 主页（局外） -->
   <div id="mainMenu">
-    <div class="main-title">九天仙途</div>
+    <div class="main-title">百世修仙</div>
     <div class="main-subtitle">古剑门</div>
-    <!-- Loading bar -->
+    <div class="menu-stats panel">
+      <div class="flex-between"><span>游戏总等级</span><strong id="menuTotalLevel">1</strong></div>
+      <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
+      <div id="menuTotalXpText">0/40</div>
+      <div>永久加成：攻击+<span id="menuAtkBonus">0</span> · 生命+<span id="menuHpBonus">0</span></div>
+      <div>最高通关：第 <span id="menuMaxStage">0</span> 关</div>
+    </div>
     <div id="loading-bar-wrap" class="hidden">
       <div id="loading-bar-fill"></div>
     </div>
     <div id="loading-text"></div>
-    <button id="startBtn" data-action="startAdventure">⚔️ 入 门 ⚔️</button>
-  </div>
 
-  <!-- Breakthrough modal -->
-  <div id="breakthrough-overlay">
-    <div class="bg" data-action="cancelBreakthrough"></div>
-    <div id="breakthrough-box" class="panel hidden">
-      <h2 id="btTitle">突破!</h2>
-      <p id="btDesc">准备迎接天劫</p>
-      <div class="chance" id="btChance">90%</div>
-      <div class="flex">
-        <button class="btn btn-gold" id="btBtn" data-action="doBreakthrough">突破!</button>
-        <button class="btn btn-sec" data-action="cancelBreakthrough">再等等</button>
+    <!-- 底部四页菜单 -->
+    <div id="menu-panel" class="panel">
+      <div id="menu-tabs">
+        <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">关卡</button>
+        <button class="menu-tab" id="menu-tab-equip" data-action="menuTab" data-arg="equip">装备</button>
+        <button class="menu-tab" id="menu-tab-skill" data-action="menuTab" data-arg="skill">技能</button>
+        <button class="menu-tab" id="menu-tab-activity" data-action="menuTab" data-arg="activity">活动</button>
+      </div>
+
+      <!-- 第一页：关卡选择 -->
+      <div id="page-stage" class="menu-page">
+        <div class="stage-selector">
+          <button class="btn btn-sec" id="prevStageBtn" data-action="prevStage">⬅ 上一关</button>
+          <div class="stage-current">第 <strong id="selStage">1</strong> 关</div>
+          <button class="btn btn-sec" id="nextStageBtn" data-action="nextStage">下一关 ➡</button>
+        </div>
+        <div id="selStageInfo" class="stage-info"></div>
+        <button id="enterStageBtn" class="btn btn-gold" data-action="enterStage">⚔️ 进入第 1 关 ⚔️</button>
+      </div>
+
+      <!-- 第二页：装备 -->
+      <div id="page-equip" class="menu-page hidden">
+        <div id="equipList" class="equip-list"></div>
+      </div>
+
+      <!-- 第三页：技能图鉴 -->
+      <div id="page-skill" class="menu-page hidden">
+        <div id="skillPageList" class="skill-page-list"></div>
+      </div>
+
+      <!-- 第四页：活动 -->
+      <div id="page-activity" class="menu-page hidden">
+        <div id="activityPageList" class="activity-page-list"></div>
       </div>
     </div>
+
+    <button class="btn btn-sec menu-settings" data-action="toggleSettingsPanel">⚙️ 设置</button>
   </div>
 
-  <!-- Death modal -->
-  <div id="deathModal" class="modal-overlay hidden">
-    <div class="bg"></div>
+  <!-- 抽卡面板（升级 3 选 1） -->
+  <div id="cardPanel" class="modal-overlay hidden">
     <div class="modal-box panel">
-      <h2>💀 道殒</h2>
-      <p>修行之路多坎坷，重整旗鼓再战！</p>
-      <button class="btn btn-gold" id="respawnBtn" data-action="respawnPlayer">重生</button>
+      <h2>✨ 升级！选择一张卡牌</h2>
+      <div id="cardOptions" class="card-options"></div>
     </div>
   </div>
 
-  <!-- Defeat modal -->
-  <div id="defeatModal" class="modal-overlay hidden">
-    <div class="bg"></div>
+  <!-- 结算面板（通关/战败） -->
+  <div id="resultPanel" class="modal-overlay hidden">
     <div class="modal-box panel">
-      <h2>🏚️ 城破</h2>
-      <p>剑气长城被妖兽攻破...</p>
-      <p class="wave-reward">坚守至 <span id="defeatWave">0</span> 波</p>
-      <button class="btn btn-gold" data-action="reloadPage">重新开始</button>
+      <h2 id="resultTitle">通关！</h2>
+      <p id="resultStats"></p>
+      <p class="result-xp">总经验 <strong id="resultXp">+0</strong></p>
+      <button class="btn btn-gold" data-action="backToMenu">返回主页</button>
     </div>
   </div>
 
@@ -215,6 +134,7 @@
   <div id="damageFlash"></div>
   <div id="saveNotif">已存档</div>
 </div>
+</div><!-- /gameWrap -->
 
 <script type="module" src="src/main.js"></script>
 </body>

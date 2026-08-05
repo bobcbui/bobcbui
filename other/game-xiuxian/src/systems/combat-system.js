@@ -1,15 +1,13 @@
 /* ============================================================================
- * 战斗系统：技能、弹丸、冷却、领域、自动/手动技能释放
+ * 战斗系统：普攻飞剑（自动索敌，弹道受强化卡加成）、抽卡技能自动轮转
  * 伤害结算位于 ./damage.js（本类通过薄封装调用）
  * ========================================================================== */
 
 import { P } from '@/core/state.js';
-import { SKILL_DEFS, COMBAT_TUNING } from '@/data/index.js';
+import { SKILL_CARDS, COMBAT_TUNING } from '@/data/index.js';
 import { bus } from '@/core/events.js';
 import { onProjHit, onEnemyProjHit, onEnemyContact, damageEnemy } from '@/systems/damage.js';
 
-const SWORD_VOLLEY_COUNT = 3;
-const SWORD_VOLLEY_SPREAD = 0.28;
 const SWORD_TURN_RATE = 12;
 const SWORD_PROJECTILE_SPEED = 560;
 const SWORD_MIN_LIFETIME = 1900;
@@ -17,8 +15,7 @@ const SWORD_RANGE_LIFETIME_FACTOR = 7.5;
 const SWORD_HITBOX_W = 22;
 const SWORD_HITBOX_H = 12;
 const SWORD_MAX_HIT_COUNT = 10;
-const SWORD_STORM_SHOTS_PER_SEC = 3;
-const SWORD_STORM_INTERVAL = 1 / SWORD_STORM_SHOTS_PER_SEC;
+const SWORD_STORM_INTERVAL = 0.33;
 const SWORD_START_SCALE = 0.38;
 const SWORD_END_SCALE = 0.74;
 const SWORD_GROW_DURATION_MS = 420;
@@ -28,12 +25,6 @@ const GROWING_FIREBALL_TRACK_TURN_RATE = 5.2;
 const CRIMSON_LASER_DURATION_SEC = 3;
 const CRIMSON_LASER_BEAM_TICK_MS = 120;
 const CRIMSON_LASER_DAMAGE_TICK_MS = 300;
-const SWORD_RING_COUNT = 99;
-const SWORD_RING_RADIUS = 40;
-const SWORD_RING_ROTATE_SPEED = 2.7;
-const SWORD_RING_SHOT_LIMIT = 24;
-const SWORD_RING_LAYER_CAP = 33;
-const SWORD_RING_RADIUS_STEP = 18;
 const SWORD_FLY_TEX = 'swordFlySvg';
 const FIREDOMAIN_TEX = 'firedomainSword';
 const SWORD_COLOR_PALETTE = Object.freeze([
@@ -46,20 +37,20 @@ const SWORD_COLOR_PALETTE = Object.freeze([
   0xff74c8
 ]);
 
+/** 普攻飞剑定义（不来自卡池） */
+export const SWORDFLY_DEF = Object.freeze({
+  id: 'swordfly',
+  name: '飞剑术',
+  baseDmg: 0.7,
+  cooldown: 0.65
+});
+
 export class CombatSystem {
   constructor(scene) {
     this.scene = scene;
     this.swordStorm = {
       nextFireAt: 0,
       colorIndex: 0
-    };
-    this.swordRing = {
-      sprites: [],
-      orbitAngle: 0,
-      firedCount: 0,
-      nextOrbIndex: 0,
-      nextFireAt: 0,
-      rebuildAt: 0
     };
     this.crimsonLaserState = {
       timer: null,
@@ -76,12 +67,6 @@ export class CombatSystem {
 
   getScaledPlayerDamageBase() {
     return (P.atk + P.level * 0.5) * COMBAT_TUNING.playerDamageScale * (1 + (P.mods?.skillDamage || 0));
-  }
-
-  splitDamage(totalDamage, count) {
-    const base = Math.floor(totalDamage / count);
-    const remainder = Math.max(0, totalDamage - base * count);
-    return Array.from({ length: count }, (_, idx) => base + (idx < remainder ? 1 : 0));
   }
 
   isInCameraView(x, y, pad = 0) {
@@ -108,9 +93,7 @@ export class CombatSystem {
       'fireball': 'fireball',
       'firedomain': this.getFiredomainTextureKey(),
       'swordfly': this.getSwordFlyTextureKey(),
-      'thunder': 'bolt',
-      'waterdomain': 'water',
-      'tornado': 'wind'
+      'thunder': 'bolt'
     }[skillId] || 'arrow';
     const startX = options.startX ?? this.scene.player.x;
     const startY = options.startY ?? this.scene.player.y;
@@ -160,135 +143,6 @@ export class CombatSystem {
     return proj;
   }
 
-  shootProjectile(skillId, angle, dmg, range) {
-    const proj = this.spawnProjectile(skillId, angle, dmg, {
-      pierce: false,
-      lifetime: 1200
-    });
-    if (!proj) return;
-    if (skillId === 'fireball' && !proj.getData('noFireField')) {
-      this.scene.groundEffectSystem?.addFireField(this.scene.player.x, this.scene.player.y, dmg * 0.18, 10);
-    }
-    this.scene.entityAnimationSystem?.playPlayerAttack(angle);
-  }
-
-  doMultiProjectile(angle, dmg, count, range, texture) {
-    const tex = texture || this.getSwordFlyTextureKey();
-    const offsets = [];
-    for (let i = 0; i < count; i++) offsets.push((i / (count - 1) - 0.5) * 0.6);
-    offsets.forEach(o => {
-      const ang = angle + o;
-      const proj = this.scene.getPooledProj(this.scene.player.x, this.scene.player.y, tex);
-      if (proj) {
-        proj.setScale(0.5);
-        this.scene.physics.velocityFromRotation(ang, 460, proj.body.velocity);
-        proj.rotation = ang;
-        proj.setData('damage', Math.round(dmg * 0.6));
-        proj.setData('pierce', false);
-        proj.setData('homing', false);
-        proj.setData('turnRate', 0);
-        proj.setData('seekRadius', 0);
-        proj.setData('targetRef', null);
-        proj.setData('speed', 460);
-        proj.setData('skillId', 'swordfly');
-        this.scene.skillEffects?.onProjectileFired(proj, 'swordfly', ang);
-        this.scene.scheduleProjFree(proj, 1000);
-      }
-    });
-  }
-
-  getSwordVolleyTargets(primaryTarget, activeEnemies, count) {
-    const uniqueTargets = [];
-    const candidates = (activeEnemies || [])
-      .filter((en) => this.isEnemyVisible(en))
-      .sort((a, b) => {
-        const adx = a.x - this.scene.player.x;
-        const ady = a.y - this.scene.player.y;
-        const bdx = b.x - this.scene.player.x;
-        const bdy = b.y - this.scene.player.y;
-        return adx * adx + ady * ady - (bdx * bdx + bdy * bdy);
-      });
-
-    if (this.isEnemyVisible(primaryTarget)) uniqueTargets.push(primaryTarget);
-    for (const enemy of candidates) {
-      if (uniqueTargets.includes(enemy)) continue;
-      uniqueTargets.push(enemy);
-      if (uniqueTargets.length >= count) break;
-    }
-
-    while (uniqueTargets.length < count && uniqueTargets.length > 0) {
-      uniqueTargets.push(uniqueTargets[uniqueTargets.length % Math.max(1, Math.min(uniqueTargets.length, count))]);
-    }
-    return uniqueTargets;
-  }
-
-  createSwordRingSprites() {
-    this.clearSwordRingSprites();
-    const paletteLen = SWORD_COLOR_PALETTE.length;
-    for (let i = 0; i < SWORD_RING_COUNT; i++) {
-      const layer = Math.floor(i / SWORD_RING_LAYER_CAP);
-      const inLayerIndex = i % SWORD_RING_LAYER_CAP;
-      const layerStart = layer * SWORD_RING_LAYER_CAP;
-      const countInLayer = Math.min(SWORD_RING_LAYER_CAP, SWORD_RING_COUNT - layerStart);
-      const radius = SWORD_RING_RADIUS + layer * SWORD_RING_RADIUS_STEP;
-      const scale = Math.max(0.16, 0.34 - layer * 0.05);
-      const baseAngle = (inLayerIndex / Math.max(1, countInLayer)) * Math.PI * 2 + layer * 0.13;
-      const color = SWORD_COLOR_PALETTE[i % paletteLen];
-      const orb = this.scene.add.sprite(this.scene.player.x, this.scene.player.y, this.getSwordFlyTextureKey()).setDepth(11);
-      orb.setScale(scale).setAlpha(0.9).setTint(color);
-      this.swordRing.sprites.push({
-        sprite: orb,
-        baseAngle,
-        radius,
-        scale,
-        color,
-        speedMul: layer % 2 === 0 ? 1 : -0.82
-      });
-    }
-  }
-
-  clearSwordRingSprites() {
-    for (const item of this.swordRing.sprites) {
-      if (item?.sprite?.active) item.sprite.destroy();
-    }
-    this.swordRing.sprites = [];
-  }
-
-  ensureSwordRingReady(skillNow) {
-    if (skillNow < (this.swordRing.rebuildAt || 0)) return false;
-    if (this.swordRing.sprites.length !== SWORD_RING_COUNT) {
-      this.createSwordRingSprites();
-    }
-    return this.swordRing.sprites.length === SWORD_RING_COUNT;
-  }
-
-  updateSwordRingVisual(dt) {
-    if (!this.swordRing.sprites.length || this.scene.playerDead) {
-      if (this.scene.playerDead) this.clearSwordRingSprites();
-      return;
-    }
-    this.swordRing.orbitAngle += dt * SWORD_RING_ROTATE_SPEED;
-    const px = this.scene.player.x;
-    const py = this.scene.player.y;
-    for (const item of this.swordRing.sprites) {
-      const sp = item?.sprite;
-      if (!sp || !sp.active) continue;
-      const speedMul = item.speedMul ?? 1;
-      const radius = item.radius ?? SWORD_RING_RADIUS;
-      const a = this.swordRing.orbitAngle * speedMul + item.baseAngle;
-      sp.x = px + Math.cos(a) * radius;
-      sp.y = py + Math.sin(a) * radius;
-      sp.rotation = a + Math.PI * 0.5;
-    }
-  }
-
-  getSwordShotDamage(qDef) {
-    const lv = P.skillLevels?.[qDef.id] || 1;
-    const mult = 1 + (P.buff.atkBoost || 0);
-    const total = Math.round(this.getScaledPlayerDamageBase() * (qDef.baseDmg || 0.7) * (0.72 + lv * 0.06) * mult);
-    return Math.max(1, Math.round(total / SWORD_VOLLEY_COUNT));
-  }
-
   getVisibleEnemyCandidates(activeEnemies) {
     return (activeEnemies || []).filter((en) => this.isEnemyVisible(en));
   }
@@ -319,154 +173,39 @@ export class CombatSystem {
     return this.findNearestEnemyFrom(this.scene.player.x, this.scene.player.y, activeEnemies, range);
   }
 
-  fireOneRingSword(target, dmg, range, lifetime) {
-    if (!target || this.swordRing.sprites.length === 0) return false;
-    const idx = this.swordRing.nextOrbIndex % this.swordRing.sprites.length;
-    this.swordRing.nextOrbIndex += 1;
-    const ringNode = this.swordRing.sprites[idx];
-    const sx = ringNode?.sprite?.x ?? this.scene.player.x;
-    const sy = ringNode?.sprite?.y ?? this.scene.player.y;
-    const color = ringNode?.color || SWORD_COLOR_PALETTE[idx % SWORD_COLOR_PALETTE.length];
-    const angle = Phaser.Math.Angle.Between(sx, sy, target.x, target.y);
-    const proj = this.spawnProjectile('swordfly', angle, dmg, {
-      startX: sx,
-      startY: sy,
-      pierce: true,
-      homing: true,
-      turnRate: SWORD_TURN_RATE,
-      speed: SWORD_PROJECTILE_SPEED,
-      seekRadius: range,
-      maxHits: SWORD_MAX_HIT_COUNT,
-      customTint: color,
-      customTrailColor: color,
-      targetRef: target,
-      lifetime
-    });
-    if (!proj) return false;
-    if (ringNode?.sprite?.active) {
-      const baseScale = ringNode.scale ?? 0.42;
-      ringNode.sprite.setScale(baseScale * 1.25);
-      this.scene.tweens.add({
-        targets: ringNode.sprite,
-        scaleX: baseScale,
-        scaleY: baseScale,
-        duration: 120
-      });
-    }
-    this.scene.entityAnimationSystem?.playPlayerAttack(angle);
-    return true;
-  }
-
-  launchOrbitSwords(activeEnemies, dmg, range, lifetime) {
-    if (this.swordRing.sprites.length === 0) return;
-    const visible = this.getVisibleEnemyCandidates(activeEnemies);
-    const usedTargets = new Set();
-    for (const node of this.swordRing.sprites) {
-      const sp = node?.sprite;
-      if (!sp || !sp.active) continue;
-      const color = node?.color || SWORD_COLOR_PALETTE[0];
-      const target = this.findNearestEnemyFrom(sp.x, sp.y, visible, range, usedTargets);
-      if (target) usedTargets.add(target);
-      const tx = target?.x ?? (sp.x + Math.cos(sp.rotation - Math.PI * 0.5) * 220);
-      const ty = target?.y ?? (sp.y + Math.sin(sp.rotation - Math.PI * 0.5) * 220);
-      const angle = Phaser.Math.Angle.Between(sp.x, sp.y, tx, ty);
-      this.spawnProjectile('swordfly', angle, dmg, {
-        startX: sp.x,
-        startY: sp.y,
+  /** 发射一发追踪飞剑（齐射由 shots 参数控制；飞行速度受「追风」卡加成） */
+  shootSwordStorm(target, dmg, range, lifetime, color, shots = 1, spread = 0.07) {
+    if (!target || !this.isEnemyVisible(target)) return false;
+    const px = this.scene.player.x;
+    const py = this.scene.player.y;
+    const baseAngle = Phaser.Math.Angle.Between(px, py, target.x, target.y);
+    const speed = SWORD_PROJECTILE_SPEED + (P.mods?.swordSpeed || 0);
+    for (let i = 0; i < shots; i++) {
+      const angle = shots === 1 ? baseAngle : (baseAngle + (i / (shots - 1) - 0.5) * spread);
+      const proj = this.spawnProjectile('swordfly', angle, dmg, {
+        startX: px,
+        startY: py,
         pierce: true,
-        homing: !!target,
+        homing: true,
         turnRate: SWORD_TURN_RATE,
-        speed: SWORD_PROJECTILE_SPEED,
+        speed,
         seekRadius: range,
         maxHits: SWORD_MAX_HIT_COUNT,
         customTint: color,
         customTrailColor: color,
-        targetRef: target || null,
-        lifetime
-      });
-    }
-    this.clearSwordRingSprites();
-  }
-
-  shootSwordVolley(primaryTarget, totalDamage, qDef, activeEnemies) {
-    const targets = this.getSwordVolleyTargets(primaryTarget, activeEnemies, SWORD_VOLLEY_COUNT);
-    if (targets.length === 0) return;
-
-    const damages = this.splitDamage(totalDamage, SWORD_VOLLEY_COUNT);
-    const firstTarget = targets[0];
-    const centerAngle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, firstTarget.x, firstTarget.y);
-    const effectiveRange = this.getVisibleSwordRange();
-    const lifetime = Math.max(SWORD_MIN_LIFETIME, Math.round(effectiveRange * SWORD_RANGE_LIFETIME_FACTOR));
-
-    targets.forEach((target, idx) => {
-      const spreadOffset = SWORD_VOLLEY_COUNT === 1 ? 0 : (idx / (SWORD_VOLLEY_COUNT - 1) - 0.5) * SWORD_VOLLEY_SPREAD;
-      const launchAngle = Phaser.Math.Angle.Between(this.scene.player.x, this.scene.player.y, target.x, target.y) + spreadOffset;
-      const proj = this.spawnProjectile('swordfly', launchAngle, damages[idx] || 1, {
-        pierce: true,
-        homing: true,
-        turnRate: SWORD_TURN_RATE,
-        speed: SWORD_PROJECTILE_SPEED,
-        seekRadius: effectiveRange,
-        maxHits: SWORD_MAX_HIT_COUNT,
         targetRef: target,
         lifetime
       });
-    });
-
-    this.scene.entityAnimationSystem?.playPlayerAttack(centerAngle);
-  }
-
-  shootSwordStorm(target, dmg, range, lifetime, color, trailColor = color) {
-    if (!target || !this.isEnemyVisible(target)) return false;
-    const px = this.scene.player.x;
-    const py = this.scene.player.y;
-    const angle = Phaser.Math.Angle.Between(px, py, target.x, target.y);
-    const proj = this.spawnProjectile('swordfly', angle, dmg, {
-      startX: px,
-      startY: py,
-      pierce: true,
-      homing: true,
-      turnRate: SWORD_TURN_RATE,
-      speed: SWORD_PROJECTILE_SPEED,
-      seekRadius: range,
-      maxHits: SWORD_MAX_HIT_COUNT,
-      customTint: color,
-      customTrailColor: trailColor,
-      targetRef: target,
-      lifetime
-    });
-    if (!proj) return false;
-    this.scene.entityAnimationSystem?.playPlayerAttack(angle);
+      if (!proj) return false;
+    }
+    this.scene.entityAnimationSystem?.playPlayerAttack(baseAngle);
     return true;
   }
 
   getSwordStormInterval() {
-    const speedBoost = Math.max(0, P.buff.swordAtkSpeedBoost || 0);
-    const cooldownReduction = Math.min(0.45, Math.max(0, P.mods?.cooldownReduction || 0));
-    const interval = SWORD_STORM_INTERVAL * (1 - cooldownReduction) / (1 + speedBoost);
-    return Math.max(0.08, interval);
-  }
-
-  getBloodSwordColor() {
-    const color = P.buff.swordColor || 0;
-    return color > 0 ? color : null;
-  }
-
-  getBloodSwordTrailColor(fallbackColor) {
-    const trail = P.buff.swordTrailColor || 0;
-    return trail > 0 ? trail : fallbackColor;
-  }
-
-  tintActiveSwords(color, trailColor = color) {
-    if (!color) return;
-    this.scene.projectiles.children.iterate((proj) => {
-      if (!proj || !proj.active) return;
-      if (proj.getData('skillId') !== 'swordfly') return;
-      proj.setTint(color);
-      proj.setData('customTint', color);
-      proj.setData('customTrailColor', trailColor);
-      proj.setData('trailColor', trailColor);
-    });
+    const speedBoost = Math.max(0, P.mods.swordAtkSpeedBoost || 0);
+    const interval = SWORD_STORM_INTERVAL / (1 + speedBoost);
+    return Math.max(0.12, interval);
   }
 
   recallSwordProjectiles() {
@@ -514,7 +253,6 @@ export class CombatSystem {
   }
 
   updateSwordProjectiles(dt) {
-    if (this.swordRing?.sprites?.length) this.clearSwordRingSprites();
     const nowMs = this.scene.time.now;
     this.scene.projectiles.children.iterate((proj) => {
       if (!proj || !proj.active) return;
@@ -638,10 +376,6 @@ export class CombatSystem {
         this.damageEnemy(en, dmg, def.id);
         if (def.freeze) en.setData('freezeTimer', def.freeze);
         else if (def.slow) en.setData('slowTimer', 2.5);
-        else if (def.id === 'tornado') {
-          const pull = new Phaser.Math.Vector2(tx - en.x, ty - en.y);
-          if (pull.length() > 1) { pull.normalize().scale(80); en.x += pull.x * 0.15; en.y += pull.y * 0.15; }
-        }
       }
     });
   }
@@ -822,7 +556,7 @@ export class CombatSystem {
     const damageTickMs = CRIMSON_LASER_DAMAGE_TICK_MS;
     const damageTickCount = Math.max(1, Math.ceil(durationMs / damageTickMs));
     const perTickDamage = Math.max(1, Math.round(totalDamage / damageTickCount));
-    const skillId = def?.id || 'hailstorm';
+    const skillId = def?.id || 'laser';
     const beamColor = def?.color || 0xff1f1f;
     let focusSeed = initialTargets[0];
     let seedBest = Infinity;
@@ -900,7 +634,7 @@ export class CombatSystem {
     const launchFromY = this.scene.player.y;
     const impactX = focusSeed?.x ?? launchFromX;
     const impactY = focusSeed?.y ?? launchFromY;
-    const impactDef = { ...def, id: 'hailstorm', color: beamColor };
+    const impactDef = { ...def, id: 'laser', color: beamColor };
     this.crimsonLaserState.pendingLaunch = true;
 
     const onImpact = (ix, iy) => {
@@ -925,30 +659,12 @@ export class CombatSystem {
     return true;
   }
 
-  doRectDomainSkill(cx, cy, length, width, rotation, dmg, def) {
-    const halfLength = Math.max(30, length * 0.5);
-    const halfWidth = Math.max(18, width * 0.5);
-    const cosA = Math.cos(rotation);
-    const sinA = Math.sin(rotation);
-    this.scene.enemies.children.iterate((en) => {
-      if (!en || en.getData('dead')) return;
-      const dx = en.x - cx;
-      const dy = en.y - cy;
-      const localX = dx * cosA + dy * sinA;
-      const localY = -dx * sinA + dy * cosA;
-      if (Math.abs(localX) <= halfLength && Math.abs(localY) <= halfWidth) {
-        this.damageEnemy(en, dmg, def.id);
-        if (def.freeze) en.setData('freezeTimer', def.freeze);
-        else if (def.slow) en.setData('slowTimer', 2.5);
-      }
-    });
-  }
-
   getVisibleSwordRange() {
     const view = this.scene?.cameras?.main?.worldView;
     if (!view) return 360;
     const halfDiagonal = Math.sqrt(view.width * view.width + view.height * view.height) * 0.5;
-    return Math.max(320, Math.round(halfDiagonal + 80));
+    const range = Math.max(320, Math.round(halfDiagonal + 80));
+    return Math.round(range * (1 + (P.mods?.rangeBoost || 0)));
   }
 
   findNearestSkillTarget(activeEnemies, range) {
@@ -971,14 +687,10 @@ export class CombatSystem {
   castElementDomain(target, def, dmg) {
     const { scene } = this;
 
-    if (def.id === 'hailstorm') {
-      return;
-    }
-
     if (!target) return;
 
     const spreadRadius = Math.round((def.aoeRadius || 140) * 1.18);
-    const duration = 8;
+    const duration = def.duration || 8;
     const impactDef = { ...def, aoeRadius: spreadRadius, duration };
     const impactX = target.x;
     const impactY = target.y;
@@ -988,9 +700,7 @@ export class CombatSystem {
     const onImpact = (ix, iy) => {
       const burstDamage = Math.max(1, Math.round(dmg * 0.45));
       this.doDomainSkill(ix, iy, burstDamage, impactDef);
-      if (def.id === 'firedomain') {
-        scene.groundEffectSystem?.addFireField(ix, iy, dmg, duration, spreadRadius);
-      } else if (def.id === 'thunder') {
+      if (def.id === 'thunder') {
         scene.groundEffectSystem?.addThunderField(ix, iy, spreadRadius, Math.max(1, Math.round(dmg * 0.95)), duration);
       }
     };
@@ -1002,26 +712,15 @@ export class CombatSystem {
     }
   }
 
-  /* ---- 伤害 / 掉落 / 死亡结算（核心逻辑位于 ./damage.js） ---- */
+  /* ---- 伤害 / 战败结算（核心逻辑位于 ./damage.js） ---- */
   onProjHit(proj, en) { onProjHit(this.scene, proj, en); }
   onEnemyProjHit(proj) { onEnemyProjHit(this.scene, proj); }
   onEnemyContact(en) { onEnemyContact(this.scene, en); }
   damageEnemy(en, dmg, skillId) { damageEnemy(this.scene, en, dmg, skillId); }
 
+  /** 普攻飞剑：自动索敌连射，弹道数 = 1 + 分身卡层数 */
   useAutoAttack(skillNow, closestQ, activeEnemies, qDef) {
-    if (qDef.id !== 'swordfly') {
-      if (skillNow >= (this.scene.skillCooldowns[qDef.id] || 0) && closestQ) {
-        const qCD = (qDef.cooldown || 0.7) * (1 - Math.min(0.45, P.mods?.cooldownReduction || 0));
-        this.scene.skillCooldowns[qDef.id] = skillNow + qCD;
-        const lv = P.skillLevels?.[qDef.id] || 1;
-        const mult = 1 + (P.buff.atkBoost || 0);
-        const dmg = Math.round(this.getScaledPlayerDamageBase() * (qDef.baseDmg || 0.7) * (0.72 + lv * 0.06) * mult);
-        this.shootSwordVolley(closestQ, dmg, qDef, activeEnemies);
-        this.scene.showSkillName(qDef.name, qDef.color);
-      }
-      return;
-    }
-
+    const volleyCount = 1 + (P.mods?.multiShot || 0);
     const qCD = qDef.cooldown || 0.7;
     const range = this.getVisibleSwordRange();
     const visibleTargets = this.getVisibleEnemyCandidates(activeEnemies);
@@ -1031,26 +730,20 @@ export class CombatSystem {
       return;
     }
 
-    if (this.swordRing?.sprites?.length) this.clearSwordRingSprites();
     if (!this.swordStorm.nextFireAt) this.swordStorm.nextFireAt = skillNow;
     if (skillNow < this.swordStorm.nextFireAt) return;
     const swordInterval = this.getSwordStormInterval();
 
-    const lv = P.skillLevels?.[qDef.id] || 1;
-    const mult = 1 + (P.buff.atkBoost || 0);
-    const totalDamage = Math.round(this.getScaledPlayerDamageBase() * (qDef.baseDmg || 0.7) * (0.72 + lv * 0.06) * mult);
-    const perSwordDamage = Math.max(1, Math.round(totalDamage / SWORD_VOLLEY_COUNT));
+    const totalDamage = Math.round(this.getScaledPlayerDamageBase() * (qDef.baseDmg || 0.7) * (0.72 + 1 * 0.06));
+    const perSwordDamage = Math.max(1, Math.round(totalDamage / volleyCount));
     const lifetime = Math.max(SWORD_MIN_LIFETIME, Math.round(range * SWORD_RANGE_LIFETIME_FACTOR));
     const target = this.pickSwordTarget(closestQ, visibleTargets, range);
     if (target) {
-      const bloodColor = this.getBloodSwordColor();
-      const color = bloodColor || SWORD_COLOR_PALETTE[this.swordStorm.colorIndex % SWORD_COLOR_PALETTE.length];
-      const trailColor = this.getBloodSwordTrailColor(color);
-      const fired = this.shootSwordStorm(target, perSwordDamage, range, lifetime, color, trailColor);
+      const color = SWORD_COLOR_PALETTE[this.swordStorm.colorIndex % SWORD_COLOR_PALETTE.length];
+      const fired = this.shootSwordStorm(target, perSwordDamage, range, lifetime, color, volleyCount);
       if (fired) {
-        if (!bloodColor) this.swordStorm.colorIndex++;
+        this.swordStorm.colorIndex++;
         this.swordStorm.nextFireAt = skillNow + swordInterval;
-        this.scene.showSkillName(qDef.name, qDef.color);
       } else {
         this.swordStorm.nextFireAt = skillNow + swordInterval;
       }
@@ -1059,167 +752,81 @@ export class CombatSystem {
     this.scene.skillCooldowns[qDef.id] = this.swordStorm.nextFireAt || (skillNow + qCD);
   }
 
-  useManualSkills(skillNow, activeEnemies) {
+  /** 抽卡技能自动轮转：CD 到且有目标就施放 */
+  useOwnedSkills(skillNow, activeEnemies) {
     const { scene } = this;
-    for (let si = 1; si < 5; si++) {
-      const def = SKILL_DEFS.find(s => s.id === P.hotbar[si]?.id);
-      if (!def || def.type === 'basic') continue;
-      if (skillNow < (scene.skillCooldowns[def.id] || 0)) continue;
-      const cd = (def.cooldown || 2) * (1 - Math.min(0.45, P.mods?.cooldownReduction || 0));
+    for (const skillId of P.skills) {
+      const card = SKILL_CARDS.find(c => c.id === skillId);
+      if (!card) continue;
+      if (skillNow < (scene.skillCooldowns[skillId] || 0)) continue;
+      const cd = (card.cooldown || 3) * (1 - Math.min(0.45, P.mods?.cooldownReduction || 0));
+      const lv = P.skillLevels?.[skillId] || 1;
+      const lvMult = 1 + (lv - 1) * 0.18;
+      const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * (card.baseDmg || 1) * lvMult));
 
-      if (def.type === 'heal') {
-        scene.skillCooldowns[def.id] = skillNow + cd;
-        const healPct = Math.max(0, def.healPct || 0.1);
-        const healValue = Math.max(1, Math.round(P.maxHp * healPct));
-        const beforeHp = P.hp;
-        P.hp = Math.min(P.maxHp, P.hp + healValue);
-        const actualHeal = Math.max(0, P.hp - beforeHp);
-        scene.skillEffects?.onBuffCast(def.color || 0x66d98f);
-        scene.showSkillName(def.name, def.color || 0x66d98f);
-        if (actualHeal > 0) {
-          scene.textPool.show(scene.player.x, scene.player.y - 36, '+' + actualHeal, {
-            fontSize: '18px',
-            color: '#6de27a',
-            stroke: '#000',
-            strokeThickness: 2,
-            depth: 20,
-            floatDist: 34,
-            duration: 760
-          });
-        }
-        bus.emit('hud-refresh');
-      } else if (def.type === 'shield') {
-        scene.skillCooldowns[def.id] = skillNow + cd;
-        P.buff.shieldPct = def.shieldPct || 0;
-        P.buffTimer = Math.max(P.buffTimer, def.duration || 5);
-        scene.shieldReflect = def.reflectDmg || 0;
-        if (scene.buffSystem) scene.buffSystem.createShieldVisual(def.color || 0xffd700);
-        scene.skillEffects?.onShieldCast(def.color || 0xffd700);
-        scene.showSkillName(def.name, def.color || 0xffd700);
-        bus.emit('status', def.name + ' 护体!', 1.5);
-      } else if (def.type === 'buff') {
-        scene.skillCooldowns[def.id] = skillNow + cd;
-        if (def.speedBoost) P.buff.speedBoost = def.speedBoost;
-        if (def.atkBoost) P.buff.atkBoost = def.atkBoost;
-        if (def.rangeBoost) P.buff.rangeBoost = def.rangeBoost;
-        if (def.shieldPct) P.buff.shieldPct = def.shieldPct;
-        if (def.swordAtkSpeedBoost != null) P.buff.swordAtkSpeedBoost = Math.max(0, def.swordAtkSpeedBoost);
-        if (def.lifestealPct != null) P.buff.lifestealPct = Math.max(0, def.lifestealPct);
-        if (def.swordColor != null) P.buff.swordColor = def.swordColor;
-        if (def.swordTrailColor != null) P.buff.swordTrailColor = def.swordTrailColor;
-        P.buffTimer = Math.max(P.buffTimer, def.duration || 5);
-        if (P.buff.swordColor > 0) {
-          this.tintActiveSwords(P.buff.swordColor, P.buff.swordTrailColor || P.buff.swordColor);
-        }
-        scene.skillEffects?.onBuffCast(def.color || 0x66ffcc);
-        scene.showSkillName(def.name, def.color || 0x66ffcc);
-        bus.emit('status', def.name + ' 激活!', 1.5);
-      } else if (def.type === 'ground') {
-        if (def.id === 'firedomain') {
-          const visibleTargets = this.getVisibleEnemyCandidates(activeEnemies);
-          if (!visibleTargets.length) continue;
-          scene.skillCooldowns[def.id] = skillNow + cd;
-          const lv = P.skillLevels?.[def.id] || 1;
-          const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (lv - 1) * 0.1)));
-          if (this.castGrowingFireball(dmg, visibleTargets)) {
-            scene.showSkillName(def.name, def.color || 0xc95f36);
+      switch (card.type) {
+        case 'projectile': {
+          const target = this.findNearestSkillTarget(activeEnemies, this.getVisibleSwordRange());
+          if (!target) continue;
+          scene.skillCooldowns[skillId] = skillNow + cd;
+          if (!this.castGiantSwordStrike(target, dmg, { id: skillId, color: card.color })) {
+            scene.skillCooldowns[skillId] = skillNow;
+            continue;
           }
-        } else {
-          const target = this.findNearestSkillTarget(activeEnemies, def.range || 220);
-          if (target) {
-            scene.skillCooldowns[def.id] = skillNow + cd;
-            const lv = P.skillLevels?.[def.id] || 1;
-            const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (lv - 1) * 0.08)));
-            scene.groundEffectSystem?.addFireField(target.x, target.y, dmg, def.duration || 10, def.aoeRadius || 95);
-            scene.skillEffects?.onDomainCast(target.x, target.y, { ...def, id: 'firedomain' });
-            scene.showSkillName(def.name, def.color || 0xff8844);
-          }
+          this.scene.showSkillName(card.name, card.color);
+          break;
         }
-      } else if (def.type === 'domain') {
-        if (def.id === 'hailstorm') {
+        case 'fireball': {
+          if (!this.castGrowingFireball(dmg, activeEnemies)) continue;
+          scene.skillCooldowns[skillId] = skillNow + cd;
+          this.scene.showSkillName(card.name, card.color);
+          break;
+        }
+        case 'thunder': {
+          const target = this.findNearestSkillTarget(activeEnemies, card.aoeRadius || 260);
+          if (!target) continue;
+          scene.skillCooldowns[skillId] = skillNow + cd;
+          this.castElementDomain(target, { id: 'thunder', aoeRadius: card.aoeRadius || 260, duration: card.duration || 4, color: card.color }, dmg);
+          this.scene.showSkillName(card.name, card.color);
+          break;
+        }
+        case 'laser': {
           if (!activeEnemies?.length) continue;
-          const dlv = P.skillLevels?.[def.id] || 1;
-          const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.16)));
-          const casted = this.castCrimsonLaserBarrage(activeEnemies, dmg, def);
-          if (!casted) continue;
-          scene.skillCooldowns[def.id] = skillNow + cd;
-          scene.showSkillName(def.name, def.color || 0xff2a2a);
-          continue;
+          scene.skillCooldowns[skillId] = skillNow + cd;
+          this.castCrimsonLaserBarrage(activeEnemies, dmg, { id: 'laser', duration: card.duration || 2.5, color: card.color || 0xff2a2a });
+          this.scene.showSkillName(card.name, card.color);
+          break;
         }
-        if (def.id === 'thunder') {
-          const dTarget = this.findNearestSkillTarget(activeEnemies, def.range || 260);
-          if (dTarget) {
-            scene.skillCooldowns[def.id] = skillNow + cd;
-            const dlv = P.skillLevels?.[def.id] || 1;
-            const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.1)));
-            this.castElementDomain(dTarget, def, dmg);
-            scene.showSkillName(def.name, def.color || 0xffdd00);
-          }
-          continue;
+        case 'frost': {
+          const target = this.findNearestSkillTarget(activeEnemies, card.aoeRadius || 150);
+          if (!target) continue;
+          scene.skillCooldowns[skillId] = skillNow + cd;
+          scene.groundEffectSystem?.addFrostField(target.x, target.y, card.aoeRadius || 150, dmg, card.duration || 6, 1.2);
+          this.doDomainSkill(target.x, target.y, Math.round(dmg * 0.4), { ...card, id: 'frost' });
+          this.scene.showSkillName(card.name, card.color);
+          break;
         }
-        if (def.selfCenter) {
-          const aoeR2 = (def.aoeRadius || 260) * (def.aoeRadius || 260);
-          let hasTarget = false;
-          for (const en of activeEnemies) {
-            const dx = en.x - scene.player.x, dy = en.y - scene.player.y;
-            if (dx * dx + dy * dy <= aoeR2) { hasTarget = true; break; }
+        case 'heal': {
+          if (P.hp >= P.maxHp) continue;
+          scene.skillCooldowns[skillId] = skillNow + cd;
+          const healValue = Math.max(1, Math.round(P.maxHp * (card.healPct || 0.3)));
+          const beforeHp = P.hp;
+          P.hp = Math.min(P.maxHp, P.hp + healValue);
+          scene.skillEffects?.onBuffCast(card.color || 0x66d98f);
+          this.scene.showSkillName(card.name, card.color || 0x66d98f);
+          if (P.hp > beforeHp) {
+            scene.textPool.show(scene.player.x, scene.player.y - 36, '+' + (P.hp - beforeHp), {
+              fontSize: '18px',
+              color: '#6de27a',
+              stroke: '#000',
+              strokeThickness: 2,
+              depth: 20,
+              floatDist: 34,
+              duration: 760
+            });
           }
-          if (hasTarget) {
-            scene.skillCooldowns[def.id] = skillNow + cd;
-            const dlv = P.skillLevels?.[def.id] || 1;
-            const dmg = Math.max(1, Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.08)));
-            scene.groundEffectSystem?.addThunderField(scene.player.x, scene.player.y, def.aoeRadius || 300, dmg, def.duration || 5);
-            scene.skillEffects?.onDomainCast(scene.player.x, scene.player.y, def);
-            scene.showSkillName(def.name, def.color || 0xffdd00);
-          }
-          continue;
-        }
-        const dRange = def.range || 200, dR2 = dRange * dRange;
-        let dTarget = null, dBest = Infinity;
-        for (const en of activeEnemies) {
-          const dx = en.x - scene.player.x, dy = en.y - scene.player.y, d2 = dx * dx + dy * dy;
-          if (d2 < dR2 && d2 < dBest) { dBest = d2; dTarget = en; }
-        }
-        if (dTarget) {
-          let cnt = 0;
-          const aoeR2 = (def.aoeRadius || 130) * (def.aoeRadius || 130);
-          for (const en of activeEnemies) {
-            const dx = en.x - dTarget.x, dy = en.y - dTarget.y;
-            if (dx * dx + dy * dy <= aoeR2) cnt++;
-          }
-          if (cnt >= 2 || def.freeze) {
-            scene.skillCooldowns[def.id] = skillNow + cd;
-            const dlv = P.skillLevels?.[def.id] || 1;
-            const dmg = Math.round(this.getScaledPlayerDamageBase() * def.baseDmg * (1 + (dlv - 1) * 0.18));
-            this.doDomainSkill(dTarget.x, dTarget.y, dmg, def);
-            scene.showSkillName(def.name, def.color || 0xffdd00);
-          }
-        }
-      } else {
-        let target = null, bestD2 = Infinity;
-        const sRange = (def.range || 200) * (1 + (P.buff.rangeBoost || 0));
-        const sR2 = sRange * sRange;
-        for (const en of activeEnemies) {
-          const dx = en.x - scene.player.x, dy = en.y - scene.player.y, d2 = dx * dx + dy * dy;
-          if (d2 < sR2 && d2 < bestD2) { bestD2 = d2; target = en; }
-        }
-        if (target) {
-          scene.skillCooldowns[def.id] = skillNow + cd;
-          const angle = Phaser.Math.Angle.Between(scene.player.x, scene.player.y, target.x, target.y);
-          const lv = P.skillLevels?.[def.id] || 1;
-          const mult = 1 + (P.buff.atkBoost || 0);
-          const dmg = Math.round(this.getScaledPlayerDamageBase() * (def.baseDmg || 1) * (1 + (lv - 1) * 0.18) * mult);
-          if (def.id === 'firedomain') {
-            if (!this.castGiantSwordStrike(target, dmg, def)) {
-              scene.skillCooldowns[def.id] = skillNow;
-              continue;
-            }
-          } else if (def.type === 'multi') {
-            this.doMultiProjectile(angle, dmg, def.count || 3, def.range, def.texture);
-          } else {
-            this.shootProjectile(def.id, angle, dmg, def.range);
-          }
-          scene.showSkillName(def.name, def.color || 0xffdd00);
+          bus.emit('hud-refresh');
+          break;
         }
       }
     }

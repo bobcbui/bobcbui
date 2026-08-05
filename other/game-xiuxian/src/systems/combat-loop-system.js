@@ -1,32 +1,28 @@
-/* 战斗主循环：弹丸更新 -> 领域/Buff -> AI 遍历 -> 自动/手动技能 */
+/* 战斗主循环：弹丸更新 -> 领域/Buff -> AI 遍历 -> 普攻飞剑 + 抽卡技能轮转 */
 
-import { P } from '@/core/state.js';
-import { SKILL_DEFS } from '@/data/index.js';
+import { SWORDFLY_DEF } from '@/systems/combat-system.js';
 
 export class CombatLoopSystem {
   constructor(scene) {
     this.scene = scene;
   }
 
-  update(dt, time, inSafe) {
+  update(dt, time) {
     const { scene } = this;
     scene.combatSystem.updateSwordProjectiles(dt);
     scene.skillEffects?.updateProjectileTrails();
-    scene.updateFireballFields();
     scene.groundEffectSystem?.update(dt);
     scene.buffSystem.update(dt);
 
     const skillNow = time / 1000;
-    const qDef = SKILL_DEFS.find(s => s.id === P.hotbar[0]?.id) ||
-      SKILL_DEFS.find(s => s.id === 'swordfly');
+    const qDef = SWORDFLY_DEF;
     const qRange = this.getAutoAttackRange(qDef);
     const qR2 = qRange * qRange;
     const { closestQ, activeEnemies } = scene.aiSystem.update(dt, skillNow, qRange, qR2);
-    scene.sceneEffectsSystem?.update(dt, scene.getCurrentZone());
 
-    if (scene.playerDead || inSafe) return;
+    if (scene.playerDead || scene.runPaused) return;
     scene.combatSystem.useAutoAttack(skillNow, closestQ, activeEnemies, qDef);
-    scene.combatSystem.useManualSkills(skillNow, activeEnemies);
+    scene.combatSystem.useOwnedSkills(skillNow, activeEnemies);
   }
 
   getAutoAttackRange(qDef) {
@@ -35,9 +31,6 @@ export class CombatLoopSystem {
     const visibleRange = view
       ? Math.sqrt(view.width * view.width + view.height * view.height) * 0.5 + 80
       : (qDef.range || 280);
-    if (qDef.id === 'swordfly') {
-      return Math.max(qDef.range || 280, visibleRange);
-    }
-    return (qDef.range || 280) * (1 + (P.buff.rangeBoost || 0));
+    return Math.max(qDef.range || 280, visibleRange);
   }
 }

@@ -10,7 +10,7 @@ import {
 } from '@/core/state.js';
 import { bus } from '@/core/events.js';
 import { getEl } from '@/core/dom.js';
-import { updateHotbarCooldowns } from '@/ui/index.js';
+import { updateHUD } from '@/ui/index.js';
 
 export class UiTickSystem {
   constructor(scene) {
@@ -55,9 +55,6 @@ export class UiTickSystem {
     if (this.hudTick <= 6) return;
     this.hudTick = 0;
     bus.emit('hud-refresh');
-    bus.emit('hotbar-refresh');
-    updateHotbarCooldowns();
-    this.scene.updateZoneLabel();
   }
 
   updateAchievements(time, dt) {

@@ -1,4 +1,4 @@
-/* 入口：启动九天仙途 */
+/* 入口：启动百世修仙 */
 
 import { boot } from '@/app/bootstrap.js';
 
