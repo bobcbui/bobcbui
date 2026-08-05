@@ -5,192 +5,181 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>百世修仙 - 文字修仙世界</title>
-<link rel="stylesheet" href="resources/style.css">
-<script src="lib/phaser.min.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "@/": "./src/"
-  }
-}
-</script>
+<title>百世修仙</title>
+<link rel="stylesheet" href="resources/home.css">
 <script>
 window.xiuxianHome = () => ({
   activeTab: 'stage',
   settingsOpen: false,
   selectedStage: 1,
-  maxStage: 1,
+  maxClearedStage: 0,
   totalLevel: 1,
   totalXp: 0,
   totalXpToNext: 40,
-  stageInfo: '',
-  toggleSettings() { this.settingsOpen = !this.settingsOpen; },
-  switchTab(tab) {
-    this.activeTab = tab;
-    window.XiuxianMenuBridge?.menuTab(tab);
+  inventoryCount: 0,
+  saveNotice: '',
+
+  init() {
+    try {
+      const raw = localStorage.getItem('xiuxian_save');
+      const save = raw ? JSON.parse(raw) : {};
+      this.maxClearedStage = Math.max(0, Number(save.maxClearedStage) || 0);
+      const preferredStage = Number(localStorage.getItem('xiuxian_selected_stage')) || Number(save.selectedStage) || 1;
+      this.selectedStage = Math.max(1, Math.min(preferredStage, this.maxClearedStage + 1));
+      this.totalLevel = Math.max(1, Number(save.totalLevel) || 1);
+      this.totalXp = Math.max(0, Number(save.totalXp) || 0);
+      this.totalXpToNext = Math.max(1, Number(save.totalXpToNext) || 40);
+      this.inventoryCount = Array.isArray(save.inventory) ? save.inventory.length : 0;
+    } catch (error) {
+      console.warn('存档读取失败，使用默认数据', error);
+    }
   },
-  previousStage() { window.XiuxianMenuBridge?.prevStage(); },
-  nextStage() { window.XiuxianMenuBridge?.nextStage(); },
-  enterStage() { window.XiuxianMenuBridge?.enterStage(); }
+
+  get maxStage() { return this.maxClearedStage + 1; },
+  get stageStrength() { return (1 + (this.selectedStage - 1) * 0.35).toFixed(2); },
+  get xpPercent() { return Math.min(100, this.totalXp / this.totalXpToNext * 100); },
+  get stageName() {
+    return ['青云山门', '落霞谷', '寒月湖', '赤炎窟', '万剑峰'][Math.min(this.selectedStage - 1, 4)] || '无名试炼地';
+  },
+  get stageMonsters() {
+    return [
+      '灵兔 · 野狗 · 毒蜂',
+      '妖狼 · 石傀 · 冰魄',
+      '炎魔 · 影魔 · 剑灵',
+      '雷兽 · 剑灵 · 炎魔',
+      '精英妖兽 · 守关妖王'
+    ][Math.min(this.selectedStage - 1, 4)] || '高阶妖兽';
+  },
+
+  previousStage() {
+    if (this.selectedStage > 1) this.selectedStage--;
+  },
+  nextStage() {
+    if (this.selectedStage < this.maxStage) this.selectedStage++;
+  },
+  enterStage() {
+    localStorage.setItem('xiuxian_selected_stage', String(this.selectedStage));
+    window.location.href = 'battle.html?stage=' + encodeURIComponent(this.selectedStage);
+  },
+  toggleSettings() { this.settingsOpen = !this.settingsOpen; },
+  setTab(tab) { this.activeTab = tab; },
+  showNotice(message) {
+    this.saveNotice = message;
+    window.clearTimeout(this.noticeTimer);
+    this.noticeTimer = window.setTimeout(() => { this.saveNotice = ''; }, 1600);
+  },
+  exportSave() {
+    const data = localStorage.getItem('xiuxian_save') || '{}';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    link.download = 'xiuxian_save.json';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    this.showNotice('存档已导出');
+  },
+  resetSave() {
+    if (!window.confirm('确定要清除所有存档并重置游戏？')) return;
+    localStorage.removeItem('xiuxian_save');
+    window.location.reload();
+  }
 });
 </script>
 <script defer src="lib/alpine.min.js"></script>
 </head>
 <body>
-<div id="gameWrap">
-<canvas id="gameCanvas"></canvas>
-
-<div class="ui-layer">
-  <!-- 局内 HUD -->
-  <div id="hud" class="panel">
-    <div class="flex-between">
-      <span>第 <strong id="stageText">1</strong> 关</span>
-      <span>波次 <span id="waveCounter">0/5</span></span>
-    </div>
-    <div class="bar-wrap"><span class="label">●</span><div class="bar-bg"><div id="hpFill" class="bar-fill"></div></div><span class="bar-text" id="hpText">100/100</span></div>
-    <div class="bar-wrap"><span class="label">★</span><div class="bar-bg"><div id="xpFill" class="bar-fill"></div></div><span class="bar-text" id="xpText">0/5</span></div>
-    <div class="flex-between mt8">
-      <span>Lv.<span id="levelText">1</span></span>
-      <span>击杀 <strong id="killText">0</strong></span>
-      <span>总等级 <strong id="totalLevelText">1</strong></span>
-    </div>
-    <div id="cardsHud"></div>
-  </div>
-  <div id="wallHud" class="panel" aria-label="城墙生命值">
-    <div class="wall-hud-title"><span>🧱 城墙</span><span id="wallHpText">100/100</span></div>
-    <div class="bar-bg"><div id="wallHpFill" class="bar-fill"></div></div>
-  </div>
-
-  <div id="battleLoading" class="battle-loading hidden">
-    <div class="battle-loading-box panel">
-      <div class="loading-spinner" aria-hidden="true"></div>
-      <div id="battleLoadingText">正在进入关卡...</div>
-    </div>
-  </div>
-
-  <!-- Status -->
-  <div id="status">消息</div>
-  <!-- Loot popup -->
-  <div id="loot-popup" class="panel"></div>
-
-  <!-- 主页（微信式布局：顶导航栏 / 等级条 / 列表内容 / 底部 tab） -->
-  <div id="mainMenu" x-data="xiuxianHome()" x-cloak>
-    <div id="menu-topbar">
-      <!-- 顶部导航栏 -->
-      <div id="app-bar">
-        <span id="app-title">百世修仙</span>
+<main class="home-shell" x-data="xiuxianHome()" x-init="init()" x-cloak>
+  <header class="home-header">
+    <div class="brand-block">
+      <span class="brand-mark">✦</span>
+      <div>
+        <strong>百世修仙</strong>
+        <small>文字修仙世界</small>
       </div>
-
-      <!-- 等级条（微信个人信息横条风格） -->
-      <div id="level-bar" class="panel">
-        <span class="level-label">总等级 <strong id="menuTotalLevel" x-text="totalLevel">1</strong></span>
-        <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
-        <span id="menuTotalXpText" x-text="totalXp + '/' + totalXpToNext">0/40</span>
-        <span class="level-max">通关 <strong id="menuMaxStage" x-text="maxStage - 1">0</strong></span>
-      </div>
-      <button class="btn btn-sec app-settings top-settings" type="button" @click="toggleSettings()" aria-label="设置">⚙️</button>
     </div>
 
-    <!-- 加载区（启动时） -->
-    <div id="loading-area">
-      <div id="loading-bar-wrap" class="hidden">
-        <div id="loading-bar-fill"></div>
+    <div class="progress-block">
+      <span>总等级 <b x-text="totalLevel">1</b></span>
+      <div class="xp-line">
+        <div class="xp-track"><i :style="`width:${xpPercent}%`"></i></div>
+        <em x-text="totalXp + '/' + totalXpToNext">0/40</em>
       </div>
-      <div id="loading-text"></div>
     </div>
 
-    <!-- 内容区（微信列表风格） -->
-    <div id="menu-content">
-      <div id="page-stage" class="menu-page" x-show="activeTab === 'stage'">
-        <div id="selStageInfo" class="stage-info" x-text="stageInfo"></div>
-        <div class="stage-card-track" aria-label="关卡选择">
-          <button id="prevStageCard" class="stage-card stage-card-side" type="button" :disabled="selectedStage <= 1" @click="previousStage()" aria-label="上一关">
-            <span>上一关</span>
-          </button>
-          <button class="stage-card stage-card-current" type="button" @click="enterStage()" aria-label="进入当前关卡">
-            <span class="stage-card-current-content">
-              <small>当前关卡</small>
-              <strong x-text="'第 ' + selectedStage + ' 关'">第 1 关</strong>
-              <em>点击进入</em>
-            </span>
-          </button>
-          <button id="nextStageCard" class="stage-card stage-card-side" type="button" :disabled="selectedStage >= maxStage" @click="nextStage()" aria-label="下一关">
-            <span>下一关</span>
-          </button>
+    <button class="icon-button" type="button" @click="toggleSettings()" aria-label="设置">⚙</button>
+  </header>
+
+  <section class="home-content">
+    <div class="tab-page" x-show="activeTab === 'stage'">
+      <div class="stage-overview">
+        <div class="stage-overview-top">
+          <span class="eyebrow">第 <b x-text="selectedStage">1</b> 关 · 修行试炼</span>
+          <span class="clear-count">已通关 <b x-text="maxClearedStage">0</b></span>
+        </div>
+        <h1 x-text="stageName">青云山门</h1>
+        <p>守住城墙，击退五波妖兽侵袭。</p>
+        <div class="monster-info">
+          <span>本关怪物</span>
+          <strong x-text="stageMonsters">灵兔 · 野狗 · 毒蜂</strong>
         </div>
       </div>
 
-      <div id="page-equip" class="menu-page" x-show="activeTab === 'equip'">
-        <div id="equipList" class="equip-list"></div>
+      <div class="stage-switcher">
+        <button class="stage-neighbor" type="button" @click="previousStage()" :disabled="selectedStage <= 1">
+          <span class="stage-arrow">‹</span>
+          <span>上一关</span>
+        </button>
+
+        <button class="stage-main" type="button" @click="enterStage()">
+          <span class="stage-ribbon">当前关卡</span>
+          <strong x-text="'第 ' + selectedStage + ' 关'">第 1 关</strong>
+          <small>怪物强度 ×<b x-text="stageStrength">1.00</b></small>
+          <em>点击进入试炼</em>
+        </button>
+
+        <button class="stage-neighbor" type="button" @click="nextStage()" :disabled="selectedStage >= maxStage">
+          <span>下一关</span>
+          <span class="stage-arrow">›</span>
+        </button>
       </div>
 
-      <div id="page-skill" class="menu-page" x-show="activeTab === 'skill'">
-        <div id="skillPageList" class="skill-page-list"></div>
-      </div>
-
-      <div id="page-activity" class="menu-page" x-show="activeTab === 'activity'">
-        <div id="activityPageList" class="activity-page-list"></div>
-      </div>
+      <p class="stage-tip">每关五波敌袭，守住城墙即可通关</p>
     </div>
 
-    <!-- 底部 tab（微信式：图标 + 文字） -->
-    <div id="menu-tabs">
-      <button class="menu-tab" id="menu-tab-stage" type="button" :class="{ active: activeTab === 'stage' }" @click="switchTab('stage')">
-        <span class="menu-tab-icon">🗡️</span><span class="menu-tab-label">关卡</span>
-      </button>
-      <button class="menu-tab" id="menu-tab-equip" type="button" :class="{ active: activeTab === 'equip' }" @click="switchTab('equip')">
-        <span class="menu-tab-icon">🛡️</span><span class="menu-tab-label">装备</span>
-      </button>
-      <button class="menu-tab" id="menu-tab-skill" type="button" :class="{ active: activeTab === 'skill' }" @click="switchTab('skill')">
-        <span class="menu-tab-icon">📖</span><span class="menu-tab-label">技能</span>
-      </button>
-      <button class="menu-tab" id="menu-tab-activity" type="button" :class="{ active: activeTab === 'activity' }" @click="switchTab('activity')">
-        <span class="menu-tab-icon">🎁</span><span class="menu-tab-label">活动</span>
-      </button>
+    <div class="tab-page list-page" x-show="activeTab === 'equip'">
+      <div class="page-heading"><div><span class="eyebrow">灵器收藏</span><h1>装备</h1></div></div>
+      <div class="empty-card"><span>🛡️</span><strong>装备将在战斗后获得</strong><small>当前背包 <b x-text="inventoryCount">0</b> 件</small></div>
     </div>
 
+    <div class="tab-page list-page" x-show="activeTab === 'skill'">
+      <div class="page-heading"><div><span class="eyebrow">术法图鉴</span><h1>技能</h1></div></div>
+      <div class="info-card"><span>📖</span><div><strong>战斗中升级可抽取技能</strong><small>每次升级从三张卡牌中选择一张</small></div></div>
+    </div>
+
+    <div class="tab-page list-page" x-show="activeTab === 'activity'">
+      <div class="page-heading"><div><span class="eyebrow">修行记录</span><h1>活动</h1></div></div>
+      <div class="info-card"><span>🎁</span><div><strong>活动内容筹备中</strong><small>完成更多关卡，解锁修行成就</small></div></div>
+    </div>
+  </section>
+
+  <nav class="home-tabs" aria-label="主页导航">
+    <button type="button" :class="{active: activeTab === 'stage'}" @click="setTab('stage')"><span>⚔</span><small>关卡</small></button>
+    <button type="button" :class="{active: activeTab === 'equip'}" @click="setTab('equip')"><span>🛡</span><small>装备</small></button>
+    <button type="button" :class="{active: activeTab === 'skill'}" @click="setTab('skill')"><span>📖</span><small>技能</small></button>
+    <button type="button" :class="{active: activeTab === 'activity'}" @click="setTab('activity')"><span>🎁</span><small>活动</small></button>
+  </nav>
+
+  <div class="settings-layer" x-show="settingsOpen" x-transition @click.self="toggleSettings()">
+    <section class="settings-card">
+      <button class="close-button" type="button" @click="toggleSettings()">×</button>
+      <span class="eyebrow">系统设置</span>
+      <h2>游戏设置</h2>
+      <button class="setting-action primary" type="button" @click="showNotice('当前进度已保存在本地')">保存进度</button>
+      <button class="setting-action" type="button" @click="exportSave()">导出存档</button>
+      <button class="setting-action danger" type="button" @click="resetSave()">重置游戏</button>
+    </section>
   </div>
 
-  <!-- 抽卡面板（升级 3 选 1） -->
-  <div id="cardPanel" class="modal-overlay hidden">
-    <div class="modal-box panel">
-      <h2>✨ 升级！选择一张卡牌</h2>
-      <div id="cardOptions" class="card-options"></div>
-    </div>
-  </div>
-
-  <!-- 结算面板（通关/战败） -->
-  <div id="resultPanel" class="modal-overlay hidden">
-    <div class="modal-box panel">
-      <h2 id="resultTitle">通关！</h2>
-      <p id="resultStats"></p>
-      <p class="result-xp">总经验 <strong id="resultXp">+0</strong></p>
-      <button class="btn btn-gold" data-action="backToMenu">返回主页</button>
-    </div>
-  </div>
-
-  <!-- Settings modal -->
-  <div id="settingsPanel" class="modal-overlay" x-show="settingsOpen" x-transition x-cloak>
-    <div class="bg" @click="toggleSettings()"></div>
-    <div class="modal-box panel">
-      <h2>⚙️ 设置</h2>
-      <div class="settings-list">
-        <button class="btn btn-gold" data-action="manualSave">💾 手动保存</button>
-        <button class="btn" data-action="exportSaveData">📤 导出存档</button>
-        <button class="btn btn-sec" data-action="importSaveData">📥 导入存档</button>
-        <button class="btn btn-sec btn-danger" data-action="resetGameData">🗑️ 重置游戏</button>
-      </div>
-      <button class="btn btn-sm btn-sec settings-close" type="button" @click="toggleSettings()">关闭</button>
-    </div>
-  </div>
-
-  <!-- Damage flash & save notification -->
-  <div id="damageFlash"></div>
-  <div id="saveNotif">已存档</div>
-</div>
-</div><!-- /gameWrap -->
-
-<script type="module" src="src/main.js"></script>
+  <div class="home-notice" x-show="saveNotice" x-text="saveNotice" x-transition></div>
+</main>
 </body>
 </html>

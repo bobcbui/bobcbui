@@ -21,6 +21,7 @@ export class CardSystem {
   /** 局内升级：暂停战斗并弹出抽卡面板（3 选 1） */
   onLevelUp() {
     this.scene.runPaused = true;
+    this.scene.physics?.world?.pause?.();
     const options = this.rollThree();
     renderCardOptions(options);
     getEl('cardPanel')?.classList.remove('hidden');
@@ -60,6 +61,7 @@ export class CardSystem {
     }
 
     getEl('cardPanel')?.classList.add('hidden');
+    this.scene.physics?.world?.resume?.();
     this.scene.runPaused = false;
     bus.emit('hud-refresh');
     bus.emit('hotbar-refresh');

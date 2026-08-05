@@ -8,7 +8,6 @@ import { P, startRun, addTotalXp, gameStarted, runFinished, setGameStarted, setR
 import { PROGRESSION } from '@/data/index.js';
 import { bus } from '@/core/events.js';
 import { getEl } from '@/core/dom.js';
-import { renderMenu } from '@/ui/index.js';
 import { genEquipment, getRarityLabel } from '@/core/equipment.js';
 
 const WAVE_REST_SEC = 2;
@@ -67,6 +66,7 @@ export class StageSystem {
 
   update(dt) {
     if (!gameStarted) return;
+    if (this.scene.spawnSystem?.isSpawning()) return;
     const alive = this.scene.enemies.countActive(true);
     if (alive > 0) return;
 
@@ -154,7 +154,6 @@ export class StageSystem {
     getEl('resultPanel')?.classList.add('hidden');
     getEl('cardPanel')?.classList.add('hidden');
     getEl('battleLoading')?.classList.add('hidden');
-    getEl('mainMenu')?.classList.remove('hidden');
-    renderMenu();
+    window.location.href = 'index.html';
   }
 }
