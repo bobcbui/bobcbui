@@ -1,6 +1,6 @@
 /* 移动端虚拟摇杆 */
 
-import { setJoystickDir } from '../core/runtime.js';
+import { setJoystickDir } from '@/core/runtime.js';
 
 export class JoystickController {
   constructor(zone, thumb) {

@@ -3,11 +3,11 @@
  * 所有可点击元素通过 data-action + data-arg 由全局事件委托触发（见 actions.js）
  * ========================================================================== */
 
-import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '../core/state.js';
-import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, MATERIALS, RECIPES, SKILL_EVOLUTIONS, TALENTS } from '../data/index.js';
-import { genEquipment, acquireEquipment, getEffectiveEquipmentStats } from '../core/equipment.js';
-import { bus } from '../core/events.js';
-import { getScene, getSkillCooldowns } from '../core/runtime.js';
+import { P, hudCache, hotGen, setHotGen, recalcStats, realmText } from '@/core/state.js';
+import { getRealm, EQ_TYPES, EQ_NAMES, RARITY_COLORS, RARITY_LABEL, SKILL_DEFS, ACHIEVEMENTS, SHOP_ITEMS, MATERIALS, RECIPES, SKILL_EVOLUTIONS, TALENTS } from '@/data/index.js';
+import { genEquipment, acquireEquipment, getEffectiveEquipmentStats } from '@/core/equipment.js';
+import { bus } from '@/core/events.js';
+import { getScene, getSkillCooldowns } from '@/core/runtime.js';
 import {
   claimBestiaryReward,
   claimQuest,
@@ -22,7 +22,7 @@ import {
   reforgeEquipped,
   resetQuests,
   startDungeon
-} from '../core/progression.js';
+} from '@/core/progression.js';
 
 /* ---- 热栏 ---- */
 export function hotbarRender(){

@@ -3,10 +3,10 @@
  * 伤害结算位于 ./damage.js（本类通过薄封装调用）
  * ========================================================================== */
 
-import { P } from '../core/state.js';
-import { SKILL_DEFS, COMBAT_TUNING } from '../data/index.js';
-import { bus } from '../core/events.js';
-import { onProjHit, onEnemyProjHit, onEnemyContact, damageEnemy } from './damage.js';
+import { P } from '@/core/state.js';
+import { SKILL_DEFS, COMBAT_TUNING } from '@/data/index.js';
+import { bus } from '@/core/events.js';
+import { onProjHit, onEnemyProjHit, onEnemyContact, damageEnemy } from '@/systems/damage.js';
 
 const SWORD_VOLLEY_COUNT = 3;
 const SWORD_VOLLEY_SPREAD = 0.28;

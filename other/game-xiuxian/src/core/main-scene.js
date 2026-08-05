@@ -3,19 +3,19 @@
  * 系统类通过 installSceneSystems 装配（见 ../systems/index.js）
  * ========================================================================== */
 
-import { P, recalcStats } from './state.js';
-import { SKILL_DEFS, WORLD, ZONES } from '../data/index.js';
-import { installSceneSystems } from '../systems/index.js';
-import { bus } from './events.js';
-import { loadGame } from './save.js';
-import { setScene, setSkillCooldowns } from './runtime.js';
-import { createGeneratedTextures } from './textures.js';
-import { toggleCultivate, tryBreakthrough } from './cultivation.js';
-import { getEl } from './dom.js';
-import { toggleCharPanel, toggleShopPanel } from '../ui/index.js';
-import { reportLoading } from '../app/loader.js';
-import { mountTopNav, mountBottomNav } from '../ui/nav-bar.js';
-import { ACTIONS } from '../ui/actions.js';
+import { P, recalcStats } from '@/core/state.js';
+import { SKILL_DEFS, WORLD, ZONES } from '@/data/index.js';
+import { installSceneSystems } from '@/systems/index.js';
+import { bus } from '@/core/events.js';
+import { loadGame } from '@/core/save.js';
+import { setScene, setSkillCooldowns } from '@/core/runtime.js';
+import { createGeneratedTextures } from '@/core/textures.js';
+import { toggleCultivate, tryBreakthrough } from '@/core/cultivation.js';
+import { getEl } from '@/core/dom.js';
+import { toggleCharPanel, toggleShopPanel } from '@/ui/index.js';
+import { reportLoading } from '@/app/loader.js';
+import { mountTopNav, mountBottomNav } from '@/ui/nav-bar.js';
+import { ACTIONS } from '@/ui/actions.js';
 
 export class MainScene extends Phaser.Scene {
   constructor(){ super({key:'main'}); }

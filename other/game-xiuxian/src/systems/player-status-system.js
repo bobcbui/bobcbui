@@ -1,8 +1,8 @@
 /* 玩家状态：安全区检测、自动回血、境界光环 */
 
-import { P } from '../core/state.js';
-import { bus } from '../core/events.js';
-import { getRealmIndex } from '../data/index.js';
+import { P } from '@/core/state.js';
+import { bus } from '@/core/events.js';
+import { getRealmIndex } from '@/data/index.js';
 
 const AURA_COLORS = [
   0x6de27a,

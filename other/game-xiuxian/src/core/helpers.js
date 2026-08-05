@@ -1,8 +1,8 @@
 /* 消息提示：状态消息（status）与掉落弹窗（loot），配合状态计时器 */
 
-import { bus } from './events.js';
-import { setStatusTimer, setLootTimer } from './state.js';
-import { getEl } from './dom.js';
+import { bus } from '@/core/events.js';
+import { setStatusTimer, setLootTimer } from '@/core/state.js';
+import { getEl } from '@/core/dom.js';
 
 function setStatus(text, dur) {
   setStatusTimer(dur || 2);

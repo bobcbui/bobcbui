@@ -1,7 +1,7 @@
 /* 战斗主循环：弹丸更新 -> 领域/Buff -> AI 遍历 -> 自动/手动技能 */
 
-import { P } from '../core/state.js';
-import { SKILL_DEFS } from '../data/index.js';
+import { P } from '@/core/state.js';
+import { SKILL_DEFS } from '@/data/index.js';
 
 export class CombatLoopSystem {
   constructor(scene) {

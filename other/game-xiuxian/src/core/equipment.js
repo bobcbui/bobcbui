@@ -1,6 +1,6 @@
 /* 装备：程序化生成（部位/品质/属性/名称池来自 data.json）、穿戴与背包管理 */
 
-import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS, EQ_PREFIXES, EQ_NAME_POOLS } from '../data/index.js';
+import { EQ_TYPES, EQ_BASES, RARITY_MULT, RARITY_LABEL, RARITY_COLORS, EQ_PREFIXES, EQ_NAME_POOLS } from '@/data/index.js';
 
 const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','mythic'];
 const SET_IDS = ['sword', 'thunder', 'body'];

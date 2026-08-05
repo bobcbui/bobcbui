@@ -3,10 +3,10 @@
  * 静态配置（材料名/词条/丹方/任务池/天赋/进阶）来自 data.json。
  * ========================================================================== */
 
-import { P, recalcStats } from './state.js';
-import { bus } from './events.js';
-import { getScene } from './runtime.js';
-import { EQ_TYPES, MATERIALS, SET_LABELS, AFFIXES, RECIPES, TALENTS, SKILL_EVOLUTIONS, QUEST_POOL } from '../data/index.js';
+import { P, recalcStats } from '@/core/state.js';
+import { bus } from '@/core/events.js';
+import { getScene } from '@/core/runtime.js';
+import { EQ_TYPES, MATERIALS, SET_LABELS, AFFIXES, RECIPES, TALENTS, SKILL_EVOLUTIONS, QUEST_POOL } from '@/data/index.js';
 
 export function ensureProgressionState() {
   if(!P.materials) P.materials = { ore:0, herb:0, core:0, dust:0 };

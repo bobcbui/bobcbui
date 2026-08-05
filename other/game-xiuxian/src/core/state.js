@@ -5,9 +5,9 @@
  * 在配置就绪后调用，本模块不在此处执行。
  * ========================================================================== */
 
-import { bus } from './events.js';
-import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from '../data/index.js';
-import { getEffectiveEquipmentStats } from './equipment.js';
+import { bus } from '@/core/events.js';
+import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from '@/data/index.js';
+import { getEffectiveEquipmentStats } from '@/core/equipment.js';
 
 export const P = {
   hp:100, maxHp:100,

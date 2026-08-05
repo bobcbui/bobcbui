@@ -4,11 +4,11 @@
  * 调用本模块，地面领域等系统也经由 scene.combatSystem.damageEnemy 结算。
  * ========================================================================== */
 
-import { P, recalcStats } from '../core/state.js';
-import { bus } from '../core/events.js';
-import { recordEnemyKill } from '../core/progression.js';
-import { genEquipment, acquireEquipment } from '../core/equipment.js';
-import { RARITY_LABEL, RARITY_COLORS } from '../data/index.js';
+import { P, recalcStats } from '@/core/state.js';
+import { bus } from '@/core/events.js';
+import { recordEnemyKill } from '@/core/progression.js';
+import { genEquipment, acquireEquipment } from '@/core/equipment.js';
+import { RARITY_LABEL, RARITY_COLORS } from '@/data/index.js';
 
 const SWORD_HIT_COOLDOWN_MS = 120;
 
