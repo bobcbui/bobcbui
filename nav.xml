@@ -3,7 +3,7 @@
 <navigation>
   <site name="牛马程序员" description="带你成为真正的牛马" />
 
-  <group name="学习路线" emoji="📚" desc="英语、编程和技术基础，从能看懂到能做出来，按自己的节奏持续积累。">
+  <group name="学习" emoji="📚" desc="英语、编程和技术基础，从能看懂到能做出来，按自己的节奏持续积累。">
     <item href="/page/study.html">学习总览</item>
     <item href="/page/english.html">英语学习</item>
     <item href="/page/dev.html">编程学习</item>
@@ -23,7 +23,7 @@
     <item href="/tools/time.html">时间戳转换</item>
   </group>
 
-  <group name="实践方向" emoji="🧩" desc="把知识放进真实项目里，练习拆解问题、写代码、调试和交付。">
+  <group name="实践" emoji="🧩" desc="把知识放进真实项目里，练习拆解问题、写代码、调试和交付。">
     <item href="/page/outsource.html">后端工程</item>
     <item href="/page/e-commerce.html">前端开发</item>
     <item href="/page/media.html">AI 与自动化</item>
@@ -38,7 +38,7 @@
     <item href="/other/game-xiuxian/">修仙模拟器</item>
   </group>
 
-  <group name="关于本站" emoji="📝" desc="本站的学习方向、内容安排和持续记录。">
+  <group name="关于" emoji="📝" desc="本站的学习方向、内容安排和持续记录。">
     <item href="/page/about.html">关于学习站</item>
     <item href="/page/blog.html">学习笔记</item>
   </group>
