@@ -21,8 +21,7 @@ export const P = {
   skillLevels:{},                      // 技能卡等级
   mods:{ critChance:0, lifestealPct:0, xpBonus:0, cooldownReduction:0, skillDamage:0,
          multiShot:0, rangeBoost:0, swordAtkSpeedBoost:0, swordSpeed:0, maxHpBonus:0 },
-  buffTimer:0, buff:{ speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0,
-                      swordAtkSpeedBoost:0, lifestealPct:0, swordColor:0, swordTrailColor:0 },
+  buff:{ shieldPct:0 },
   equipment:{},                          // 已穿戴装备（6 部位）
   inventory:[],                          // 背包（上限 30）
   selectedStage:1,                       // 主页选中的关卡
@@ -87,9 +86,7 @@ export function startRun(stageLevel) {
   P.skillLevels = {};
   P.mods = { critChance:0, lifestealPct:0, xpBonus:0, cooldownReduction:0, skillDamage:0,
              multiShot:0, rangeBoost:0, swordAtkSpeedBoost:0, swordSpeed:0, maxHpBonus:0 };
-  P.buffTimer = 0;
-  P.buff = { speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0,
-             swordAtkSpeedBoost:0, lifestealPct:0, swordColor:0, swordTrailColor:0 };
+  P.buff = { shieldPct:0 };
   recalcStats();
   P.hp = P.maxHp;
   setWaveNum(0);

@@ -57,14 +57,11 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.combatSystem.onEnemyProjHit(proj); }, null, this);
     this.skillCooldowns = {};
     setSkillCooldowns(this.skillCooldowns);
-    this.shieldOrbs = [];
-    this.shieldReflect = 0;
 
     loadGame();
     reportLoading(75, '加载存档...');
     recalcStats();
     reportLoading(85, '加载完成...');
-    this.updateZoneLabel();
 
     // 自动进入主页（局外）
     const doAutoStart = () => {
@@ -77,8 +74,6 @@ export class MainScene extends Phaser.Scene {
     };
     setTimeout(doAutoStart, 400);
   }
-
-  updateZoneLabel(){ /* 保留空实现，兼容调用 */ }
 
   clearEnemies(){
     this.enemies.children.iterate((en)=>{
@@ -149,19 +144,6 @@ export class MainScene extends Phaser.Scene {
 
   showSkillName(name, color){
     this.skillEffects?.showSkillName(name, color);
-  }
-
-  showWorldNotice(text, color = '#f7d98e'){
-    if(!this.textPool || !this.player) return;
-    this.textPool.show(this.player.x, this.player.y - 58, text, {
-      fontSize: '16px',
-      color,
-      stroke: '#3f2d1d',
-      strokeThickness: 3,
-      depth: 28,
-      floatDist: 52,
-      duration: 1100
-    });
   }
 
   update(time,delta){

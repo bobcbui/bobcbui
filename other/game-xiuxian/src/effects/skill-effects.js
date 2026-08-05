@@ -5,10 +5,7 @@
 const PROJECTILE_STYLE = {
   swordfly: { trail: 0x99ddff, glow: 0xdff7ff, scale: 0.72, pulse: false },
   fireball: { trail: 0xff7a32, glow: 0xffd199, scale: 1.12, pulse: true },
-  thunderbolt: { trail: 0xffdd44, glow: 0xffffcc, scale: 1.1, pulse: false },
-  thunder: { trail: 0xffdd44, glow: 0xffffcc, scale: 1.1, pulse: false },
-  waterdomain: { trail: 0x80d8ff, glow: 0xd8f6ff, scale: 1.08, pulse: true },
-  tornado: { trail: 0xcfe8c1, glow: 0xf5ffe8, scale: 1.12, pulse: true }
+  thunder: { trail: 0xffdd44, glow: 0xffffcc, scale: 1.1, pulse: false }
 };
 
 const DOMAIN_STYLE = {
@@ -313,9 +310,7 @@ export class SkillEffects {
       }
     });
 
-    if (def.id === 'tornado') this.drawTornado(x, y, radius, color);
-    else if (def.id === 'waterdomain') this.drawWaterDomain(x, y, radius, color);
-    else if (def.id === 'firedomain') this.drawFireDomain(x, y, radius, style.stroke);
+    if (def.id === 'firedomain') this.drawFireDomain(x, y, radius, style.stroke);
     else if (def.id === 'hailstorm') this.drawHailstorm(x, y, radius, style.stroke);
     else if (def.id === 'thunder') this.drawThunderDomain(x, y, radius, style.stroke);
   }

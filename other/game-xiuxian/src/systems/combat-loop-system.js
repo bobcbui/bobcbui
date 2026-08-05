@@ -12,7 +12,6 @@ export class CombatLoopSystem {
     scene.combatSystem.updateSwordProjectiles(dt);
     scene.skillEffects?.updateProjectileTrails();
     scene.groundEffectSystem?.update(dt);
-    scene.buffSystem.update(dt);
 
     const skillNow = time / 1000;
     const qDef = SWORDFLY_DEF;
