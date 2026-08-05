@@ -8,7 +8,7 @@ import { SKILL_CARDS, COMBAT_TUNING } from '@/data/index.js';
 import { bus } from '@/core/events.js';
 import { onProjHit, onEnemyProjHit, onEnemyContact, damageEnemy } from '@/systems/damage.js';
 
-const SWORD_TURN_RATE = 12;
+const SWORD_TURN_RATE = 0;
 const SWORD_PROJECTILE_SPEED = 560;
 const SWORD_MIN_LIFETIME = 1900;
 const SWORD_RANGE_LIFETIME_FACTOR = 7.5;
@@ -41,7 +41,7 @@ const SWORD_COLOR_PALETTE = Object.freeze([
 export const SWORDFLY_DEF = Object.freeze({
   id: 'swordfly',
   name: '飞剑术',
-  baseDmg: 0.7,
+  baseDmg: 1.15,
   cooldown: 0.65
 });
 
@@ -186,14 +186,14 @@ export class CombatSystem {
         startX: px,
         startY: py,
         pierce: true,
-        homing: true,
+        homing: false,
         turnRate: SWORD_TURN_RATE,
         speed,
         seekRadius: range,
         maxHits: SWORD_MAX_HIT_COUNT,
         customTint: color,
         customTrailColor: color,
-        targetRef: target,
+        targetRef: null,
         lifetime
       });
       if (!proj) return false;

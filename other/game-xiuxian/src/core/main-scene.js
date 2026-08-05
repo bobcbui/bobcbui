@@ -12,7 +12,6 @@ import { setScene, setSkillCooldowns } from '@/core/runtime.js';
 import { createGeneratedTextures } from '@/core/textures.js';
 import { getEl } from '@/core/dom.js';
 import { reportLoading } from '@/app/loader.js';
-import { renderMenu } from '@/ui/index.js';
 
 export class MainScene extends Phaser.Scene {
   constructor(){ super({key:'main'}); }
@@ -72,18 +71,17 @@ export class MainScene extends Phaser.Scene {
     recalcStats();
     reportLoading(85, '加载完成...');
 
-    // 自动进入主页（局外）
+    // 战斗页完成初始化后，进入 URL 指定的关卡。
     const doAutoStart = () => {
       reportLoading(100, '');
-      const lbWrap = document.getElementById('loading-bar-wrap');
-      if (lbWrap) lbWrap.classList.add('hidden');
-      document.getElementById('loading-area')?.classList.add('hidden');
-      renderMenu();
+      const requestedStage = Number(new URLSearchParams(window.location.search).get('stage')) || 1;
+      this.stageSystem.start(Math.max(1, requestedStage));
     };
     setTimeout(doAutoStart, 400);
   }
 
   clearEnemies(){
+    this.spawnSystem?.clearPending();
     this.enemies.children.iterate((en)=>{
       if(!en) return;
       const lbl=en.getData && en.getData('label');
@@ -172,6 +170,7 @@ export class MainScene extends Phaser.Scene {
     if (this.runPaused || this.playerDead) return;
     const dt=delta/1000;
     P.totalPlayTime += dt;
+    this.spawnSystem?.update(dt);
     this.entityAnimationSystem?.update(dt);
     this.combatLoopSystem?.update(dt, time);
     this.stageSystem.update(dt);

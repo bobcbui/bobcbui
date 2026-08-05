@@ -2,9 +2,9 @@
   "version": 2,
   "world": {
     "width": 600,
-    "height": 1000,
-    "playerX": 800,
-    "playerY": 860
+    "height": 900,
+    "playerX": 300,
+    "playerY": 760
   },
   "cards": {
     "skill": [

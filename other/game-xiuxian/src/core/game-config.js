@@ -3,8 +3,9 @@
 import { MainScene } from '@/core/main-scene.js';
 
 export function createGameConfig(canvas) {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  // 战斗页使用固定逻辑尺寸，CSS 再按 2:3 比例缩放，避免不同屏幕拉伸战场。
+  const width = 600;
+  const height = 900;
 
   return {
     type: Phaser.CANVAS,

@@ -18,30 +18,66 @@ function getEnemyMaxHp(tmpl, scale, isBoss, isElite) {
 export class SpawnSystem {
   constructor(scene) {
     this.scene = scene;
+    this.pending = [];
+    this.spawnTimer = 0;
+    this.spawnInterval = 0.65;
+    this.spawning = false;
   }
 
   /** 生成一波敌人；最后一波为 Boss 波 */
   spawnWave(wn, stageLevel) {
     const count = PROGRESSION.waveCountBase
       + stageLevel * PROGRESSION.waveCountPerStage
-      + wn * PROGRESSION.waveCountPerWave;
+      + (wn - 1) * PROGRESSION.waveCountPerWave;
     const isBossWave = wn >= PROGRESSION.wavesPerStage;
-    for (let i = 0; i < count; i++) {
-      this.spawnEnemy({ allowBoss: false });
-    }
-    if (isBossWave) {
-      const boss = this.spawnEnemy({ forceBoss: true, allowBoss: false, allowElite: false });
-      if (boss) {
-        boss.setData('atk', Math.round((boss.getData('atk') || 1) * 2));
-        boss.setData('xp', Math.round((boss.getData('xp') || 1) * 5));
+    const maxTemplateIndex = Math.min(
+      BESTIARY.length - 1,
+      2 + Math.max(0, stageLevel - 1) * 2 + (wn - 1) * 2
+    );
+    this.pending = Array.from({ length: count }, () => ({ allowBoss: false, maxTemplateIndex }));
+    if (isBossWave) this.pending.push({ forceBoss: true, allowBoss: false, allowElite: false, maxTemplateIndex });
+    this.spawnInterval = Math.max(0.34, 0.68 - (wn - 1) * 0.06);
+    this.spawnTimer = 0;
+    this.spawning = true;
+  }
+
+  update(dt) {
+    if (!this.spawning) return;
+    this.spawnTimer -= dt;
+    if (this.spawnTimer > 0) return;
+
+    const options = this.pending.shift();
+    if (options) {
+      const enemy = this.spawnEnemy(options);
+      if (options.forceBoss && enemy) {
+        enemy.setData('atk', Math.round((enemy.getData('atk') || 1) * 2));
+        enemy.setData('xp', Math.round((enemy.getData('xp') || 1) * 5));
       }
     }
+
+    if (this.pending.length === 0) {
+      this.spawning = false;
+      this.spawnTimer = 0;
+    } else {
+      this.spawnTimer = this.spawnInterval;
+    }
+  }
+
+  isSpawning() {
+    return this.spawning;
+  }
+
+  clearPending() {
+    this.pending.length = 0;
+    this.spawnTimer = 0;
+    this.spawning = false;
   }
 
   spawnEnemy(options = {}) {
     const { scene } = this;
-    const tmpl = BESTIARY[Math.floor(Math.random() * BESTIARY.length)];
     const { forceBoss = false, forceElite = false, allowBoss = true, allowElite = true } = options;
+    const maxTemplateIndex = Math.max(0, Math.min(options.maxTemplateIndex ?? BESTIARY.length - 1, BESTIARY.length - 1));
+    const tmpl = BESTIARY[Math.floor(Math.random() * (maxTemplateIndex + 1))];
 
     // 从顶部生成（单屏战场，全部可见）
     const x = Phaser.Math.Between(60, WORLD.width - 60);
