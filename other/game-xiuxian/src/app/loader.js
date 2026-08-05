@@ -28,6 +28,6 @@ export function hideLoadingBar() {
 }
 
 export function setStartBtnEnabled(enabled) {
-  const btn = document.getElementById('startBtn');
+  const btn = document.getElementById('enterStageBtn');
   if (btn) btn.disabled = !enabled;
 }

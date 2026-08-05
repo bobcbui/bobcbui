@@ -10,6 +10,7 @@ export function createGameConfig(canvas) {
     type: Phaser.CANVAS,
     renderType: Phaser.CANVAS,
     canvas,
+    parent: 'gameWrap',
     width,
     height,
     backgroundColor: '#efe3c0',

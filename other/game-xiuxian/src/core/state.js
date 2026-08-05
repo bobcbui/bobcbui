@@ -1,192 +1,110 @@
 /* ============================================================================
- * 全局玩家状态 P、运行期共享变量、属性重算、技能/热栏初始化、成就判定
+ * 全局状态：玩家属性（总等级永久加成 + 局内等级 + 卡牌加成）、
+ * 局内等级/经验、关卡进度、成就判定
  * ----------------------------------------------------------------------------
- * 注意：数据来自 data.json（异步加载），refreshSkills/initHotbar 由启动流程
- * 在配置就绪后调用，本模块不在此处执行。
+ * 局内状态（level/xp/skills/mods）每关开始由 startRun() 重置；
+ * 总等级（totalLevel/totalXp/maxClearedStage）跨关累积并持久化。
  * ========================================================================== */
 
 import { bus } from '@/core/events.js';
-import { SKILL_DEFS, EQ_TYPES, getRealm, getRealmIndex, ACHIEVEMENTS } from '@/data/index.js';
-import { getEffectiveEquipmentStats } from '@/core/equipment.js';
+import { ACHIEVEMENTS, PROGRESSION, EQ_TYPES } from '@/data/index.js';
 
 export const P = {
   hp:100, maxHp:100,
-  atk:10, def:5, speed:220,
-  realm:'mortal', stage:1,
-  level:1, xp:0, xpToNext:10,
-  gold:0, kills:0,
-  attrPoints:0, skillPoints:0,
-  attrs:{ str:0, body:0, spirit:0, agility:0 },
-  skillLevels:{ swordfly:1, earthmove:1, firedomain:1, thunder:1, hailstorm:1 },
-  skills:[],
-  hotbar:[],
-  equipment:{},
-  inventory:[],
-  materials:{ ore:0, herb:0, core:0, dust:0 },
-  bestiary:{},
-  quests:[],
-  talents:{},
-  skillEvolutions:{},
-  dungeon:{ active:false, kills:0, target:0 },
-  mods:{ critChance:0, lifestealPct:0, dropRate:0, xpBonus:0, goldBonus:0, cooldownReduction:0, skillDamage:0 },
-  buffTimer:0, buff:{ speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0, swordAtkSpeedBoost:0, lifestealPct:0, swordColor:0, swordTrailColor:0 },
+  atk:10, def:0,
+  level:1, xp:0, xpToNext:5,          // 局内等级（每关重置）
+  totalLevel:1, totalXp:0, totalXpToNext:40,  // 游戏总等级（永久）
+  stageLevel:1,                        // 当前进入的关卡
+  maxClearedStage:0,                   // 最高通关关卡
+  kills:0, totalKills:0,               // 局内击杀 / 累计击杀
+  skills:[],                           // 已获得技能 id（自动轮转施放）
+  skillLevels:{},                      // 技能卡等级
+  mods:{ critChance:0, lifestealPct:0, xpBonus:0, cooldownReduction:0, skillDamage:0,
+         multiShot:0, rangeBoost:0, swordAtkSpeedBoost:0, swordSpeed:0, maxHpBonus:0 },
+  buffTimer:0, buff:{ speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0,
+                      swordAtkSpeedBoost:0, lifestealPct:0, swordColor:0, swordTrailColor:0 },
+  equipment:{},                          // 已穿戴装备（6 部位）
+  inventory:[],                          // 背包（上限 30）
+  selectedStage:1,                       // 主页选中的关卡
   totalPlayTime:0,
-  totalGoldEarned:0, legendaryFound:false, maxWave:0,
   achievements:{}
 };
 
 /* ---- 运行期可变状态 ---- */
-export let waveNum = 0;
-export let waveTimer = 0;
+export let waveNum = 0;        // 当前波次（1..wavesPerStage）
 export let wavePending = false;
-export let waveDelay = 8;
 export let statusTimer = 0;
 export let lootTimer = 0;
-export let isCultivating = false;
-export let cultProgress = 0;
-export let breakPending = false;
 export let autoSaveTimer = 0;
-export let wallHp = 500;
-export let wallMaxHp = 500;
-export let defenseWave = 0;
-export let gameStarted = false;
-export const MAX_WAVES = 20;
+export let gameStarted = false;   // 局内进行中
+export let runFinished = false;   // 本局已结算（防止重复结算）
 
-export let hotGen = -1;
-export const hudCache = { realm:'', level:-1, hp:-1, maxHp:-1, xp:-1, xpNext:-1, gold:-1, kills:-1 };
+export const hudCache = { hp:-1, maxHp:-1, xp:-1, xpNext:-1, level:-1, stage:-1, wave:-1, kills:-1, totalLevel:-1, totalXp:-1, totalXpNext:-1 };
 
-export function setWallHp(v){ wallHp = v; if (wallHp < 0) wallHp = 0; }
-export function setWallMaxHp(v){ wallMaxHp = v; }
-export function setDefenseWave(v){ defenseWave = v; }
-export function setGameStarted(v){ gameStarted = v; }
-export function setAutoSaveTimer(v){ autoSaveTimer = v; }
-export function setHotGen(v){ hotGen = v; }
 export function setWaveNum(v){ waveNum = v; }
-export function setWaveTimer(v){ waveTimer = v; }
 export function setWavePending(v){ wavePending = v; }
 export function setStatusTimer(v){ statusTimer = v; }
 export function setLootTimer(v){ lootTimer = v; }
-export function setIsCultivating(v){ isCultivating = v; }
-export function setCultProgress(v){ cultProgress = v; }
-export function setBreakPending(v){ breakPending = v; }
+export function setAutoSaveTimer(v){ autoSaveTimer = v; }
+export function setGameStarted(v){ gameStarted = v; }
+export function setRunFinished(v){ runFinished = v; }
 
-/* ---- 属性重算 ---- */
+/* ---- 经验曲线 ---- */
+export function runXpToNext(level) {
+  return PROGRESSION.runXpBase + level * PROGRESSION.runXpPerLevel;
+}
+
+export function totalXpToNext(level) {
+  return PROGRESSION.totalXpBase + level * PROGRESSION.totalXpPerLevel;
+}
+
+/* ---- 属性重算：总等级永久加成 + 局内等级加成 + 卡牌加成 ---- */
 export function recalcStats(){
-  P.mods = { critChance:0, lifestealPct:0, dropRate:0, xpBonus:0, goldBonus:0, cooldownReduction:0, skillDamage:0 };
-  const r = getRealm(P.realm);
-  const stageMult = (P.stage-1) / (r.stages-1 || 1);
-  P.maxHp = 100 + r.hpBonus * (1 + stageMult * 0.5);
-  P.atk = 10 + r.atkBonus * (1 + stageMult * 0.5);
-  P.def = 5 + r.defBonus * (1 + stageMult * 0.5);
-  P.speed = 220 + (getRealmIndex(P.realm) * 10);
-  P.atk += (P.attrs?.str || 0) * 2;
-  P.maxHp += (P.attrs?.body || 0) * 12;
-  P.def += (P.attrs?.body || 0) * 0.8;
-  P.atk += (P.attrs?.spirit || 0) * 0.8;
-  P.speed += (P.attrs?.agility || 0) * 5;
-  for(const slot of EQ_TYPES){
-    const eq = P.equipment[slot];
-    if(!eq) continue;
-    const stats = getEffectiveEquipmentStats(eq);
-    if(stats.atk) P.atk += stats.atk;
-    if(stats.def) P.def += stats.def;
-    if(stats.hp) P.maxHp += stats.hp;
-    if(stats.speed) P.speed += stats.speed;
-    for(const affix of eq.affixes || []) {
-      if(P.mods[affix.key] != null) P.mods[affix.key] += affix.value;
-    }
+  P.atk = PROGRESSION.baseAtk + (P.totalLevel - 1) * PROGRESSION.totalAtkPerLevel;
+  P.maxHp = PROGRESSION.baseMaxHp + (P.totalLevel - 1) * PROGRESSION.totalHpPerLevel;
+  P.atk += (P.level - 1) * PROGRESSION.runAtkPerLevel;
+  P.maxHp += P.mods.maxHpBonus || 0;
+  // 装备加成
+  for (const slot of EQ_TYPES) {
+    const eq = P.equipment?.[slot];
+    if (!eq?.stats) continue;
+    if (eq.stats.atk) P.atk += eq.stats.atk;
+    if (eq.stats.def) P.def += eq.stats.def;
+    if (eq.stats.hp) P.maxHp += eq.stats.hp;
+    if (eq.stats.speed) P.speed += eq.stats.speed;
   }
-  applySetBonuses();
-  applyTalentBonuses();
-  applySkillEvolutionBonuses();
-  P.speed = Math.min(P.speed, 420);
   P.hp = Math.min(P.hp, P.maxHp);
 }
 
-function applySetBonuses() {
-  const counts = {};
-  for(const slot of EQ_TYPES) {
-    const setId = P.equipment[slot]?.setId;
-    if(setId) counts[setId] = (counts[setId] || 0) + 1;
-  }
-  for(const [setId, count] of Object.entries(counts)) {
-    if(count >= 2) {
-      if(setId === 'sword') P.mods.skillDamage += 0.08;
-      if(setId === 'thunder') P.mods.cooldownReduction += 0.06;
-      if(setId === 'body') P.maxHp += 80;
-    }
-    if(count >= 4) {
-      if(setId === 'sword') P.atk += 25;
-      if(setId === 'thunder') P.mods.critChance += 0.05;
-      if(setId === 'body') P.def += 18;
-    }
-    if(count >= 6) {
-      if(setId === 'sword') P.mods.lifestealPct += 0.02;
-      if(setId === 'thunder') P.mods.skillDamage += 0.12;
-      if(setId === 'body') P.mods.dropRate += 0.12;
-    }
-  }
-}
-
-function applyTalentBonuses() {
-  const t = P.talents || {};
-  if(t.sword_1) { P.atk += 15; P.mods.skillDamage += 0.05; }
-  if(t.body_1) { P.maxHp += 120; P.def += 8; }
-  if(t.luck_1) { P.mods.dropRate += 0.1; P.mods.goldBonus += 0.1; }
-  if(t.dao_1) { P.mods.xpBonus += 0.12; P.mods.cooldownReduction += 0.05; }
-}
-
-function applySkillEvolutionBonuses() {
-  const ev = P.skillEvolutions || {};
-  if(ev.swordfly) P.mods.skillDamage += 0.12;
-  if(ev.thunder) P.mods.critChance += 0.08;
-  if(ev.hailstorm) P.mods.cooldownReduction += 0.08;
-}
-
-export function realmText(){
-  const r = getRealm(P.realm);
-  if(r.stages<=1) return r.name;
-  const stageLabels = ['初期','初期','初期','中期','中期','中期','后期','后期','圆满'];
-  const idx = Math.min(P.stage-1, stageLabels.length-1);
-  return r.name + ' ' + stageLabels[idx];
-}
-
-export function refreshSkills(){
-  if(!P.skillLevels) P.skillLevels = {};
+/** 开始一局：局内状态全部重置为 1 级 */
+export function startRun(stageLevel) {
+  P.stageLevel = stageLevel;
+  P.level = 1;
+  P.xp = 0;
+  P.xpToNext = runXpToNext(1);
+  P.kills = 0;
   P.skills = [];
-  for(const sk of SKILL_DEFS){
-    if(!P.skillLevels[sk.id]) P.skillLevels[sk.id] = 1;
-    P.skills.push(sk.id);
-  }
-}
-
-export function initHotbar(){
-  P.hotbar = [];
-  const current = P.hotbar?.[0];
-  P.hotbar.push({ kind:'skill', id:'swordfly' });
-  const swaps = SKILL_DEFS.filter(s => s.id !== 'swordfly');
-  const slotKeys = ['W','E','R','T'];
-  for(let i=0;i<4;i++){
-    const existing = P.hotbar?.[i+1];
-    if(existing && existing.id && swaps.some(s => s.id === existing.id)){
-      P.hotbar.push(existing);
-    } else {
-      const defaults = ['earthmove','firedomain','thunder','hailstorm'];
-      P.hotbar.push({ kind:'skill', id:defaults[i] || swaps[i]?.id || null });
-    }
-  }
+  P.skillLevels = {};
+  P.mods = { critChance:0, lifestealPct:0, xpBonus:0, cooldownReduction:0, skillDamage:0,
+             multiShot:0, rangeBoost:0, swordAtkSpeedBoost:0, swordSpeed:0, maxHpBonus:0 };
+  P.buffTimer = 0;
+  P.buff = { speedBoost:0, shieldPct:0, atkBoost:0, rangeBoost:0,
+             swordAtkSpeedBoost:0, lifestealPct:0, swordColor:0, swordTrailColor:0 };
+  recalcStats();
+  P.hp = P.maxHp;
+  setWaveNum(0);
+  setWavePending(false);
+  setGameStarted(true);
+  setRunFinished(false);
 }
 
 /* ---- 成就（条件从 data.json 的结构化描述解释执行） ---- */
 function checkAchievementCondition(cond, p) {
   if (!cond) return false;
   switch (cond.type) {
-    case 'kills': return p.kills >= (cond.value || 0);
-    case 'level': return p.level >= (cond.value || 0);
-    case 'realmIndex': return getRealmIndex(p.realm) >= (cond.value || 0);
-    case 'goldEarned': return (p.totalGoldEarned || 0) >= (cond.value || 0);
-    case 'legendaryFound': return !!p.legendaryFound;
-    case 'maxWave': return (p.maxWave || 0) >= (cond.value || 0);
+    case 'totalKills': return (p.totalKills || 0) >= (cond.value || 0);
+    case 'totalLevel': return (p.totalLevel || 0) >= (cond.value || 0);
+    case 'stageCleared': return (p.maxClearedStage || 0) >= (cond.value || 0);
     case 'playtime': return (p.totalPlayTime || 0) >= (cond.value || 0);
     default: return false;
   }
@@ -199,13 +117,24 @@ export function checkAchievements(){
     if(!checkAchievementCondition(a.condition, P)) continue;
     P.achievements[a.id] = true;
     changed = true;
-    if(a.reward.gold){ P.gold = Math.min(99999, P.gold + a.reward.gold); P.totalGoldEarned = (P.totalGoldEarned || 0) + a.reward.gold; }
-    if(a.reward.attrPoints) P.attrPoints = (P.attrPoints || 0) + a.reward.attrPoints;
-    if(a.reward.skillPoints) P.skillPoints = (P.skillPoints || 0) + a.reward.skillPoints;
+    if(a.reward.xp){ addTotalXp(a.reward.xp); }
     bus.emit('status', '🏅 成就达成: ' + a.name, 3);
     bus.emit('save');
   }
   if(changed){ bus.emit('hud-refresh'); }
+}
+
+/** 增加游戏总经验，处理总等级升级（永久属性加成自动生效） */
+export function addTotalXp(amount) {
+  P.totalXp += amount;
+  while (P.totalXp >= P.totalXpToNext) {
+    P.totalXp -= P.totalXpToNext;
+    P.totalLevel += 1;
+    P.totalXpToNext = totalXpToNext(P.totalLevel);
+    recalcStats();
+    bus.emit('status', '🎉 游戏总等级提升至 Lv.' + P.totalLevel + '！永久属性增强', 2.5);
+  }
+  bus.emit('hud-refresh');
 }
 
 bus.on('check-achievements', checkAchievements);
