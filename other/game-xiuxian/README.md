@@ -1,12 +1,14 @@
 # 九天仙途 — 文字修仙世界
 
-2D 修仙题材开放世界浏览器游戏，基于 Phaser 3 + 原生 JavaScript (ES Modules)，纯前端实现，无需服务器。
+2D 修仙题材开放世界浏览器游戏，基于 Phaser 3.60 + 原生 JavaScript，纯前端实现，无构建工具、无服务器依赖。
 
 ## 快速运行
 
+必须通过静态 HTTP 服务器访问（`data.json` 使用 fetch 加载，`file://` 下会失败）：
+
 ```bash
 cd game-xiuxian
-python -m http.server 8000
+python3 -m http.server 8000
 # 浏览器打开 http://localhost:8000
 ```
 
@@ -15,147 +17,84 @@ python -m http.server 8000
 | 层 | 技术 |
 |---|---|
 | 游戏引擎 | Phaser 3.60 (Canvas 渲染, Arcade 物理) |
-| 语言 | 原生 JavaScript ES Modules |
+| 语言 | 原生 JavaScript（单文件，非模块） |
+| 静态数据 | `data.json`（JSON，无函数） |
 | UI 层 | HTML5 + CSS3 DOM overlay |
 | 持久化 | localStorage (key: `xiuxian_save`, v1) |
 | 部署 | 任意静态文件服务器 |
 
 ## 项目结构
 
-```
+```text
 game-xiuxian/
-├── index.html              # 入口: HTML 骨架 + 全部 CSS 样式 + DOM 面板
-├── lib/phaser.min.js       # Phaser 3.60 引擎 (~1.1 MB)
-├── README.md               # 本文档
-└── src/
-    ├── main.js             # 启动器: Phaser 配置、键盘绑定、摇杆、导航栏
-    ├── state.js            # 全局状态 P + 共享变量 + 属性重算 + 技能/Hotbar 初始化
-    ├── scene.js            # 主场景: 渲染、战斗、AI、波次、区域 — 核心游戏逻辑
-    ├── data.js             # 静态配置: 境界/技能/敌人/区域/成就/商店/装备属性
-    ├── ui.js               # 全部 DOM UI: HUD、Hotbar、角色/背包/技能/成就/商店面板
-    ├── cultivation.js      # 修炼: 打坐、突破渡劫
-    ├── equipment.js        # 装备: 程序化生成 6 部位 6 品质
-    ├── helpers.js          # 工具: 状态消息、掉落弹窗
-    └── save.js             # 存档: 30 秒自动存档 + 手动存档/读档, 版本迁移
+├── index.html        # 页面骨架：游戏画布、全部 DOM 容器、data-action 绑定
+├── index.js          # 全部运行时逻辑（9 大区块，见下）
+├── data.json         # 全部静态配置（境界/技能/区域/敌人/成就/商店/装备/平衡参数）
+├── style.css         # 全部样式
+├── data/             # 自有资源目录（图片/音频/字体；当前全为代码生成纹理，目录留空）
+├── lib/phaser.min.js # 第三方 Phaser 运行库
+├── README.md         # 本文档
+└── TASK.md           # 四文件收敛实施计划
 ```
 
-## 模块依赖关系
+四个运行时源码文件之外，不新增任何业务 JS/CSS 文件；纹理全部由代码生成，无外部图片/音频/字体资源。
 
-```
-                    main.js (入口, 组装一切)
-                   /    |     \      \       \
-              scene.js  ui.js  save.js  cultivation.js  equipment.js
-              |    |     |       |          |
-           state.js data.js helpers.js   state.js      data.js
-```
-
-- `main.js` — 唯一的入口模块，负责 phaser 初始化、键盘绑定、摇杆初始化、导航栏创建、window 全局注入。它 `import` 所有其他模块以确保它们的副作用（window 注册）生效。
-- `state.js` — 被几乎所有模块依赖。导出全局玩家状态对象 `P`、共享计时器、以及 `recalcStats()` 等核心函数。
-- `data.js` — 纯静态数据，被 `state.js` / `scene.js` / `ui.js` / `equipment.js` 依赖。
-- `scene.js` — 最核心的游戏逻辑，依赖 `state.js` 获取状态、`data.js` 获取配置、`equipment.js` 生成掉落。
-- `ui.js` — 不依赖 `scene.js`，通过 `window.*` 函数与游戏层通信（`window.updateHUD`, `window.hotbarRender` 等）。
-- `cultivation.js` — 独立模块，操作 `P` 状态并调用 UI 更新。
-- `helpers.js` — 纯工具函数，操作 DOM 元素和计时器。
-- `save.js` — 序列化 `P` 对象和 `waveNum` 到 localStorage。
-
-## 各模块职责
+## 四文件职责
 
 ### `index.html`
-- 游戏画布 `<canvas>`
-- 全部 CSS 变量和样式定义（~180 行）
-- 完整 DOM 结构：HUD、热栏、区域标签、状态消息、掉落弹窗、虚拟摇杆、5 个模态面板（角色/背包/技能/成就/商店）、突破弹窗、死亡弹窗、伤害闪光
-- 引入 `phaser.min.js` 和 `src/main.js`
 
-### `src/main.js` (89 行)
-- 注册所有 `window.*` 全局函数（bridge pattern）
-- 插入 `window._data` 供跨模块使用
-- 检测触摸设备添加 `has-touch` class
-- `load` 事件中启动 Phaser Game、渲染热栏和 HUD、创建导航栏按钮、初始化虚拟摇杆
+- 页面骨架与游戏画布 `<canvas id="gameCanvas">`
+- 全部 DOM 容器：HUD、热栏、区域标签、状态/掉落提示、虚拟摇杆、角色/背包/技能/成就/商店/玩法/设置面板、主菜单、突破/死亡/城破弹窗
+- 无内联样式（统一走 `style.css`）、无内联 `onclick`（统一走 `data-action` 事件委托）
+- 仅加载 `lib/phaser.min.js` 和 `index.js`
 
-### `src/data.js` (108 行)
-- `REALMS` — 8 大境界（凡体→飞升），每境 stages/hpBonus/atkBonus/defBonus/reqKills
-- `SKILL_DEFS` — 12 种技能定义（飞剑术/火球术/御剑术/落雷/盾/领域/buff），含 type/baseDmg/range/cooldown/color
-- `ZONES` — 5 大区域（灵溪村→落霞山脉→幽暗密林→寒冰极域→烈焰炼狱），minDist/maxDist/monsterLv
-- `BESTIARY` — 按区域划分的敌人模板（hp/atk/speed/xp/gold/atkType/atkRange）
-- `BOSS_NAMES` — Boss 名称池
-- `ACHIEVEMENTS` — 15 个成就，含 check 函数和奖励
-- `SHOP_ITEMS` — 7 种商品（装备箱/洗髓丹/悟道丹/灵石袋）
-- `EQ_TYPES` / `EQ_BASES` / `RARITY_*` — 装备系统用
+### `style.css`
 
-### `src/state.js` (131 行)
-- 导出唯一的全局玩家状态对象 `P`
-- 导出共享变量：`waveNum`, `waveTimer`, `isCultivating`, `cultProgress`, `statusTimer` 等
-- `recalcStats()` — 根据境界、属性点、装备重新计算 atk/def/hp/speed
-- `realmText()` — 生成如"筑基期 中期"的显示文本
-- `refreshSkills()` / `initHotbar()` — 初始化/刷新技能列表和快捷栏
-- `checkAchievements()` — 每 2 秒检查一次成就触发
-- `window.*` 注册：realmText, recalcStats, refreshSkills, initHotbar, checkAchievements
+- 页面基础 → 主菜单 → HUD → 热栏 → 面板 → 按钮 → 导航 → 突破/死亡/设置 → 摇杆 → 移动端适配
+- 动态宽度/显示状态由 `index.js` 通过 class 或内联 style 更新
 
-### `src/scene.js` (762 行) — 核心游戏逻辑
-**类: `MainScene extends Phaser.Scene`**
+### `data.json`
 
-- `preload()` — 程序化生成全部纹理（玩家/敌人/弹丸）
-- `create()` — 初始化世界、物理、敌人组、弹丸组、弹丸对象池、输入、碰撞、快捷键
-- `drawGround()` — 绘制 3500×3500 地图
-- `update(time, delta)` — 主循环：
-  1. 安全区检测
-  2. 玩家移动（键盘+鼠标+摇杆）
-  3. 修炼进度（打坐）
-  4. Buff 计时器倒计时
-  5. 区域切换检测
-  6. **单次敌人遍历** — AI 移动/攻击 + Q 定位收集 + activeEnemies 收集 + 血条绘制
-  7. 自动攻击 Q 技能
-  8. 手动技能 W/E/R/T（盾/buff/领域/伤害，使用步骤6收集的数据）
-  9. 兽潮波次管理
-  10. 状态/掉落计时器
-  11. HUD 更新（每 6 帧）
-  12. 自动存档（每 30 秒）
-  13. 成就检查（每 2 秒）
-- `spawnEnemy()` — 在玩家附近生成敌人（普通/精英/Boss）
-- `damageEnemy()` — 伤害计算：暴击、连杀、经验/金币掉落、装备掉落、升级检查
-- `shootProjectile()` / `doMultiProjectile()` — 创建弹丸（使用对象池）
-- `doDomainSkill()` — AOE 领域技能效果
-- `onProjHit()` / `onEnemyContact()` / `onEnemyProjHit()` — 碰撞处理
-- 对象池：`getPooledProj()` / `freeProj()` — 弹丸复用，避免 GC
+静态配置（`index.js` 加载后校验并建立索引）：
 
-**性能优化 (已实施)**:
-- 敌人遍历：从每帧 4 次 `enemies.children.iterate()` 合并为 1 次（主循环同时完成 AI/血条/定位数据收集）
-- 弹丸对象池：`getPooledProj` / `freeProj` 替代 create/destroy，按纹理分组复用
+| 键 | 内容 |
+|---|---|
+| `realms` | 9 大境界：层数、属性加成、突破条件 |
+| `skills` | 5 个技能：id/名称/类型/伤害/范围/冷却/颜色/描述 |
+| `zones` | 8 大区域：距离范围、怪物等级、视觉参数 |
+| `bestiary` | 按区域的敌人模板：hp/atk/speed/xp/gold/攻击类型 |
+| `bossNames` | Boss 名称池 |
+| `achievements` | 15 个成就：结构化条件（`condition.type/value`）+ 奖励 |
+| `shopItems` | 商店商品、价格、效果 |
+| `equipment` | 部位、基础属性、品质倍率/颜色/前缀、名称池 |
+| `world` / `combatTuning` | 地图尺寸、安全区、刷怪/伤害/血量平衡参数 |
+| `progression` | 材料、词条、套装、丹方、任务、天赋、技能进阶 |
+| `sceneEffects` / `monsterTextures` | 区域氛围特效、怪物纹理映射 |
+| `assets` | 资源 id → `data/` 路径映射（当前为空，无外部资源） |
 
-### `src/ui.js` (442 行)
-- `hotbarRender()` — 渲染底部 5 格快捷键（Q+W/E/R/T）
-- `updateHUD()` — 更新 HUD：境界、等级、HP/XP 血条、金币、杀敌数
-- `toggleCharPanel()` — 角色面板：属性点加点、装备查看
-- `toggleBagPanel()` / `renderBagPanel()` — 背包：装备/卸下/出售
-- `toggleSkillPanel()` — 技能面板：升级技能、更换快捷键
-- `toggleAchPanel()` — 成就面板
-- `toggleShopPanel()` — 百宝阁：购买装备箱、洗髓丹、悟道丹、灵石袋
-- `upgradeSkill()` — 消耗技能点升级技能
-- `addAttr()` — 消耗属性点加点
-- `updateHotbarCooldowns()` — 技能冷却显示
-- 背包右键菜单（出售）
+成就/事件条件不使用函数，改为 `{ "type": "kills", "value": 50 }` 这类数据描述，由 `index.js` 解释执行。
 
-### `src/cultivation.js` (73 行)
-- `tryBreakthrough()` — 显示突破面板（成功率 50% + 5%/境界，最高 90%）
-- `doBreakthrough()` — 执行突破：消耗灵石，掷骰子，成功晋级/失败扣血
-- `cancelBreakthrough()` — 关闭突破面板
-- `toggleCultivate()` — 切换打坐修炼（按 SPACE）
+### `index.js`（约 6000 行，内部 9 大区块）
 
-### `src/equipment.js` (36 行)
-- `genEquipment(monsterLv, forceRarity)` — 程序化生成一件装备
-  - 根据怪物等级和稀有度规则决定品质
-  - 随机选择部位（武器/头盔/衣服/鞋子/戒指/项链）
-  - 按品质倍率生成属性值
-  - 生成前缀+名字（如 "仙品的龙鳞甲"）
+```text
+1. 数据加载与配置校验   —— fetch data.json，校验 id 唯一/引用存在/数值范围，失败显示错误页
+2. 常量、工具函数与默认状态 —— 事件总线 bus / DOM 缓存 / 运行时引用 / 玩家状态 P
+3. 状态读写、属性重算、境界修炼、装备与进度规则
+4. 存档：读档、保存（手动+30s 自动）、导入、导出、v1 兼容
+5. Phaser 配置、MainScene、纹理生成、实体生成、移动、AI、波次、战斗与技能
+6. 特效、对象池、碰撞、伤害、掉落与死亡流程
+7. HUD、热栏、面板、导航与 DOM 渲染
+8. 事件委托（data-action → ACTIONS）、键盘/鼠标/触摸/摇杆输入
+9. 启动流程、错误处理与页面生命周期
+```
 
-### `src/helpers.js` (13 行)
-- `setStatus(text, dur)` — 底部状态消息
-- `setLoot(text)` — 掉落弹窗
+- 所有 UI 交互通过 `data-action` 属性 + 第 8 区块的全局事件委托触发，不再注入 `window.*` 业务函数
+- 启动顺序：加载并校验数据 → 初始化状态/存档结构 → 绑定输入 → 创建 Phaser Game → 自动进入游戏
+- 新增功能按区块修改：改数值进 `data.json`，改玩法进第 3/5/6 区块，改界面进第 7 区块
 
-### `src/save.js` (49 行)
-- `saveGame()` — 序列化 P 对象和 waveNum 到 localStorage
-- `loadGame()` — 反序列化，版本检验 (v1)，补全缺失字段，恢复状态
-- 兼容性处理：attrs/attrPoints/skillLevels/totalGoldEarned 等字段缺失时设置默认值
+### `data/`
+
+只放项目自有静态资源（图片/音频/字体），按 `data/images/`、`data/audio/`、`data/fonts/` 分子目录；当前所有纹理均为代码生成，无需资源文件。
 
 ## 玩法系统
 
@@ -177,102 +116,99 @@ game-xiuxian/
 | C | 突破 |
 | X | 百宝阁 |
 
-### 修仙境界 (8 大境界 × 9 层，飞升境 1 层)
-凡体 → 炼气期 → 筑基期 → 金丹期 → 元婴期 → 化神期 → 大乘期 → 渡劫期 → 飞升境
+### 技能（data.json `skills`）
+| 技能 | 类型 | 说明 |
+|---|---|---|
+| 飞剑术 Q | 自动攻击 | 锁定最近敌人连射飞剑，附带成长/追踪 |
+| 治疗 W | 治疗 | 恢复 10% 最大生命值，CD 30s |
+| 巨剑术 E | 单体高伤 | 召唤巨型飞剑向前猛冲，CD 8s |
+| 雷域 R | 领域 | 以目标为中心展开大范围雷域，CD 30s |
+| 高能射线 T | 领域 | 召唤红球持续发射激光，CD 10s |
 
-- **晋升方式**: 杀敌积累 → 打坐(SPACE)修炼满当前层数 → 按 C 突破渡劫
-- **突破成功率**: 50% + 境界×5% (最高 90%)，消耗灵石
-- **失败惩罚**: 损失 30% 最大生命值
-- **成功奖励**: 进阶到下一境界第一层，满血
+- 伤害公式 `(atk+level×0.5)×baseDmg×等级系数×攻速buff`，暴击 15%+等级×0.3% 双倍伤害
+- 3 秒内连杀 5 只以上每只 +10% 经验，技能可消耗材料进阶（技能进阶面板）
 
-### 战斗系统
-- **自动攻击 (Q)**: 锁定范围内最近敌人发射飞剑，CD 0.7 秒，伤害公式 `(atk+level×0.5)×baseDmg×(0.72+lv×0.06)×攻速buff`
-- **12 种手动技能**:
-  - 伤害: 火球术 (高伤) / 御剑术 (3 弹齐射) / 落雷 (单体高伤)
-  - 盾: 土盾 (30% DR) / 剑盾 (20% DR + 反弹) / 金盾 (50% DR)
-  - Buff: 疾风步 (+40% 速度) / 战意 (+30% 攻速 +20% 伤害) / 鹰眼 (+50% 射程)
-  - 领域 AOE: 水域术 (AOE + 迟缓) / 雷域 (AOE 高伤) / 风域 (AOE + 聚怪)
-- **暴击**: 15% + 等级×0.3% 几率双倍伤害
-- **连杀**: 3 秒内连续击杀，高于 5 连杀后每次 +10% 经验
+### 修仙境界（9 大境界）
+凡体 → 炼气期 → 筑基期 → 金丹期 → 元婴期 → 化神期 → 大乘期 → 渡劫期 → 飞升境（每境 9 层，凡体/飞升 1 层）
+
+- **晋升方式**：杀敌积累 → 打坐(SPACE)修炼满当前层数 → 按 C 突破渡劫
+- **突破成功率**：50% + 境界×5%（最高 90%），消耗灵石
+- **失败惩罚**：损失 30% 最大生命值；**成功奖励**：进阶下一境界第一层并满血
 
 ### 装备系统
-- 6 部位: 武器 / 头盔 / 衣服 / 鞋子 / 戒指 / 项链
-- 6 品质: 凡品(×1) → 下品(×1.4) → 中品(×2) → 上品(×3) → 极品(×5) → 仙品(×9)
-- 掉落率: 普通 35% / 精英 60% / Boss 100%
-- 程序化生成属性值，按品质倍率缩放
-- 背包 30 格上限，可装备/出售/购买装备箱
+- 6 部位：武器/头盔/衣服/鞋子/戒指/项链；6 品质：凡品(×1)→下品(×1.4)→中品(×2)→上品(×3)→极品(×5)→仙品(×9)
+- 掉落率：普通 35% / 精英 60% / Boss 100%；背包 30 格，可装备/出售/强化/洗炼
+- 套装（万剑套/九霄套/玄体套）2/4/6 件触发加成
 
-### 四维属性
-| 属性 | 效果 |
-|---|---|
-| 筋骨 | 攻击 +2/点 |
-| 体魄 | 生命 +12 + 防御 +0.8/点 |
-| 神识 | 攻击 +0.8/点 |
-| 身法 | 速度 +5/点 |
-
-- 来源: 每级 +3 属性点，成就奖励
-- 可购买洗髓丹重置
-
-### 5 大区域
-| 区域 | 怪物等级 | 距离中心 |
+### 8 大区域
+| 区域 | 怪物等级 | 距中心距离 |
 |---|---|---|
-| 灵溪村 (安全) | 1 | 0-500 |
-| 落霞山脉 | 3 | 500-1100 |
-| 幽暗密林 | 6 | 1100-1700 |
-| 寒冰极域 | 10 | 1700-2300 |
-| 烈焰炼狱 | 15 | 2300-3500 |
+| 古剑门（安全区） | 1 | 0–700 |
+| 妖兽谷 | 5 | 700–1400 |
+| 雪山 | 9 | 1400–2200 |
+| 火焰山 | 14 | 2200–3100 |
+| 深渊 | 19 | 3100–4000 |
+| 万剑峰 | 24 | 4000–4700 |
+| 幽冥海 | 29 | 4700–5200 |
+| 九天雷域 | 34 | 5200–6000 |
 
-- 中心安全区 (半径 360px) 不刷怪、不受伤
-- 越远离中心怪物越强
+中心安全区（半径 350）不刷怪、受伤自动恢复；越远离中心怪物越强，每区域有独立氛围特效。
 
-### 兽潮系统
-- 区域清空后 8 秒触发下一波
-- 波次数量: `4 + 波数×2` (最大 30)
-- 第 5/10/15...波有强化 Boss
-- 记录最大存活波次用于成就
+### 波次与兽潮
+- 区域清空后约 2 秒触发下一波（最多 20 只同时在场），每 5 波出现强化 Boss
+- **剑气长城**（玩法面板进入）：镇守 20 波兽潮，波次间 3 秒休整
 
-### 死亡系统
-- 死亡后弹出重生面板，损失 15% 灵石，原地重生满血
+### 玩法系统（玩法面板）
+- 材料掉落（玄铁矿/灵草/妖核/星尘）、炼丹（回春丹/悟道丹/战魄丹）
+- 宗门任务（击杀/首领任务）、妖雾秘境（18 杀结算）、怪物图鉴（10 杀领奖）
+- 境界天赋（4 个）、技能进阶（3 个）、商店（装备箱/洗髓丹/灵石袋）
 
-### 成就系统 (15 个)
-- 杀敌里程碑 (10/50/200/1000)
-- 等级里程碑 (5/10/20)
-- 境界突破 (筑基/金丹/元婴)
-- 财富 (500/5000 灵石)
-- 获得极品装备
-- 撑过第 10 波兽潮
-- 累计游戏 1 小时
+### 成就（15 个）
+杀敌 10/50/200/1000、等级 5/10/20、境界突破、财富 500/5000、极品装备、撑过第 10 波、累计 1 小时 —— 条件与奖励全部在 `data.json.achievements`。
 
-### 存档系统
-- 30 秒自动存档 + 手动存档按钮
-- 加载时自动恢复所有状态
-- 版本标记 v1，加载时补全缺失字段
+### 死亡
+死亡后弹出重生面板，损失 15% 灵石，回安全区满血重生。
+
+## 存档系统
+
+- localStorage key：`xiuxian_save`，格式版本 v1（`{ P, wave, version }`）
+- 30 秒自动存档 + 手动保存 + 设置面板导入/导出 JSON + 重置
+- 读档时对缺失字段/旧字段/非法数值做默认值补全，坏存档不会阻止启动
+- 持久化白名单仅包含 `P` 的玩家数据与波次，不含 Phaser/DOM/计时器/对象池等临时状态
 
 ## 代码执行流程
 
-```
+```text
 1. 浏览器加载 index.html
 2. <script src="lib/phaser.min.js"> 加载 Phaser 引擎
-3. <script type="module" src="src/main.js"> 启动:
-   a. import 所有模块 → 触发各模块顶层代码 (state.js 初始化 P、刷新技能)
-   b. 注册 window 全局函数 (bridge: window.setStatus, window.saveGame 等)
-   c. 渲染 HUD 和热栏
+3. <script src="index.js"> 启动:
+   a. fetch('data.json') 加载并校验配置 → 建立索引
+   b. 初始化技能/热栏/进度结构 → 绑定 data-action 事件委托
+   c. window load → 显示加载条 → 渲染 HUD/热栏
    d. new Phaser.Game() → 启动 MainScene
-4. MainScene.preload() → 程序化生成纹理
-5. MainScene.create() → 创建世界、玩家、物理、输入绑定
-6. loadGame() → 尝试读取存档
-7. MainScene.update() 每帧循环:
-   ├─ 检查安全区
-   ├─ 处理玩家输入移动
-   ├─ 修炼进度更新
-   ├─ Buff 计时器
-   ├─ 区域切换
-   ├─ ★ 单次遍历敌人组 (AI + 血条 + 收集 close`Q 和 activeEnemies)
-   ├─ Q 自动攻击 (使用 close`Q)
-   ├─ 手动技能 (使用 activeEnemies)
-   ├─ 兽潮管理
-   ├─ 掉落/状态计时器
-   ├─ HUD 刷新 (每 ~120ms)
-   ├─ 自动存档 (每 30s)
-   └─ 成就检查 (每 2s)
+4. MainScene.preload() → 程序化生成全部纹理
+5. MainScene.create() → 世界/玩家/物理/输入绑定 → loadGame() 读档 → 挂载导航 → 自动进入游戏
+6. MainScene.update() 每帧循环:
+   ├─ 安全区检测（进入/离开清怪、自动回血）
+   ├─ 玩家移动（键盘 + 鼠标 + 摇杆）
+   ├─ 修炼进度 / Buff 计时 / 区域氛围特效
+   ├─ ★ 单次遍历敌人组（AI 移动攻击 + 血条 + 定位收集）
+   ├─ Q 自动攻击 + W/E/R/T 手动技能
+   ├─ 波次管理 / 防御模式（剑气长城）
+   ├─ HUD 刷新（每 ~6 帧）/ 自动存档（每 30s）/ 成就检查（每 2s）
 ```
+
+## 性能优化（已保留）
+
+- 敌人遍历：每帧单次 `enemies.children.iterate()` 同时完成 AI/血条/定位数据收集
+- 弹丸对象池：`getPooledProj` / `freeProj` 按纹理分组复用，避免频繁 create/destroy
+- 移动端低特效模式（`lowFxMode`）：自动降粒子数量与特效密度
+
+## 常见问题
+
+| 问题 | 处理 |
+|---|---|
+| 打开白屏/提示加载失败 | 使用了 `file://` 打开 —— 必须通过 `python3 -m http.server` 等静态服务器访问 |
+| 数据文件修改后未生效 | `index.js` 每次启动都重新 fetch `data.json`（no-store），刷新即可 |
+| 想改游戏数值 | 全部在 `data.json`：技能/敌人/区域/境界/掉落/商店 |
+| 想加新功能 | 按 `index.js` 顶部 9 区块注释定位对应区块修改，不新增源文件 |
