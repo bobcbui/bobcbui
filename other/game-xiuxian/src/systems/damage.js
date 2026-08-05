@@ -3,7 +3,7 @@
  * CombatSystem 通过薄封装调用本模块。
  * ========================================================================== */
 
-import { P, recalcStats, runXpToNext } from '@/core/state.js';
+import { P } from '@/core/state.js';
 import { bus } from '@/core/events.js';
 
 const SWORD_HIT_COOLDOWN_MS = 120;
@@ -148,7 +148,6 @@ export function damageEnemy(scene, en, dmg, skillId = null) {
   if (hp <= 0) {
     en.setData('dead', true);
     const lbl = en.getData('label'); if (lbl) lbl.destroy();
-    const xp = Math.round((en.getData('xp') || 1) * (1 + (P.mods?.xpBonus || 0)));
     en.setVelocity(0, 0); en.body.enable = false;
     scene.tweens.add({ targets: en, alpha: 0, duration: 250, onComplete: () => en.destroy() });
     scene.killStreak = (scene.killStreak || 0);
@@ -156,30 +155,12 @@ export function damageEnemy(scene, en, dmg, skillId = null) {
     if (now - (scene.lastKill || 0) < 3000) scene.killStreak++;
     else scene.killStreak = 1;
     scene.lastKill = now;
-    const streakBonus = scene.killStreak >= 5 ? Math.round(xp * (scene.killStreak * 0.1)) : 0;
-    P.xp += xp + streakBonus; P.kills++; P.totalKills++;
+    P.kills++; P.totalKills++;
     if (scene.killStreak >= 3) {
-      scene.textPool.show(en.x, en.y - 30, '连杀x' + scene.killStreak + (streakBonus ? ' +' + streakBonus + 'exp' : ''), {
+      scene.textPool.show(en.x, en.y - 30, '连杀x' + scene.killStreak, {
         fontSize: '16px', color: '#ff8844', stroke: '#000',
         strokeThickness: 2, depth: 20, floatDist: 50, duration: 1000
       });
-    }
-    // 局内升级：每级触发一次抽卡（一次击杀连升多级只抽一次）
-    let leveled = false;
-    while (P.xp >= P.xpToNext) {
-      P.xp -= P.xpToNext;
-      P.level += 1;
-      P.xpToNext = runXpToNext(P.level);
-      recalcStats();
-      leveled = true;
-    }
-    if (leveled) {
-      scene.textPool.show(scene.player.x, scene.player.y - 50, '🎉 Lv.' + P.level + '！', {
-        fontSize: '22px', color: '#ffd700', stroke: '#000',
-        strokeThickness: 3, depth: 25, floatDist: 80, duration: 1200
-      });
-      bus.emit('status', '🎉 升级！Lv.' + P.level + '，抽取卡牌', 2);
-      scene.cardSystem?.onLevelUp();
     }
     bus.emit('hud-refresh');
     bus.emit('save');
