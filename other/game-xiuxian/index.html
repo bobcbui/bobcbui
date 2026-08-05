@@ -42,7 +42,7 @@
   <!-- Loot popup -->
   <div id="loot-popup" class="panel"></div>
 
-  <!-- 主页（局外） -->
+  <!-- 主页（局外，手机 APP 式布局：顶等级 / 中内容 / 底导航） -->
   <div id="mainMenu">
     <!-- 顶部：等级信息 + 右上角设置 -->
     <div class="menu-top">
@@ -55,17 +55,16 @@
       <button class="btn btn-sec menu-settings-top" data-action="toggleSettingsPanel">⚙️</button>
     </div>
 
-    <!-- 四页菜单（顶部：等级下方） -->
-
-    <div id="menu-panel" class="panel">
-      <div id="menu-tabs">
-        <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">关卡</button>
-        <button class="menu-tab" id="menu-tab-equip" data-action="menuTab" data-arg="equip">装备</button>
-        <button class="menu-tab" id="menu-tab-skill" data-action="menuTab" data-arg="skill">技能</button>
-        <button class="menu-tab" id="menu-tab-activity" data-action="menuTab" data-arg="activity">活动</button>
+    <!-- 加载区（启动时） -->
+    <div id="loading-area">
+      <div id="loading-bar-wrap" class="hidden">
+        <div id="loading-bar-fill"></div>
       </div>
+      <div id="loading-text"></div>
+    </div>
 
-      <!-- 第一页：关卡选择 -->
+    <!-- 中间内容区（默认关卡选择居中） -->
+    <div id="menu-content">
       <div id="page-stage" class="menu-page">
         <div class="stage-selector">
           <button class="btn btn-sec" id="prevStageBtn" data-action="prevStage">⬅ 上一关</button>
@@ -76,28 +75,25 @@
         <button id="enterStageBtn" class="btn btn-gold" data-action="enterStage">⚔️ 进入第 1 关 ⚔️</button>
       </div>
 
-      <!-- 第二页：装备 -->
       <div id="page-equip" class="menu-page hidden">
         <div id="equipList" class="equip-list"></div>
       </div>
 
-      <!-- 第三页：技能图鉴 -->
       <div id="page-skill" class="menu-page hidden">
         <div id="skillPageList" class="skill-page-list"></div>
       </div>
 
-      <!-- 第四页：活动 -->
       <div id="page-activity" class="menu-page hidden">
         <div id="activityPageList" class="activity-page-list"></div>
       </div>
     </div>
 
-    <!-- 加载区（启动时） -->
-    <div id="loading-area">
-      <div id="loading-bar-wrap" class="hidden">
-        <div id="loading-bar-fill"></div>
-      </div>
-      <div id="loading-text"></div>
+    <!-- 底部导航（4 个 tab） -->
+    <div id="menu-tabs">
+      <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">关卡</button>
+      <button class="menu-tab" id="menu-tab-equip" data-action="menuTab" data-arg="equip">装备</button>
+      <button class="menu-tab" id="menu-tab-skill" data-action="menuTab" data-arg="skill">技能</button>
+      <button class="menu-tab" id="menu-tab-activity" data-action="menuTab" data-arg="activity">活动</button>
     </div>
 
   </div>

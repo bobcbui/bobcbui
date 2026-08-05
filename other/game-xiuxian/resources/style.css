@@ -18,7 +18,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-html,body { width:100%;height:100%;overflow:hidden;background:#2d1810;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
+html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
 /* 游戏容器：最大宽度 600px，超过时水平居中（两侧深色留白） */
 #gameWrap {
   position:fixed;
@@ -28,7 +28,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#2d1810;color:var(
   transform:translateX(-50%);
   width:min(100vw, 600px);
   background:#efe3c0;
-  box-shadow:0 0 48px rgba(0,0,0,0.5);
+  box-shadow:0 0 20px rgba(63,45,29,0.15);
   overflow:hidden;
 }
 #gameCanvas { position:absolute;inset:0;display:block;touch-action:none;background:#efe3c0; }
@@ -41,10 +41,10 @@ html,body { width:100%;height:100%;overflow:hidden;background:#2d1810;color:var(
   position:fixed;
   inset:0;
   z-index:100;
-  background:linear-gradient(180deg,#1a0a00 0%,#2d1810 60%,#3d2818 100%);
+  background:#f4ead1;
   display:flex;
   flex-direction:column;
-  padding:calc(var(--safe-top) + 12px) 12px calc(var(--safe-bottom) + 12px) 12px;
+  padding:calc(var(--safe-top) + 8px) 12px 0;
   overflow:hidden;
 }
 /* 顶部：等级信息（左）+ 设置（右上角） */
@@ -70,15 +70,14 @@ html,body { width:100%;height:100%;overflow:hidden;background:#2d1810;color:var(
   flex-shrink:0;
   margin-top:2px;
 }
-/* 加载区：显示在菜单下方（启动时） */
+/* 加载区：紧凑显示在顶部栏下方 */
 #loading-area {
-  flex:1;
+  min-height:40px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:flex-start;
+  justify-content:center;
   gap:8px;
-  padding-top:24px;
 }
 .menu-sub { font-size:12px; color:rgba(255,215,0,0.6); }
 .menu-stats strong { color:#ffd700; }
@@ -228,33 +227,28 @@ html,body { width:100%;height:100%;overflow:hidden;background:#2d1810;color:var(
   .card-option .card-desc { font-size:10px; }
   }
 
-/* ===== 主页底部四页菜单 ===== */
-#menu-panel {
-  width:min(560px, calc(100vw - 24px));
-  max-height:60vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  margin:0 auto;
-}
+/* ===== 主页 APP 式布局：顶等级 / 中内容 / 底导航 ===== */
 #menu-tabs {
   display:flex;
-  border-bottom:1px solid var(--panel-border);
+  background:var(--panel-bg);
+  border-top:1px solid var(--panel-border);
+  padding-bottom:var(--safe-bottom);
+  backdrop-filter:blur(12px);
 }
 .menu-tab {
   flex:1;
-  padding:10px 0;
+  padding:12px 0;
   border:0;
   background:transparent;
   color:var(--text-dim);
   font-size:14px;
   font-weight:700;
   cursor:pointer;
-  border-bottom:2px solid transparent;
+  border-top:2px solid transparent;
 }
 .menu-tab.active {
   color:var(--gold);
-  border-bottom-color:var(--gold);
+  border-top-color:var(--gold);
 }
 .menu-page {
   padding:12px;
@@ -343,8 +337,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#2d1810;color:var(
 
 /* 移动端：菜单更紧凑 */
 @media (max-width: 480px) {
-  #menu-panel { width:calc(100vw - 24px); max-height:50vh; }
-  .menu-page { max-height:40vh; }
+  #menu-content { width:calc(100vw - 24px); }
   .stage-current { font-size:16px; }
   .stage-current strong { font-size:20px; }
 }
