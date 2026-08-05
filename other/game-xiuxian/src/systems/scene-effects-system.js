@@ -1,6 +1,6 @@
 /* 区域氛围特效：花瓣/落叶/飘雪/余烬/鬼火/剑光/迷雾/电花（配置在 data.json.sceneEffects） */
 
-import { SCENE_EFFECTS } from '../data/index.js';
+import { SCENE_EFFECTS } from '@/data/index.js';
 
 export class SceneEffectsSystem {
   constructor(scene) {

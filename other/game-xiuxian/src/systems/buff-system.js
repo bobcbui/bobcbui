@@ -1,6 +1,6 @@
 /* Buff：计时、护盾环绕视觉 */
 
-import { P } from '../core/state.js';
+import { P } from '@/core/state.js';
 
 export class BuffSystem {
   constructor(scene) {

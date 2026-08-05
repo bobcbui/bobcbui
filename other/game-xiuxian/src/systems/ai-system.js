@@ -1,8 +1,8 @@
 /* AI：单次敌人遍历（移动/攻击/血条/定位收集） */
 
-import { P } from '../core/state.js';
-import { COMBAT_TUNING } from '../data/index.js';
-import { bus } from '../core/events.js';
+import { P } from '@/core/state.js';
+import { COMBAT_TUNING } from '@/data/index.js';
+import { bus } from '@/core/events.js';
 
 export class AISystem {
   constructor(scene) {

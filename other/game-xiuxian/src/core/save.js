@@ -3,12 +3,12 @@
  * localStorage key：xiuxian_save；格式 { P, wave, version: 1 }
  * ========================================================================== */
 
-import { bus } from './events.js';
-import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from './state.js';
-import { SKILL_DEFS } from '../data/index.js';
-import { autoEquipBestEquipment } from './equipment.js';
-import { getEl } from './dom.js';
-import { ensureProgressionState } from './progression.js';
+import { bus } from '@/core/events.js';
+import { P, waveNum, setWaveNum, recalcStats, refreshSkills, initHotbar } from '@/core/state.js';
+import { SKILL_DEFS } from '@/data/index.js';
+import { autoEquipBestEquipment } from '@/core/equipment.js';
+import { getEl } from '@/core/dom.js';
+import { ensureProgressionState } from '@/core/progression.js';
 
 const SAVE_KEY = 'xiuxian_save';
 const SAVE_THROTTLE_MS = 1500;

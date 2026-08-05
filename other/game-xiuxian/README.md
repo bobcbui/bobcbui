@@ -71,9 +71,12 @@ game-xiuxian/
 │       └── joystick-controller.js  # 虚拟摇杆
 ├── data/               # 自有资源目录（图片/音频/字体；当前全为代码生成纹理，目录留空）
 ├── lib/phaser.min.js   # 第三方 Phaser 运行库
+├── jsconfig.json       # 编辑器路径映射：@/* -> ./src/*
 ├── README.md           # 本文档
 └── TASK.md             # 四文件收敛实施计划（历史记录）
 ```
+
+**路径别名**：`index.html` 通过 `<script type="importmap">` 把 `@/` 映射到 `./src/`，所有模块导入统一使用 `@/core/state.js` 这类别名（不再使用 `../` 相对路径）；`jsconfig.json` 为编辑器提供相同映射。
 
 纹理全部由代码生成，无外部图片/音频/字体资源。
 

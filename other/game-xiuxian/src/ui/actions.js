@@ -21,7 +21,7 @@ import {
   toggleSkillPanel,
   updateCharPanel,
   upgradeSkill
-} from './index.js';
+} from '@/ui/index.js';
 import {
   claimBestiaryReward,
   claimQuest,
@@ -32,21 +32,21 @@ import {
   reforgeEquipped,
   resetQuests,
   startDungeon
-} from '../core/progression.js';
+} from '@/core/progression.js';
 import {
   exportSaveData,
   importSaveData,
   manualSave,
   resetGameData,
   toggleSettingsPanel
-} from '../core/save.js';
+} from '@/core/save.js';
 import {
   cancelBreakthrough,
   doBreakthrough,
   toggleCultivate,
   tryBreakthrough
-} from '../core/cultivation.js';
-import { getScene } from '../core/runtime.js';
+} from '@/core/cultivation.js';
+import { getScene } from '@/core/runtime.js';
 
 /* ---- 组合动作（原内联 onclick 多语句调用） ---- */
 function enhanceAndRefresh(slot){ enhanceEquipped(slot); renderGameplayPanel(); updateCharPanel(); }

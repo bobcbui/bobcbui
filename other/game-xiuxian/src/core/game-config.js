@@ -1,6 +1,6 @@
 /* Phaser 配置 */
 
-import { MainScene } from './main-scene.js';
+import { MainScene } from '@/core/main-scene.js';
 
 export function createGameConfig(canvas) {
   const width = window.innerWidth;

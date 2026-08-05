@@ -1,7 +1,7 @@
 /* 移动：键盘 / 鼠标（按住移动到目标点）/ 摇杆 */
 
-import { P } from '../core/state.js';
-import { getJoystickDir } from '../core/runtime.js';
+import { P } from '@/core/state.js';
+import { getJoystickDir } from '@/core/runtime.js';
 
 export class MovementSystem {
   constructor(scene) {

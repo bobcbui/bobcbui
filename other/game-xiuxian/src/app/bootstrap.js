@@ -3,15 +3,15 @@
  * window load 后创建 Phaser Game + 摇杆；失败时展示错误页
  * ========================================================================== */
 
-import { loadConfig, buildDataIndexes } from '../data/index.js';
-import { refreshSkills, initHotbar } from '../core/state.js';
-import { ensureProgressionState } from '../core/progression.js';
-import { hotbarRender, updateHUD } from '../ui/index.js';
-import { bindActions } from '../ui/actions.js';
-import { JoystickController } from '../input/joystick-controller.js';
-import { setGame } from '../core/runtime.js';
-import { createGameConfig } from '../core/game-config.js';
-import { reportLoading, showLoadingBar, setStartBtnEnabled } from './loader.js';
+import { loadConfig, buildDataIndexes } from '@/data/index.js';
+import { refreshSkills, initHotbar } from '@/core/state.js';
+import { ensureProgressionState } from '@/core/progression.js';
+import { hotbarRender, updateHUD } from '@/ui/index.js';
+import { bindActions } from '@/ui/actions.js';
+import { JoystickController } from '@/input/joystick-controller.js';
+import { setGame } from '@/core/runtime.js';
+import { createGameConfig } from '@/core/game-config.js';
+import { reportLoading, showLoadingBar, setStartBtnEnabled } from '@/app/loader.js';
 
 function markTouchDevice() {
   if (window.ontouchstart !== undefined || navigator.maxTouchPoints > 0) {

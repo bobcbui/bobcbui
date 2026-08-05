@@ -7,10 +7,10 @@ import {
   setLootTimer,
   setStatusTimer,
   statusTimer
-} from '../core/state.js';
-import { bus } from '../core/events.js';
-import { getEl } from '../core/dom.js';
-import { updateHotbarCooldowns } from '../ui/index.js';
+} from '@/core/state.js';
+import { bus } from '@/core/events.js';
+import { getEl } from '@/core/dom.js';
+import { updateHotbarCooldowns } from '@/ui/index.js';
 
 export class UiTickSystem {
   constructor(scene) {

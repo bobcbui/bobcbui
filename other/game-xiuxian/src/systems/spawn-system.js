@@ -1,7 +1,7 @@
 /* 刷怪：按当前区域生成敌人（普通/精英/Boss），带属性缩放与标签 */
 
-import { ZONES, BESTIARY, BOSS_NAMES, WORLD, COMBAT_TUNING, MONSTER_TEXTURES } from '../data/index.js';
-import { P } from '../core/state.js';
+import { ZONES, BESTIARY, BOSS_NAMES, WORLD, COMBAT_TUNING, MONSTER_TEXTURES } from '@/data/index.js';
+import { P } from '@/core/state.js';
 
 function getEnemyMaxHp(tmpl, scale, isBoss, isElite) {
   const tierMult = isBoss

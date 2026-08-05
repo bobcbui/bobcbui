@@ -9,9 +9,9 @@ import {
   setWallHp,
   wallHp,
   wallMaxHp
-} from '../core/state.js';
-import { bus } from '../core/events.js';
-import { getEl } from '../core/dom.js';
+} from '@/core/state.js';
+import { bus } from '@/core/events.js';
+import { getEl } from '@/core/dom.js';
 
 export class DefenseSystem {
   constructor(scene) {

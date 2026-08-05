@@ -1,9 +1,9 @@
 /* 兽潮波次：区域清空后自动刷新，每 5 波 Boss 波 */
 
 import { P, waveNum, waveTimer, wavePending,
-  setWaveNum, setWaveTimer, setWavePending } from '../core/state.js';
-import { COMBAT_TUNING } from '../data/index.js';
-import { bus } from '../core/events.js';
+  setWaveNum, setWaveTimer, setWavePending } from '@/core/state.js';
+import { COMBAT_TUNING } from '@/data/index.js';
+import { bus } from '@/core/events.js';
 
 export class WaveSystem {
   constructor(scene) {

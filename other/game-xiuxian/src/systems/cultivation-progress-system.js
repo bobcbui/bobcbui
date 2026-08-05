@@ -8,9 +8,9 @@ import {
   recalcStats,
   refreshSkills,
   setCultProgress
-} from '../core/state.js';
-import { bus } from '../core/events.js';
-import { getRealm, getRealmIndex } from '../data/index.js';
+} from '@/core/state.js';
+import { bus } from '@/core/events.js';
+import { getRealm, getRealmIndex } from '@/data/index.js';
 
 export class CultivationProgressSystem {
   constructor(scene) {

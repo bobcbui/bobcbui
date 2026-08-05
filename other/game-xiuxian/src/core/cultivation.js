@@ -1,9 +1,9 @@
 /* 境界修炼：打坐、突破渡劫 */
 
-import { bus } from './events.js';
-import { P, isCultivating, breakPending, setIsCultivating, setBreakPending, recalcStats, refreshSkills, initHotbar } from './state.js';
-import { getScene } from './runtime.js';
-import { REALMS, getRealm, getRealmIndex } from '../data/index.js';
+import { bus } from '@/core/events.js';
+import { P, isCultivating, breakPending, setIsCultivating, setBreakPending, recalcStats, refreshSkills, initHotbar } from '@/core/state.js';
+import { getScene } from '@/core/runtime.js';
+import { REALMS, getRealm, getRealmIndex } from '@/data/index.js';
 
 export function tryBreakthrough(){
   if(P.realm==='feisheng'){ bus.emit('status','已至飞升，大道已成！',2); return; }
