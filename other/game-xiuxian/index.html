@@ -15,6 +15,27 @@
   }
 }
 </script>
+<script>
+window.xiuxianHome = () => ({
+  activeTab: 'stage',
+  settingsOpen: false,
+  selectedStage: 1,
+  maxStage: 1,
+  totalLevel: 1,
+  totalXp: 0,
+  totalXpToNext: 40,
+  stageInfo: '',
+  toggleSettings() { this.settingsOpen = !this.settingsOpen; },
+  switchTab(tab) {
+    this.activeTab = tab;
+    window.XiuxianMenuBridge?.menuTab(tab);
+  },
+  previousStage() { window.XiuxianMenuBridge?.prevStage(); },
+  nextStage() { window.XiuxianMenuBridge?.nextStage(); },
+  enterStage() { window.XiuxianMenuBridge?.enterStage(); }
+});
+</script>
+<script defer src="lib/alpine.min.js"></script>
 </head>
 <body>
 <div id="gameWrap">
@@ -36,6 +57,17 @@
     </div>
     <div id="cardsHud"></div>
   </div>
+  <div id="wallHud" class="panel" aria-label="城墙生命值">
+    <div class="wall-hud-title"><span>🧱 城墙</span><span id="wallHpText">100/100</span></div>
+    <div class="bar-bg"><div id="wallHpFill" class="bar-fill"></div></div>
+  </div>
+
+  <div id="battleLoading" class="battle-loading hidden">
+    <div class="battle-loading-box panel">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <div id="battleLoadingText">正在进入关卡...</div>
+    </div>
+  </div>
 
   <!-- Status -->
   <div id="status">消息</div>
@@ -43,19 +75,21 @@
   <div id="loot-popup" class="panel"></div>
 
   <!-- 主页（微信式布局：顶导航栏 / 等级条 / 列表内容 / 底部 tab） -->
-  <div id="mainMenu">
-    <!-- 顶部导航栏 -->
-    <div id="app-bar">
-      <span id="app-title">百世修仙</span>
-      <button class="btn btn-sec app-settings" data-action="toggleSettingsPanel">⚙️</button>
-    </div>
+  <div id="mainMenu" x-data="xiuxianHome()" x-cloak>
+    <div id="menu-topbar">
+      <!-- 顶部导航栏 -->
+      <div id="app-bar">
+        <span id="app-title">百世修仙</span>
+      </div>
 
-    <!-- 等级条（微信个人信息横条风格） -->
-    <div id="level-bar" class="panel">
-      <span class="level-label">总等级 <strong id="menuTotalLevel">1</strong></span>
-      <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
-      <span id="menuTotalXpText">0/40</span>
-      <span class="level-max">通关 <strong id="menuMaxStage">0</strong></span>
+      <!-- 等级条（微信个人信息横条风格） -->
+      <div id="level-bar" class="panel">
+        <span class="level-label">总等级 <strong id="menuTotalLevel" x-text="totalLevel">1</strong></span>
+        <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
+        <span id="menuTotalXpText" x-text="totalXp + '/' + totalXpToNext">0/40</span>
+        <span class="level-max">通关 <strong id="menuMaxStage" x-text="maxStage - 1">0</strong></span>
+      </div>
+      <button class="btn btn-sec app-settings top-settings" type="button" @click="toggleSettings()" aria-label="设置">⚙️</button>
     </div>
 
     <!-- 加载区（启动时） -->
@@ -68,41 +102,50 @@
 
     <!-- 内容区（微信列表风格） -->
     <div id="menu-content">
-      <div id="page-stage" class="menu-page">
-        <div class="stage-selector panel">
-          <button class="btn btn-sec" id="prevStageBtn" data-action="prevStage">⬅ 上一关</button>
-          <div class="stage-current">第 <strong id="selStage">1</strong> 关</div>
-          <button class="btn btn-sec" id="nextStageBtn" data-action="nextStage">下一关 ➡</button>
+      <div id="page-stage" class="menu-page" x-show="activeTab === 'stage'">
+        <div id="selStageInfo" class="stage-info" x-text="stageInfo"></div>
+        <div class="stage-card-track" aria-label="关卡选择">
+          <button id="prevStageCard" class="stage-card stage-card-side" type="button" :disabled="selectedStage <= 1" @click="previousStage()" aria-label="上一关">
+            <span>上一关</span>
+          </button>
+          <button class="stage-card stage-card-current" type="button" @click="enterStage()" aria-label="进入当前关卡">
+            <span class="stage-card-current-content">
+              <small>当前关卡</small>
+              <strong x-text="'第 ' + selectedStage + ' 关'">第 1 关</strong>
+              <em>点击进入</em>
+            </span>
+          </button>
+          <button id="nextStageCard" class="stage-card stage-card-side" type="button" :disabled="selectedStage >= maxStage" @click="nextStage()" aria-label="下一关">
+            <span>下一关</span>
+          </button>
         </div>
-        <div id="selStageInfo" class="stage-info"></div>
-        <button id="enterStageBtn" class="btn btn-gold" data-action="enterStage">⚔️ 进入第 1 关 ⚔️</button>
       </div>
 
-      <div id="page-equip" class="menu-page hidden">
+      <div id="page-equip" class="menu-page" x-show="activeTab === 'equip'">
         <div id="equipList" class="equip-list"></div>
       </div>
 
-      <div id="page-skill" class="menu-page hidden">
+      <div id="page-skill" class="menu-page" x-show="activeTab === 'skill'">
         <div id="skillPageList" class="skill-page-list"></div>
       </div>
 
-      <div id="page-activity" class="menu-page hidden">
+      <div id="page-activity" class="menu-page" x-show="activeTab === 'activity'">
         <div id="activityPageList" class="activity-page-list"></div>
       </div>
     </div>
 
     <!-- 底部 tab（微信式：图标 + 文字） -->
     <div id="menu-tabs">
-      <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">
+      <button class="menu-tab" id="menu-tab-stage" type="button" :class="{ active: activeTab === 'stage' }" @click="switchTab('stage')">
         <span class="menu-tab-icon">🗡️</span><span class="menu-tab-label">关卡</span>
       </button>
-      <button class="menu-tab" id="menu-tab-equip" data-action="menuTab" data-arg="equip">
+      <button class="menu-tab" id="menu-tab-equip" type="button" :class="{ active: activeTab === 'equip' }" @click="switchTab('equip')">
         <span class="menu-tab-icon">🛡️</span><span class="menu-tab-label">装备</span>
       </button>
-      <button class="menu-tab" id="menu-tab-skill" data-action="menuTab" data-arg="skill">
+      <button class="menu-tab" id="menu-tab-skill" type="button" :class="{ active: activeTab === 'skill' }" @click="switchTab('skill')">
         <span class="menu-tab-icon">📖</span><span class="menu-tab-label">技能</span>
       </button>
-      <button class="menu-tab" id="menu-tab-activity" data-action="menuTab" data-arg="activity">
+      <button class="menu-tab" id="menu-tab-activity" type="button" :class="{ active: activeTab === 'activity' }" @click="switchTab('activity')">
         <span class="menu-tab-icon">🎁</span><span class="menu-tab-label">活动</span>
       </button>
     </div>
@@ -128,8 +171,8 @@
   </div>
 
   <!-- Settings modal -->
-  <div id="settingsPanel" class="modal-overlay hidden">
-    <div class="bg" data-action="toggleSettingsPanel"></div>
+  <div id="settingsPanel" class="modal-overlay" x-show="settingsOpen" x-transition x-cloak>
+    <div class="bg" @click="toggleSettings()"></div>
     <div class="modal-box panel">
       <h2>⚙️ 设置</h2>
       <div class="settings-list">
@@ -138,7 +181,7 @@
         <button class="btn btn-sec" data-action="importSaveData">📥 导入存档</button>
         <button class="btn btn-sec btn-danger" data-action="resetGameData">🗑️ 重置游戏</button>
       </div>
-      <button class="btn btn-sm btn-sec settings-close" data-action="toggleSettingsPanel">关闭</button>
+      <button class="btn btn-sm btn-sec settings-close" type="button" @click="toggleSettings()">关闭</button>
     </div>
   </div>
 

@@ -77,17 +77,10 @@ export function onProjHit(scene, proj, en) {
 
 /** 敌人弹丸命中玩家：扣血、战败判定 */
 export function onEnemyProjHit(scene, proj) {
-  if (!proj.active || scene.playerDead) { scene.freeProj(proj); return; }
+  if (!proj.active || scene.runFinished) { scene.freeProj(proj); return; }
   const dmg = proj.getData('damage') || 8;
-  const sd = P.buff.shieldPct > 0 ? (1 - P.buff.shieldPct) : 1;
-  P.hp = Math.max(0, P.hp - Math.round(dmg * sd));
-  scene.damageFlash(0.15);
+  scene.damageWall(dmg);
   scene.freeProj(proj);
-  if (P.hp <= 0 && !scene.playerDead) {
-    scene.playerDead = true;
-    scene.stageSystem?.failStage();
-  }
-  bus.emit('hud-refresh');
 }
 
 /** 敌人接触玩家：近战伤害、护盾反射、战败判定 */

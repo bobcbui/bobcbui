@@ -1,7 +1,7 @@
 {
   "version": 2,
   "world": {
-    "width": 1600,
+    "width": 600,
     "height": 1000,
     "playerX": 800,
     "playerY": 860
@@ -377,6 +377,7 @@
     "maxActiveEnemies": 30,
     "playerDamageScale": 70,
     "enemyHpScale": 190,
+    "enemySpeedScale": 0.55,
     "enemyHpTierMult": {
       "normal": 1,
       "elite": 2,
@@ -406,7 +407,8 @@
     "clearXpBase": 100,
     "clearXpPerStage": 40,
     "failXpPerKill": 2,
-    "failXpPerWave": 15
+    "failXpPerWave": 15,
+    "wallMaxHp": 100
   },
   "assets": {},
   "equipment": {

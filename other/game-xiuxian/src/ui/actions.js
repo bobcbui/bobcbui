@@ -50,6 +50,7 @@ export const ACTIONS = {
 
 /* ---- 统一事件委托：data-action -> ACTIONS ---- */
 export function bindActions() {
+  window.XiuxianMenuBridge = { enterStage, menuTab, nextStage, prevStage };
   document.addEventListener('click', (e) => {
     const el = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
     if (!el) return;

@@ -11,6 +11,7 @@ import { ACHIEVEMENTS, PROGRESSION, EQ_TYPES } from '@/data/index.js';
 
 export const P = {
   hp:100, maxHp:100,
+  wallHp:100, wallMaxHp:100,
   atk:10, def:0,
   level:1, xp:0, xpToNext:5,          // 局内等级（每关重置）
   totalLevel:1, totalXp:0, totalXpToNext:40,  // 游戏总等级（永久）
@@ -38,7 +39,7 @@ export let autoSaveTimer = 0;
 export let gameStarted = false;   // 局内进行中
 export let runFinished = false;   // 本局已结算（防止重复结算）
 
-export const hudCache = { hp:-1, maxHp:-1, xp:-1, xpNext:-1, level:-1, stage:-1, wave:-1, kills:-1, totalLevel:-1, totalXp:-1, totalXpNext:-1 };
+export const hudCache = { hp:-1, maxHp:-1, wallHp:-1, wallMaxHp:-1, xp:-1, xpNext:-1, level:-1, stage:-1, wave:-1, kills:-1, totalLevel:-1, totalXp:-1, totalXpNext:-1 };
 
 export function setWaveNum(v){ waveNum = v; }
 export function setWavePending(v){ wavePending = v; }
@@ -89,6 +90,8 @@ export function startRun(stageLevel) {
   P.buff = { shieldPct:0 };
   recalcStats();
   P.hp = P.maxHp;
+  P.wallMaxHp = PROGRESSION.wallMaxHp || 100;
+  P.wallHp = P.wallMaxHp;
   setWaveNum(0);
   setWavePending(false);
   setGameStarted(true);

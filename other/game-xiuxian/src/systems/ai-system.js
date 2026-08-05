@@ -1,6 +1,5 @@
 /* AI：单次敌人遍历（移动/攻击/血条/定位收集） */
 
-import { P } from '@/core/state.js';
 import { COMBAT_TUNING } from '@/data/index.js';
 import { bus } from '@/core/events.js';
 
@@ -42,26 +41,20 @@ export class AISystem {
         en.setData('slowTimer', Math.max(0, slowTimer - dt));
       }
 
-      if (atkType === 'ranged') {
-        const atkRange = en.getData('atkRange') || 200;
-        const atkCD = en.getData('atkCD') || 2.5;
-        const lastAtk = en.getData('lastRangedAtk') || 0;
-        if (dist < atkRange * 1.2 && time - lastAtk > atkCD) {
-          en.setData('lastRangedAtk', time);
-          scene.entityAnimationSystem?.playEnemyAttack(en);
-          const proj = scene.getPooledProj(en.x, en.y, 'arrow', scene.enemyProjs);
-          if (proj) {
-            proj.setScale(0.7).setTint(en.getData('projColor') || 0xff4444);
-            const angle = Phaser.Math.Angle.Between(en.x, en.y, scene.player.x, scene.player.y);
-            scene.physics.velocityFromRotation(angle, 280, proj.body.velocity);
-            proj.rotation = angle;
-            proj.setData('damage', Math.round((en.getData('atk') || 5) * 0.6));
-            scene.scheduleProjFree(proj, 2000);
-          }
-        }
-        if (dist > atkRange) scene.physics.moveToObject(en, scene.player, speed * 0.7);
+      const wallY = scene.wallY || scene.worldHeight - 60;
+      const wallReach = en.getData('wallReach') || 24;
+      if (en.y < wallY - wallReach) {
+        // 敌人沿自己的出生列直线下落，不再向玩家横向聚拢。
+        en.setVelocity(0, speed);
       } else {
-        scene.physics.moveToObject(en, scene.player, speed);
+        en.setVelocity(0, 0);
+        const wallAtkCD = en.getData('wallAtkCD') || 1.8;
+        const lastWallAtk = en.getData('lastWallAtk') || 0;
+        if (time - lastWallAtk >= wallAtkCD) {
+          en.setData('lastWallAtk', time);
+          scene.entityAnimationSystem?.playEnemyAttack(en);
+          scene.damageWall(Math.max(1, Math.round((en.getData('atk') || 5) * 0.35)), en);
+        }
       }
 
       const isBoss = en.getData('isBoss');
@@ -72,7 +65,7 @@ export class AISystem {
           const warning = en.getData('ultWarning');
           if (!warning || !warning.active) {
             en.setData('lastUlt', time);
-            const w = scene.add.circle(scene.player.x, scene.player.y, 40, 0xff0000, 0)
+            const w = scene.add.circle(scene.wallX, scene.wallY - 18, 40, 0xff0000, 0)
               .setDepth(25).setStrokeStyle(3, 0xff3333, 0.8);
             en.setData('ultWarning', w);
             scene.tweens.add({
@@ -80,8 +73,8 @@ export class AISystem {
               onComplete: () => {
                 if (w.active) w.destroy();
                 en.setData('ultWarning', null);
-                const dmg = Math.round((en.getData('atk') || 20) * 2 * (1 - P.buff.shieldPct));
-                P.hp = Math.max(0, P.hp - dmg);
+                const dmg = Math.round((en.getData('atk') || 20) * 2);
+                scene.damageWall(dmg, en);
                 scene.damageFlash(0.4);
                 bus.emit('status', '⚡ BOSS大招! -' + dmg, 2);
               }
