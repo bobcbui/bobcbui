@@ -32,7 +32,7 @@ export class SpawnSystem {
     const isBossWave = wn >= PROGRESSION.wavesPerStage;
     const maxTemplateIndex = Math.min(
       BESTIARY.length - 1,
-      2 + Math.max(0, stageLevel - 1) * 2 + (wn - 1) * 2
+      2 + Math.max(0, stageLevel - 1) + Math.floor((wn - 1) / 3)
     );
     this.pending = Array.from({ length: count }, () => ({ allowBoss: false, maxTemplateIndex }));
     if (isBossWave) this.pending.push({ forceBoss: true, allowBoss: false, allowElite: false, maxTemplateIndex });

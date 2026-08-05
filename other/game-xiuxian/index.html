@@ -36,7 +36,7 @@ window.xiuxianHome = () => ({
   },
 
   get maxStage() { return this.maxClearedStage + 1; },
-  get stageStrength() { return (1 + (this.selectedStage - 1) * 0.35).toFixed(2); },
+  get stageStrength() { return (1 + (this.selectedStage - 1) * 0.15).toFixed(2); },
   get xpPercent() { return Math.min(100, this.totalXp / this.totalXpToNext * 100); },
   get stageName() {
     return ['青云山门', '落霞谷', '寒月湖', '赤炎窟', '万剑峰'][Math.min(this.selectedStage - 1, 4)] || '无名试炼地';
