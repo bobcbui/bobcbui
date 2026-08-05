@@ -403,7 +403,7 @@
     "waveCountBase": 8,
     "waveCountPerStage": 2,
     "waveCountPerWave": 3,
-    "enemyScalePerStage": 0.35,
+    "enemyScalePerStage": 0.15,
     "clearXpBase": 100,
     "clearXpPerStage": 40,
     "failXpPerKill": 2,
