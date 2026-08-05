@@ -17,7 +17,7 @@ python3 -m http.server 8000
 | 层 | 技术 |
 |---|---|
 | 游戏引擎 | Phaser 3.60 (Canvas 渲染, Arcade 物理) |
-| 语言 | 原生 JavaScript（单文件，非模块） |
+| 语言 | 原生 JavaScript（ES Modules，`src/` 下分模块） |
 | 静态数据 | `data.json`（JSON，无函数） |
 | UI 层 | HTML5 + CSS3 DOM overlay |
 | 持久化 | localStorage (key: `xiuxian_save`, v1) |
@@ -27,35 +27,73 @@ python3 -m http.server 8000
 
 ```text
 game-xiuxian/
-├── index.html        # 页面骨架：游戏画布、全部 DOM 容器、data-action 绑定
-├── index.js          # 全部运行时逻辑（9 大区块，见下）
-├── data.json         # 全部静态配置（境界/技能/区域/敌人/成就/商店/装备/平衡参数）
-├── style.css         # 全部样式
-├── data/             # 自有资源目录（图片/音频/字体；当前全为代码生成纹理，目录留空）
-├── lib/phaser.min.js # 第三方 Phaser 运行库
-├── README.md         # 本文档
-└── TASK.md           # 四文件收敛实施计划
+├── index.html          # 页面骨架：游戏画布、全部 DOM 容器、data-action 绑定
+├── data.json           # 全部静态配置（境界/技能/区域/敌人/成就/商店/装备/平衡参数）
+├── resources/
+│   └── style.css       # 全部样式
+├── src/                # 全部运行时逻辑（ES Modules）
+│   ├── main.js         # 入口：调用 boot()
+│   ├── app/
+│   │   ├── bootstrap.js   # 启动流程：加载数据 -> 校验 -> 初始化 -> 创建 Phaser
+│   │   └── loader.js      # 加载进度条
+│   ├── data/
+│   │   └── index.js       # data.json 加载、校验、索引（配置常量 live binding）
+│   ├── core/
+│   │   ├── main-scene.js  # MainScene：地图/玩家/对象池/输入/主循环
+│   │   ├── state.js       # 玩家状态 P、属性重算、成就判定
+│   │   ├── save.js        # 存档/读档/导入导出/v1 兼容
+│   │   ├── equipment.js   # 装备生成与穿戴
+│   │   ├── cultivation.js # 打坐、突破渡劫
+│   │   ├── progression.js # 材料/强化/炼丹/任务/天赋/秘境/图鉴
+│   │   ├── helpers.js     # 状态消息 / 掉落弹窗
+│   │   ├── events.js      # 事件总线 bus
+│   │   ├── dom.js         # DOM 元素缓存
+│   │   ├── runtime.js     # Game/Scene/摇杆/冷却 引用
+│   │   ├── game-config.js # Phaser 配置
+│   │   └── textures.js    # 代码生成纹理（含内联 SVG 飞剑）
+│   ├── systems/
+│   │   ├── index.js          # installSceneSystems 装配
+│   │   ├── combat-system.js  # 技能/弹丸/冷却/领域（伤害入口薄封装）
+│   │   ├── damage.js         # 碰撞、伤害、掉落与死亡流程
+│   │   ├── combat-loop-system.js / ai-system.js / spawn-system.js
+│   │   ├── wave-system.js / defense-system.js / buff-system.js
+│   │   ├── movement-system.js / player-status-system.js
+│   │   ├── cultivation-progress-system.js / ui-tick-system.js
+│   │   ├── ground-effect-system.js / scene-effects-system.js
+│   │   ├── entity-animation-system.js / text-pool.js
+│   ├── effects/
+│   │   └── skill-effects.js  # 弹丸/领域/激光等技能特效
+│   ├── ui/
+│   │   ├── index.js          # HUD/热栏/各面板 DOM 渲染
+│   │   ├── actions.js        # ACTIONS 动作表 + data-action 事件委托
+│   │   └── nav-bar.js        # 顶部/底部导航
+│   └── input/
+│       └── joystick-controller.js  # 虚拟摇杆
+├── data/               # 自有资源目录（图片/音频/字体；当前全为代码生成纹理，目录留空）
+├── lib/phaser.min.js   # 第三方 Phaser 运行库
+├── README.md           # 本文档
+└── TASK.md             # 四文件收敛实施计划（历史记录）
 ```
 
-四个运行时源码文件之外，不新增任何业务 JS/CSS 文件；纹理全部由代码生成，无外部图片/音频/字体资源。
+纹理全部由代码生成，无外部图片/音频/字体资源。
 
-## 四文件职责
+## 模块职责
 
 ### `index.html`
 
 - 页面骨架与游戏画布 `<canvas id="gameCanvas">`
 - 全部 DOM 容器：HUD、热栏、区域标签、状态/掉落提示、虚拟摇杆、角色/背包/技能/成就/商店/玩法/设置面板、主菜单、突破/死亡/城破弹窗
-- 无内联样式（统一走 `style.css`）、无内联 `onclick`（统一走 `data-action` 事件委托）
-- 仅加载 `lib/phaser.min.js` 和 `index.js`
+- 无内联样式（统一走 `resources/style.css`）、无内联 `onclick`（统一走 `data-action` 事件委托）
+- 仅加载 `lib/phaser.min.js`（经典脚本，提供全局 Phaser）和 `src/main.js`（模块入口）
 
-### `style.css`
+### `resources/style.css`
 
 - 页面基础 → 主菜单 → HUD → 热栏 → 面板 → 按钮 → 导航 → 突破/死亡/设置 → 摇杆 → 移动端适配
-- 动态宽度/显示状态由 `index.js` 通过 class 或内联 style 更新
+- 动态宽度/显示状态由 JS 通过 class 或内联 style 更新
 
 ### `data.json`
 
-静态配置（`index.js` 加载后校验并建立索引）：
+静态配置（`src/data/index.js` 加载后校验并建立索引）：
 
 | 键 | 内容 |
 |---|---|
@@ -72,25 +110,17 @@ game-xiuxian/
 | `sceneEffects` / `monsterTextures` | 区域氛围特效、怪物纹理映射 |
 | `assets` | 资源 id → `data/` 路径映射（当前为空，无外部资源） |
 
-成就/事件条件不使用函数，改为 `{ "type": "kills", "value": 50 }` 这类数据描述，由 `index.js` 解释执行。
+成就/事件条件不使用函数，改为 `{ "type": "kills", "value": 50 }` 这类数据描述，由 `src/core/state.js` 解释执行。
 
-### `index.js`（约 6000 行，内部 9 大区块）
+### `src/` 模块
 
-```text
-1. 数据加载与配置校验   —— fetch data.json，校验 id 唯一/引用存在/数值范围，失败显示错误页
-2. 常量、工具函数与默认状态 —— 事件总线 bus / DOM 缓存 / 运行时引用 / 玩家状态 P
-3. 状态读写、属性重算、境界修炼、装备与进度规则
-4. 存档：读档、保存（手动+30s 自动）、导入、导出、v1 兼容
-5. Phaser 配置、MainScene、纹理生成、实体生成、移动、AI、波次、战斗与技能
-6. 特效、对象池、碰撞、伤害、掉落与死亡流程
-7. HUD、热栏、面板、导航与 DOM 渲染
-8. 事件委托（data-action → ACTIONS）、键盘/鼠标/触摸/摇杆输入
-9. 启动流程、错误处理与页面生命周期
-```
-
-- 所有 UI 交互通过 `data-action` 属性 + 第 8 区块的全局事件委托触发，不再注入 `window.*` 业务函数
-- 启动顺序：加载并校验数据 → 初始化状态/存档结构 → 绑定输入 → 创建 Phaser Game → 自动进入游戏
-- 新增功能按区块修改：改数值进 `data.json`，改玩法进第 3/5/6 区块，改界面进第 7 区块
+- **`src/data/index.js`**：配置常量为 `let` 导出（live binding），启动时由 `loadConfig()` fetch data.json、`buildDataIndexes(data)` 校验并填充；校验失败显示错误页，不让 Phaser 半初始化运行
+- **`src/core/state.js`**：全局玩家状态 `P`、运行期共享变量、`recalcStats()` 属性重算、成就判定；`refreshSkills()`/`initHotbar()` 由启动流程在配置就绪后调用
+- **`src/core/main-scene.js`**：MainScene —— 世界地图绘制、玩家、实体组、弹丸对象池（`getPooledProj`/`freeProj`）、输入绑定（键盘/鼠标）、主循环（单次敌人遍历性能优化）
+- **`src/systems/`**：AI / 移动 / 刷怪 / 波次 / 防御 / Buff / 打坐进度 / 玩家状态 / 地面领域 / 场景氛围 / 实体动画 / 浮动文字池 / UI 节拍；`combat-system.js` 负责技能与弹丸，`damage.js` 独立承载碰撞、伤害、掉落与死亡结算
+- **`src/effects/skill-effects.js`**：弹丸拖尾/闪光、命中爆点、领域球飞行、红球激光、施法光环（含移动端低特效模式）
+- **`src/ui/`**：`index.js` 渲染全部面板；`actions.js` 的 `ACTIONS` 动作表 + `data-action` 全局事件委托替代 `window.*` 注入；`nav-bar.js` 顶部/底部导航
+- **`src/app/bootstrap.js`**：启动顺序 —— 加载并校验数据 → 初始化状态/存档结构 → 绑定输入 → window load 后创建 Phaser Game + 摇杆 → 自动进入游戏
 
 ### `data/`
 
@@ -180,9 +210,9 @@ game-xiuxian/
 
 ```text
 1. 浏览器加载 index.html
-2. <script src="lib/phaser.min.js"> 加载 Phaser 引擎
-3. <script src="index.js"> 启动:
-   a. fetch('data.json') 加载并校验配置 → 建立索引
+2. <script src="lib/phaser.min.js"> 加载 Phaser 引擎（全局 Phaser）
+3. <script type="module" src="src/main.js"> 启动:
+   a. src/data/index.js fetch('data.json') 加载并校验配置 → 建立索引（live binding）
    b. 初始化技能/热栏/进度结构 → 绑定 data-action 事件委托
    c. window load → 显示加载条 → 渲染 HUD/热栏
    d. new Phaser.Game() → 启动 MainScene
@@ -209,6 +239,6 @@ game-xiuxian/
 | 问题 | 处理 |
 |---|---|
 | 打开白屏/提示加载失败 | 使用了 `file://` 打开 —— 必须通过 `python3 -m http.server` 等静态服务器访问 |
-| 数据文件修改后未生效 | `index.js` 每次启动都重新 fetch `data.json`（no-store），刷新即可 |
+| 数据文件修改后未生效 | `src/data/index.js` 每次启动都重新 fetch `data.json`（no-store），刷新即可 |
 | 想改游戏数值 | 全部在 `data.json`：技能/敌人/区域/境界/掉落/商店 |
-| 想加新功能 | 按 `index.js` 顶部 9 区块注释定位对应区块修改，不新增源文件 |
+| 想加新功能 | 按模块职责定位：数值进 `data.json`，玩法逻辑进 `src/core`/`src/systems`，界面进 `src/ui`，新增子模块放入对应目录 |
