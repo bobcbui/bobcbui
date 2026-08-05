@@ -3,7 +3,7 @@
  * 系统类通过 installSceneSystems 装配（见 ../systems/index.js）
  * ========================================================================== */
 
-import { P, recalcStats } from '@/core/state.js';
+import { P, recalcStats, gameStarted, runFinished } from '@/core/state.js';
 import { WORLD } from '@/data/index.js';
 import { installSceneSystems } from '@/systems/index.js';
 import { bus } from '@/core/events.js';
@@ -29,6 +29,8 @@ export class MainScene extends Phaser.Scene {
     this.worldSize = WORLD.width;
     this.worldHeight = WORLD.height;
     this.playerBaseY = WORLD.playerY;
+    this.wallY = Math.min(this.worldHeight - 48, this.playerBaseY + 55);
+    this.wallX = this.worldSize / 2;
     this.physics.world.setBounds(0, 0, this.worldSize, this.worldHeight);
     this.runPaused = true;
 
@@ -45,6 +47,14 @@ export class MainScene extends Phaser.Scene {
     this.ground.fillRect(0, WORLD.playerY - 30, this.worldSize, this.worldHeight - WORLD.playerY + 30);
     this.ground.lineStyle(3, 0xb57a19, 0.35);
     this.ground.lineBetween(0, WORLD.playerY + 30, this.worldSize, WORLD.playerY + 30);
+    this.ground.fillStyle(0x806346, 1);
+    this.ground.fillRect(0, this.wallY, this.worldSize, this.worldHeight - this.wallY);
+    this.ground.fillStyle(0xb8945c, 1);
+    this.ground.fillRect(0, this.wallY, this.worldSize, 7);
+    this.ground.lineStyle(1, 0xead19b, 0.7);
+    for (let x = 0; x < this.worldSize; x += 48) {
+      this.ground.lineBetween(x, this.wallY + 8, x, this.worldHeight);
+    }
 
     this.enemies = this.physics.add.group();
     this.projectiles = this.physics.add.group();
@@ -53,7 +63,6 @@ export class MainScene extends Phaser.Scene {
     this.pool = {};
     installSceneSystems(this);
     this.physics.add.overlap(this.projectiles, this.enemies, (proj, en)=>{ this.combatSystem.onProjHit(proj, en); }, null, this);
-    this.physics.add.overlap(this.player, this.enemies, (p, en)=>{ this.combatSystem.onEnemyContact(en); }, null, this);
     this.physics.add.overlap(this.player, this.enemyProjs, (p, proj)=>{ this.combatSystem.onEnemyProjHit(proj); }, null, this);
     this.skillCooldowns = {};
     setSkillCooldowns(this.skillCooldowns);
@@ -65,11 +74,10 @@ export class MainScene extends Phaser.Scene {
 
     // 自动进入主页（局外）
     const doAutoStart = () => {
-      reportLoading(100, '进入主页...');
+      reportLoading(100, '');
       const lbWrap = document.getElementById('loading-bar-wrap');
-      const startBtn = document.getElementById('enterStageBtn');
       if (lbWrap) lbWrap.classList.add('hidden');
-      if (startBtn) { startBtn.style.display = 'none'; }
+      document.getElementById('loading-area')?.classList.add('hidden');
       renderMenu();
     };
     setTimeout(doAutoStart, 400);
@@ -95,6 +103,20 @@ export class MainScene extends Phaser.Scene {
     el.style.opacity='1';
     clearTimeout(el._to);
     el._to=setTimeout(()=>{el.style.opacity='0';},60);
+  }
+
+  damageWall(damage, source) {
+    if (runFinished || !gameStarted) return;
+    const amount = Math.max(1, Math.round(damage || 1));
+    P.wallHp = Math.max(0, P.wallHp - amount);
+    this.damageFlash(0.12);
+    bus.emit('hud-refresh');
+    if (P.wallHp <= 0) {
+      bus.emit('status', '🧱 城墙被攻破！', 2);
+      this.stageSystem?.failStage('城墙被攻破');
+    } else if (source) {
+      bus.emit('status', '🧱 城墙受击 -' + amount, 0.8);
+    }
   }
 
   /* ---- 弹丸对象池 ---- */

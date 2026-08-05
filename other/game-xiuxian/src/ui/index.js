@@ -9,6 +9,12 @@ import { bus } from '@/core/events.js';
 import { getEl } from '@/core/dom.js';
 import { formatEquipStats } from '@/core/equipment.js';
 
+function syncAlpineHome(values) {
+  const menu = getEl('mainMenu');
+  const data = menu && window.Alpine?.$data ? window.Alpine.$data(menu) : null;
+  if (data) Object.assign(data, values);
+}
+
 /* ================= 主页（局外） ================= */
 
 export function renderMenu(){
@@ -21,17 +27,25 @@ export function renderMenu(){
   set('menuAtkBonus', (P.totalLevel - 1) * PROGRESSION.totalAtkPerLevel);
   set('menuHpBonus', (P.totalLevel - 1) * PROGRESSION.totalHpPerLevel);
   set('menuMaxStage', P.maxClearedStage);
+  syncAlpineHome({
+    totalLevel: P.totalLevel,
+    totalXp: P.totalXp,
+    totalXpToNext: P.totalXpToNext,
+    maxStage: P.maxClearedStage + 1,
+    selectedStage: P.selectedStage
+  });
   renderMenuPages();
 }
 
 /* ---- 主页底部菜单：4 页切换 ---- */
 export function menuTab(tabId){
+  syncAlpineHome({ activeTab: tabId });
   const tabs = ['stage', 'equip', 'skill', 'activity'];
   for (const id of tabs) {
     const tab = getEl('menu-tab-' + id);
     if (tab) tab.classList.toggle('active', id === tabId);
     const page = getEl('page-' + id);
-    if (page) page.classList.toggle('hidden', id !== tabId);
+    if (page && !window.Alpine) page.classList.toggle('hidden', id !== tabId);
   }
   if (tabId === 'stage') renderStagePage();
   if (tabId === 'equip') renderEquipPage();
@@ -50,14 +64,13 @@ export function renderStagePage(){
   if (P.selectedStage < 1) P.selectedStage = 1;
   if (P.selectedStage > max) P.selectedStage = max;
   const set = (id, text) => { const el = getEl(id); if (el) el.textContent = text; };
-  set('selStage', P.selectedStage);
-  set('selStageInfo', '最高通关：第 ' + P.maxClearedStage + ' 关 · 怪物强度 ×' + (1 + (P.selectedStage - 1) * PROGRESSION.enemyScalePerStage).toFixed(2));
-  const prevBtn = getEl('prevStageBtn');
-  const nextBtn = getEl('nextStageBtn');
-  const enterBtn = getEl('enterStageBtn');
-  if (prevBtn) prevBtn.disabled = P.selectedStage <= 1;
-  if (nextBtn) nextBtn.disabled = P.selectedStage >= max;
-  if (enterBtn) enterBtn.textContent = '⚔️ 进入第 ' + P.selectedStage + ' 关 ⚔️';
+  const stageInfo = '最高通关：第 ' + P.maxClearedStage + ' 关 · 怪物强度 ×' + (1 + (P.selectedStage - 1) * PROGRESSION.enemyScalePerStage).toFixed(2);
+  set('selStageInfo', stageInfo);
+  syncAlpineHome({ selectedStage: P.selectedStage, maxStage: max, stageInfo });
+  const prevCard = getEl('prevStageCard');
+  const nextCard = getEl('nextStageCard');
+  if (prevCard) prevCard.disabled = P.selectedStage <= 1;
+  if (nextCard) nextCard.disabled = P.selectedStage >= max;
 }
 
 export function prevStage(){
@@ -169,6 +182,12 @@ export function updateHUD(){
     set('hpText', hpR + '/' + mhpR);
     setW('hpFill', P.hp / P.maxHp * 100);
     hudCache.hp = hpR; hudCache.maxHp = mhpR;
+  }
+  const wallHpR = Math.round(P.wallHp), wallMaxHpR = Math.round(P.wallMaxHp);
+  if (hudCache.wallHp !== wallHpR || hudCache.wallMaxHp !== wallMaxHpR) {
+    set('wallHpText', wallHpR + '/' + wallMaxHpR);
+    setW('wallHpFill', wallMaxHpR > 0 ? P.wallHp / wallMaxHpR * 100 : 0);
+    hudCache.wallHp = wallHpR; hudCache.wallMaxHp = wallMaxHpR;
   }
   if (hudCache.xp !== P.xp || hudCache.xpNext !== P.xpToNext) {
     set('xpText', P.xp + '/' + P.xpToNext);

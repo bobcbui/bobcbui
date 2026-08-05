@@ -18,6 +18,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
 }
 * { box-sizing:border-box; margin:0; padding:0; }
+[x-cloak] { display:none!important; }
 html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(--text);font-family:"Segoe UI","Microsoft YaHei",sans-serif;user-select:none; }
 /* 游戏容器：最大宽度 600px，超过时水平居中（两侧深色留白） */
 #gameWrap {
@@ -45,6 +46,86 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   display:flex;
   flex-direction:column;
   overflow:hidden;
+}
+#mainMenu[x-cloak] { display:none!important; }
+#menu-topbar {
+  height:44px;
+  flex-shrink:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:stretch;
+  background:linear-gradient(180deg,#f6f0e2,#eee8da);
+}
+#app-bar {
+  grid-column:1;
+  width:max-content;
+  display:flex;
+  align-items:center;
+  padding-left:8px;
+  background:transparent;
+}
+#app-title {
+  height:34px;
+  display:flex;
+  align-items:center;
+  padding:0 10px;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.3px;
+  background:rgba(255,250,232,.92);
+  border:1px solid var(--panel-border);
+  border-radius:12px;
+}
+.app-settings {
+  width:34px;
+  height:34px;
+  padding:0;
+  justify-content:center;
+  border-radius:12px;
+}
+.top-settings {
+  grid-column:3;
+  justify-self:end;
+  width:34px;
+  margin:5px 8px 5px 4px;
+}
+#level-bar {
+  grid-column:2;
+  justify-self:center;
+  width:250px;
+  position:relative;
+  height:44px;
+  flex-shrink:0;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  grid-template-rows:22px 17px;
+  align-items:center;
+  padding:0 9px;
+  border-radius:12px;
+  font-size:13px;
+}
+#level-bar .level-label {
+  grid-column:1 / -1;
+  justify-self:center;
+  line-height:22px;
+}
+#level-bar .level-label strong,
+#level-bar .level-max strong { color:var(--text); }
+#level-bar .bar-bg { display:none; }
+#level-bar #menuTotalXpText {
+  grid-column:1 / -1;
+  grid-row:2;
+  justify-self:center;
+  color:#d5ae46;
+  font-size:11px;
+}
+#level-bar .level-max {
+  position:absolute;
+  right:10px;
+  bottom:3px;
+  grid-row:2;
+  color:var(--text);
+  font-size:13px;
 }
 .menu-stats {
   flex:1;
@@ -119,6 +200,15 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 #hud .bar-text { font-size:10px;min-width:50px;text-align:right;color:var(--text-dim); }
 #hpFill { background:linear-gradient(90deg,var(--hp),#ffb164); }
 #xpFill { background:linear-gradient(90deg,var(--xp),#9effa0); }
+#wallHud { position:absolute; top:10px; right:10px; width:170px; padding:8px 10px; z-index:4; pointer-events:none; }
+.wall-hud-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px; font-weight:700; color:var(--text); }
+#wallHud .bar-bg { height:9px; border-radius:999px; background:rgba(128,88,44,.12); overflow:hidden; }
+#wallHpFill { background:linear-gradient(90deg,#806346,#d2a45b); }
+#battleLoading { position:absolute; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; pointer-events:none; background:rgba(58,43,27,.1); }
+#battleLoading.hidden { display:none; }
+.battle-loading-box { min-width:190px; padding:18px 22px; display:flex; align-items:center; justify-content:center; gap:10px; color:var(--text); font-size:13px; font-weight:700; }
+.loading-spinner { width:16px; height:16px; border:2px solid rgba(181,122,25,.22); border-top-color:var(--gold); border-radius:50%; animation:loading-spin .8s linear infinite; }
+@keyframes loading-spin { to { transform:rotate(360deg); } }
 #cardsHud {
   margin-top:6px;
   padding-top:6px;
@@ -203,6 +293,7 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   #hud { top: calc(var(--safe-top) + 4px); left:6px; right:6px; width:auto; padding:6px 10px; }
   #status { bottom: calc(var(--safe-bottom) + 60px); font-size:12px; }
   #loot-popup { bottom: calc(var(--safe-bottom) + 84px); font-size:12px; }
+  #wallHud { top:calc(var(--safe-top) + 4px); right:6px; width:150px; }
   .modal-box {
     width: calc(100vw - 12px) !important;
     max-height: 70vh !important;
@@ -222,15 +313,20 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 /* ===== 主页 APP 式布局：顶等级 / 中内容 / 底导航 ===== */
 #menu-content {
   flex:1;
+  min-height:0;
   overflow-y:auto;
   padding:10px;
+  scrollbar-width:none;
+  overscroll-behavior:contain;
 }
+#menu-content::-webkit-scrollbar { width:0; height:0; display:none; }
 .menu-page {
   display:flex;
   flex-direction:column;
   gap:10px;
 }
-.menu-page.hidden { display:none; }
+.menu-page[x-show] { min-height:0; }
+#page-stage { min-height:0; height:100%; }
 
 
 #menu-tabs {
@@ -256,17 +352,173 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .menu-tab-label { font-size:10px; }
 .menu-tab.active { color:var(--gold); }
 .menu-tab.active .menu-tab-icon { transform:scale(1.12); }
-.stage-selector {
+.stage-info {
+  align-self:center;
+  padding:6px 12px;
+  border:1px solid rgba(181,122,25,.14);
+  border-radius:999px;
+  background:rgba(255,250,232,.55);
+  text-align:center;
+  font-size:12px;
+  color:var(--text-dim);
+}
+.stage-card-track {
+  flex:1;
+  min-height:0;
+  width:calc(100% + 20px);
+  margin:0 -10px;
+  display:grid;
+  grid-template-columns:17% minmax(0,52%) 17%;
+  column-gap:7%;
+  align-items:center;
+  overflow:visible;
+  transform:none;
+}
+#settingsPanel { pointer-events:auto; }
+#settingsPanel .bg { pointer-events:auto; }
+.stage-card {
+  appearance:none;
+  pointer-events:auto;
+  position:relative;
+  border:1px solid rgba(181,122,25,.24);
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(255,253,244,.96),rgba(247,237,208,.82));
+  color:var(--text-dim);
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  padding:14px 16px;
+  justify-content:center;
+  padding:0;
+  font:700 clamp(18px,4.4vw,28px)/1 "Microsoft YaHei",sans-serif;
+  cursor:pointer;
+  box-shadow:0 8px 22px rgba(91,65,28,.08), inset 0 1px 0 rgba(255,255,255,.8);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
 }
-.stage-current { font-size:16px; font-weight:700; color:var(--text); text-align:center; flex:1; }
-.stage-current strong { color:var(--gold); font-size:26px; }
-.stage-info { text-align:center; font-size:12px; color:var(--text-dim); }
-#enterStageBtn { width:100%; font-size:17px; padding:13px; }
+.stage-card-current {
+  width:100%;
+  height:min(51vw,306px);
+  border:2px solid rgba(181,122,25,.58);
+  background:linear-gradient(145deg,#fffdf5 0%,#f8e8bc 100%);
+  color:var(--gold);
+  font-size:clamp(25px,5.8vw,36px);
+  box-shadow:0 14px 30px rgba(91,65,28,.16), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.stage-card-current-content {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.stage-card-current-content small {
+  color:rgba(63,45,29,.58);
+  font-size:14px;
+  font-weight:700;
+}
+.stage-card-current-content strong {
+  font-size:clamp(27px,6vw,38px);
+  letter-spacing:1px;
+}
+.stage-card-current-content em {
+  color:rgba(63,45,29,.48);
+  font-size:11px;
+  font-style:normal;
+  font-weight:500;
+}
+.stage-card-side {
+  width:100%;
+  height:min(40.4vw,242px);
+  background:rgba(255,253,245,.72);
+  color:rgba(63,45,29,.58);
+  box-shadow:0 6px 16px rgba(91,65,28,.06);
+}
+.stage-card:not(:disabled):hover {
+  border-color:rgba(181,122,25,.52);
+  box-shadow:0 11px 24px rgba(91,65,28,.13), inset 0 1px 0 rgba(255,255,255,.9);
+  transform:translateY(-3px);
+}
+.stage-card-current:not(:disabled):hover {
+  border-color:rgba(181,122,25,.8);
+  box-shadow:0 17px 32px rgba(91,65,28,.19), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.stage-card:not(:disabled):active {
+  transform:translateY(0) scale(.985);
+}
+.stage-card:disabled {
+  opacity:.35;
+  cursor:default;
+  box-shadow:none;
+}
+
+/* 首页列表页 */
+.equip-list,
+.skill-page-list,
+.activity-page-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding-bottom:8px;
+}
+.wx-cell {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:64px;
+  padding:10px 12px;
+  border:1px solid rgba(128,88,44,.13);
+  border-radius:14px;
+  background:rgba(255,250,232,.76);
+  box-shadow:0 4px 12px rgba(91,65,28,.05);
+  color:var(--text);
+}
+.wx-icon {
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(247,217,142,.34);
+  font-size:21px;
+}
+.wx-body { flex:1; min-width:0; }
+.wx-title {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:13px;
+  font-weight:800;
+}
+.wx-sub {
+  margin-top:4px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text-dim);
+  font-size:11px;
+  line-height:1.4;
+}
+.wx-btn { flex-shrink:0; }
+.wx-arrow {
+  flex:0 0 auto;
+  color:rgba(63,45,29,.34);
+  font-size:18px;
+}
+.wx-tag {
+  flex:0 0 auto;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(181,122,25,.12);
+  color:var(--gold);
+  font-size:10px;
+}
+.act-summary {
+  padding:10px;
+  border-radius:12px;
+  background:rgba(181,122,25,.08);
+  color:var(--text-dim);
+  text-align:center;
+  font-size:12px;
+}
+
 /* 装备页 */
 
 /* 技能图鉴页 */
@@ -276,7 +528,8 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 
 /* 移动端：菜单更紧凑 */
 @media (max-width: 480px) {
+  #level-bar { width:min(250px,calc(100vw - 130px)); }
   #menu-content { width:calc(100vw - 24px); }
-  .stage-current { font-size:16px; }
-  .stage-current strong { font-size:20px; }
+  .stage-card-track { min-height:0; }
+  .wx-cell { padding:9px 10px; }
 }

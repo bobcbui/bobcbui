@@ -68,7 +68,8 @@ export class SpawnSystem {
     en.setData('hp', maxHp);
     en.setData('maxHp', maxHp);
     en.setData('atk', Math.round(tmpl.atk * scale * (isBoss ? 3 : (isElite ? 1.5 : 1))));
-    en.setData('speed', Math.round(tmpl.speed * (isBoss ? 0.6 : (isElite ? 0.8 : 1))));
+    const speedScale = COMBAT_TUNING.enemySpeedScale || 0.55;
+    en.setData('speed', Math.round(tmpl.speed * speedScale * (isBoss ? 0.6 : (isElite ? 0.8 : 1))));
     en.setData('xp', Math.round(tmpl.xp * scale * (isBoss ? 6 : (isElite ? 2 : 1))));
     en.setData('isBoss', !!isBoss);
     en.setData('isElite', !!isElite);
@@ -93,6 +94,7 @@ export class SpawnSystem {
     en.setData('atkCD', tmpl.atkCD || 2);
     en.setData('projColor', tmpl.projColor || 0xff4444);
     en.setData('lastRangedAtk', 0);
+    en.setData('lastWallAtk', 0);
     en.setData('ultCD', isBoss ? 6 : 99);
     en.setData('lastUlt', 0);
     en.setData('ultWarning', null);

@@ -4,7 +4,7 @@
  * 局内等级每关从 1 级重置（startRun），总等级/通关进度跨关保留。
  * ========================================================================== */
 
-import { P, startRun, addTotalXp, gameStarted, setGameStarted, setRunFinished, setWaveNum, waveNum, wavePending, setWavePending } from '@/core/state.js';
+import { P, startRun, addTotalXp, gameStarted, runFinished, setGameStarted, setRunFinished, setWaveNum, waveNum, wavePending, setWavePending } from '@/core/state.js';
 import { PROGRESSION } from '@/data/index.js';
 import { bus } from '@/core/events.js';
 import { getEl } from '@/core/dom.js';
@@ -17,22 +17,37 @@ export class StageSystem {
   constructor(scene) {
     this.scene = scene;
     this.waveTimer = 0;
+    this.startTimer = null;
+    this.isStarting = false;
   }
 
   /** 进入关卡：重置局内状态并生成第 1 波 */
   start(stageLevel) {
-    startRun(stageLevel);
-    this.scene.clearEnemies();
-    this.scene.runPaused = false;
-    this.scene.player.setPosition(this.scene.worldSize / 2, this.scene.playerBaseY);
+    if (this.isStarting || gameStarted) return;
+    this.isStarting = true;
+    this.scene.runPaused = true;
     this.waveTimer = 0;
     getEl('mainMenu')?.classList.add('hidden');
     getEl('resultPanel')?.classList.add('hidden');
     getEl('cardPanel')?.classList.add('hidden');
-    bus.emit('hud-refresh');
-    this.spawnWave(1);
-    bus.emit('status', '⚔️ 第 ' + stageLevel + ' 关 开战！', 2);
-    bus.emit('save');
+    const loading = getEl('battleLoading');
+    const loadingText = getEl('battleLoadingText');
+    if (loadingText) loadingText.textContent = '正在加载第 ' + stageLevel + ' 关...';
+    loading?.classList.remove('hidden');
+    this.startTimer = setTimeout(() => {
+      this.startTimer = null;
+      this.isStarting = false;
+      startRun(stageLevel);
+      this.scene.clearEnemies();
+      this.scene.runPaused = false;
+      this.scene.playerDead = false;
+      this.scene.player.setPosition(this.scene.worldSize / 2, this.scene.playerBaseY);
+      loading?.classList.add('hidden');
+      bus.emit('hud-refresh');
+      this.spawnWave(1);
+      bus.emit('status', '⚔️ 第 ' + stageLevel + ' 关 开战！', 2);
+      bus.emit('save');
+    }, 260);
   }
 
   /** 波次推进：由 update 在敌人清空后调用 */
@@ -68,7 +83,7 @@ export class StageSystem {
 
   /** 通关：结算总经验、解锁下一关、显示结算面板 */
   completeStage() {
-    if (this.scene.runFinished) return;
+    if (runFinished) return;
     setRunFinished(true);
     setGameStarted(false);
     this.scene.runPaused = true;
@@ -93,8 +108,8 @@ export class StageSystem {
   }
 
   /** 战败：结算总经验、显示结算面板 */
-  failStage() {
-    if (this.scene.runFinished) return;
+  failStage(reason = '护体被击破') {
+    if (runFinished) return;
     setRunFinished(true);
     setGameStarted(false);
     this.scene.runPaused = true;
@@ -109,7 +124,7 @@ export class StageSystem {
     const stats = getEl('resultStats');
     const xpEl = getEl('resultXp');
     if (title) title.textContent = '💀 战败';
-    if (stats) stats.textContent = '击杀 ' + P.kills + ' 只 · 止步第 ' + waveNum + ' 波';
+    if (stats) stats.textContent = reason + ' · 击杀 ' + P.kills + ' 只 · 止步第 ' + waveNum + ' 波';
     if (xpEl) xpEl.textContent = '+' + xpGain;
     getEl('resultPanel')?.classList.remove('hidden');
   }
@@ -127,12 +142,18 @@ export class StageSystem {
 
   /** 返回主页：清场、显示主页并刷新数据 */
   backToMenu() {
+    if (this.startTimer) {
+      clearTimeout(this.startTimer);
+      this.startTimer = null;
+    }
+    this.isStarting = false;
     this.scene.clearEnemies();
     this.scene.runPaused = true;
     setGameStarted(false);
     setRunFinished(false);
     getEl('resultPanel')?.classList.add('hidden');
     getEl('cardPanel')?.classList.add('hidden');
+    getEl('battleLoading')?.classList.add('hidden');
     getEl('mainMenu')?.classList.remove('hidden');
     renderMenu();
   }
