@@ -69,39 +69,46 @@ export function nextStage(){
 }
 
 /* ---- 第二页：装备 ---- */
+const SLOT_ICONS = { weapon: '⚔️', helmet: '⛑️', armor: '🥋', boots: '👢', ring: '💍', amulet: '📿' };
+
 export function renderEquipPage(){
   const eqList = getEl('equipList');
   if (!eqList) return;
-  // 已穿戴 6 部位
-  let html = '<div class="equip-grid">';
+  let html = '<div class="page-section-title">已穿戴</div>';
   for (const slot of EQ_TYPES) {
     const eq = P.equipment?.[slot];
     if (eq) {
       const rc = RARITY_LABEL[eq.rarity] || '';
-      html += `<div class="equip-slot">
-        <div class="equip-name" style="color:var(--gold)">${rc} ${eq.name}</div>
-        <div class="equip-stats">${formatEquipStats(eq)}</div>
-        <button class="btn btn-sm btn-sec" data-action="unequipItem" data-arg="${slot}">卸下</button>
+      html += `<div class="wx-cell">
+        <div class="wx-icon">${SLOT_ICONS[slot] || '🎒'}</div>
+        <div class="wx-body">
+          <div class="wx-title" style="color:var(--gold)">${rc} ${eq.name}</div>
+          <div class="wx-sub">${EQ_NAMES[slot]} · ${formatEquipStats(eq)}</div>
+        </div>
+        <button class="btn btn-sm btn-sec wx-btn" data-action="unequipItem" data-arg="${slot}">卸下</button>
       </div>`;
     } else {
-      html += `<div class="equip-slot empty"><div class="equip-name">${EQ_NAMES[slot]}</div><div class="equip-stats">未装备</div></div>`;
+      html += `<div class="wx-cell">
+        <div class="wx-icon">${SLOT_ICONS[slot] || '🎒'}</div>
+        <div class="wx-body"><div class="wx-title">${EQ_NAMES[slot]}</div><div class="wx-sub">未装备</div></div>
+      </div>`;
     }
   }
-  html += '</div>';
-  // 背包
-  html += `<div class="equip-bag-title">背包 (${P.inventory.length}/30) — 点击装备</div><div class="equip-bag">`;
+  html += `<div class="page-section-title">背包 (${P.inventory.length}/30)</div>`;
   if (P.inventory.length === 0) {
-    html += '<div class="equip-empty">通关/战败结算可获得装备</div>';
+    html += '<div class="wx-cell"><div class="wx-body"><div class="wx-sub">通关/战败结算可获得装备，点击列表装备</div></div></div>';
   }
   for (const item of P.inventory) {
     const rc = RARITY_LABEL[item.rarity] || '';
-    const equipped = Object.values(P.equipment).some(e => e && e.id === item.id);
-    html += `<div class="equip-item${equipped ? ' equipped' : ''}" data-action="equipItem" data-arg="${item.id}">
-      <div class="equip-item-name">${rc} ${item.name}</div>
-      <div class="equip-item-stats">${EQ_NAMES[item.type]} · ${formatEquipStats(item)}</div>
+    html += `<div class="wx-cell" data-action="equipItem" data-arg="${item.id}">
+      <div class="wx-icon">${SLOT_ICONS[item.type] || '🎒'}</div>
+      <div class="wx-body">
+        <div class="wx-title">${rc} ${item.name}</div>
+        <div class="wx-sub">${EQ_NAMES[item.type]} · ${formatEquipStats(item)}</div>
+      </div>
+      <span class="wx-arrow">›</span>
     </div>`;
   }
-  html += '</div>';
   eqList.innerHTML = html;
 }
 
@@ -109,15 +116,20 @@ export function renderEquipPage(){
 export function renderSkillPage(){
   const list = getEl('skillPageList');
   if (!list) return;
-  let html = '<div class="page-section-title">技能卡</div><div class="card-dex">';
+  let html = '<div class="page-section-title">技能卡</div>';
   for (const c of SKILL_CARDS) {
-    html += `<div class="dex-card card-skill"><div class="card-icon">${c.icon}</div><div class="card-name">${c.name}</div><div class="card-desc">${c.desc}</div></div>`;
+    html += `<div class="wx-cell">
+      <div class="wx-icon">${c.icon}</div>
+      <div class="wx-body"><div class="wx-title">${c.name}</div><div class="wx-sub">${c.desc}</div></div>
+    </div>`;
   }
-  html += '</div><div class="page-section-title">强化卡</div><div class="card-dex">';
+  html += '<div class="page-section-title">强化卡</div>';
   for (const c of UPGRADE_CARDS) {
-    html += `<div class="dex-card card-upgrade"><div class="card-icon">${c.icon}</div><div class="card-name">${c.name}</div><div class="card-desc">${c.desc}</div></div>`;
+    html += `<div class="wx-cell">
+      <div class="wx-icon">${c.icon}</div>
+      <div class="wx-body"><div class="wx-title">${c.name}</div><div class="wx-sub">${c.desc}</div></div>
+    </div>`;
   }
-  html += '</div>';
   list.innerHTML = html;
 }
 
@@ -130,15 +142,15 @@ export function renderActivityPage(){
   for (const a of ACHIEVEMENTS) {
     const earned = P.achievements[a.id];
     if (earned) done++;
-    html += `<div class="act-item${earned ? ' done' : ''}">
-      <span class="act-icon">${a.icon}</span>
-      <span class="act-info">${a.name} — ${a.desc}</span>
-      <span class="act-state">${earned ? '✅' : '🎁'}</span>
+    html += `<div class="wx-cell${earned ? '' : ''}">
+      <div class="wx-icon">${a.icon}</div>
+      <div class="wx-body"><div class="wx-title">${a.name}</div><div class="wx-sub">${a.desc}</div></div>
+      <span class="wx-tag">${earned ? '✅ 已达成' : '🎁'}</span>
     </div>`;
   }
   html += `<div class="act-summary">已完成 ${done}/${ACHIEVEMENTS.length}</div>`;
   html += '<div class="page-section-title">活动</div>';
-  html += '<div class="act-placeholder">🎉 活动筹备中，敬请期待</div>';
+  html += '<div class="wx-cell"><div class="wx-icon">🎉</div><div class="wx-body"><div class="wx-title">活动筹备中</div><div class="wx-sub">敬请期待</div></div></div>';
   list.innerHTML = html;
 }
 

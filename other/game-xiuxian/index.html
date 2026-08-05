@@ -42,17 +42,20 @@
   <!-- Loot popup -->
   <div id="loot-popup" class="panel"></div>
 
-  <!-- 主页（局外，手机 APP 式布局：顶等级 / 中内容 / 底导航） -->
+  <!-- 主页（微信式布局：顶导航栏 / 等级条 / 列表内容 / 底部 tab） -->
   <div id="mainMenu">
-    <!-- 顶部：等级信息 + 右上角设置 -->
-    <div class="menu-top">
-      <div class="menu-stats panel">
-        <div class="flex-between"><span>游戏总等级</span><strong id="menuTotalLevel">1</strong></div>
-        <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
-        <div id="menuTotalXpText">0/40</div>
-        <div class="menu-sub">最高通关：第 <span id="menuMaxStage">0</span> 关</div>
-      </div>
-      <button class="btn btn-sec menu-settings-top" data-action="toggleSettingsPanel">⚙️</button>
+    <!-- 顶部导航栏 -->
+    <div id="app-bar">
+      <span id="app-title">百世修仙</span>
+      <button class="btn btn-sec app-settings" data-action="toggleSettingsPanel">⚙️</button>
+    </div>
+
+    <!-- 等级条（微信个人信息横条风格） -->
+    <div id="level-bar" class="panel">
+      <span class="level-label">总等级 <strong id="menuTotalLevel">1</strong></span>
+      <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
+      <span id="menuTotalXpText">0/40</span>
+      <span class="level-max">通关 <strong id="menuMaxStage">0</strong></span>
     </div>
 
     <!-- 加载区（启动时） -->
@@ -63,10 +66,10 @@
       <div id="loading-text"></div>
     </div>
 
-    <!-- 中间内容区（默认关卡选择居中） -->
+    <!-- 内容区（微信列表风格） -->
     <div id="menu-content">
       <div id="page-stage" class="menu-page">
-        <div class="stage-selector">
+        <div class="stage-selector panel">
           <button class="btn btn-sec" id="prevStageBtn" data-action="prevStage">⬅ 上一关</button>
           <div class="stage-current">第 <strong id="selStage">1</strong> 关</div>
           <button class="btn btn-sec" id="nextStageBtn" data-action="nextStage">下一关 ➡</button>
@@ -88,12 +91,20 @@
       </div>
     </div>
 
-    <!-- 底部导航（4 个 tab） -->
+    <!-- 底部 tab（微信式：图标 + 文字） -->
     <div id="menu-tabs">
-      <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">关卡</button>
-      <button class="menu-tab" id="menu-tab-equip" data-action="menuTab" data-arg="equip">装备</button>
-      <button class="menu-tab" id="menu-tab-skill" data-action="menuTab" data-arg="skill">技能</button>
-      <button class="menu-tab" id="menu-tab-activity" data-action="menuTab" data-arg="activity">活动</button>
+      <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">
+        <span class="menu-tab-icon">🗡️</span><span class="menu-tab-label">关卡</span>
+      </button>
+      <button class="menu-tab" id="menu-tab-equip" data-action="menuTab" data-arg="equip">
+        <span class="menu-tab-icon">🛡️</span><span class="menu-tab-label">装备</span>
+      </button>
+      <button class="menu-tab" id="menu-tab-skill" data-action="menuTab" data-arg="skill">
+        <span class="menu-tab-icon">📖</span><span class="menu-tab-label">技能</span>
+      </button>
+      <button class="menu-tab" id="menu-tab-activity" data-action="menuTab" data-arg="activity">
+        <span class="menu-tab-icon">🎁</span><span class="menu-tab-label">活动</span>
+      </button>
     </div>
 
   </div>
