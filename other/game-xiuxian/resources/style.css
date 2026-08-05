@@ -46,14 +46,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   flex-direction:column;
   overflow:hidden;
 }
-/* 顶部：等级信息（左）+ 设置（右上角） */
-.menu-top {
-  display:flex;
-  align-items:flex-start;
-  gap:8px;
-  width:min(560px, calc(100vw - 24px));
-  margin:0 auto;
-}
 .menu-stats {
   flex:1;
   padding:12px 16px;
@@ -228,6 +220,19 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
   }
 
 /* ===== 主页 APP 式布局：顶等级 / 中内容 / 底导航 ===== */
+#menu-content {
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
+}
+.menu-page {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.menu-page.hidden { display:none; }
+
+
 #menu-tabs {
   display:flex;
   background:#fff;
@@ -251,11 +256,6 @@ html,body { width:100%;height:100%;overflow:hidden;background:#f4ead1;color:var(
 .menu-tab-label { font-size:10px; }
 .menu-tab.active { color:var(--gold); }
 .menu-tab.active .menu-tab-icon { transform:scale(1.12); }
-.menu-page {
-  padding:12px;
-  overflow-y:auto;
-  max-height:38vh;
-}
 .stage-selector {
   display:flex;
   align-items:center;
