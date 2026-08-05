@@ -1,7 +1,6 @@
 /* 系统装配：为 MainScene 安装全部系统类 */
 
 import { AISystem } from '@/systems/ai-system.js';
-import { BuffSystem } from '@/systems/buff-system.js';
 import { CardSystem } from '@/systems/card-system.js';
 import { CombatLoopSystem } from '@/systems/combat-loop-system.js';
 import { CombatSystem } from '@/systems/combat-system.js';
@@ -24,6 +23,5 @@ export function installSceneSystems(scene) {
   scene.combatLoopSystem = new CombatLoopSystem(scene);
   scene.cardSystem = new CardSystem(scene);
   scene.stageSystem = new StageSystem(scene);
-  scene.buffSystem = new BuffSystem(scene);
   scene.uiTickSystem = new UiTickSystem(scene);
 }

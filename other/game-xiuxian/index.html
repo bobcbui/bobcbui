@@ -44,21 +44,19 @@
 
   <!-- 主页（局外） -->
   <div id="mainMenu">
-    <div class="main-title">百世修仙</div>
-    <div class="main-subtitle">古剑门</div>
-    <div class="menu-stats panel">
-      <div class="flex-between"><span>游戏总等级</span><strong id="menuTotalLevel">1</strong></div>
-      <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
-      <div id="menuTotalXpText">0/40</div>
-      <div>永久加成：攻击+<span id="menuAtkBonus">0</span> · 生命+<span id="menuHpBonus">0</span></div>
-      <div>最高通关：第 <span id="menuMaxStage">0</span> 关</div>
+    <!-- 顶部：等级信息 + 右上角设置 -->
+    <div class="menu-top">
+      <div class="menu-stats panel">
+        <div class="flex-between"><span>游戏总等级</span><strong id="menuTotalLevel">1</strong></div>
+        <div class="bar-bg"><div id="menuTotalXpFill" class="bar-fill"></div></div>
+        <div id="menuTotalXpText">0/40</div>
+        <div class="menu-sub">最高通关：第 <span id="menuMaxStage">0</span> 关</div>
+      </div>
+      <button class="btn btn-sec menu-settings-top" data-action="toggleSettingsPanel">⚙️</button>
     </div>
-    <div id="loading-bar-wrap" class="hidden">
-      <div id="loading-bar-fill"></div>
-    </div>
-    <div id="loading-text"></div>
 
-    <!-- 底部四页菜单 -->
+    <!-- 四页菜单（顶部：等级下方） -->
+
     <div id="menu-panel" class="panel">
       <div id="menu-tabs">
         <button class="menu-tab active" id="menu-tab-stage" data-action="menuTab" data-arg="stage">关卡</button>
@@ -94,7 +92,14 @@
       </div>
     </div>
 
-    <button class="btn btn-sec menu-settings" data-action="toggleSettingsPanel">⚙️ 设置</button>
+    <!-- 加载区（启动时） -->
+    <div id="loading-area">
+      <div id="loading-bar-wrap" class="hidden">
+        <div id="loading-bar-fill"></div>
+      </div>
+      <div id="loading-text"></div>
+    </div>
+
   </div>
 
   <!-- 抽卡面板（升级 3 选 1） -->

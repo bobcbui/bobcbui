@@ -22,11 +22,6 @@ export function showLoadingBar() {
   if (loadingWrap) loadingWrap.classList.remove('hidden');
 }
 
-export function hideLoadingBar() {
-  ensureElements();
-  if (loadingWrap) loadingWrap.classList.add('hidden');
-}
-
 export function setStartBtnEnabled(enabled) {
   const btn = document.getElementById('enterStageBtn');
   if (btn) btn.disabled = !enabled;

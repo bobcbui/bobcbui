@@ -10,7 +10,3 @@ export function getEl(id) {
   if (el) elementCache.set(id, el);
   return el;
 }
-
-export function clearDomCache() {
-  elementCache.clear();
-}

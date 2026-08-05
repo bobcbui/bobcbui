@@ -102,7 +102,6 @@ export function onEnemyContact(scene, en) {
   const shieldMult = P.buff.shieldPct > 0 ? (1 - P.buff.shieldPct) : 1;
   const dmg = Math.max(1, Math.round((atk * 0.5 - P.def * 0.3) * shieldMult));
   P.hp = Math.max(0, P.hp - dmg);
-  if (scene.shieldReflect > 0) damageEnemy(scene, en, Math.round(scene.shieldReflect * (1 + P.level * 0.03)), 'swordshield');
   scene.damageFlash(0.25);
   if (P.hp <= 0 && !scene.playerDead) {
     scene.playerDead = true;
