@@ -1,7 +1,7 @@
 /* ============================================================================
  * 关卡系统：开局、波次推进、通关/战败结算、返回主页
- * 每关 5 波（wavesPerStage），第 5 波 Boss；波次间 2 秒休整；
- * 局内等级每关从 1 级重置（startRun），总等级/通关进度跨关保留。
+ * 每关 20 波（wavesPerStage），第 20 波 Boss；每波结束抽一次卡；
+ * 总等级/通关进度跨关保留。
  * ========================================================================== */
 
 import { P, startRun, addTotalXp, gameStarted, runFinished, setGameStarted, setRunFinished, setWaveNum, waveNum, wavePending, setWavePending } from '@/core/state.js';
@@ -16,6 +16,7 @@ export class StageSystem {
   constructor(scene) {
     this.scene = scene;
     this.waveTimer = 0;
+    this.cardPending = false;
     this.startTimer = null;
     this.isStarting = false;
   }
@@ -37,6 +38,7 @@ export class StageSystem {
       this.startTimer = null;
       this.isStarting = false;
       startRun(stageLevel);
+      this.cardPending = false;
       this.scene.clearEnemies();
       this.scene.runPaused = false;
       this.scene.playerDead = false;
@@ -75,8 +77,16 @@ export class StageSystem {
       this.waveTimer = 0;
     } else {
       this.waveTimer += dt;
-      if (this.waveTimer >= WAVE_REST_SEC) {
-        this.spawnWave(waveNum + 1);
+      if (this.waveTimer >= WAVE_REST_SEC && !this.cardPending) {
+        this.cardPending = true;
+        const clearedWave = waveNum;
+        const continueStage = () => {
+          this.cardPending = false;
+          if (clearedWave >= PROGRESSION.wavesPerStage) this.completeStage();
+          else this.spawnWave(clearedWave + 1);
+        };
+        if (this.scene.cardSystem) this.scene.cardSystem.onWaveClear(clearedWave, continueStage);
+        else continueStage();
       }
     }
   }
@@ -102,7 +112,7 @@ export class StageSystem {
     const stats = getEl('resultStats');
     const xpEl = getEl('resultXp');
     if (title) title.textContent = wasNewRecord ? '🏆 通关！第 ' + stage + ' 关' : '✅ 通关！';
-    if (stats) stats.textContent = '击杀 ' + P.kills + ' 只 · 局内等级 Lv.' + P.level;
+    if (stats) stats.textContent = '击杀 ' + P.kills + ' 只 · 二十波妖兽已清除';
     if (xpEl) xpEl.textContent = '+' + xpGain;
     getEl('resultPanel')?.classList.remove('hidden');
   }

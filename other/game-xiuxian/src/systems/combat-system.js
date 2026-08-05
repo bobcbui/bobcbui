@@ -66,7 +66,7 @@ export class CombatSystem {
   }
 
   getScaledPlayerDamageBase() {
-    return (P.atk + P.level * 0.5) * COMBAT_TUNING.playerDamageScale * (1 + (P.mods?.skillDamage || 0));
+    return P.atk * COMBAT_TUNING.playerDamageScale * (1 + (P.mods?.skillDamage || 0));
   }
 
   isInCameraView(x, y, pad = 0) {

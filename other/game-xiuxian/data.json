@@ -399,7 +399,7 @@
     "totalHpPerLevel": 10,
     "baseAtk": 10,
     "baseMaxHp": 100,
-    "wavesPerStage": 5,
+    "wavesPerStage": 20,
     "waveCountBase": 8,
     "waveCountPerStage": 2,
     "waveCountPerWave": 3,

@@ -97,8 +97,7 @@ export class SpawnSystem {
 
     // 关卡等级缩放
     const stageScale = 1 + (P.stageLevel - 1) * PROGRESSION.enemyScalePerStage;
-    const plvMult = 1 + (P.level - 1) * 0.05;
-    const scale = stageScale * plvMult;
+    const scale = stageScale;
     const maxHp = getEnemyMaxHp(tmpl, scale, isBoss, isElite);
 
     en.setData('hp', maxHp);

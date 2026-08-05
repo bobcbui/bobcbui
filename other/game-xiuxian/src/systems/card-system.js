@@ -16,12 +16,25 @@ export const MAX_SKILLS = 4;
 export class CardSystem {
   constructor(scene) {
     this.scene = scene;
+    this.afterPick = null;
   }
 
   /** 局内升级：暂停战斗并弹出抽卡面板（3 选 1） */
   onLevelUp() {
+    this.openCardSelection('✨ 选择一张卡牌');
+  }
+
+  /** 每通过一个小关卡抽一次卡，选完后继续下一波。 */
+  onWaveClear(waveNum, afterPick) {
+    this.afterPick = afterPick;
+    this.openCardSelection('✨ 第 ' + waveNum + ' 关奖励');
+  }
+
+  openCardSelection(title) {
     this.scene.runPaused = true;
     this.scene.physics?.world?.pause?.();
+    const titleEl = getEl('cardTitle');
+    if (titleEl) titleEl.textContent = title;
     const options = this.rollThree();
     renderCardOptions(options);
     getEl('cardPanel')?.classList.remove('hidden');
@@ -65,6 +78,9 @@ export class CardSystem {
     this.scene.runPaused = false;
     bus.emit('hud-refresh');
     bus.emit('hotbar-refresh');
+    const afterPick = this.afterPick;
+    this.afterPick = null;
+    afterPick?.();
   }
 
   applyUpgrade(card) {

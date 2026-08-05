@@ -21,9 +21,7 @@
   <canvas id="gameCanvas"></canvas>
   <div class="ui-layer">
     <div id="hud" class="panel">
-      <div class="flex-between"><span>第 <strong id="stageText">1</strong> 关</span><span>波次 <span id="waveCounter">0/5</span></span></div>
-      <div class="bar-wrap"><span class="label">★</span><div class="bar-bg"><div id="xpFill" class="bar-fill"></div></div><span class="bar-text" id="xpText">0/5</span></div>
-      <div class="flex-between mt8"><span>Lv.<span id="levelText">1</span></span><span>总等级 <strong id="totalLevelText">1</strong></span></div>
+      <div class="flex-between"><span>第 <strong id="stageText">1</strong> 关</span><span>波次 <span id="waveCounter">0/20</span></span></div>
       <div id="cardsHud"></div>
     </div>
     <div id="wallHud" class="panel" aria-label="城墙生命值">
@@ -36,7 +34,7 @@
     <div id="status">消息</div>
     <div id="loot-popup" class="panel"></div>
     <div id="cardPanel" class="modal-overlay hidden">
-      <div class="modal-box panel"><h2>✨ 升级！选择一张卡牌</h2><div id="cardOptions" class="card-options"></div></div>
+      <div class="modal-box panel"><h2 id="cardTitle">✨ 选择一张卡牌</h2><div id="cardOptions" class="card-options"></div></div>
     </div>
     <div id="resultPanel" class="modal-overlay hidden">
       <div class="modal-box panel"><h2 id="resultTitle">通关！</h2><p id="resultStats"></p><p class="result-xp">总经验 <strong id="resultXp">+0</strong></p><button class="btn btn-gold" data-action="backToMenu">返回主页</button></div>
