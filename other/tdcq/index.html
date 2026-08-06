@@ -185,20 +185,14 @@ function pickZhVoice(){
     return vs.find(v => /zh|cmn|chinese/i.test((v.lang||'') + (v.name||''))) || null;
   }catch(e){ return null; }
 }
-let audioCtx = null;
+// 使用 resources 中的项目音效，不使用浏览器振荡器生成提示音
+const chimeAudio = new Audio('resources/tdcq-chime.wav');
+chimeAudio.preload = 'auto';
 function chime(){
   try{
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-    [1046.5, 783.99].forEach((f,i)=>{ // 叮咚：高音在前，低音在后
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(audioCtx.destination);
-      const t = audioCtx.currentTime + i*0.22;
-      g.gain.setValueAtTime(0.0001,t);
-      g.gain.exponentialRampToValueAtTime(0.12,t+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
-      o.start(t); o.stop(t+0.55);
-    });
+    chimeAudio.currentTime = 0;
+    const playback = chimeAudio.play();
+    if(playback && playback.catch) playback.catch(()=>{});
   }catch(e){}
 }
 function toast(msg){
@@ -218,11 +212,20 @@ function speak(text, withChime = true){
   try{
     if(withChime) chime();
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'zh-CN'; u.rate = 1; u.pitch = 1;
-    const v = pickZhVoice();
-    if(v) u.voice = v;
-    speechSynthesis.speak(u);
+    // 「——」表示停顿 200 毫秒：按段依次播报，段与段之间停 200ms
+    const parts = String(text).split('——');
+    let idx = 0;
+    const say = () => {
+      if(idx >= parts.length) return;
+      const u = new SpeechSynthesisUtterance(parts[idx++]);
+      u.lang = 'zh-CN'; u.rate = 1; u.pitch = 1;
+      const v = pickZhVoice();
+      if(v) u.voice = v;
+      const guard = setTimeout(say, 10000); // 兜底：onend 未触发时继续下一段
+      u.onend = () => { clearTimeout(guard); setTimeout(say, 200); };
+      speechSynthesis.speak(u);
+    };
+    say();
   }catch(e){}
 }
 let lastAckXp = 0, lastAckLv = 1;
