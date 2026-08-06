@@ -1,0 +1,120 @@
+{
+  "level": "B1",
+  "dailyGoal": 12,
+  "cards": [
+    {
+      "type": "word",
+      "label": "Vocabulary",
+      "title": "reliable",
+      "phonetic": "/rɪˈlaɪəbəl/",
+      "meaning": "可信赖的；可靠的",
+      "example": "“She is one of the most reliable people on our team.”",
+      "translation": "她是我们团队中最可靠的人之一。",
+      "note": "Useful in everyday conversations"
+    },
+    {
+      "type": "phrase",
+      "label": "Short phrase",
+      "title": "take your time",
+      "meaning": "慢慢来；别着急",
+      "example": "“Take your time — there’s no need to rush.”",
+      "translation": "慢慢来——不需要着急。",
+      "note": "A gentle way to reassure someone"
+    },
+    {
+      "type": "word",
+      "label": "Vocabulary",
+      "title": "perspective",
+      "phonetic": "/pəˈspektɪv/",
+      "meaning": "观点；看法",
+      "example": "“Travel can give you a fresh perspective on life.”",
+      "translation": "旅行可以让你对生活有全新的看法。",
+      "note": "Useful when sharing an opinion"
+    },
+    {
+      "type": "phrase",
+      "label": "Short phrase",
+      "title": "make it count",
+      "meaning": "让它变得有意义；好好利用",
+      "example": "“We only have one day here, so let’s make it count.”",
+      "translation": "我们只有一天时间，所以好好利用它吧。",
+      "note": "A motivating everyday expression"
+    },
+    {
+      "type": "word",
+      "label": "Vocabulary",
+      "title": "adapt",
+      "phonetic": "/əˈdæpt/",
+      "meaning": "适应；调整",
+      "example": "“You need to adapt quickly when things change.”",
+      "translation": "当事情发生变化时，你需要快速适应。",
+      "note": "Common at work and in life"
+    },
+    {
+      "type": "phrase",
+      "label": "Short phrase",
+      "title": "as far as I know",
+      "meaning": "据我所知",
+      "example": "“As far as I know, the meeting starts at ten.”",
+      "translation": "据我所知，会议十点开始。",
+      "note": "A useful way to soften a statement"
+    },
+    {
+      "type": "word",
+      "label": "Vocabulary",
+      "title": "encourage",
+      "phonetic": "/ɪnˈkʌrɪdʒ/",
+      "meaning": "鼓励；支持",
+      "example": "“Good teachers encourage students to ask questions.”",
+      "translation": "好老师会鼓励学生提问。",
+      "note": "A positive action word"
+    },
+    {
+      "type": "phrase",
+      "label": "Short phrase",
+      "title": "it turns out",
+      "meaning": "结果是；原来",
+      "example": "“It turns out that we went to the same school.”",
+      "translation": "原来我们上的是同一所学校。",
+      "note": "Use it when revealing a result"
+    },
+    {
+      "type": "word",
+      "label": "Vocabulary",
+      "title": "flexible",
+      "phonetic": "/ˈfleksəbəl/",
+      "meaning": "灵活的；有弹性的",
+      "example": "“My schedule is flexible this week.”",
+      "translation": "我这周的时间安排很灵活。",
+      "note": "Useful for plans and arrangements"
+    },
+    {
+      "type": "phrase",
+      "label": "Short phrase",
+      "title": "on the bright side",
+      "meaning": "往好的方面看",
+      "example": "“On the bright side, we learned something new.”",
+      "translation": "往好的方面看，我们学到了新东西。",
+      "note": "A way to find the positive"
+    },
+    {
+      "type": "word",
+      "label": "Vocabulary",
+      "title": "benefit",
+      "phonetic": "/ˈbenɪfɪt/",
+      "meaning": "好处；受益",
+      "example": "“One benefit of reading is a bigger vocabulary.”",
+      "translation": "阅读的一个好处是能扩大词汇量。",
+      "note": "Useful for explaining advantages"
+    },
+    {
+      "type": "phrase",
+      "label": "Short phrase",
+      "title": "that makes sense",
+      "meaning": "这说得通；有道理",
+      "example": "“That makes sense — thanks for explaining it.”",
+      "translation": "这就说得通了——谢谢你的解释。",
+      "note": "A natural way to show understanding"
+    }
+  ]
+}
