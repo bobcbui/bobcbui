@@ -190,14 +190,14 @@ function chime(){
   try{
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-    [880, 1174].forEach((f,i)=>{
+    [1046.5, 783.99].forEach((f,i)=>{ // 叮咚：高音在前，低音在后
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(audioCtx.destination);
-      const t = audioCtx.currentTime + i*0.18;
+      const t = audioCtx.currentTime + i*0.22;
       g.gain.setValueAtTime(0.0001,t);
-      g.gain.exponentialRampToValueAtTime(0.15,t+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
-      o.start(t); o.stop(t+0.4);
+      g.gain.exponentialRampToValueAtTime(0.12,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+      o.start(t); o.stop(t+0.55);
     });
   }catch(e){}
 }
@@ -208,7 +208,7 @@ function toast(msg){
   $('toasts').appendChild(t);
   setTimeout(()=>{ t.classList.add('out'); setTimeout(()=>t.remove(), 400); }, 6500);
 }
-function speak(text){
+function speak(text, withChime = true){
   $('lastAnnounce').textContent = '最新播报：' + text;
   toast(text);
   if(!('speechSynthesis' in window)){
@@ -216,7 +216,7 @@ function speak(text){
     return;
   }
   try{
-    chime();
+    if(withChime) chime();
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'zh-CN'; u.rate = 1; u.pitch = 1;
@@ -267,7 +267,8 @@ function toggleStart(){
     running = true; paused = false;
     sessionSec = 0; announceLeft = 60;
     $('sClock').textContent = fmtClock(0);
-    speak('开始学习！天道酬勤，功不唐捐。');
+    chime(); // 叮咚……
+    setTimeout(() => speak(WELCOME, false), 800);
   } else if(paused){
     paused = false;
     toast('继续学习！');
@@ -320,12 +321,9 @@ function init(){
     speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
   }
 
-  // 进入游戏：立即播报系统提示
-  setTimeout(() => {
-    lastAckXp = Math.floor(xpFloat);
-    lastAckLv = levelOf(xpFloat);
-    speak(WELCOME);
-  }, 1000);
+  // 记录当前进度，供每分钟播报对比
+  lastAckXp = Math.floor(xpFloat);
+  lastAckLv = levelOf(xpFloat);
 
   window.addEventListener('beforeunload', save);
   setInterval(tick, 1000);
