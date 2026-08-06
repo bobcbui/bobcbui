@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f6f2" />
+  <title>Fluent — build your English, one beat at a time</title>
+  <style>
+    :root {
+      --ink: #1d2621;
+      --muted: #78817a;
+      --line: #e4e8e2;
+      --paper: #fbfcf9;
+      --mint: #d9efe5;
+      --green: #39785c;
+      --green-dark: #24583f;
+      --lime: #c8e66b;
+      --yellow: #f6e7a8;
+      --lavender: #e8e4fb;
+      --shadow: 0 24px 60px rgba(34, 57, 44, .11);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #f5f6f2;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: -.01em;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 224px minmax(540px, 1fr) 280px; }
+    .sidebar, .insights { background: rgba(255,255,255,.52); }
+    .sidebar { border-right: 1px solid var(--line); padding: 28px 20px; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 10px; font-weight: 780; font-size: 21px; letter-spacing: -.05em; }
+    .brand-mark { width: 29px; height: 29px; border-radius: 9px; background: var(--green-dark); color: var(--lime); display: grid; place-items: center; font-size: 17px; font-weight: 900; }
+    .nav { display: grid; gap: 7px; margin-top: 52px; }
+    .nav button { border: 0; background: transparent; border-radius: 12px; display: flex; align-items: center; gap: 13px; padding: 12px 13px; color: var(--muted); text-align: left; font-size: 13px; font-weight: 650; }
+    .nav button:hover, .nav button.active { background: #edf4ee; color: var(--green-dark); }
+    .nav svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .side-bottom { margin-top: auto; }
+    .streak { background: var(--green-dark); color: white; padding: 17px; border-radius: 17px; position: relative; overflow: hidden; }
+    .streak:after { content: ""; position: absolute; width: 75px; height: 75px; right: -26px; top: -30px; border: 14px solid rgba(200,230,107,.2); border-radius: 50%; }
+    .streak small { display: block; color: #b9d2c1; font-size: 10px; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; }
+    .streak strong { display: block; margin-top: 8px; font-size: 30px; letter-spacing: -.07em; }
+    .streak p { margin: 7px 0 0; font-size: 11px; color: #d7e5d9; line-height: 1.4; }
+    .level { display: flex; justify-content: space-between; margin: 20px 2px 7px; font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+    .level-bar { height: 5px; border-radius: 99px; background: #e5eae2; overflow: hidden; }
+    .level-bar i { display: block; width: 64%; height: 100%; background: var(--lime); border-radius: inherit; }
+    .main { padding: 30px 48px 38px; min-width: 0; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; max-width: 790px; margin: 0 auto; }
+    .eyebrow { color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .16em; }
+    .top-actions { display: flex; align-items: center; gap: 11px; }
+    .icon-btn { border: 1px solid var(--line); background: white; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
+    .icon-btn:hover { color: var(--green-dark); border-color: #bfd5c5; }
+    .icon-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--yellow); display: grid; place-items: center; font-size: 11px; font-weight: 800; }
+    .lesson-head { max-width: 790px; margin: 48px auto 21px; display: flex; justify-content: space-between; align-items: end; }
+    h1 { margin: 5px 0 0; font-size: clamp(29px, 4vw, 44px); letter-spacing: -.075em; line-height: .96; }
+    .counter { color: var(--green-dark); font-size: 13px; font-weight: 760; background: #e9f3eb; border-radius: 99px; padding: 8px 12px; }
+    .progress { max-width: 790px; margin: 0 auto 22px; display: flex; gap: 4px; }
+    .progress span { height: 4px; border-radius: 8px; flex: 1; background: #dfe5de; transition: background .25s; }
+    .progress span.done { background: var(--green); }
+    .feed-wrap { max-width: 790px; margin: 0 auto; position: relative; }
+    .lesson-card { min-height: 418px; border-radius: 27px; padding: 36px 42px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: var(--shadow); transition: background .3s, transform .25s, opacity .25s; }
+    .lesson-card.word { background: var(--mint); }
+    .lesson-card.phrase { background: var(--lavender); }
+    .lesson-card:before { content: ""; position: absolute; width: 260px; height: 260px; border: 1px solid rgba(44,92,65,.1); border-radius: 50%; right: -89px; top: -88px; }
+    .lesson-card:after { content: ""; position: absolute; width: 165px; height: 165px; background: rgba(255,255,255,.23); border-radius: 50%; left: -84px; bottom: -91px; }
+    .card-top, .card-content, .card-footer { position: relative; z-index: 1; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; }
+    .type-pill { background: rgba(255,255,255,.57); color: var(--green-dark); border-radius: 99px; padding: 7px 11px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; }
+    .save { background: transparent; border: 0; padding: 4px; color: var(--green-dark); opacity: .7; }
+    .save.saved { opacity: 1; color: #d1783e; }
+    .save svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .save.saved svg { fill: currentColor; }
+    .card-content { margin: auto 0; }
+    .word-line { display: flex; align-items: center; gap: 14px; }
+    .word-line h2 { margin: 0; font-size: clamp(52px, 9vw, 90px); letter-spacing: -.095em; line-height: .95; }
+    .pronunciation { margin: 18px 0 0; color: #63816d; font: 500 14px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .speak { border: 1px solid rgba(48,104,72,.25); background: rgba(255,255,255,.38); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; color: var(--green-dark); }
+    .speak:hover { background: white; }
+    .speak svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+    .meaning { margin: 17px 0 0; font-size: 18px; font-weight: 700; color: var(--green-dark); }
+    .example { margin: 17px 0 0; max-width: 620px; font-size: clamp(21px, 3.2vw, 31px); line-height: 1.23; letter-spacing: -.05em; font-weight: 600; }
+    .translation { margin: 13px 0 0; font-size: 13px; color: #67736a; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; color: #688170; font-size: 11px; font-weight: 650; }
+    .card-footer span:last-child { text-transform: uppercase; letter-spacing: .12em; font-size: 9px; }
+    .card-footer span:last-child:before { content: ""; display: inline-block; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin: 0 6px 1px 0; }
+    .reveal { margin-top: 20px; border: 0; border-bottom: 1px solid rgba(53,99,72,.35); background: transparent; color: var(--green-dark); padding: 0 0 4px; font-size: 12px; font-weight: 750; }
+    .controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 22px; }
+    .control { width: 41px; height: 41px; border: 1px solid var(--line); background: white; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
+    .control:hover { border-color: #b5d0bb; color: var(--green-dark); }
+    .control svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .control.primary { width: 52px; height: 52px; color: white; background: var(--green-dark); border-color: var(--green-dark); box-shadow: 0 8px 20px rgba(36,88,63,.18); }
+    .control.primary:hover { background: var(--green); }
+    .hint { text-align: center; color: #9aa29a; font-size: 10px; margin: 15px 0 0; }
+    .insights { border-left: 1px solid var(--line); padding: 30px 24px; }
+    .insights h3 { font-size: 15px; margin: 70px 0 20px; letter-spacing: -.03em; }
+    .mini-title { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .13em; }
+    .mini-title a { color: var(--green); text-decoration: none; text-transform: none; letter-spacing: 0; font-size: 11px; }
+    .week { display: flex; justify-content: space-between; align-items: end; height: 103px; padding: 17px 4px 0; border-bottom: 1px solid var(--line); }
+    .day { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 9px; color: var(--muted); }
+    .bar { width: 15px; height: 54px; background: #e8ece7; border-radius: 5px; display: flex; align-items: end; overflow: hidden; }
+    .bar i { display: block; width: 100%; background: var(--green); border-radius: 5px; }
+    .day.today { color: var(--green-dark); font-weight: 800; }
+    .day.today .bar { outline: 3px solid #d9ebdd; outline-offset: 2px; }
+    .goal-card { background: white; border: 1px solid var(--line); border-radius: 17px; padding: 16px; margin-top: 33px; }
+    .goal-head { display: flex; gap: 10px; align-items: center; }
+    .goal-icon { width: 31px; height: 31px; border-radius: 10px; background: var(--yellow); display: grid; place-items: center; font-size: 15px; }
+    .goal-head strong { font-size: 12px; }
+    .goal-head small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .goal-track { height: 7px; background: #edf0eb; border-radius: 99px; margin-top: 17px; overflow: hidden; }
+    .goal-track i { display: block; width: 72%; height: 100%; background: var(--lime); border-radius: inherit; }
+    .goal-count { display: flex; justify-content: space-between; margin-top: 8px; color: var(--muted); font-size: 10px; }
+    .goal-count b { color: var(--ink); }
+    .recent { display: grid; gap: 11px; margin-top: 17px; }
+    .recent-item { display: flex; align-items: center; gap: 10px; }
+    .recent-dot { width: 29px; height: 29px; border-radius: 9px; display: grid; place-items: center; background: var(--mint); color: var(--green-dark); font-size: 10px; font-weight: 800; }
+    .recent-item:nth-child(2) .recent-dot { background: var(--lavender); }
+    .recent-item:nth-child(3) .recent-dot { background: var(--yellow); }
+    .recent-item strong { font-size: 11px; }
+    .recent-item small { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+    .mobile-nav { display: none; }
+    @media (max-width: 1050px) { .app { grid-template-columns: 82px minmax(0,1fr); } .sidebar { padding: 24px 12px; align-items: center; } .brand span, .nav button span, .streak, .level, .level-bar { display: none; } .brand { padding: 0; } .nav { margin-top: 48px; } .nav button { padding: 12px; } .nav button svg { width: 19px; height: 19px; } .insights { display: none; } }
+    @media (max-width: 620px) { .app { display: block; } .sidebar { display: none; } .main { padding: 20px 17px 85px; } .topbar { align-items: center; } .lesson-head { margin: 38px auto 17px; } .lesson-head h1 { font-size: 34px; } .lesson-card { min-height: 475px; padding: 27px 24px; border-radius: 23px; } .word-line h2 { font-size: 61px; } .example { font-size: 25px; } .mobile-nav { position: fixed; z-index: 5; display: flex; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(255,255,255,.94); border-top: 1px solid var(--line); justify-content: space-around; align-items: center; } .mobile-nav button { border: 0; background: transparent; color: var(--muted); font-size: 9px; display: grid; gap: 4px; justify-items: center; } .mobile-nav button.active { color: var(--green-dark); font-weight: 800; } .mobile-nav svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">f</div><span>fluent</span></div>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active"><svg viewBox="0 0 24 24"><path d="m4 11 8-7 8 7v8a1 1 0 0 1-1 1h-5v-5H10v5H5a1 1 0 0 1-1-1z"/></svg><span>Learn</span></button>
+        <button><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.34-5.66"/><path d="M20 4v7h-7"/><path d="M8.5 12.5 11 15l5-6"/></svg><span>Review</span></button>
+        <button><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 5-7"/></svg><span>Progress</span></button>
+        <button><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></svg><span>Saved</span></button>
+      </nav>
+      <div class="side-bottom">
+        <div class="streak"><small>Current streak</small><strong>07 days</strong><p>Keep the rhythm.<br/>You’re doing great.</p></div>
+        <div class="level"><span>Level B1</span><span>64%</span></div><div class="level-bar"><i></i></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar"><div class="eyebrow">Tuesday · August 06</div><div class="top-actions"><button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></button><div class="avatar">HW</div></div></div>
+      <div class="lesson-head"><div><div class="eyebrow">Daily practice · B1 pathway</div><h1>One beat at a time.</h1></div><div class="counter"><span id="currentCount">01</span> / 12</div></div>
+      <div class="progress" id="progress" aria-label="Lesson progress"></div>
+      <section class="feed-wrap" aria-live="polite">
+        <article class="lesson-card word" id="lessonCard">
+          <div class="card-top"><span class="type-pill" id="typePill">Vocabulary</span><button class="save" id="saveBtn" aria-label="Save this item"><svg viewBox="0 0 24 24"><path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.5L6 21z"/></svg></button></div>
+          <div class="card-content" id="cardContent"></div>
+          <div class="card-footer"><span id="cardNote">Useful in everyday conversations</span><span id="cardLevel">B1 · 01</span></div>
+        </article>
+        <div class="controls"><button class="control" id="prevBtn" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><button class="control primary" id="nextBtn" aria-label="Next"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button><button class="control" id="speakBtn" aria-label="Listen"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4z"/><path d="M16 9.5a4.5 4.5 0 0 1 0 5M18.5 7a8 8 0 0 1 0 10"/></svg></button></div>
+        <p class="hint">Use ← → or swipe to move through the lesson</p>
+      </section>
+    </main>
+
+    <aside class="insights">
+      <div class="topbar"><div class="eyebrow">Your week</div><button class="icon-btn" aria-label="More options"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg></button></div>
+      <h3>Small steps add up.</h3>
+      <div class="mini-title"><span>Activity</span><a href="#">This week</a></div>
+      <div class="week"><div class="day"><div class="bar"><i style="height:38%"></i></div><span>M</span></div><div class="day"><div class="bar"><i style="height:76%"></i></div><span>T</span></div><div class="day today"><div class="bar"><i style="height:56%"></i></div><span>W</span></div><div class="day"><div class="bar"><i style="height:25%"></i></div><span>T</span></div><div class="day"><div class="bar"><i style="height:0%"></i></div><span>F</span></div><div class="day"><div class="bar"><i style="height:0%"></i></div><span>S</span></div><div class="day"><div class="bar"><i style="height:0%"></i></div><span>S</span></div></div>
+      <div class="goal-card"><div class="goal-head"><div class="goal-icon">✦</div><div><strong>Daily goal</strong><small>12 cards · 5 min</small></div></div><div class="goal-track"><i></i></div><div class="goal-count"><span>9 of 12 cards</span><b>72%</b></div></div>
+      <h3 style="margin-top:34px; margin-bottom:15px">Recently learned</h3>
+      <div class="recent"><div class="recent-item"><div class="recent-dot">01</div><div><strong>perspective</strong><small>noun · viewpoint</small></div></div><div class="recent-item"><div class="recent-dot">02</div><div><strong>make it count</strong><small>phrase · use time well</small></div></div><div class="recent-item"><div class="recent-dot">03</div><div><strong>adapt</strong><small>verb · adjust</small></div></div></div>
+    </aside>
+  </div>
+  <nav class="mobile-nav"><button class="active"><svg viewBox="0 0 24 24"><path d="m4 11 8-7 8 7v8a1 1 0 0 1-1 1h-5v-5H10v5H5a1 1 0 0 1-1-1z"/></svg>Learn</button><button><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.34-5.66"/><path d="M20 4v7h-7"/><path d="M8.5 12.5 11 15l5-6"/></svg>Review</button><button><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 5-7"/></svg>Progress</button><button><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></svg>Saved</button></nav>
+  <script>
+    let cards = [];
+    let index = 0, saved = false, revealed = true;
+    const $ = id => document.getElementById(id);
+    const progress = $('progress');
+    function buildProgress() {
+      progress.innerHTML = '';
+      cards.forEach((_, i) => { const node = document.createElement('span'); if (i === 0) node.className = 'done'; progress.appendChild(node); });
+    }
+    function render(direction = 1) {
+      const card = cards[index];
+      const el = $('lessonCard');
+      el.style.transform = `translateX(${direction * 8}px)`; el.style.opacity = '.4';
+      setTimeout(() => {
+        el.className = `lesson-card ${card.type}`;
+        $('typePill').textContent = card.label;
+        $('cardLevel').textContent = `B1 · ${String(index + 1).padStart(2, '0')}`;
+        $('cardNote').textContent = card.note;
+        $('currentCount').textContent = String(index + 1).padStart(2, '0');
+        $('cardContent').innerHTML = card.type === 'word'
+          ? `<div class="word-line"><h2>${card.title}</h2><button class="speak" onclick="speakCurrent()" aria-label="Listen"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4z"/><path d="M16 9.5a4.5 4.5 0 0 1 0 5M18.5 7a8 8 0 0 1 0 10"/></svg></button></div><p class="pronunciation">${card.phonetic}</p><p class="meaning">${revealed ? card.meaning : 'Tap to reveal meaning'}</p><p class="example">${card.example}</p><p class="translation">${revealed ? card.translation : '••••••••••••••••••'}</p><button class="reveal" onclick="toggleReveal()">${revealed ? 'Hide meaning' : 'Reveal meaning'}</button>`
+          : `<div class="word-line"><h2>${card.title}</h2><button class="speak" onclick="speakCurrent()" aria-label="Listen"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4z"/><path d="M16 9.5a4.5 4.5 0 0 1 0 5M18.5 7a8 8 0 0 1 0 10"/></svg></button></div><p class="meaning">${revealed ? card.meaning : 'Tap to reveal meaning'}</p><p class="example">${card.example}</p><p class="translation">${revealed ? card.translation : '••••••••••••••••••'}</p><button class="reveal" onclick="toggleReveal()">${revealed ? 'Hide meaning' : 'Reveal meaning'}</button>`;
+        [...progress.children].forEach((dot, i) => dot.classList.toggle('done', i <= index));
+        $('saveBtn').classList.toggle('saved', saved); el.style.transform = 'translateX(0)'; el.style.opacity = '1';
+      }, 130);
+    }
+    function move(step) { index = (index + step + cards.length) % cards.length; saved = false; revealed = true; render(step); }
+    function toggleReveal() { revealed = !revealed; render(0); }
+    function speakCurrent() { if ('speechSynthesis' in window) { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(cards[index].example.replace(/[“”]/g, ''))); } }
+    $('nextBtn').onclick = () => move(1); $('prevBtn').onclick = () => move(-1); $('speakBtn').onclick = speakCurrent;
+    $('saveBtn').onclick = () => { saved = !saved; $('saveBtn').classList.toggle('saved', saved); };
+    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); move(1); } if (e.key === 'ArrowLeft') move(-1); });
+    let touchStart = 0; $('lessonCard').addEventListener('touchstart', e => touchStart = e.changedTouches[0].screenX, {passive:true}); $('lessonCard').addEventListener('touchend', e => { const delta = e.changedTouches[0].screenX - touchStart; if (Math.abs(delta) > 40) move(delta < 0 ? 1 : -1); });
+    async function loadLesson() {
+      try {
+        const response = await fetch('./resources/data.json');
+        if (!response.ok) throw new Error(`Could not load lesson data: ${response.status}`);
+        const data = await response.json();
+        cards = Array.isArray(data) ? data : data.cards;
+        if (!Array.isArray(cards) || cards.length === 0) throw new Error('Lesson data is empty');
+        buildProgress();
+        render(0);
+      } catch (error) {
+        $('cardContent').innerHTML = '<p class="example">Unable to load today\'s lesson.</p><p class="translation">请确认 resources/data.json 文件存在，并通过本地服务器打开网页。</p>';
+        console.error(error);
+      }
+    }
+    loadLesson();
+  </script>
+</body>
+</html>
