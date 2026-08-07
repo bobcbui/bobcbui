@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codex Exec · 执行流程模拟器</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --border: #e3e8f0;
+      --border-dark: #cfd7e4;
+      --text: #162235;
+      --muted: #718096;
+      --subtle: #98a4b5;
+      --blue: #2368f2;
+      --blue-soft: #edf4ff;
+      --cyan: #1ba5bf;
+      --green: #1ba46a;
+      --green-soft: #eaf9f2;
+      --orange: #e99b22;
+      --orange-soft: #fff7e8;
+      --red: #d95058;
+      --red-soft: #fff0f1;
+      --purple: #7e63dc;
+      --shadow: 0 12px 35px rgba(30, 52, 84, .08);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: var(--bg); color: var(--text); font: 13px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-width: 1120px; }
+    .topbar { height: 66px; display: flex; align-items: center; justify-content: space-between; padding: 0 27px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: white; font-weight: 800; letter-spacing: -1px; background: linear-gradient(145deg, #2d78ff, #2557d8); box-shadow: 0 5px 12px rgba(35,104,242,.25); }
+    .brand strong { font-size: 15px; letter-spacing: -.2px; }
+    .brand span { color: var(--muted); padding-left: 11px; border-left: 1px solid var(--border); }
+    .top-actions { display: flex; align-items: center; gap: 20px; color: var(--muted); }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 7px; box-shadow: 0 0 0 3px var(--green-soft); }
+    .avatar { width: 29px; height: 29px; display: grid; place-items: center; background: #e3ecff; color: var(--blue); border-radius: 50%; font-weight: 700; }
+    .main { padding: 23px 27px 30px; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 19px; }
+    .page-head h1 { font-size: 22px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -.5px; }
+    .page-head p { color: var(--muted); margin: 0; }
+    .run-state { border: 1px solid var(--border); background: var(--surface); padding: 8px 13px; border-radius: 8px; color: var(--muted); }
+    .run-state.running { color: var(--blue); border-color: #bdd1fb; background: var(--blue-soft); }
+    .run-state.done { color: var(--green); border-color: #b8e7d0; background: var(--green-soft); }
+    .control-panel { display: flex; align-items: end; gap: 14px; padding: 16px 17px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); box-shadow: var(--shadow); }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 118px; }
+    .field.prompt { flex: 1; min-width: 260px; }
+    .field label { color: var(--muted); font-size: 11px; font-weight: 650; letter-spacing: .3px; }
+    input, select { height: 34px; border: 1px solid var(--border-dark); background: #fff; border-radius: 6px; color: var(--text); padding: 0 10px; outline: none; }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(35,104,242,.1); }
+    .prompt input { font-family: var(--mono); }
+    .toggle-row { display: flex; align-items: center; gap: 8px; height: 34px; white-space: nowrap; }
+    .toggle { width: 31px; height: 18px; border: 0; border-radius: 20px; padding: 2px; background: #cdd5e1; position: relative; transition: .2s; }
+    .toggle:after { content: ""; display: block; width: 14px; height: 14px; border-radius: 50%; background: white; transition: .2s; box-shadow: 0 1px 3px #8c98aa; }
+    .toggle.on { background: var(--blue); }
+    .toggle.on:after { transform: translateX(13px); }
+    .toggle-label { color: var(--muted); }
+    .primary-btn { height: 34px; border: 0; border-radius: 6px; padding: 0 18px; color: white; font-weight: 700; background: var(--blue); box-shadow: 0 5px 12px rgba(35,104,242,.22); }
+    .primary-btn:hover { background: #1556da; }
+    .secondary-btn { height: 34px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border-dark); color: var(--muted); background: white; }
+    .secondary-btn:hover { color: var(--text); border-color: #aeb9c9; }
+    .workspace { display: grid; grid-template-columns: 220px minmax(520px, 1fr) 300px; gap: 18px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 18px rgba(30,52,84,.035); }
+    .panel-title { padding: 15px 16px 12px; font-weight: 750; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel-title small { font-size: 11px; color: var(--subtle); font-weight: 500; }
+    .legend { display: flex; gap: 11px; padding: 13px 16px; color: var(--muted); font-size: 11px; border-bottom: 1px solid var(--border); }
+    .legend i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+    .phase-list { padding: 9px 8px 12px; }
+    .phase-item { display: flex; gap: 10px; align-items: center; width: 100%; border: 0; border-radius: 7px; background: transparent; padding: 8px 8px; color: var(--muted); text-align: left; }
+    .phase-item:hover { background: var(--surface-soft); color: var(--text); }
+    .phase-item.active { background: var(--blue-soft); color: var(--blue); font-weight: 700; }
+    .phase-item.completed { color: var(--green); }
+    .phase-number { width: 22px; height: 22px; border: 1px solid var(--border-dark); border-radius: 6px; display: grid; place-items: center; flex: none; font-size: 10px; font-family: var(--mono); color: inherit; background: white; }
+    .phase-item.active .phase-number { border-color: #a9c4fa; background: #dce9ff; }
+    .phase-item.completed .phase-number { border-color: #9ddcbf; background: var(--green-soft); }
+    .phase-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .phase-name em { display: block; font-style: normal; font-size: 10px; color: var(--subtle); font-weight: 450; margin-top: 1px; }
+    .flow-panel { min-height: 690px; overflow: hidden; }
+    .flow-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 17px 13px; border-bottom: 1px solid var(--border); }
+    .flow-head h2 { font-size: 14px; margin: 0; }
+    .flow-head .hint { color: var(--subtle); font-size: 11px; }
+    .flow-scroll { height: 705px; overflow: auto; padding: 18px 22px 35px; background: linear-gradient(90deg, #fbfcfe 0, #fff 12%, #fff 88%, #fbfcfe 100%); }
+    .flow-scroll::-webkit-scrollbar { width: 7px; }
+    .flow-scroll::-webkit-scrollbar-thumb { background: #d9e0eb; border-radius: 9px; }
+    .stage { position: relative; margin: 0 auto 15px; max-width: 720px; }
+    .stage:not(:last-child):after { content: ""; position: absolute; left: 19px; bottom: -16px; height: 16px; border-left: 2px dotted #cbd5e3; }
+    .stage-card { border: 1px solid var(--border); border-radius: 9px; overflow: hidden; background: white; transition: .2s; }
+    .stage-card.active { border-color: #9ab9fb; box-shadow: 0 5px 18px rgba(35,104,242,.12); }
+    .stage-card.done { border-color: #b8e7d0; }
+    .stage-bar { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; cursor: pointer; }
+    .stage-index { width: 25px; height: 25px; border-radius: 7px; display: grid; place-items: center; flex: none; background: #eff3f8; color: var(--muted); font: 700 10px var(--mono); }
+    .stage-card.active .stage-index { color: var(--blue); background: #e2edff; }
+    .stage-card.done .stage-index { color: var(--green); background: var(--green-soft); }
+    .stage-main { min-width: 0; flex: 1; }
+    .stage-name { font-weight: 750; font-size: 12px; }
+    .stage-desc { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stage-status { font-size: 10px; color: var(--subtle); white-space: nowrap; }
+    .stage-card.active .stage-status { color: var(--blue); }
+    .stage-card.done .stage-status { color: var(--green); }
+    .chevron { color: var(--subtle); font-size: 15px; transform: rotate(0deg); transition: .2s; }
+    .stage-card.active .chevron { transform: rotate(180deg); color: var(--blue); }
+    .nodes { display: none; padding: 0 12px 13px 47px; border-top: 1px solid #edf0f5; background: #fcfdff; }
+    .stage-card.active .nodes { display: block; }
+    .node { display: flex; align-items: center; gap: 9px; min-height: 32px; border-bottom: 1px dashed #e9edf3; color: var(--muted); cursor: pointer; }
+    .node:last-child { border-bottom: 0; }
+    .node:hover { color: var(--text); }
+    .node-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #c3cedc; }
+    .node.completed .node-dot { background: var(--green); }
+    .node.active { color: var(--blue); font-weight: 700; }
+    .node.active .node-dot { background: var(--blue); box-shadow: 0 0 0 4px #dce9ff; }
+    .node code { color: inherit; font: 11px var(--mono); }
+    .node-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .node-check { margin-left: auto; color: var(--green); font-size: 12px; }
+    .detail-card { margin-bottom: 14px; }
+    .detail-body { padding: 15px 16px 16px; }
+    .current-title { font-size: 15px; line-height: 1.35; margin: 0 0 5px; }
+    .current-sub { margin: 0 0 14px; color: var(--muted); font-size: 11px; }
+    .status-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 12px; padding: 3px 8px; background: var(--blue-soft); color: var(--blue); font-size: 10px; font-weight: 700; }
+    .status-pill.done { background: var(--green-soft); color: var(--green); }
+    .status-pill.wait { background: #f0f2f6; color: var(--muted); }
+    .kv { display: grid; grid-template-columns: 70px 1fr; gap: 7px 8px; margin-top: 15px; font-size: 11px; }
+    .kv dt { color: var(--subtle); }
+    .kv dd { margin: 0; color: var(--text); word-break: break-word; font-family: var(--mono); font-size: 10px; }
+    .code-box { background: #172234; color: #c9d5e5; border-radius: 7px; padding: 11px 12px; font: 10px/1.7 var(--mono); overflow: auto; margin-top: 15px; }
+    .code-box .key { color: #8bb6ff; }
+    .code-box .str { color: #9ee2b7; }
+    .event-card .event-list { max-height: 284px; overflow: auto; padding: 3px 16px 12px; }
+    .event { display: grid; grid-template-columns: 50px 8px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid #f0f2f6; align-items: start; }
+    .event:last-child { border-bottom: 0; }
+    .event time { color: var(--subtle); font: 10px var(--mono); }
+    .event-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); margin-top: 5px; }
+    .event.success .event-dot { background: var(--green); }
+    .event.warn .event-dot { background: var(--orange); }
+    .event p { margin: 0; font-size: 10px; color: var(--muted); }
+    .event p strong { color: var(--text); font-weight: 650; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 18px; }
+    .metric { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 11px 13px; }
+    .metric-icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; color: var(--blue); background: var(--blue-soft); font-size: 14px; }
+    .metric:nth-child(2) .metric-icon { color: var(--purple); background: #f0edff; }
+    .metric:nth-child(3) .metric-icon { color: var(--orange); background: var(--orange-soft); }
+    .metric:nth-child(4) .metric-icon { color: var(--green); background: var(--green-soft); }
+    .metric b { display: block; font-size: 14px; line-height: 1.1; }
+    .metric span { display: block; margin-top: 2px; color: var(--subtle); font-size: 10px; }
+    .empty { color: var(--subtle); padding: 13px 0; font-size: 11px; }
+    .toast { position: fixed; right: 25px; bottom: 25px; padding: 11px 15px; background: #172234; color: white; border-radius: 7px; box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); pointer-events: none; transition: .25s; font-size: 11px; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1200px) { .workspace { grid-template-columns: 200px minmax(450px,1fr) 270px; gap: 12px; } .main { padding-left: 16px; padding-right: 16px; } .topbar { padding: 0 16px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">CX</div><strong>Codex Exec Flow</strong><span>执行流程模拟器</span></div>
+      <div class="top-actions"><span><i class="live-dot"></i>模拟环境已连接</span><span>v0.1.0</span><div class="avatar">H</div></div>
+    </header>
+    <main class="main">
+      <div class="page-head">
+        <div><h1>Agent 执行追踪</h1><p>从 CLI 入口到模型最终回答，实时查看一次 Codex Exec 的完整调用链。</p></div>
+        <div id="runState" class="run-state"><i class="live-dot"></i><span>等待运行</span></div>
+      </div>
+
+      <section class="control-panel">
+        <div class="field prompt"><label for="prompt">USER PROMPT</label><input id="prompt" value="hello" placeholder="输入你想让 Agent 执行的任务…" /></div>
+        <div class="field"><label for="model">MODEL</label><select id="model"><option>gpt-5-codex</option><option>gpt-5</option><option>o4-mini</option></select></div>
+        <div class="field"><label for="cwd">WORKSPACE</label><input id="cwd" value="/workspace/demo" /></div>
+        <div class="field"><label>OPTIONS</label><div class="toggle-row"><button id="toolToggle" class="toggle on" aria-label="toggle tools"></button><span class="toggle-label">允许工具调用</span></div></div>
+        <button id="runBtn" class="primary-btn">▶ 运行模拟</button>
+        <button id="stepBtn" class="secondary-btn">单步</button>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel">
+          <div class="panel-title">执行阶段 <small id="phaseCount">0 / 21</small></div>
+          <div class="legend"><span><i style="background:#2368f2"></i>进行中</span><span><i style="background:#1ba46a"></i>已完成</span></div>
+          <div id="phaseList" class="phase-list"></div>
+        </aside>
+
+        <section class="panel flow-panel">
+          <div class="flow-head"><h2>Execution Flow</h2><span class="hint">点击阶段或节点查看详情 · 自动滚动</span></div>
+          <div id="flow" class="flow-scroll"></div>
+        </section>
+
+        <aside>
+          <section class="panel detail-card">
+            <div class="panel-title">当前节点 <span id="currentStatus" class="status-pill wait">待开始</span></div>
+            <div class="detail-body">
+              <h2 id="currentTitle" class="current-title">等待输入</h2>
+              <p id="currentSub" class="current-sub">运行模拟后，这里会显示当前执行节点。</p>
+              <dl class="kv"><dt>阶段</dt><dd id="currentPhase">—</dd><dt>调用路径</dt><dd id="currentPath">—</dd><dt>耗时</dt><dd id="currentTime">—</dd><dt>trace</dt><dd id="traceId">—</dd></dl>
+              <div id="codeBox" class="code-box"><span class="key">// execution payload</span><br/>等待 Agent 启动…</div>
+            </div>
+          </section>
+          <section class="panel event-card">
+            <div class="panel-title">Event Stream <small id="eventCount">0 events</small></div>
+            <div id="events" class="event-list"><div class="empty">运行后显示 Session Event Queue 事件</div></div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="metrics">
+        <div class="metric"><div class="metric-icon">↗</div><div><b id="metricStages">0</b><span>已完成阶段</span></div></div>
+        <div class="metric"><div class="metric-icon">◈</div><div><b id="metricNodes">0</b><span>执行节点</span></div></div>
+        <div class="metric"><div class="metric-icon">◷</div><div><b id="metricTime">0 ms</b><span>模拟耗时</span></div></div>
+        <div class="metric"><div class="metric-icon">✓</div><div><b id="metricResult">待运行</b><span>最终状态</span></div></div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script>
+    const stages = [
+      { name: "CLI 入口层", desc: "codex exec 从用户终端进入", path: "codex-rs/cli/src/main.rs", nodes: ["用户终端 · codex exec", "main()", "arg0_dispatch_or_else(...)  /  cli_main(...)", "Clap 解析 MultitoolCli", "Subcommand::Exec(ExecCli)", "合并 root config / feature flags", "codex_exec::run_main(...)" ] },
+      { name: "codex-exec 初始化", desc: "解析参数、配置并启动 App Server", path: "codex-rs/exec/src/lib.rs", nodes: ["run_main(...) · 解析 Exec Cli", "加载 bootstrap config", "解析 model / provider / auth", "构造最终 Config", "git / workspace 检查", "创建 EventProcessor", "InProcessAppServerClient::start(...)", "RequestIdSequencer" ] },
+      { name: "创建 Thread：thread/start", desc: "生成 ThreadStartParams 并发送 RPC", path: "exec/thread_start.rs", nodes: ["thread_start_params_from_config(config)", "ThreadStartParams", "ClientRequest::ThreadStart", "send_request_with_response(...) · method = thread/start" ] },
+      { name: "App Server：ThreadRequestProcessor", desc: "校验并交给 ThreadManager", path: "app-server/src/request_processor.rs", nodes: ["ThreadRequestProcessor::thread_start(...)", "校验 ThreadStartParams", "构造 Config / Environment", "构造 StartThreadOptions", "ThreadManager::start_thread(...)" ] },
+      { name: "codex-core：创建运行时 Thread", desc: "Session、队列与 CodexThread 就绪", path: "core/src/thread_manager.rs", nodes: ["ThreadManager::start_thread", "start_thread_inner(...)", "准备 Auth / Provider / MCP / Skills / Plugins", "Session::spawn(SessionSpawnArgs)", "创建 SessionIo / Submission Queue / Event Queue", "创建 CodexThread { session, io }", "注册到 ThreadManager", "生成 SessionConfiguredEvent", "返回 NewThread" ] },
+      { name: "thread/start 返回", desc: "客户端取得 primary_thread_id", path: "exec/event_processor.rs", nodes: ["App Server 构造 ThreadStartResponse", "返回 exec client", "取得 primary_thread_id", "EventProcessor 打印配置摘要" ] },
+      { name: "创建本轮 Turn：turn/start", desc: "把用户输入包装成一轮任务", path: "exec/turn_start.rs", nodes: ["InitialOperation::UserTurn", "items = UserInput(prompt)", "构造 TurnStartParams", "ClientRequest::TurnStart", "send_request_with_response(...) · method = turn/start" ] },
+      { name: "App Server：TurnRequestProcessor", desc: "把 V2 input 映射为 core UserInput", path: "app-server/src/turn_processor.rs", nodes: ["TurnRequestProcessor::turn_start", "validate_user_input_image_urls", "load_thread(thread_id)", "取得 Arc<CodexThread>", "映射为 core UserInput", "构造 Op::UserInput", "submit_user_input_with_client_user_message_id(...)" ] },
+      { name: "RPC → Core 内部协议", desc: "Submission Queue 接收并分发操作", path: "core/src/protocol.rs", nodes: ["检查 Agent execution capacity", "SessionIo", "构造 Submission · id / op / trace", "Submission Queue", "submission_loop", "根据 Op 分发", "handlers::user_input_or_turn(...)" ] },
+      { name: "Session 启动 Agent Turn", desc: "构造 TurnContext 并启动 RegularTask", path: "core/src/tasks.rs", nodes: ["user_input_or_turn_inner(...)", "解析 Op::UserInput", "new_turn_with_sub_id(...)", "生成 TurnContext", "尝试 steer_input(...)", "没有 active turn · 构造 task_input", "Session::spawn_task(...)", "RegularTask::new()", "设置 ActiveTurn" ] },
+      { name: "Agent 主循环：run_turn", desc: "准备上下文并进入 Sampling Loop", path: "core/src/turn.rs", nodes: ["session/turn.rs · run_turn(...)", "创建 ModelClientSession", "pre-sampling compact 检查", "解析 UserInput", "确定 MCP / Plugins / Skills", "capture StepContext", "更新 World State", "注入 skills / plugins / context", "执行 session-start / prompt hooks", "记录用户输入到 conversation history", "进入 Sampling Loop" ] },
+      { name: "每一次 Sampling：构造模型请求", desc: "历史、工具与指令合成为 Prompt", path: "core/src/prompt.rs", nodes: ["检查 pending / steer input", "capture_step_context", "clone_history()", "history.for_prompt(...)", "构建 ToolRouter", "收集 model-visible ToolSpec", "build_prompt(...)", "Prompt { input, history, tools }", "CodexResponsesMetadata" ] },
+      { name: "ModelClient → Responses API", desc: "通过 WebSocket 或 HTTP/SSE 发送请求", path: "core/src/client.rs", nodes: ["run_sampling_request(...)", "try_run_sampling_request(...)", "ModelClientSession::stream(...)", "Transport 分支", "Responses WebSocket · 同一 Turn 复用", "OpenAI / configured model provider", "Responses API" ] },
+      { name: "Responses 流事件", desc: "持续接收模型输出事件", path: "core/src/stream.rs", nodes: ["ResponseEvent stream", "OutputTextDelta", "Reasoning...Delta", "OutputItemAdded", "OutputItemDone", "Completed", "实时向 Session / Event Queue 发 delta" ] },
+      { name: "OutputItemDone：判断模型意图", desc: "识别普通回答或 Tool Call", path: "core/src/output.rs", nodes: ["handle_output_item_done(...)", "ToolRouter::build_tool_call(item)", "是不是 Tool Call?", "普通 Assistant Message / Reasoning", "finalize_non_tool_response_item", "record_completed_response_item", "ToolCall · tool_name / call_id / payload", "needs_follow_up = true" ] },
+      { name: "Tool 调度", desc: "根据 ToolRegistry 匹配处理器", path: "core/src/tools/dispatch.rs", nodes: ["ToolCallRuntime::handle_tool_call", "判断 supports_parallel", "并发读锁 / 串行写锁", "dispatch_tool_call_with_terminal_outcome", "ToolRegistry::dispatch...", "匹配 Tool Handler", "shell_command / apply_patch / MCP / web" ] },
+      { name: "以 shell_command 为例", desc: "解析参数并创建 ShellRequest", path: "core/src/tools/shell.rs", nodes: ["ShellCommandHandler::handle_call", "解析 JSON arguments", "解析 cwd / shell", "创建 env", "计算 sandbox_permissions", "构造 ExecParams", "run_exec_like(...)", "ExecPolicy · approval requirement", "构造 ShellRequest", "ToolOrchestrator::run(...)" ] },
+      { name: "Approval + Sandbox 状态机", desc: "审批、沙箱执行与 escalation", path: "core/src/sandbox.rs", nodes: ["ExecApprovalRequirement", "Skip / Forbidden / NeedsApproval", "Session::request_approval(...)", "用户 / reviewer 决定 · 允许", "SandboxManager::select_initial(...)", "构造 SandboxAttempt", "ShellRuntime::run", "执行结果 · OK / Denied", "必要时更高权限 retry" ] },
+      { name: "Tool Result 回填模型", desc: "将工具结果写回 Conversation History", path: "core/src/tool_result.rs", nodes: ["ExecToolCallOutput", "ToolEmitter.finish(...)", "FunctionToolOutput", "ResponseInputItem::FunctionCallOutput", "写入 Conversation History", "needs_follow_up = true", "下一轮 Sampling" ] },
+      { name: "模型最终回答", desc: "没有新的 Tool Call，Turn 完成", path: "core/src/turn.rs", nodes: ["模型不再产生 ToolCall", "返回 assistant message", "OutputItemDone", "record conversation item", "ResponseEvent::Completed", "needs_follow_up = false", "run_turn_stop_hooks", "Turn Completed" ] },
+      { name: "Core Event 返回链", desc: "最终回答通过 Event Queue 返回终端", path: "exec/src/event_processor.rs", nodes: ["Session::send_event(...)", "Event Queue · EventMsg", "App Server 监听 Core Events", "event_mapping · ServerNotification", "OutgoingMessageSender", "codex exec · client.next_event()", "EventProcessor::process_server_notification", "CodexStatus · Running / InitiateShutdown", "print_final_output()", "stdout · 最终模型回答" ] }
+    ];
+    const state = { active: -1, activeNode: -1, running: false, finished: false, tools: true, start: 0, timer: null, events: [], trace: "—" };
+    const $ = id => document.getElementById(id);
+    const phaseList = $("phaseList"), flow = $("flow"), events = $("events");
+    function render() {
+      phaseList.innerHTML = stages.map((s, i) => `<button class="phase-item ${i === state.active ? "active" : ""} ${i < state.active ? "completed" : ""}" data-phase="${i}"><span class="phase-number">${String(i + 1).padStart(2,"0")}</span><span class="phase-name">${s.name}<em>${i < state.active ? "completed" : i === state.active ? "running" : "pending"}</em></span></button>`).join("");
+      flow.innerHTML = stages.map((s, i) => `<div class="stage" id="stage-${i}"><article class="stage-card ${i === state.active ? "active" : ""} ${i < state.active ? "done" : ""}" data-stage="${i}"><div class="stage-bar"><span class="stage-index">${String(i + 1).padStart(2,"0")}</span><div class="stage-main"><div class="stage-name">${s.name}</div><div class="stage-desc">${s.desc}</div></div><span class="stage-status">${i < state.active ? "✓ 完成" : i === state.active ? "● 执行中" : "等待"}</span><span class="chevron">⌄</span></div><div class="nodes">${s.nodes.map((n, j) => `<div class="node ${i < state.active || (i === state.active && j < state.activeNode) ? "completed" : ""} ${i === state.active && j === state.activeNode ? "active" : ""}" data-stage="${i}" data-node="${j}"><span class="node-dot"></span><span class="node-label">${n}</span>${i < state.active || (i === state.active && j < state.activeNode) ? "<span class=\"node-check\">✓</span>" : ""}</div>`).join("")}</div></article></div>`).join("");
+      $("phaseCount").textContent = `${Math.max(0, state.active + (state.finished ? 1 : 0))} / ${stages.length}`;
+      $("metricStages").textContent = Math.max(0, state.active + (state.finished ? 1 : 0));
+      $("metricNodes").textContent = state.active < 0 ? 0 : stages.slice(0, state.active).reduce((a, s) => a + s.nodes.length, 0) + Math.max(0, state.activeNode + 1);
+      document.querySelectorAll(".phase-item").forEach(el => el.addEventListener("click", () => inspect(+el.dataset.phase, 0)));
+      document.querySelectorAll(".stage-bar").forEach(el => el.addEventListener("click", () => inspect(+el.parentElement.dataset.stage, 0)));
+      document.querySelectorAll(".node").forEach(el => el.addEventListener("click", e => { e.stopPropagation(); inspect(+el.dataset.stage, +el.dataset.node); }));
+    }
+    function inspect(i, j = 0) {
+      if (i < 0 || i >= stages.length) return;
+      state.active = i; state.activeNode = Math.min(j, stages[i].nodes.length - 1); render();
+      const s = stages[i], node = s.nodes[state.activeNode];
+      $("currentTitle").textContent = node;
+      $("currentSub").textContent = s.desc;
+      $("currentPhase").textContent = `${String(i + 1).padStart(2,"0")} · ${s.name}`;
+      $("currentPath").textContent = s.path;
+      $("currentTime").textContent = state.active >= 0 && i <= state.active ? `${80 + i * 17} ms` : "等待";
+      $("traceId").textContent = state.trace;
+      const status = $("currentStatus"); status.textContent = state.finished && i === stages.length - 1 ? "已完成" : state.running && i === state.active ? "执行中" : i < state.active ? "已完成" : "待执行"; status.className = "status-pill " + (status.textContent === "已完成" ? "done" : status.textContent === "待执行" ? "wait" : "");
+      const prompt = $("prompt").value.trim() || "hello";
+      $("codeBox").innerHTML = `<span class="key">{</span><br/>  <span class="key">"node"</span>: <span class="str">"${escapeHtml(node)}"</span>,<br/>  <span class="key">"prompt"</span>: <span class="str">"${escapeHtml(prompt)}"</span>,<br/>  <span class="key">"model"</span>: <span class="str">"${escapeHtml($("model").value)}"</span>,<br/>  <span class="key">"tools_enabled"</span>: <span class="str">${state.tools}</span><br/><span class="key">}</span>`;
+      const card = $("stage-" + i); if (card && state.running) card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    function escapeHtml(value) { return value.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c])); }
+    function stamp() { return new Date().toLocaleTimeString("zh-CN", { hour12: false }).slice(0, 8); }
+    function addEvent(message, type = "") { state.events.unshift({ time: stamp(), message, type }); events.innerHTML = state.events.map(e => `<div class="event ${e.type}"><time>${e.time}</time><i class="event-dot"></i><p>${e.message}</p></div>`).join(""); $("eventCount").textContent = `${state.events.length} events`; }
+    function showToast(text) { const toast = $("toast"); toast.textContent = text; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2000); }
+    function start() {
+      clearInterval(state.timer); state.running = true; state.finished = false; state.active = 0; state.activeNode = 0; state.events = []; state.start = Date.now(); state.trace = "tr_" + Math.random().toString(36).slice(2, 10); $("runBtn").textContent = "■ 运行中"; $("runState").className = "run-state running"; $("runState").innerHTML = '<i class="live-dot"></i><span>正在执行</span>'; $("metricResult").textContent = "运行中"; events.innerHTML = ""; addEvent(`<strong>exec.start</strong> · 收到用户输入 “${escapeHtml($("prompt").value || "hello") }”`); inspect(0, 0); render();
+      state.timer = setInterval(() => advance(), 650);
+    }
+    function advance() {
+      if (!state.running) return;
+      const current = stages[state.active];
+      if (state.activeNode < current.nodes.length - 1) { state.activeNode++; inspect(state.active, state.activeNode); return; }
+      addEvent(`<strong>stage.${String(state.active + 1).padStart(2,"0")}</strong> · ${current.name} 完成`, state.active === stages.length - 1 ? "success" : "");
+      if (state.active >= stages.length - 1) { finish(); return; }
+      state.active++; state.activeNode = 0; inspect(state.active, 0); render();
+      if (state.active === 4) addEvent("<strong>thread.created</strong> · SessionConfiguredEvent 已入队", "success");
+      if (state.active === 12) addEvent("<strong>model.request</strong> · 通过 Responses API 发起 stream");
+      if (state.active === 15 && state.tools) addEvent("<strong>tool.call</strong> · 匹配 shell_command handler", "warn");
+      if (state.active === 15 && !state.tools) addEvent("<strong>tool.skip</strong> · 工具调用已禁用，直接生成回答", "warn");
+    }
+    function finish() { clearInterval(state.timer); state.running = false; state.finished = true; state.active = stages.length - 1; state.activeNode = stages[state.active].nodes.length - 1; inspect(state.active, state.activeNode); render(); $("runBtn").textContent = "↻ 再次运行"; $("runState").className = "run-state done"; $("runState").innerHTML = '<i class="live-dot"></i><span>执行完成</span>'; $("metricTime").textContent = `${Date.now() - state.start} ms`; $("metricResult").textContent = "成功"; addEvent("<strong>exec.completed</strong> · stdout 已返回最终模型回答", "success"); showToast("模拟执行完成"); }
+    $("runBtn").addEventListener("click", () => state.running ? (clearInterval(state.timer), state.running = false, $("runBtn").textContent = "▶ 继续运行", $("runState").className = "run-state", $("runState").innerHTML = '<i class="live-dot"></i><span>已暂停</span>') : start());
+    $("stepBtn").addEventListener("click", () => { if (!state.running && state.active < stages.length - 1) { if (state.active < 0) { state.active = 0; state.activeNode = 0; addEvent("<strong>exec.step</strong> · 单步模拟已启动"); } else advance(); inspect(state.active, state.activeNode); render(); } });
+    $("toolToggle").addEventListener("click", e => { state.tools = !state.tools; e.currentTarget.classList.toggle("on", state.tools); showToast(state.tools ? "已允许工具调用" : "已禁用工具调用"); });
+    $("prompt").addEventListener("keydown", e => { if (e.key === "Enter") start(); });
+    render();
+  </script>
+</body>
+</html>
