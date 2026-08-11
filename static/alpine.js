@@ -10,6 +10,7 @@
                         <template x-for="item in navItems" :key="item.href">
                             <li><a :href="item.href" :aria-current="isCurrent(item.href) ? 'page' : null" x-text="item.title"></a></li>
                         </template>
+                        <li><a href="/page/blog.html" :aria-current="isCurrent('/page/blog.html') ? 'page' : null">日志</a></li>
                     </ul>
                 </nav>
             </div>
@@ -23,6 +24,7 @@
                         <template x-for="item in navItems" :key="item.href">
                             <li><a :href="item.href" :aria-current="isCurrent(item.href) ? 'page' : null" @click="closeMenu" x-text="item.title"></a></li>
                         </template>
+                        <li><a href="/page/blog.html" :aria-current="isCurrent('/page/blog.html') ? 'page' : null" @click="closeMenu">日志</a></li>
                     </ul>
                 </nav>
             </details>
