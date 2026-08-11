@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">TypeScript 类型收窄</title>
+  <desc id="desc">未知输入通过运行时检查后变成可安全使用的值。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.7s linear infinite}
+    .pulse{fill:#db4b78;animation:pulse 1.5s ease-in-out infinite}@keyframes move{to{stroke-dashoffset:-44}}@keyframes pulse{50%{r:11;opacity:.4}}@media(prefers-reduced-motion:reduce){.flow,.pulse{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">让不可信输入通过检查</text>
+  <rect x="40" y="106" width="170" height="94" rx="16" class="box"/><text x="125" y="142" text-anchor="middle" class="label">unknown</text><text x="125" y="169" text-anchor="middle" class="sub">外部输入</text>
+  <path d="M210 153h62" class="flow"/>
+  <rect x="272" y="82" width="176" height="142" rx="16" class="accent"/><text x="360" y="122" text-anchor="middle" class="label">Narrowing</text><text x="360" y="150" text-anchor="middle" class="sub">typeof · in · guard</text><circle cx="360" cy="184" r="8" class="pulse"/>
+  <path d="M448 153h62" class="flow"/>
+  <rect x="510" y="106" width="170" height="94" rx="16" class="box"/><text x="595" y="142" text-anchor="middle" class="label">Safe value</text><text x="595" y="169" text-anchor="middle" class="sub">可访问属性</text>
+</svg>

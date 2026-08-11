@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">Spring Web 请求链路</title>
+  <desc id="desc">请求经过控制器和服务层访问数据库，再沿响应路径返回。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:8 12;animation:move 1.7s linear infinite}
+    @keyframes move{to{stroke-dashoffset:-40}}@media(prefers-reduced-motion:reduce){.flow{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">从 HTTP 请求到数据访问</text>
+  <rect x="30" y="105" width="126" height="92" rx="14" class="box"/><text x="93" y="140" text-anchor="middle" class="label">Client</text><text x="93" y="166" text-anchor="middle" class="sub">请求</text>
+  <path d="M156 151h36" class="flow"/>
+  <rect x="192" y="105" width="126" height="92" rx="14" class="accent"/><text x="255" y="140" text-anchor="middle" class="label">Controller</text><text x="255" y="166" text-anchor="middle" class="sub">校验输入</text>
+  <path d="M318 151h36" class="flow"/>
+  <rect x="354" y="105" width="126" height="92" rx="14" class="accent"/><text x="417" y="140" text-anchor="middle" class="label">Service</text><text x="417" y="166" text-anchor="middle" class="sub">业务规则</text>
+  <path d="M480 151h36" class="flow"/>
+  <rect x="516" y="105" width="168" height="92" rx="14" class="box"/><text x="600" y="140" text-anchor="middle" class="label">Repository</text><text x="600" y="166" text-anchor="middle" class="sub">数据库</text>
+  <path d="M600 198v42H93v-43" class="flow"/>
+</svg>

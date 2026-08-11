@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">Java 并发任务流水线</title>
+  <desc id="desc">生产者把任务放入队列，多个工作线程处理后汇总结果。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.5s linear infinite}
+    .dot{fill:#db4b78;animation:float 1.8s ease-in-out infinite}.dot:nth-of-type(2){animation-delay:.4s}.dot:nth-of-type(3){animation-delay:.8s}
+    @keyframes move{to{stroke-dashoffset:-44}}@keyframes float{50%{transform:translateY(-8px);opacity:.55}}
+    @media(prefers-reduced-motion:reduce){.flow,.dot{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/>
+  <text x="36" y="42" class="label">共享任务的安全流动</text>
+  <rect x="36" y="94" width="150" height="112" rx="16" class="box"/><text x="111" y="135" text-anchor="middle" class="label">Producer</text><text x="111" y="162" text-anchor="middle" class="sub">产生任务</text>
+  <path d="M186 150H244" class="flow"/>
+  <rect x="244" y="72" width="150" height="158" rx="16" class="accent"/><text x="319" y="113" text-anchor="middle" class="label">Queue</text><text x="319" y="140" text-anchor="middle" class="sub">有界缓冲</text>
+  <circle cx="282" cy="178" r="8" class="dot"/><circle cx="319" cy="178" r="8" class="dot"/><circle cx="356" cy="178" r="8" class="dot"/>
+  <path d="M394 150H440" class="flow"/>
+  <rect x="440" y="72" width="150" height="158" rx="16" class="box"/><text x="515" y="113" text-anchor="middle" class="label">Workers</text><text x="515" y="140" text-anchor="middle" class="sub">并行处理</text>
+  <path d="M474 176h82M474 194h54" stroke="#f6b4c9" stroke-width="7" stroke-linecap="round"/>
+  <path d="M590 150H684" class="flow"/><text x="640" y="178" text-anchor="middle" class="sub">Result</text>
+</svg>

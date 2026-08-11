@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">AI 模型评测矩阵</title>
+  <desc id="desc">测试问题经过运行器生成结果，再按多个维度评分并回流到评测集。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.6s linear infinite}
+    .bar{fill:#db4b78;animation:grow 2s ease-in-out infinite alternate;transform-origin:left}@keyframes move{to{stroke-dashoffset:-44}}@keyframes grow{to{transform:scaleX(.62)}}@media(prefers-reduced-motion:reduce){.flow,.bar{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">把感觉变成可比较的指标</text>
+  <rect x="30" y="104" width="140" height="98" rx="16" class="box"/><text x="100" y="140" text-anchor="middle" class="label">Dataset</text><text x="100" y="168" text-anchor="middle" class="sub">问题集</text>
+  <path d="M170 153h48" class="flow"/>
+  <rect x="218" y="104" width="140" height="98" rx="16" class="accent"/><text x="288" y="140" text-anchor="middle" class="label">Runner</text><text x="288" y="168" text-anchor="middle" class="sub">批量运行</text>
+  <path d="M358 153h48" class="flow"/>
+  <rect x="406" y="82" width="154" height="142" rx="16" class="accent"/><text x="483" y="120" text-anchor="middle" class="label">Score</text><rect x="438" y="150" width="88" height="10" rx="5" class="bar"/><rect x="438" y="174" width="68" height="10" rx="5" fill="#f6b4c9"/><rect x="438" y="198" width="102" height="10" rx="5" fill="#f6b4c9"/>
+  <path d="M560 153h48" class="flow"/>
+  <rect x="608" y="104" width="82" height="98" rx="16" class="box"/><text x="649" y="140" text-anchor="middle" class="label">Learn</text><text x="649" y="168" text-anchor="middle" class="sub">回流</text>
+</svg>

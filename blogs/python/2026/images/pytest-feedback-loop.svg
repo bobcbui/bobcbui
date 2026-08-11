@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">pytest 测试反馈循环</title>
+  <desc id="desc">代码经过测试运行产生反馈，再回到代码修改。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 12;animation:move 1.6s linear infinite}
+    .pulse{fill:#db4b78;animation:pulse 1.4s ease-in-out infinite}@keyframes move{to{stroke-dashoffset:-42}}@keyframes pulse{50%{opacity:.35}}@media(prefers-reduced-motion:reduce){.flow,.pulse{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">测试不是终点，而是快速反馈</text>
+  <rect x="74" y="104" width="140" height="96" rx="16" class="box"/><text x="144" y="140" text-anchor="middle" class="label">Code</text><text x="144" y="167" text-anchor="middle" class="sub">实现行为</text>
+  <path d="M214 152h74" class="flow"/>
+  <rect x="288" y="104" width="140" height="96" rx="16" class="accent"/><text x="358" y="140" text-anchor="middle" class="label">pytest</text><text x="358" y="167" text-anchor="middle" class="sub">运行用例</text>
+  <path d="M428 152h74" class="flow"/>
+  <rect x="502" y="104" width="140" height="96" rx="16" class="box"/><text x="572" y="140" text-anchor="middle" class="label">Feedback</text><text x="572" y="167" text-anchor="middle" class="sub">失败或通过</text>
+  <path d="M572 200v45H144v-45" class="flow"/><circle cx="358" cy="245" r="7" class="pulse"/>
+</svg>

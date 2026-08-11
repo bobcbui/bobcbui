@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">RAG 检索增强生成流程</title>
+  <desc id="desc">用户问题经过检索和上下文组装后交给模型生成带依据的回答。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.6s linear infinite}
+    .pulse{fill:#db4b78;animation:pulse 1.5s ease-in-out infinite}@keyframes move{to{stroke-dashoffset:-44}}@keyframes pulse{50%{opacity:.35}}@media(prefers-reduced-motion:reduce){.flow,.pulse{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">先找到资料，再生成回答</text>
+  <rect x="28" y="104" width="130" height="96" rx="16" class="box"/><text x="93" y="140" text-anchor="middle" class="label">Query</text><text x="93" y="167" text-anchor="middle" class="sub">用户问题</text>
+  <path d="M158 152h38" class="flow"/>
+  <rect x="196" y="104" width="130" height="96" rx="16" class="accent"/><text x="261" y="140" text-anchor="middle" class="label">Retrieve</text><text x="261" y="167" text-anchor="middle" class="sub">召回片段</text>
+  <path d="M326 152h38" class="flow"/>
+  <rect x="364" y="104" width="130" height="96" rx="16" class="accent"/><text x="429" y="140" text-anchor="middle" class="label">Context</text><text x="429" y="167" text-anchor="middle" class="sub">拼接证据</text>
+  <path d="M494 152h38" class="flow"/>
+  <rect x="532" y="104" width="160" height="96" rx="16" class="box"/><text x="612" y="140" text-anchor="middle" class="label">Answer</text><text x="612" y="167" text-anchor="middle" class="sub">回答与引用</text><circle cx="612" cy="186" r="6" class="pulse"/>
+</svg>

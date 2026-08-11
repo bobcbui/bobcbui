@@ -1124,3 +1124,189 @@ main.article-page { max-width: calc(var(--article-max-width) + var(--page-gutter
         grid-template-columns: 1fr;
     }
 }
+
+/* Jekyll-powered blog directory */
+.blog-directory {
+    min-height: 360px;
+}
+.blog-directory-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+.blog-directory-heading .learning-card-heading {
+    margin-bottom: 0;
+}
+.blog-directory-status {
+    flex: 0 0 auto;
+    margin: 7px 0 0;
+    color: #927d87;
+    font-size: 12px;
+}
+.blog-directory-controls {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 14px;
+    border: 1px solid #eee1e5;
+    border-radius: 10px;
+    background: #fffafb;
+}
+.blog-directory-search {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 13px;
+    border: 1px solid #eadce2;
+    border-radius: 8px;
+    background: #fff;
+    color: #c9587c;
+}
+.blog-directory-search:focus-within {
+    border-color: #db4b78;
+    box-shadow: 0 0 0 3px rgba(219, 75, 120, 0.11);
+}
+.blog-directory-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #3f3238;
+    font-size: 13px;
+}
+.blog-directory-search input::placeholder {
+    color: #ad98a1;
+}
+.blog-directory-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.blog-directory-filter {
+    min-height: 34px;
+    padding: 0 11px;
+    border: 1px solid #eadfe3;
+    border-radius: 8px;
+    background: #fff;
+    color: #806c75;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.blog-directory-filter[aria-pressed="true"] {
+    border-color: #db4b78;
+    background: #fff0f5;
+    color: #c93868;
+}
+.blog-directory-results {
+    display: grid;
+    gap: 26px;
+}
+.blog-directory-group {
+    min-width: 0;
+}
+.blog-directory-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid #f0e4e8;
+}
+.blog-directory-group-heading h3 {
+    margin: 0;
+    color: #4b3942;
+    font-size: 15px;
+}
+.blog-directory-group-heading span {
+    color: #a28c96;
+    font-size: 11px;
+}
+.blog-directory-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.blog-directory-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 14px;
+    border: 1px solid #eee3e7;
+    border-radius: 9px;
+    background: #fff;
+    color: inherit;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.blog-directory-item:hover {
+    border-color: #e6a3b9;
+    background: #fff8fa;
+}
+.blog-directory-item-main {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+}
+.blog-directory-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #a08b94;
+    font-size: 10px;
+}
+.blog-directory-topic {
+    padding-left: 7px;
+    border-left: 1px solid #eadce2;
+    color: #d24a76;
+    font-weight: 700;
+}
+.blog-directory-item strong {
+    overflow: hidden;
+    color: #563f4a;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.blog-directory-item small {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #947f89;
+    font-size: 11px;
+    line-height: 1.55;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+.blog-directory-arrow {
+    flex: 0 0 auto;
+    color: #d85a82;
+    font-size: 17px;
+}
+.blog-directory-empty,
+.blog-directory-error {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid #f0dce4;
+    border-radius: 9px;
+    background: #fff7f9;
+    color: #876f79;
+    font-size: 13px;
+}
+
+@media (max-width: 760px) {
+    .blog-directory-heading {
+        display: grid;
+    }
+    .blog-directory-status {
+        margin-top: 0;
+    }
+    .blog-directory-list {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">JVM 内存与垃圾回收流程</title>
+  <desc id="desc">栈帧创建对象，对象进入堆，垃圾回收器扫描不可达对象。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:10 12;animation:move 1.8s linear infinite}
+    .pulse{fill:#db4b78;animation:pulse 1.6s ease-in-out infinite}
+    @keyframes move{to{stroke-dashoffset:-44}}@keyframes pulse{50%{r:9;opacity:.45}}
+    @media(prefers-reduced-motion:reduce){.flow,.pulse{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/>
+  <text x="36" y="42" class="label">对象从创建到回收</text>
+  <rect x="42" y="92" width="168" height="120" rx="16" class="box"/>
+  <text x="126" y="132" text-anchor="middle" class="label">栈帧</text><text x="126" y="158" text-anchor="middle" class="sub">引用与局部变量</text>
+  <circle cx="126" cy="185" r="7" class="pulse"/>
+  <path d="M210 152H270" class="flow"/>
+  <rect x="270" y="72" width="188" height="160" rx="16" class="accent"/>
+  <text x="364" y="112" text-anchor="middle" class="label">堆</text><text x="364" y="138" text-anchor="middle" class="sub">对象与数组</text>
+  <circle cx="326" cy="180" r="13" fill="#f6b4c9"/><circle cx="364" cy="180" r="13" fill="#f6b4c9"/><circle cx="402" cy="180" r="13" fill="#f6b4c9"/>
+  <path d="M458 152H518" class="flow"/>
+  <rect x="518" y="92" width="160" height="120" rx="16" class="box"/>
+  <text x="598" y="132" text-anchor="middle" class="label">GC</text><text x="598" y="158" text-anchor="middle" class="sub">标记与清理</text>
+  <path d="M598 212v42H364v-22" class="flow"/>
+</svg>
