@@ -1,0 +1,26 @@
+---
+layout: null
+permalink: /blog-map.xml
+---
+{%- assign blog_pages = site.pages | where: "layout", "special-post" | sort: "date" | reverse -%}
+<?xml version="1.0" encoding="UTF-8"?>
+<blogMap version="1.0" generatedAt="{{ site.time | date_to_xmlschema }}" count="{{ blog_pages | size }}">
+{% for article in blog_pages %}
+  {% assign path_parts = article.path | split: "/" %}
+  {% assign article_category = article.category | default: "其他" %}
+  {% assign article_topic = "" %}
+  {% if path_parts[1] == "ai" and path_parts[2] != "2026" %}
+    {% assign article_topic = path_parts[2] %}
+  {% endif %}
+  {% assign article_summary = article.content | split: "##" | first | markdownify | strip_html | strip_newlines | strip %}
+  <article>
+    <title>{{ article.title | xml_escape }}</title>
+    <url>{{ article.url | relative_url | xml_escape }}</url>
+    <date>{{ article.date | date: "%Y-%m-%d" }}</date>
+    <year>{{ article.date | date: "%Y" }}</year>
+    <category>{{ article_category | xml_escape }}</category>
+    <topic>{{ article_topic | xml_escape }}</topic>
+    <summary>{{ article_summary | xml_escape }}</summary>
+  </article>
+{% endfor %}
+</blogMap>

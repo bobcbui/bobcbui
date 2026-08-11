@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">模型训练循环</title>
+  <desc id="desc">数据批次进入模型，计算损失后反向更新参数，形成训练循环。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.5s linear infinite}
+    .pulse{fill:#db4b78;animation:pulse 1.4s ease-in-out infinite}@keyframes move{to{stroke-dashoffset:-44}}@keyframes pulse{50%{r:10;opacity:.4}}@media(prefers-reduced-motion:reduce){.flow,.pulse{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">训练是一个可观测的反馈循环</text>
+  <rect x="34" y="104" width="142" height="96" rx="16" class="box"/><text x="105" y="140" text-anchor="middle" class="label">Batch</text><text x="105" y="167" text-anchor="middle" class="sub">数据批次</text>
+  <path d="M176 152h52" class="flow"/>
+  <rect x="228" y="104" width="142" height="96" rx="16" class="accent"/><text x="299" y="140" text-anchor="middle" class="label">Model</text><text x="299" y="167" text-anchor="middle" class="sub">前向计算</text><circle cx="299" cy="185" r="6" class="pulse"/>
+  <path d="M370 152h52" class="flow"/>
+  <rect x="422" y="104" width="142" height="96" rx="16" class="accent"/><text x="493" y="140" text-anchor="middle" class="label">Loss</text><text x="493" y="167" text-anchor="middle" class="sub">误差度量</text>
+  <path d="M564 152h52" class="flow"/>
+  <rect x="616" y="104" width="70" height="96" rx="16" class="box"/><text x="651" y="140" text-anchor="middle" class="label">Update</text><text x="651" y="167" text-anchor="middle" class="sub">参数</text>
+  <path d="M651 200v43H105v-43" class="flow"/>
+</svg>

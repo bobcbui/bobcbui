@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">Python 数据清洗流水线</title>
+  <desc id="desc">原始数据经过类型转换、去重和缺失值处理后生成质量报告。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.7s linear infinite}
+    .bar{fill:#f6b4c9;animation:grow 2s ease-in-out infinite alternate;transform-origin:left}
+    @keyframes move{to{stroke-dashoffset:-44}}@keyframes grow{to{transform:scaleX(.55)}}@media(prefers-reduced-motion:reduce){.flow,.bar{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">数据从原始表格变成可用结果</text>
+  <rect x="34" y="104" width="160" height="112" rx="16" class="box"/><text x="114" y="140" text-anchor="middle" class="label">Raw data</text><text x="114" y="168" text-anchor="middle" class="sub">缺失 · 重复 · 混合类型</text>
+  <path d="M194 160h54" class="flow"/>
+  <rect x="248" y="82" width="194" height="156" rx="16" class="accent"/><text x="345" y="120" text-anchor="middle" class="label">Clean pipeline</text><rect x="280" y="150" width="126" height="10" rx="5" class="bar"/><rect x="280" y="174" width="96" height="10" rx="5" fill="#f6b4c9"/><rect x="280" y="198" width="148" height="10" rx="5" fill="#f6b4c9"/>
+  <path d="M442 160h54" class="flow"/>
+  <rect x="496" y="104" width="190" height="112" rx="16" class="box"/><text x="591" y="140" text-anchor="middle" class="label">Quality report</text><text x="591" y="168" text-anchor="middle" class="sub">可追溯的统计结果</text>
+</svg>

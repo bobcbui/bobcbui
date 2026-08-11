@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">TypeScript API 状态机</title>
+  <desc id="desc">请求在 idle、loading、success 和 error 状态之间转移。</desc>
+  <style>
+    .label{font:700 15px system-ui,sans-serif;fill:#2b2025}.sub{font:12px system-ui,sans-serif;fill:#74636a}
+    .node{fill:#fff;stroke:#f0dce4;stroke-width:2}.hot{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:3;stroke-linecap:round;stroke-dasharray:8 10;animation:move 1.5s linear infinite}
+    @keyframes move{to{stroke-dashoffset:-36}}@media(prefers-reduced-motion:reduce){.flow{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">用状态表达请求生命周期</text>
+  <circle cx="112" cy="154" r="52" class="node"/><text x="112" y="150" text-anchor="middle" class="label">idle</text><text x="112" y="172" text-anchor="middle" class="sub">未开始</text>
+  <path d="M164 154h75" class="flow"/><circle cx="202" cy="154" r="6" fill="#db4b78"/>
+  <circle cx="291" cy="154" r="52" class="hot"/><text x="291" y="150" text-anchor="middle" class="label">loading</text><text x="291" y="172" text-anchor="middle" class="sub">请求中</text>
+  <path d="M343 135l84-48" class="flow"/><path d="M343 173l84 48" class="flow"/>
+  <circle cx="491" cy="87" r="52" class="node"/><text x="491" y="83" text-anchor="middle" class="label">success</text><text x="491" y="105" text-anchor="middle" class="sub">有数据</text>
+  <circle cx="491" cy="221" r="52" class="node"/><text x="491" y="217" text-anchor="middle" class="label">error</text><text x="491" y="239" text-anchor="middle" class="sub">可重试</text>
+  <path d="M539 87h74v67h-70M539 221h74v-67h-70" class="flow"/>
+</svg>

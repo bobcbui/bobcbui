@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">AI 模型服务部署链路</title>
+  <desc id="desc">客户端请求经过网关和模型服务，结果与指标同时返回和记录。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .flow{fill:none;stroke:#db4b78;stroke-width:4;stroke-linecap:round;stroke-dasharray:9 13;animation:move 1.6s linear infinite}
+    .pulse{fill:#db4b78;animation:pulse 1.5s ease-in-out infinite}@keyframes move{to{stroke-dashoffset:-44}}@keyframes pulse{50%{opacity:.35}}@media(prefers-reduced-motion:reduce){.flow,.pulse{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">把模型变成可靠的服务</text>
+  <rect x="30" y="104" width="130" height="98" rx="16" class="box"/><text x="95" y="140" text-anchor="middle" class="label">Client</text><text x="95" y="168" text-anchor="middle" class="sub">请求</text>
+  <path d="M160 153h48" class="flow"/>
+  <rect x="208" y="104" width="130" height="98" rx="16" class="accent"/><text x="273" y="140" text-anchor="middle" class="label">Gateway</text><text x="273" y="168" text-anchor="middle" class="sub">限流与鉴权</text>
+  <path d="M338 153h48" class="flow"/>
+  <rect x="386" y="104" width="150" height="98" rx="16" class="accent"/><text x="461" y="140" text-anchor="middle" class="label">Model API</text><text x="461" y="168" text-anchor="middle" class="sub">推理服务</text><circle cx="461" cy="187" r="6" class="pulse"/>
+  <path d="M536 153h48" class="flow"/>
+  <rect x="584" y="104" width="106" height="98" rx="16" class="box"/><text x="637" y="140" text-anchor="middle" class="label">Metrics</text><text x="637" y="168" text-anchor="middle" class="sub">监控</text>
+</svg>

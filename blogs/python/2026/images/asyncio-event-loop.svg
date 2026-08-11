@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="title desc">
+  <title id="title">Python asyncio 事件循环</title>
+  <desc id="desc">事件循环在多个等待中的 I/O 任务之间切换。</desc>
+  <style>
+    .label{font:700 16px system-ui,sans-serif;fill:#2b2025}.sub{font:13px system-ui,sans-serif;fill:#74636a}
+    .box{fill:#fff;stroke:#f0dce4;stroke-width:2}.accent{fill:#fce7ef;stroke:#db4b78;stroke-width:2}
+    .orbit{fill:none;stroke:#f0dce4;stroke-width:2;stroke-dasharray:5 8}.dot{fill:#db4b78;animation:orbit 3s linear infinite;transform-origin:360px 152px}.d2{animation-delay:-1s}.d3{animation-delay:-2s}
+    @keyframes orbit{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.dot{animation:none}}
+  </style>
+  <rect width="720" height="300" rx="24" fill="#fff8fa"/><text x="36" y="42" class="label">一个事件循环，多个等待任务</text>
+  <ellipse cx="360" cy="152" rx="156" ry="82" class="orbit"/>
+  <circle cx="360" cy="152" r="62" class="accent"/><text x="360" y="148" text-anchor="middle" class="label">Event Loop</text><text x="360" y="174" text-anchor="middle" class="sub">调度就绪任务</text>
+  <circle cx="360" cy="70" r="10" class="dot"/><circle cx="204" cy="152" r="10" class="dot d2"/><circle cx="516" cy="152" r="10" class="dot d3"/>
+  <rect x="42" y="238" width="150" height="34" rx="17" class="box"/><text x="117" y="260" text-anchor="middle" class="sub">Task A · I/O</text>
+  <rect x="285" y="238" width="150" height="34" rx="17" class="box"/><text x="360" y="260" text-anchor="middle" class="sub">Task B · I/O</text>
+  <rect x="528" y="238" width="150" height="34" rx="17" class="box"/><text x="603" y="260" text-anchor="middle" class="sub">Task C · I/O</text>
+</svg>
