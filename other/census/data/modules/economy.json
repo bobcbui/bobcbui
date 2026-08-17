@@ -1,0 +1,115 @@
+{
+  "id": "economy",
+  "name": "经济趋势",
+  "badge": "MACRO",
+  "description": "宏观经济、消费、制造业与产业增长趋势",
+  "meta": "全国经济运行趋势",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "国内生产总值",
+          "value": "134.9",
+          "unit": "万亿元",
+          "note": "年度累计",
+          "delta": "+5.0%",
+          "tone": "primary"
+        },
+        {
+          "label": "居民消费价格",
+          "value": "+0.2",
+          "unit": "%",
+          "note": "CPI 同比",
+          "delta": "温和",
+          "tone": "positive"
+        },
+        {
+          "label": "制造业 PMI",
+          "value": "50.1",
+          "unit": "%",
+          "note": "位于扩张区间",
+          "delta": "+0.3",
+          "tone": "warning"
+        },
+        {
+          "label": "社会消费品零售",
+          "value": "48.3",
+          "unit": "万亿元",
+          "note": "年度累计",
+          "delta": "+3.5%",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "span": 8,
+      "title": "季度经济增速",
+      "subtitle": "QUARTERLY GDP GROWTH",
+      "meta": "单位：%",
+      "min": 3,
+      "max": 7,
+      "labels": [
+        "2023Q1",
+        "2023Q2",
+        "2023Q3",
+        "2023Q4",
+        "2024Q1",
+        "2024Q2",
+        "2024Q3",
+        "2024Q4"
+      ],
+      "series": [
+        {
+          "name": "GDP 增速",
+          "tone": "primary",
+          "values": [
+            4.5,
+            6.3,
+            4.9,
+            5.2,
+            5.3,
+            4.7,
+            4.6,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "type": "bar",
+      "span": 4,
+      "title": "重点产业增速",
+      "subtitle": "INDUSTRY GROWTH",
+      "meta": "单位：%",
+      "items": [
+        {
+          "label": "高技术",
+          "value": 12.4,
+          "display": "12.4%",
+          "tone": "primary"
+        },
+        {
+          "label": "装备制造",
+          "value": 8.7,
+          "display": "8.7%",
+          "tone": "positive"
+        },
+        {
+          "label": "数字经济",
+          "value": 10.2,
+          "display": "10.2%",
+          "tone": "warning"
+        },
+        {
+          "label": "服务业",
+          "value": 5.8,
+          "display": "5.8%",
+          "tone": "negative"
+        }
+      ]
+    }
+  ]
+}

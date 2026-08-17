@@ -1,0 +1,168 @@
+{
+  "id": "security",
+  "name": "安全趋势",
+  "badge": "SECURITY",
+  "description": "网络攻击、风险事件、服务可用性与告警趋势",
+  "meta": "安全运营中心 · 实时",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "今日安全事件",
+          "value": "1,284",
+          "unit": "起",
+          "note": "高危事件 18 起",
+          "delta": "-12.6%",
+          "tone": "negative"
+        },
+        {
+          "label": "已阻断攻击",
+          "value": "98.7",
+          "unit": "万次",
+          "note": "自动处置率 96.2%",
+          "delta": "+8.1%",
+          "tone": "positive"
+        },
+        {
+          "label": "服务可用性",
+          "value": "99.99",
+          "unit": "%",
+          "note": "核心服务",
+          "delta": "正常",
+          "tone": "primary"
+        },
+        {
+          "label": "平均响应时延",
+          "value": "26",
+          "unit": "ms",
+          "note": "P95 响应时延",
+          "delta": "-4 ms",
+          "tone": "warning"
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "span": 8,
+      "title": "安全事件趋势",
+      "subtitle": "SECURITY EVENTS · 24H",
+      "meta": "单位：起",
+      "decimals": 0,
+      "labels": [
+        "00",
+        "02",
+        "04",
+        "06",
+        "08",
+        "10",
+        "12",
+        "14",
+        "16",
+        "18",
+        "20",
+        "22"
+      ],
+      "series": [
+        {
+          "name": "安全事件",
+          "tone": "negative",
+          "values": [
+            38,
+            27,
+            22,
+            31,
+            64,
+            92,
+            78,
+            105,
+            124,
+            168,
+            116,
+            73
+          ]
+        },
+        {
+          "name": "已处置",
+          "tone": "positive",
+          "values": [
+            34,
+            25,
+            20,
+            29,
+            58,
+            86,
+            74,
+            99,
+            118,
+            159,
+            111,
+            69
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "span": 4,
+      "title": "最新高危告警",
+      "subtitle": "CRITICAL ALERTS",
+      "meta": "最近 30 分钟",
+      "columns": [
+        {
+          "label": "告警类型"
+        },
+        {
+          "label": "来源"
+        },
+        {
+          "label": "状态",
+          "align": "right"
+        }
+      ],
+      "rows": [
+        [
+          "异常登录",
+          "海外节点",
+          {
+            "value": "已阻断",
+            "tone": "positive"
+          }
+        ],
+        [
+          "SQL 注入",
+          "Web 集群",
+          {
+            "value": "处理中",
+            "tone": "warning"
+          }
+        ],
+        [
+          "恶意扫描",
+          "边界网关",
+          {
+            "value": "已阻断",
+            "tone": "positive"
+          }
+        ],
+        [
+          "权限提升",
+          "业务主机",
+          {
+            "value": "高危",
+            "tone": "negative"
+          }
+        ],
+        [
+          "数据外传",
+          "办公网络",
+          {
+            "value": "调查中",
+            "tone": "warning"
+          }
+        ]
+      ]
+    }
+  ]
+}

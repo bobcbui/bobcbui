@@ -1,0 +1,129 @@
+{
+  "id": "healthcare",
+  "name": "医疗趋势",
+  "badge": "HEALTH",
+  "description": "医疗机构、床位、急诊与重点城市资源负荷趋势",
+  "meta": "全国医疗资源调度",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "开放床位",
+          "value": "975.4",
+          "unit": "万张",
+          "note": "每千人 6.9 张",
+          "delta": "+3.4%",
+          "tone": "primary"
+        },
+        {
+          "label": "执业医师",
+          "value": "478.2",
+          "unit": "万人",
+          "note": "每千人 3.39 人",
+          "delta": "+4.1%",
+          "tone": "positive"
+        },
+        {
+          "label": "今日急诊量",
+          "value": "186.3",
+          "unit": "万人次",
+          "note": "较昨日",
+          "delta": "+2.7%",
+          "tone": "warning"
+        },
+        {
+          "label": "床位使用率",
+          "value": "78.6",
+          "unit": "%",
+          "note": "全国平均",
+          "delta": "正常",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "span": 7,
+      "title": "月度门急诊量",
+      "subtitle": "MONTHLY OUTPATIENT VISITS",
+      "meta": "单位：亿人次",
+      "min": 6,
+      "max": 9,
+      "labels": [
+        "01月",
+        "02月",
+        "03月",
+        "04月",
+        "05月",
+        "06月",
+        "07月",
+        "08月",
+        "09月",
+        "10月",
+        "11月",
+        "12月"
+      ],
+      "series": [
+        {
+          "name": "门急诊量",
+          "tone": "primary",
+          "values": [
+            7.2,
+            6.8,
+            7.5,
+            7.7,
+            7.9,
+            8.1,
+            8.4,
+            8.3,
+            8,
+            8.2,
+            8.5,
+            8.7
+          ]
+        }
+      ]
+    },
+    {
+      "type": "progress",
+      "span": 5,
+      "title": "重点城市床位负荷",
+      "subtitle": "CITY BED OCCUPANCY",
+      "meta": "实时使用率",
+      "items": [
+        {
+          "label": "北京",
+          "value": 92,
+          "display": "92%",
+          "tone": "negative"
+        },
+        {
+          "label": "上海",
+          "value": 88,
+          "display": "88%",
+          "tone": "warning"
+        },
+        {
+          "label": "广州",
+          "value": 83,
+          "display": "83%",
+          "tone": "warning"
+        },
+        {
+          "label": "成都",
+          "value": 79,
+          "display": "79%",
+          "tone": "primary"
+        },
+        {
+          "label": "武汉",
+          "value": 76,
+          "display": "76%",
+          "tone": "positive"
+        }
+      ]
+    }
+  ]
+}

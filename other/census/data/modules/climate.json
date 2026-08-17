@@ -1,0 +1,155 @@
+{
+  "id": "climate",
+  "name": "气候趋势",
+  "badge": "LIVE",
+  "description": "温度异常、降水变化与极端天气风险趋势",
+  "meta": "全球气候观测 · 2025",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "全球平均温度",
+          "value": "14.7",
+          "unit": "℃",
+          "note": "较基准期",
+          "delta": "+1.18℃",
+          "deltaTone": "negative",
+          "tone": "warning"
+        },
+        {
+          "label": "海平面变化",
+          "value": "+3.7",
+          "unit": "mm/年",
+          "note": "长期变化趋势",
+          "delta": "持续上升",
+          "deltaTone": "negative",
+          "tone": "negative"
+        },
+        {
+          "label": "年累计降水",
+          "value": "+8.6",
+          "unit": "%",
+          "note": "较常年同期",
+          "delta": "+2.3%",
+          "tone": "primary"
+        },
+        {
+          "label": "极端天气预警",
+          "value": "12",
+          "unit": "起",
+          "note": "高于上月",
+          "delta": "+3 起",
+          "deltaTone": "negative",
+          "tone": "positive"
+        }
+      ]
+    },
+    {
+      "type": "bar",
+      "span": 7,
+      "title": "月度温度异常",
+      "subtitle": "MONTHLY TEMPERATURE ANOMALY",
+      "meta": "指数 · 2025",
+      "tone": "warning",
+      "items": [
+        {
+          "label": "01月",
+          "value": 34,
+          "display": "0.34"
+        },
+        {
+          "label": "02月",
+          "value": 47,
+          "display": "0.47"
+        },
+        {
+          "label": "03月",
+          "value": 40,
+          "display": "0.40"
+        },
+        {
+          "label": "04月",
+          "value": 55,
+          "display": "0.55"
+        },
+        {
+          "label": "05月",
+          "value": 62,
+          "display": "0.62"
+        },
+        {
+          "label": "06月",
+          "value": 76,
+          "display": "0.76"
+        },
+        {
+          "label": "07月",
+          "value": 88,
+          "display": "0.88",
+          "tone": "negative"
+        },
+        {
+          "label": "08月",
+          "value": 81,
+          "display": "0.81",
+          "tone": "negative"
+        },
+        {
+          "label": "09月",
+          "value": 69,
+          "display": "0.69"
+        },
+        {
+          "label": "10月",
+          "value": 57,
+          "display": "0.57"
+        },
+        {
+          "label": "11月",
+          "value": 43,
+          "display": "0.43"
+        },
+        {
+          "label": "12月",
+          "value": 38,
+          "display": "0.38"
+        }
+      ]
+    },
+    {
+      "type": "progress",
+      "span": 5,
+      "title": "气候风险雷达",
+      "subtitle": "REGIONAL CLIMATE RISKS",
+      "meta": "实时风险",
+      "items": [
+        {
+          "label": "高温热浪",
+          "value": 72,
+          "display": "高",
+          "tone": "negative"
+        },
+        {
+          "label": "暴雨洪涝",
+          "value": 58,
+          "display": "中",
+          "tone": "warning"
+        },
+        {
+          "label": "干旱风险",
+          "value": 46,
+          "display": "中",
+          "tone": "warning"
+        },
+        {
+          "label": "寒潮大风",
+          "value": 31,
+          "display": "低",
+          "tone": "primary"
+        }
+      ]
+    }
+  ]
+}

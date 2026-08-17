@@ -1,0 +1,314 @@
+{
+  "id": "population",
+  "name": "人口趋势",
+  "badge": "LIVE",
+  "description": "全国人口、迁徙、城市发展与人口构成综合研判",
+  "meta": "数据覆盖 31 省",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "全国总人口",
+          "value": "14.08",
+          "unit": "亿人",
+          "note": "自然增长率 2.95‰",
+          "delta": "+0.48%",
+          "tone": "primary"
+        },
+        {
+          "label": "城镇常住人口",
+          "value": "9.33",
+          "unit": "亿人",
+          "note": "占总人口 66.16%",
+          "delta": "+1.2%",
+          "tone": "positive"
+        },
+        {
+          "label": "年度人口净迁徙",
+          "value": "+386",
+          "unit": "万人",
+          "note": "较上年增长",
+          "delta": "+8.6%",
+          "tone": "warning"
+        },
+        {
+          "label": "流动人口",
+          "value": "3.76",
+          "unit": "亿人",
+          "note": "占总人口 26.7%",
+          "delta": "+2.1%",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "span": 7,
+      "title": "全国总人口趋势",
+      "subtitle": "TOTAL RESIDENT POPULATION",
+      "meta": "单位：亿人",
+      "decimals": 2,
+      "labels": [
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024"
+      ],
+      "series": [
+        {
+          "name": "总人口",
+          "tone": "primary",
+          "values": [
+            13.75,
+            13.83,
+            13.9,
+            13.95,
+            14.01,
+            14.12,
+            14.13,
+            14.12,
+            14.1,
+            14.08
+          ]
+        }
+      ]
+    },
+    {
+      "type": "bar",
+      "span": 5,
+      "title": "城市 GDP 排名",
+      "subtitle": "TOP CITIES · TRILLION CNY",
+      "meta": "2024 预估",
+      "tone": "primary",
+      "items": [
+        {
+          "label": "上海",
+          "value": 5.39,
+          "display": "5.39",
+          "tone": "warning"
+        },
+        {
+          "label": "北京",
+          "value": 4.98,
+          "display": "4.98"
+        },
+        {
+          "label": "深圳",
+          "value": 3.68,
+          "display": "3.68"
+        },
+        {
+          "label": "重庆",
+          "value": 3.01,
+          "display": "3.01"
+        },
+        {
+          "label": "广州",
+          "value": 2.98,
+          "display": "2.98"
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "span": 7,
+      "title": "本地人 / 外地人 / 外国人趋势",
+      "subtitle": "RESIDENT COMPOSITION · MONTHLY",
+      "meta": "单位：%",
+      "min": 0,
+      "max": 70,
+      "labels": [
+        "01月",
+        "02月",
+        "03月",
+        "04月",
+        "05月",
+        "06月",
+        "07月",
+        "08月",
+        "09月",
+        "10月",
+        "11月",
+        "12月"
+      ],
+      "series": [
+        {
+          "name": "本地户籍",
+          "tone": "primary",
+          "values": [
+            58.6,
+            58.4,
+            58.2,
+            58.1,
+            57.9,
+            57.8,
+            57.7,
+            57.5,
+            57.4,
+            57.3,
+            57.2,
+            57.1
+          ]
+        },
+        {
+          "name": "外地常住",
+          "tone": "negative",
+          "values": [
+            38.5,
+            38.7,
+            38.9,
+            39,
+            39.2,
+            39.3,
+            39.4,
+            39.6,
+            39.7,
+            39.8,
+            39.9,
+            40
+          ]
+        },
+        {
+          "name": "外籍常住",
+          "tone": "warning",
+          "values": [
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9,
+            2.9
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "span": 5,
+      "title": "重点城市人口迁徙",
+      "subtitle": "INTER-CITY MIGRATION FLOW",
+      "meta": "单位：万人",
+      "fromLabel": "主要流出地",
+      "flowLabel": "流量",
+      "toLabel": "主要流入地",
+      "items": [
+        {
+          "from": "哈尔滨",
+          "out": "128",
+          "to": "深圳",
+          "in": "75.6"
+        },
+        {
+          "from": "长春",
+          "out": "96",
+          "to": "上海",
+          "in": "68.3"
+        },
+        {
+          "from": "沈阳",
+          "out": "81",
+          "to": "北京",
+          "in": "42.1"
+        },
+        {
+          "from": "郑州",
+          "out": "63",
+          "to": "成都",
+          "in": "39.8"
+        },
+        {
+          "from": "石家庄",
+          "out": "54",
+          "to": "武汉",
+          "in": "31.4"
+        }
+      ]
+    },
+    {
+      "type": "progress",
+      "span": 5,
+      "title": "重点城市人口流入排行",
+      "subtitle": "CITY POPULATION INFLOW RANKING",
+      "meta": "年度净流入 · 万人",
+      "items": [
+        {
+          "label": "深圳",
+          "value": 100,
+          "display": "+75.6",
+          "tone": "primary"
+        },
+        {
+          "label": "上海",
+          "value": 90,
+          "display": "+68.3",
+          "tone": "warning"
+        },
+        {
+          "label": "北京",
+          "value": 56,
+          "display": "+42.1",
+          "tone": "primary"
+        },
+        {
+          "label": "成都",
+          "value": 53,
+          "display": "+39.8",
+          "tone": "positive"
+        },
+        {
+          "label": "武汉",
+          "value": 42,
+          "display": "+31.4",
+          "tone": "primary"
+        },
+        {
+          "label": "西安",
+          "value": 30,
+          "display": "+22.6",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "bar",
+      "span": 7,
+      "title": "人口年龄结构",
+      "subtitle": "AGE STRUCTURE · NATIONAL SAMPLE",
+      "meta": "单位：%",
+      "items": [
+        {
+          "label": "0—14岁",
+          "value": 17.1,
+          "display": "17.1%",
+          "tone": "primary"
+        },
+        {
+          "label": "15—64岁",
+          "value": 69.1,
+          "display": "69.1%",
+          "tone": "negative"
+        },
+        {
+          "label": "65岁以上",
+          "value": 13.8,
+          "display": "13.8%",
+          "tone": "warning"
+        }
+      ]
+    }
+  ]
+}

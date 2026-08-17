@@ -1,0 +1,152 @@
+{
+  "id": "traffic",
+  "name": "交通趋势",
+  "badge": "TRAFFIC",
+  "description": "道路拥堵、公共交通、铁路与航班运行状态",
+  "meta": "重点城市交通实时趋势",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "公共交通客流",
+          "value": "9,286",
+          "unit": "万人次",
+          "note": "今日累计",
+          "delta": "+4.8%",
+          "tone": "primary"
+        },
+        {
+          "label": "道路拥堵指数",
+          "value": "1.62",
+          "note": "整体轻度拥堵",
+          "delta": "平稳",
+          "tone": "warning"
+        },
+        {
+          "label": "铁路开行列次",
+          "value": "12,480",
+          "unit": "列",
+          "note": "正点率 98.7%",
+          "delta": "+2.1%",
+          "tone": "positive"
+        },
+        {
+          "label": "航班正常率",
+          "value": "87.6",
+          "unit": "%",
+          "note": "全国机场",
+          "delta": "-1.4%",
+          "deltaTone": "negative",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "span": 7,
+      "title": "全天道路拥堵趋势",
+      "subtitle": "HOURLY CONGESTION INDEX",
+      "meta": "实时指数",
+      "min": 1,
+      "max": 2.5,
+      "labels": [
+        "00",
+        "02",
+        "04",
+        "06",
+        "08",
+        "10",
+        "12",
+        "14",
+        "16",
+        "18",
+        "20",
+        "22"
+      ],
+      "series": [
+        {
+          "name": "拥堵指数",
+          "tone": "warning",
+          "values": [
+            1.08,
+            1.03,
+            1.02,
+            1.21,
+            2.18,
+            1.58,
+            1.49,
+            1.55,
+            1.72,
+            2.31,
+            1.78,
+            1.32
+          ]
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "span": 5,
+      "title": "重点城市通行状态",
+      "subtitle": "CITY TRAFFIC STATUS",
+      "meta": "晚高峰",
+      "columns": [
+        {
+          "label": "城市"
+        },
+        {
+          "label": "拥堵指数",
+          "align": "right"
+        },
+        {
+          "label": "平均速度",
+          "align": "right"
+        }
+      ],
+      "rows": [
+        [
+          "北京",
+          {
+            "value": "2.18",
+            "tone": "negative"
+          },
+          "28.6 km/h"
+        ],
+        [
+          "上海",
+          {
+            "value": "1.96",
+            "tone": "warning"
+          },
+          "31.2 km/h"
+        ],
+        [
+          "广州",
+          {
+            "value": "1.87",
+            "tone": "warning"
+          },
+          "33.5 km/h"
+        ],
+        [
+          "深圳",
+          {
+            "value": "1.73",
+            "tone": "primary"
+          },
+          "35.8 km/h"
+        ],
+        [
+          "成都",
+          {
+            "value": "1.69",
+            "tone": "primary"
+          },
+          "36.4 km/h"
+        ]
+      ]
+    }
+  ]
+}

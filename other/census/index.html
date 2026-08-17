@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07131f" />
+  <title>趋势中心</title>
+  <style>
+    :root {
+      --bg: #07131f;
+      --surface: rgba(12, 29, 43, .92);
+      --surface-soft: rgba(16, 37, 53, .78);
+      --line: rgba(126, 171, 194, .16);
+      --line-strong: rgba(100, 230, 224, .32);
+      --text: #e8f3f7;
+      --muted: #7893a3;
+      --dim: #4f6d7b;
+      --cyan: #64e6e0;
+      --cyan-dark: #238e9d;
+      --orange: #ffa866;
+      --pink: #ff779b;
+      --green: #8fda9b;
+      --header-h: 72px;
+      --sidebar-w: 220px;
+      --s1: 6px;
+      --s2: 10px;
+      --s3: 14px;
+      --s4: 18px;
+      --s5: 24px;
+      --s6: 32px;
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; }
+    body {
+      margin: 0;
+      min-width: 0;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(103, 159, 181, .032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(103, 159, 181, .032) 1px, transparent 1px),
+        radial-gradient(circle at 72% 8%, rgba(40, 142, 168, .13), transparent 30%),
+        radial-gradient(circle at 10% 82%, rgba(45, 73, 140, .1), transparent 34%);
+      background-size: 40px 40px, 40px 40px, auto, auto;
+    }
+    button, select { font: inherit; }
+    button { color: inherit; }
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 30;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s5);
+      padding: 0 var(--s5);
+      background: rgba(7, 19, 31, .96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+    .brand { display: flex; align-items: center; min-width: 0; gap: var(--s3); }
+    .brand-mark { width: 30px; height: 30px; flex: 0 0 auto; position: relative; }
+    .brand-mark::before, .brand-mark::after { content: ""; position: absolute; border: 1px solid var(--cyan); }
+    .brand-mark::before { inset: 3px 7px; border-radius: 10px 3px 10px 3px; transform: rotate(45deg); box-shadow: 0 0 14px rgba(100, 230, 224, .42); }
+    .brand-mark::after { inset: 10px 14px; border-width: 2px 0 0 2px; transform: rotate(45deg); }
+    h1 { overflow: hidden; margin: 0; font-size: 20px; font-weight: 650; letter-spacing: .06em; text-overflow: ellipsis; white-space: nowrap; }
+    .header-tools { display: flex; align-items: center; justify-content: flex-end; gap: var(--s5); flex: 0 0 auto; }
+    .live-status, .update-status { display: flex; align-items: center; gap: var(--s2); color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .live-status { color: var(--green); }
+    .live-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(143, 218, 155, .1), 0 0 12px var(--green); }
+    .update-status b { color: #a9c0ca; font: 500 10px "SFMono-Regular", Consolas, monospace; }
+    .year-picker { display: flex; align-items: center; gap: var(--s2); color: var(--muted); font-size: 11px; white-space: nowrap; }
+    select { appearance: none; min-width: 90px; padding: 7px 28px 7px 10px; color: var(--cyan); border: 1px solid var(--line-strong); border-radius: 5px; outline: none; background-color: rgba(100, 230, 224, .05); background-image: linear-gradient(45deg, transparent 50%, var(--cyan) 50%), linear-gradient(135deg, var(--cyan) 50%, transparent 50%); background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%; background-size: 4px 4px, 4px 4px; background-repeat: no-repeat; }
+    select:focus-visible { box-shadow: 0 0 0 2px rgba(100, 230, 224, .16); }
+
+    .sidebar {
+      position: fixed;
+      inset: var(--header-h) auto 0 0;
+      z-index: 20;
+      width: var(--sidebar-w);
+      padding: var(--s5) var(--s3);
+      background: rgba(10, 26, 39, .94);
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+    }
+    .sidebar-caption { padding: 0 var(--s2) var(--s3); color: var(--dim); font: 10px "SFMono-Regular", Consolas, monospace; letter-spacing: .16em; }
+    .module-menu { display: grid; gap: var(--s1); }
+    .menu-item { width: 100%; display: grid; grid-template-columns: 27px minmax(0, 1fr) auto; align-items: center; gap: var(--s2); padding: 12px var(--s2); border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--muted); text-align: left; cursor: pointer; transition: color .18s, background .18s, border-color .18s; }
+    .menu-item:hover { color: var(--text); background: rgba(100, 230, 224, .045); }
+    .menu-item.active { color: var(--text); border-color: rgba(100, 230, 224, .24); background: linear-gradient(90deg, rgba(100, 230, 224, .11), rgba(100, 230, 224, .02)); box-shadow: inset 3px 0 var(--cyan); }
+    .menu-index { color: var(--cyan); font: 10px "SFMono-Regular", Consolas, monospace; }
+    .menu-name { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .menu-badge { color: var(--dim); font: 9px "SFMono-Regular", Consolas, monospace; }
+    .menu-item.active .menu-badge { color: var(--cyan); }
+
+    .main { min-height: 100vh; margin-left: var(--sidebar-w); padding: calc(var(--header-h) + var(--s5)) var(--s5) var(--s6); }
+    .content-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: stretch; gap: var(--s4); }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-9 { grid-column: span 9; }
+    .span-12 { grid-column: span 12; }
+    .card { min-width: 0; padding: var(--s4); border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(145deg, rgba(19, 43, 59, .82), rgba(10, 24, 37, .88)); box-shadow: 0 14px 38px rgba(0, 0, 0, .18); overflow: hidden; position: relative; }
+    .card::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(125deg, rgba(100, 230, 224, .045), transparent 34%); }
+    .card-head { min-height: 37px; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s4); position: relative; }
+    .card-title { color: #c7dce3; font-size: 13px; font-weight: 600; letter-spacing: .07em; }
+    .card-subtitle { display: block; margin-top: 5px; color: var(--dim); font: 9px "SFMono-Regular", Consolas, monospace; letter-spacing: .11em; text-transform: uppercase; }
+    .card-meta { flex: 0 0 auto; color: var(--muted); font-size: 10px; }
+
+    .metrics-block { grid-column: span 12; padding: 0; border: 0; background: transparent; box-shadow: none; overflow: visible; }
+    .metrics-block::before { display: none; }
+    .metric-list { display: grid; grid-template-columns: repeat(var(--metric-columns, 4), minmax(0, 1fr)); gap: var(--s4); }
+    .metric-card { min-height: 142px; display: flex; flex-direction: column; justify-content: space-between; gap: var(--s3); padding: var(--s4); }
+    .metric-label { color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+    .metric-label::before { content: ""; width: 5px; height: 5px; display: inline-block; margin-right: 8px; border-radius: 50%; background: var(--tone, var(--cyan)); vertical-align: 2px; box-shadow: 0 0 9px color-mix(in srgb, var(--tone, var(--cyan)) 55%, transparent); }
+    .metric-value { display: flex; align-items: baseline; gap: 7px; }
+    .metric-value strong { color: #f2fbfc; font: 600 clamp(28px, 2.3vw, 38px)/1 "DIN Alternate", "Arial Narrow", sans-serif; letter-spacing: .03em; }
+    .metric-value span { color: var(--tone, var(--cyan)); font-size: 12px; }
+    .metric-footer { display: flex; justify-content: space-between; gap: var(--s2); color: var(--dim); font-size: 10px; }
+    .metric-delta { color: var(--green); }
+    .metric-delta.negative { color: var(--pink); }
+
+    .chart-card { min-height: 286px; }
+    .chart-canvas { display: block; width: 100%; height: 210px; }
+    .legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+    .legend-item { color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .legend-item i { width: 7px; height: 7px; display: inline-block; margin-right: 5px; border-radius: 50%; background: var(--tone); }
+    .bar-chart { height: 210px; display: flex; align-items: stretch; gap: var(--s2); padding-top: var(--s3); border-bottom: 1px solid var(--line); }
+    .bar-item { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; }
+    .bar-track { width: 100%; flex: 1; display: flex; align-items: flex-end; justify-content: center; background-image: linear-gradient(to top, rgba(126, 171, 194, .08) 1px, transparent 1px); background-size: 100% 25%; }
+    .bar-fill { width: min(30px, 64%); min-height: 5px; height: var(--height); border-radius: 4px 4px 0 0; background: linear-gradient(to top, color-mix(in srgb, var(--tone) 52%, #07131f), var(--tone)); box-shadow: 0 0 16px color-mix(in srgb, var(--tone) 25%, transparent); position: relative; }
+    .bar-fill::before { content: attr(data-value); position: absolute; top: -18px; left: 50%; transform: translateX(-50%); color: #bad2da; font: 9px "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+    .bar-label { max-width: 100%; overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .data-table th { padding: 8px 5px 10px; color: var(--dim); border-bottom: 1px solid var(--line); font-size: 10px; font-weight: 400; text-align: left; }
+    .data-table td { padding: 11px 5px; color: #b8ccd4; border-bottom: 1px solid rgba(126, 171, 194, .1); }
+    .data-table tbody tr:last-child td { border-bottom: 0; }
+    .align-right { text-align: right !important; }
+    .tone-positive { color: var(--green) !important; }
+    .tone-negative { color: var(--pink) !important; }
+    .tone-primary { color: var(--cyan) !important; }
+    .tone-warning { color: var(--orange) !important; }
+
+    .progress-list { display: grid; gap: var(--s3); padding-top: 2px; }
+    .progress-row { display: grid; grid-template-columns: 82px minmax(80px, 1fr) auto; align-items: center; gap: var(--s3); color: var(--muted); font-size: 11px; }
+    .progress-track { height: 6px; overflow: hidden; border-radius: 6px; background: rgba(126, 171, 194, .12); }
+    .progress-fill { height: 100%; width: var(--progress); border-radius: inherit; background: linear-gradient(90deg, var(--cyan-dark), var(--tone, var(--cyan))); }
+    .progress-value { color: #c4d9e0; font: 11px "SFMono-Regular", Consolas, monospace; }
+    .donut-wrap { min-height: 190px; display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: var(--s5); }
+    .donut { width: 116px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(var(--tone, var(--cyan)) 0 var(--progress), rgba(126, 171, 194, .12) var(--progress) 100%); position: relative; }
+    .donut::after { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: #0d2030; }
+    .donut-value { z-index: 1; color: var(--tone, var(--cyan)); font: 600 19px "DIN Alternate", sans-serif; }
+    .donut-copy strong { display: block; color: #e6f2f5; font-size: 20px; font-weight: 600; }
+    .donut-copy p { margin: 9px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+
+    .flow-list { display: grid; }
+    .flow-head, .flow-row { display: grid; grid-template-columns: 1fr 92px 1fr; align-items: center; gap: var(--s3); }
+    .flow-head { padding: 3px 0 10px; color: var(--dim); border-bottom: 1px solid var(--line); font-size: 10px; }
+    .flow-head span:nth-child(2) { text-align: center; }
+    .flow-head span:last-child { text-align: right; }
+    .flow-row { min-height: 45px; border-bottom: 1px solid rgba(126, 171, 194, .1); font-size: 11px; }
+    .flow-row:last-child { border-bottom: 0; }
+    .flow-side { display: flex; align-items: center; gap: 8px; color: #b9ced5; }
+    .flow-side:last-child { justify-content: flex-end; }
+    .flow-number { color: var(--pink); font: 11px "SFMono-Regular", Consolas, monospace; }
+    .flow-side:last-child .flow-number { color: var(--cyan); }
+    .flow-line { height: 1px; background: linear-gradient(90deg, var(--pink), var(--cyan)); opacity: .6; position: relative; }
+    .flow-line::after { content: ""; position: absolute; right: 0; top: -3px; width: 6px; height: 6px; border-top: 1px solid var(--cyan); border-right: 1px solid var(--cyan); transform: rotate(45deg); }
+
+    .map-area { height: 250px; position: relative; overflow: hidden; }
+    .map-area::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(100, 230, 224, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(100, 230, 224, .07) 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent); opacity: .32; }
+    .map-shape { position: absolute; left: 10%; top: 7%; width: 76%; height: 80%; background: linear-gradient(135deg, rgba(42, 151, 169, .46), rgba(23, 74, 108, .28)); clip-path: polygon(4% 27%, 16% 13%, 31% 17%, 40% 5%, 54% 13%, 72% 10%, 80% 20%, 97% 26%, 92% 41%, 79% 42%, 80% 56%, 66% 57%, 67% 70%, 55% 69%, 47% 87%, 34% 79%, 25% 88%, 20% 71%, 9% 68%, 13% 52%, 2% 45%); filter: drop-shadow(0 0 14px rgba(100, 230, 224, .16)); }
+    .map-point { position: absolute; left: var(--x); top: var(--y); width: 8px; height: 8px; border-radius: 50%; background: var(--tone, var(--cyan)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone, var(--cyan)) 12%, transparent), 0 0 13px var(--tone, var(--cyan)); z-index: 2; }
+    .map-point span { position: absolute; left: 10px; top: 8px; color: #abd3d5; font-size: 10px; white-space: nowrap; }
+    .map-point b { position: absolute; left: 10px; bottom: 8px; color: var(--tone, var(--cyan)); font: 9px "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+    .empty-state { grid-column: span 12; padding: 48px; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; text-align: center; }
+    .loading { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; color: var(--muted); background: var(--bg); font-size: 12px; letter-spacing: .1em; }
+    .loading.hidden { display: none; }
+
+    @media (max-width: 1280px) {
+      .metric-list { --metric-columns: 2 !important; }
+      .span-3, .span-4, .span-5, .span-7, .span-8, .span-9 { grid-column: span 6; }
+    }
+    @media (max-width: 900px) {
+      :root { --header-h: 68px; }
+      .topbar { padding: 0 var(--s3); }
+      .update-status { display: none; }
+      .sidebar { inset: var(--header-h) 0 auto 0; width: auto; height: 62px; padding: 8px var(--s3); overflow: hidden; border-right: 0; border-bottom: 1px solid var(--line); }
+      .sidebar-caption { display: none; }
+      .module-menu { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+      .module-menu::-webkit-scrollbar { display: none; }
+      .menu-item { min-width: max-content; grid-template-columns: 24px auto; padding: 10px 12px; }
+      .menu-badge { display: none; }
+      .main { margin-left: 0; padding: calc(var(--header-h) + 82px) var(--s3) var(--s5); }
+    }
+    @media (max-width: 640px) {
+      :root { --header-h: 60px; --s4: 14px; --s5: 18px; }
+      .brand-mark { width: 27px; height: 27px; }
+      h1 { font-size: 16px; }
+      .live-status span, .year-picker > span { display: none; }
+      .header-tools { gap: var(--s3); }
+      select { min-width: 78px; }
+      .content-grid { grid-template-columns: 1fr; gap: var(--s3); }
+      .span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-9, .span-12 { grid-column: span 1; }
+      .metric-list { --metric-columns: 1 !important; gap: var(--s3); }
+      .metric-card { min-height: 124px; }
+      .chart-card { min-height: 260px; }
+      .chart-canvas, .bar-chart { height: 185px; }
+      .progress-row { grid-template-columns: 68px minmax(60px, 1fr) auto; gap: var(--s2); }
+      .donut-wrap { grid-template-columns: 105px 1fr; gap: var(--s3); }
+      .donut { width: 96px; }
+      .flow-head, .flow-row { grid-template-columns: 1fr 54px 1fr; gap: var(--s2); }
+      .map-area { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark" aria-hidden="true"></div><h1 id="appTitle"></h1></div>
+    <div class="header-tools">
+      <div class="live-status"><i></i><span id="statusLabel"></span></div>
+      <div class="update-status"><span id="updateLabel"></span><b id="updatedAt"></b></div>
+      <label class="year-picker"><span id="yearLabel"></span><select id="yearSelect" aria-label="年份"></select></label>
+    </div>
+  </header>
+  <aside class="sidebar"><div class="sidebar-caption" id="menuTitle"></div><nav class="module-menu" id="moduleMenu" aria-label="模块菜单"></nav></aside>
+  <main class="main">
+    <section class="content-grid" id="contentGrid"></section>
+  </main>
+  <div class="loading" id="loading">数据加载中…</div>
+
+  <script>
+    const toneMap = { primary: '#64e6e0', positive: '#8fda9b', warning: '#ffa866', negative: '#ff779b' };
+    const state = { config: null, activeModuleId: null, chartBlocks: [] };
+    const $ = selector => document.querySelector(selector);
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const spanClass = span => `span-${[3,4,5,6,7,8,9,12].includes(Number(span)) ? span : 12}`;
+    const tone = name => toneMap[name] || toneMap.primary;
+    const toneStyle = name => `--tone:${tone(name)}`;
+
+    function renderHeader(app) {
+      $('#appTitle').textContent = app.title;
+      $('#statusLabel').textContent = app.status;
+      $('#updateLabel').textContent = app.updateLabel;
+      $('#yearLabel').textContent = app.yearLabel;
+      $('#updatedAt').textContent = app.yearUpdates[String(app.defaultYear)] || app.updatedAt;
+      $('#menuTitle').textContent = app.menuTitle;
+      $('#yearSelect').innerHTML = app.years.map(year => `<option value="${escapeHtml(year)}" ${year === app.defaultYear ? 'selected' : ''}>${escapeHtml(year)} 年</option>`).join('');
+      document.title = app.title;
+    }
+
+    function renderMenu(modules) {
+      $('#moduleMenu').innerHTML = modules.map((module, index) => `<button class="menu-item" data-module="${escapeHtml(module.id)}" aria-pressed="false"><span class="menu-index">${String(index + 1).padStart(2, '0')}</span><span class="menu-name">${escapeHtml(module.name)}</span><span class="menu-badge">${escapeHtml(module.badge || '')}</span></button>`).join('');
+      document.querySelectorAll('.menu-item').forEach(button => button.addEventListener('click', () => activateModule(button.dataset.module)));
+    }
+
+    function cardHeader(block, extra = '') {
+      const legend = block.series ? `<div class="legend">${block.series.map(series => `<span class="legend-item"><i style="${toneStyle(series.tone)}"></i>${escapeHtml(series.name)}</span>`).join('')}</div>` : extra;
+      return `<div class="card-head"><div><div class="card-title">${escapeHtml(block.title)}</div>${block.subtitle ? `<span class="card-subtitle">${escapeHtml(block.subtitle)}</span>` : ''}</div>${legend || (block.meta ? `<span class="card-meta">${escapeHtml(block.meta)}</span>` : '')}</div>`;
+    }
+
+    function renderMetrics(block) {
+      const columns = Math.max(1, Math.min(6, Number(block.columns) || 4));
+      const items = block.items.map(item => `<article class="card metric-card" style="${toneStyle(item.tone)}"><span class="metric-label">${escapeHtml(item.label)}</span><div class="metric-value"><strong>${escapeHtml(item.value)}</strong>${item.unit ? `<span>${escapeHtml(item.unit)}</span>` : ''}</div><div class="metric-footer"><span>${escapeHtml(item.note || '')}</span>${item.delta ? `<span class="metric-delta ${item.deltaTone === 'negative' ? 'negative' : ''}">${escapeHtml(item.delta)}</span>` : ''}</div></article>`).join('');
+      return `<section class="metrics-block"><div class="metric-list" style="--metric-columns:${columns}">${items}</div></section>`;
+    }
+
+    function renderLine(block, index) {
+      const chartId = `chart-${state.activeModuleId}-${index}`;
+      state.chartBlocks.push({ id: chartId, block });
+      return `<article class="card chart-card ${spanClass(block.span)}">${cardHeader(block)}<canvas class="chart-canvas" id="${chartId}" aria-label="${escapeHtml(block.title)}"></canvas></article>`;
+    }
+
+    function renderBars(block) {
+      const max = Math.max(...block.items.map(item => Number(item.value)), 1);
+      const bars = block.items.map(item => `<div class="bar-item"><div class="bar-track"><i class="bar-fill" style="--height:${Math.max(4, Number(item.value) / max * 100)}%;${toneStyle(item.tone || block.tone)}" data-value="${escapeHtml(item.display ?? item.value)}"></i></div><span class="bar-label">${escapeHtml(item.label)}</span></div>`).join('');
+      return `<article class="card chart-card ${spanClass(block.span)}">${cardHeader(block)}<div class="bar-chart">${bars}</div></article>`;
+    }
+
+    function renderTable(block) {
+      const head = block.columns.map(column => `<th class="${column.align === 'right' ? 'align-right' : ''}">${escapeHtml(column.label)}</th>`).join('');
+      const rows = block.rows.map(row => `<tr>${row.map((cell, index) => { const value = typeof cell === 'object' ? cell.value : cell; const cellTone = typeof cell === 'object' ? cell.tone : ''; return `<td class="${block.columns[index]?.align === 'right' ? 'align-right' : ''} ${cellTone ? `tone-${escapeHtml(cellTone)}` : ''}">${escapeHtml(value)}</td>`; }).join('')}</tr>`).join('');
+      return `<article class="card ${spanClass(block.span)}">${cardHeader(block)}<table class="data-table"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></article>`;
+    }
+
+    function renderProgress(block) {
+      const rows = block.items.map(item => `<div class="progress-row"><span>${escapeHtml(item.label)}</span><div class="progress-track"><i class="progress-fill" style="--progress:${Math.max(0, Math.min(100, Number(item.value)))}%;${toneStyle(item.tone || block.tone)}"></i></div><strong class="progress-value">${escapeHtml(item.display ?? item.value)}</strong></div>`).join('');
+      return `<article class="card ${spanClass(block.span)}">${cardHeader(block)}<div class="progress-list">${rows}</div></article>`;
+    }
+
+    function renderDonut(block) {
+      return `<article class="card ${spanClass(block.span)}">${cardHeader(block)}<div class="donut-wrap"><div class="donut" style="--progress:${Math.max(0, Math.min(100, Number(block.value)))}%;${toneStyle(block.tone)}"><span class="donut-value">${escapeHtml(block.display ?? block.value)}</span></div><div class="donut-copy"><strong>${escapeHtml(block.summary)}</strong><p>${escapeHtml(block.description)}</p></div></div></article>`;
+    }
+
+    function renderFlow(block) {
+      const rows = block.items.map(item => `<div class="flow-row"><div class="flow-side"><span>${escapeHtml(item.from)}</span><b class="flow-number">${escapeHtml(item.out)}</b></div><i class="flow-line"></i><div class="flow-side"><b class="flow-number">${escapeHtml(item.in)}</b><span>${escapeHtml(item.to)}</span></div></div>`).join('');
+      return `<article class="card ${spanClass(block.span)}">${cardHeader(block)}<div class="flow-list"><div class="flow-head"><span>${escapeHtml(block.fromLabel)}</span><span>${escapeHtml(block.flowLabel)}</span><span>${escapeHtml(block.toLabel)}</span></div>${rows}</div></article>`;
+    }
+
+    function renderMap(block) {
+      const points = block.points.map(point => `<i class="map-point" style="--x:${Number(point.x)}%;--y:${Number(point.y)}%;${toneStyle(point.tone)}"><b>${escapeHtml(point.value)}</b><span>${escapeHtml(point.name)}</span></i>`).join('');
+      return `<article class="card ${spanClass(block.span)}">${cardHeader(block)}<div class="map-area"><div class="map-shape"></div>${points}</div></article>`;
+    }
+
+    function renderBlock(block, index) {
+      const renderers = { metrics: renderMetrics, line: renderLine, bar: renderBars, table: renderTable, progress: renderProgress, donut: renderDonut, flow: renderFlow, map: renderMap };
+      return renderers[block.type] ? renderers[block.type](block, index) : '';
+    }
+
+    function activateModule(moduleId) {
+      const module = state.config.modules.find(item => item.id === moduleId);
+      if (!module) return;
+      state.activeModuleId = moduleId;
+      state.chartBlocks = [];
+      document.querySelectorAll('.menu-item').forEach(button => { const active = button.dataset.module === moduleId; button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active)); });
+      const activeTitle = `${state.config.app.title}.${module.name}`;
+      $('#appTitle').textContent = activeTitle;
+      document.title = activeTitle;
+      $('#contentGrid').innerHTML = module.blocks?.length ? module.blocks.map(renderBlock).join('') : `<div class="empty-state">暂无数据</div>`;
+      requestAnimationFrame(drawCharts);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setupCanvas(canvas) {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, rect.width * ratio);
+      canvas.height = Math.max(1, rect.height * ratio);
+      const context = canvas.getContext('2d');
+      context.scale(ratio, ratio);
+      return { context, width: rect.width, height: rect.height };
+    }
+
+    function drawLineChart(canvas, block) {
+      const { context: ctx, width, height } = setupCanvas(canvas);
+      const values = block.series.flatMap(series => series.values.map(Number));
+      const rawMin = block.min ?? Math.min(...values);
+      const rawMax = block.max ?? Math.max(...values);
+      const range = rawMax - rawMin || 1;
+      const min = block.min ?? rawMin - range * .08;
+      const max = block.max ?? rawMax + range * .08;
+      const pad = { left: 36, right: 12, top: 12, bottom: 26 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const x = index => pad.left + index * plotW / Math.max(1, block.labels.length - 1);
+      const y = value => pad.top + (max - value) / (max - min || 1) * plotH;
+      ctx.clearRect(0, 0, width, height);
+      ctx.font = '9px SFMono-Regular, Consolas, monospace';
+      ctx.fillStyle = '#557382';
+      ctx.strokeStyle = 'rgba(126,171,194,.13)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) {
+        const value = max - (max - min) * i / 3;
+        const yy = pad.top + plotH * i / 3;
+        ctx.beginPath(); ctx.moveTo(pad.left, yy); ctx.lineTo(width - pad.right, yy); ctx.stroke();
+        ctx.textAlign = 'right'; ctx.fillText(Number(value).toFixed(block.decimals ?? 1), pad.left - 6, yy + 3);
+      }
+      const labelStep = Math.max(1, Math.ceil(block.labels.length / 6));
+      ctx.textAlign = 'center';
+      block.labels.forEach((label, index) => { if (index % labelStep === 0 || index === block.labels.length - 1) ctx.fillText(label, x(index), height - 5); });
+      block.series.forEach((series, seriesIndex) => {
+        const color = tone(series.tone);
+        if (block.series.length === 1) {
+          const fill = ctx.createLinearGradient(0, pad.top, 0, height - pad.bottom);
+          fill.addColorStop(0, `${color}3c`); fill.addColorStop(1, `${color}00`);
+          ctx.beginPath(); series.values.forEach((value, index) => index ? ctx.lineTo(x(index), y(Number(value))) : ctx.moveTo(x(index), y(Number(value)))); ctx.lineTo(x(series.values.length - 1), height - pad.bottom); ctx.lineTo(x(0), height - pad.bottom); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+        }
+        ctx.beginPath(); series.values.forEach((value, index) => index ? ctx.lineTo(x(index), y(Number(value))) : ctx.moveTo(x(index), y(Number(value))));
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.shadowBlur = 8; ctx.shadowColor = color; ctx.stroke(); ctx.shadowBlur = 0;
+        if (seriesIndex === 0 && block.series.length === 1) { const last = series.values.length - 1; ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x(last), y(Number(series.values[last])), 3, 0, Math.PI * 2); ctx.fill(); }
+      });
+    }
+
+    function drawCharts() { state.chartBlocks.forEach(({ id, block }) => { const canvas = document.getElementById(id); if (canvas) drawLineChart(canvas, block); }); }
+
+    async function boot() {
+      try {
+        const response = await fetch('data/dashboard.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const manifest = await response.json();
+        const modules = await Promise.all((manifest.moduleFiles || []).map(async path => {
+          const moduleResponse = await fetch(path, { cache: 'no-store' });
+          if (!moduleResponse.ok) throw new Error(`${path}: HTTP ${moduleResponse.status}`);
+          return moduleResponse.json();
+        }));
+        state.config = { ...manifest, modules };
+        renderHeader(state.config.app);
+        renderMenu(state.config.modules);
+        activateModule(state.config.defaultModule || state.config.modules[0]?.id);
+        $('#yearSelect').addEventListener('change', event => { const year = event.target.value; $('#updatedAt').textContent = state.config.app.yearUpdates[year] || state.config.app.updatedAt; });
+        let resizeTimer;
+        window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawCharts, 120); });
+        $('#loading').classList.add('hidden');
+      } catch (error) {
+        $('#loading').textContent = '数据加载失败，请通过本地服务器访问页面';
+      }
+    }
+    boot();
+  </script>
+</body>
+</html>
