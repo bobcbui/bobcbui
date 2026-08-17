@@ -220,7 +220,7 @@ export default class GameScene extends Phaser.Scene {
     const cfg = TOWER_CONFIG[this.placementType];
     const cost = cfg.levels[0].buildCost;
     if (this.gold < cost) {
-      this.showFloatingText('金币不足!', col * TILE_SIZE + 32, row * TILE_SIZE + 32, '#ff4444');
+      this.showFloatingText('金币不足!', col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2, '#ff4444');
       return;
     }
 

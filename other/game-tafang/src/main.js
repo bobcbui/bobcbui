@@ -8,7 +8,9 @@ import GameOverScene from './scenes/GameOverScene.js';
 import WinScene from './scenes/WinScene.js';
 
 const config = {
-  type: Phaser.AUTO,
+  // Canvas keeps the game stable on low-end mobile WebViews and in devices
+  // where WebGL is unavailable; this game is mostly 2D primitive drawing.
+  type: Phaser.CANVAS,
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   parent: 'game-container',

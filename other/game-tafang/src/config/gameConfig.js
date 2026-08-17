@@ -1,10 +1,13 @@
-export const TILE_SIZE = 64;
+// The game is designed around a portrait phone viewport. Keeping the logical
+// canvas at 2:1 gives Phaser enough room for a readable HUD while still
+// fitting common 18:9 and 19.5:9 devices with FIT scaling.
+export const TILE_SIZE = 32;
 export const GRID_COLS = 15;
 export const GRID_ROWS = 10;
 export const GAME_WIDTH = GRID_COLS * TILE_SIZE;
-export const GAME_HEIGHT = GRID_ROWS * TILE_SIZE + 80;
-export const HUD_HEIGHT = 80;
+export const GAME_HEIGHT = 960;
 export const MAP_HEIGHT = GRID_ROWS * TILE_SIZE;
+export const HUD_HEIGHT = GAME_HEIGHT - MAP_HEIGHT;
 
 export const COLORS = {
   PATH: 0xd4a656,
