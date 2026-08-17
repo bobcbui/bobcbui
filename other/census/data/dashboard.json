@@ -1,0 +1,34 @@
+{
+  "app": {
+    "title": "多维数据趋势中心",
+    "status": "数据链路正常",
+    "updateLabel": "最后更新",
+    "yearLabel": "数据年份",
+    "menuTitle": "趋势模块",
+    "updatedAt": "2025.01.15 08:30",
+    "years": [
+      2024,
+      2023,
+      2022
+    ],
+    "defaultYear": 2024,
+    "yearUpdates": {
+      "2022": "2023.01.17 08:30",
+      "2023": "2024.01.16 08:30",
+      "2024": "2025.01.15 08:30"
+    }
+  },
+  "defaultModule": "population",
+  "moduleFiles": [
+    "data/modules/population.json",
+    "data/modules/stock.json",
+    "data/modules/environment.json",
+    "data/modules/climate.json",
+    "data/modules/game.json",
+    "data/modules/economy.json",
+    "data/modules/traffic.json",
+    "data/modules/energy.json",
+    "data/modules/security.json",
+    "data/modules/healthcare.json"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "id": "energy",
+  "name": "能源趋势",
+  "badge": "ENERGY",
+  "description": "电力负荷、能源供给与清洁能源消纳趋势",
+  "meta": "全国能源运行态势",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "全社会用电量",
+          "value": "9.85",
+          "unit": "万亿kWh",
+          "note": "年度累计",
+          "delta": "+6.8%",
+          "tone": "primary"
+        },
+        {
+          "label": "清洁能源占比",
+          "value": "39.7",
+          "unit": "%",
+          "note": "装机容量占比",
+          "delta": "+3.2%",
+          "tone": "positive"
+        },
+        {
+          "label": "煤炭库存",
+          "value": "1.94",
+          "unit": "亿吨",
+          "note": "可用 24 天",
+          "delta": "充足",
+          "tone": "warning"
+        },
+        {
+          "label": "当前电网负荷",
+          "value": "12.6",
+          "unit": "亿kW",
+          "note": "负荷率 82.4%",
+          "delta": "+4.6%",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "bar",
+      "span": 7,
+      "title": "能源发电结构",
+      "subtitle": "POWER GENERATION MIX",
+      "meta": "装机容量占比",
+      "items": [
+        {
+          "label": "火电",
+          "value": 47.1,
+          "display": "47.1%",
+          "tone": "warning"
+        },
+        {
+          "label": "水电",
+          "value": 14.2,
+          "display": "14.2%",
+          "tone": "primary"
+        },
+        {
+          "label": "风电",
+          "value": 15.6,
+          "display": "15.6%",
+          "tone": "positive"
+        },
+        {
+          "label": "光伏",
+          "value": 18.4,
+          "display": "18.4%",
+          "tone": "primary"
+        },
+        {
+          "label": "核电",
+          "value": 4.7,
+          "display": "4.7%",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "progress",
+      "span": 5,
+      "title": "区域电网负荷率",
+      "subtitle": "REGIONAL GRID LOAD",
+      "meta": "当前负荷",
+      "items": [
+        {
+          "label": "华东电网",
+          "value": 91,
+          "display": "91%",
+          "tone": "negative"
+        },
+        {
+          "label": "南方电网",
+          "value": 86,
+          "display": "86%",
+          "tone": "warning"
+        },
+        {
+          "label": "华北电网",
+          "value": 82,
+          "display": "82%",
+          "tone": "primary"
+        },
+        {
+          "label": "华中电网",
+          "value": 76,
+          "display": "76%",
+          "tone": "positive"
+        },
+        {
+          "label": "西北电网",
+          "value": 68,
+          "display": "68%",
+          "tone": "primary"
+        }
+      ]
+    }
+  ]
+}

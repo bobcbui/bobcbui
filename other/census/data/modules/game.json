@@ -1,0 +1,194 @@
+{
+  "id": "game",
+  "name": "游戏趋势",
+  "badge": "ONLINE",
+  "description": "在线人数、活跃度、收入与热门游戏排行",
+  "meta": "游戏运营实时数据",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "实时在线人数",
+          "value": "1,842",
+          "unit": "万",
+          "note": "较昨日同时段",
+          "delta": "+6.8%",
+          "tone": "primary"
+        },
+        {
+          "label": "日活跃用户",
+          "value": "4,826",
+          "unit": "万",
+          "note": "次日留存率 42.6%",
+          "delta": "+3.1%",
+          "tone": "positive"
+        },
+        {
+          "label": "当日流水",
+          "value": "3.28",
+          "unit": "亿元",
+          "note": "较上周同期",
+          "delta": "+4.2%",
+          "tone": "warning"
+        },
+        {
+          "label": "服务器状态",
+          "value": "99.98",
+          "unit": "%",
+          "note": "全部运行正常",
+          "delta": "稳定",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "span": 5,
+      "title": "热门游戏排行",
+      "subtitle": "TOP GAMES BY ONLINE USERS",
+      "meta": "实时榜单",
+      "columns": [
+        {
+          "label": "排名"
+        },
+        {
+          "label": "游戏"
+        },
+        {
+          "label": "在线人数",
+          "align": "right"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "value": "01",
+            "tone": "warning"
+          },
+          "王者荣耀",
+          {
+            "value": "612万",
+            "tone": "primary"
+          }
+        ],
+        [
+          {
+            "value": "02",
+            "tone": "warning"
+          },
+          "和平精英",
+          {
+            "value": "486万",
+            "tone": "primary"
+          }
+        ],
+        [
+          {
+            "value": "03",
+            "tone": "warning"
+          },
+          "原神",
+          {
+            "value": "258万",
+            "tone": "primary"
+          }
+        ],
+        [
+          "04",
+          "蛋仔派对",
+          {
+            "value": "231万",
+            "tone": "primary"
+          }
+        ],
+        [
+          "05",
+          "英雄联盟手游",
+          {
+            "value": "198万",
+            "tone": "primary"
+          }
+        ]
+      ]
+    },
+    {
+      "type": "bar",
+      "span": 7,
+      "title": "在线人数趋势",
+      "subtitle": "CONCURRENT USERS · 24H",
+      "meta": "单位：万",
+      "tone": "primary",
+      "items": [
+        {
+          "label": "00",
+          "value": 31,
+          "display": "571"
+        },
+        {
+          "label": "02",
+          "value": 28,
+          "display": "516"
+        },
+        {
+          "label": "04",
+          "value": 20,
+          "display": "368"
+        },
+        {
+          "label": "06",
+          "value": 35,
+          "display": "645"
+        },
+        {
+          "label": "08",
+          "value": 49,
+          "display": "903"
+        },
+        {
+          "label": "10",
+          "value": 60,
+          "display": "1,105"
+        },
+        {
+          "label": "12",
+          "value": 71,
+          "display": "1,308"
+        },
+        {
+          "label": "14",
+          "value": 69,
+          "display": "1,271"
+        },
+        {
+          "label": "16",
+          "value": 57,
+          "display": "1,050"
+        },
+        {
+          "label": "18",
+          "value": 72,
+          "display": "1,326"
+        },
+        {
+          "label": "20",
+          "value": 94,
+          "display": "1,731",
+          "tone": "warning"
+        },
+        {
+          "label": "22",
+          "value": 87,
+          "display": "1,603",
+          "tone": "warning"
+        },
+        {
+          "label": "24",
+          "value": 48,
+          "display": "884"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "id": "environment",
+  "name": "环境趋势",
+  "badge": "AQI",
+  "description": "空气、水体与城市生态指标趋势分析",
+  "meta": "全国 338 个城市",
+  "blocks": [
+    {
+      "type": "metrics",
+      "columns": 4,
+      "items": [
+        {
+          "label": "全国空气质量",
+          "value": "42",
+          "unit": "AQI",
+          "note": "优良率 87.4%",
+          "delta": "优",
+          "tone": "positive"
+        },
+        {
+          "label": "PM2.5 浓度",
+          "value": "28",
+          "unit": "μg/m³",
+          "note": "同比变化",
+          "delta": "-9.3%",
+          "tone": "primary"
+        },
+        {
+          "label": "地表水达标率",
+          "value": "89.4",
+          "unit": "%",
+          "note": "同比提升",
+          "delta": "+1.8%",
+          "tone": "warning"
+        },
+        {
+          "label": "生态保护红线",
+          "value": "25.1",
+          "unit": "%",
+          "note": "国土面积覆盖",
+          "delta": "稳定",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "progress",
+      "span": 7,
+      "title": "重点城市环境指数",
+      "subtitle": "CITY ENVIRONMENT RANKING",
+      "meta": "指数越低越优",
+      "tone": "primary",
+      "items": [
+        {
+          "label": "海口",
+          "value": 18,
+          "display": "优 · 18",
+          "tone": "positive"
+        },
+        {
+          "label": "拉萨",
+          "value": 23,
+          "display": "优 · 23",
+          "tone": "positive"
+        },
+        {
+          "label": "珠海",
+          "value": 31,
+          "display": "优 · 31",
+          "tone": "primary"
+        },
+        {
+          "label": "福州",
+          "value": 44,
+          "display": "良 · 44",
+          "tone": "warning"
+        },
+        {
+          "label": "北京",
+          "value": 58,
+          "display": "良 · 58",
+          "tone": "negative"
+        }
+      ]
+    },
+    {
+      "type": "donut",
+      "span": 5,
+      "title": "全国优良天数占比",
+      "subtitle": "GOOD AIR DAYS",
+      "meta": "过去 365 天",
+      "value": 87.4,
+      "display": "87.4%",
+      "summary": "285 天",
+      "description": "空气质量达到优良等级，当前全国环境质量处于稳定区间。",
+      "tone": "primary"
+    }
+  ]
+}
