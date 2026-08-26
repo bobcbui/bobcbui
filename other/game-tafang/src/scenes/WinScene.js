@@ -14,45 +14,41 @@ export default class WinScene extends Phaser.Scene {
     const hasNext = nextLevel <= getTotalLevels();
 
     const bg = this.add.graphics();
-    bg.fillStyle(0x0ea5e9, 1);
+    bg.fillStyle(0x064e3b, 1);
     bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // Mascot
-    const isGoldCarrot = stars === 3;
-    this.add.text(cx, 130, isGoldCarrot ? '👑🥕' : '🥕', { fontSize: '64px' }).setOrigin(0.5);
+    const isGoldLotus = stars === 3;
+    this.add.text(cx, 130, isGoldLotus ? '👑🌸' : '🌸', { fontSize: '64px' }).setOrigin(0.5);
 
-    this.add.text(cx, 215, isGoldCarrot ? '获得金萝卜勋章！' : '成功保卫大萝卜！', {
-      fontSize: '38px',
+    this.add.text(cx, 215, isGoldLotus ? '荣获金莲天道勋章！' : '成功保卫我方圣女！', {
+      fontSize: '36px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
       fontStyle: 'bold',
-      stroke: '#ea580c',
+      stroke: '#047857',
       strokeThickness: 6,
     }).setOrigin(0.5);
 
-    this.add.text(cx, 265, `第 ${level || 1} 关 完美通关`, {
+    this.add.text(cx, 265, `第 ${level || 1} 关 护法大捷`, {
       fontSize: '18px',
       fontFamily: 'system-ui, Arial, sans-serif',
-      color: '#fef08a',
+      color: '#fde047',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    // Stars
+    // Stars / Lotus
     if (stars) {
-      let starStr = '';
-      for (let i = 1; i <= 3; i++) starStr += i <= stars ? '★' : '☆';
-      this.add.text(cx, 315, starStr, {
-        fontSize: '44px',
+      let lotusStr = '';
+      for (let i = 1; i <= 3; i++) lotusStr += i <= stars ? '🪷' : '⚪';
+      this.add.text(cx, 315, lotusStr, {
+        fontSize: '38px',
         fontFamily: 'system-ui, Arial, sans-serif',
-        color: '#facc15',
-        stroke: '#854d0e',
-        strokeThickness: 4,
       }).setOrigin(0.5);
     }
 
     // Stats
     if (score !== undefined) {
-      this.add.text(cx, 375, `战役得分: ${score}`, {
+      this.add.text(cx, 375, `战役功勋: ${score}`, {
         fontSize: '22px',
         fontFamily: 'system-ui, Arial, sans-serif',
         color: '#ffffff',
@@ -60,29 +56,29 @@ export default class WinScene extends Phaser.Scene {
       }).setOrigin(0.5);
     }
 
-    this.add.text(cx, 410, `萝卜生命: ${livesLeft}/10 🥕  ·  剩余金币: ${goldLeft || 0} 💰`, {
+    this.add.text(cx, 410, `圣女灵力: ${livesLeft}/10 🌸  ·  结余灵石: ${goldLeft || 0} 💎`, {
       fontSize: '14px',
       fontFamily: 'system-ui, Arial, sans-serif',
-      color: '#e0f2fe',
+      color: '#a7f3d0',
     }).setOrigin(0.5);
 
     // Buttons
     let btnY = 480;
     if (hasNext) {
-      this.createButton(cx, btnY, '▶ 进入下一关', 0x16a34a, 0x22c55e, () => {
+      this.createButton(cx, btnY, '▶ 进入下一关护法', 0x16a34a, 0x22c55e, () => {
         soundManager.playClick();
         this.scene.start('GameScene', { level: nextLevel });
       });
       btnY += 75;
     }
 
-    this.createButton(cx, btnY, '🔄 再次挑战', 0xf59e0b, 0xfbbf24, () => {
+    this.createButton(cx, btnY, '🔄 再次演练阵法', 0xd97706, 0xf59e0b, () => {
       soundManager.playClick();
       this.scene.start('GameScene', { level: level || 1 });
     });
     btnY += 75;
 
-    this.createButton(cx, btnY, '🗺️ 返回选关', 0x0369a1, 0x0284c7, () => {
+    this.createButton(cx, btnY, '🗺️ 返回护法道场', 0x047857, 0x059669, () => {
       soundManager.playClick();
       this.scene.start('LevelSelectScene');
     });

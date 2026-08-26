@@ -9,7 +9,7 @@ import {
   COLORS,
   GAME_STATES,
   OBSTACLE_TYPES,
-  CARROT_MAX_HP,
+  SAINTESS_MAX_HP,
 } from '../config/gameConfig.js';
 import { TOWER_CONFIG, TOWER_TYPES } from '../config/towerConfig.js';
 import { ENEMY_CONFIG, ENEMY_TYPES } from '../config/enemyConfig.js';
@@ -31,8 +31,8 @@ export default class GameScene extends Phaser.Scene {
     const lvl = getLevelData(this.levelId);
     this.levelData = lvl;
     this.gold = lvl.initialGold;
-    this.lives = lvl.initialLives || CARROT_MAX_HP;
-    this.maxLives = CARROT_MAX_HP;
+    this.lives = lvl.initialLives || SAINTESS_MAX_HP;
+    this.maxLives = SAINTESS_MAX_HP;
     this.currentWave = 0;
     this.totalWaves = lvl.waves.length;
     this.state = GAME_STATES.PREPARATION;
@@ -43,7 +43,7 @@ export default class GameScene extends Phaser.Scene {
     this.piercingBlades = [];
     this.magicBeams = [];
     this.obstacles = lvl.obstacleList || [];
-    this.lockedTarget = null; // 🎯 Enemy or Obstacle
+    this.lockedTarget = null; // 🎯 诛邪锁定
 
     this.activeBuildTile = null;
     this.selectedTower = null;
@@ -62,14 +62,14 @@ export default class GameScene extends Phaser.Scene {
     this.mapGfx = this.add.graphics();
     this.decorGfx = this.add.graphics();
     this.obstacleGfx = this.add.graphics();
-    this.carrotGfx = this.add.graphics();
+    this.saintessGfx = this.add.graphics();
     this.entityGfx = this.add.graphics();
     this.fxGfx = this.add.graphics();
     this.lockGfx = this.add.graphics();
     this.rangeGfx = this.add.graphics();
 
     this.drawMap();
-    this.drawCarrot();
+    this.drawSaintess();
 
     // In-place UI Containers
     this.createInPlaceBuildWheel();
@@ -116,12 +116,12 @@ export default class GameScene extends Phaser.Scene {
     const g = this.mapGfx;
     g.clear();
 
-    // Full canvas green grass background
+    // Emerald immortal grass background
     g.fillStyle(COLORS.GRASS_LIGHT, 1);
     g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // Decorative clouds on top/bottom
-    g.fillStyle(0xffffff, 0.2);
+    // Decorative clouds & mountains
+    g.fillStyle(0xffffff, 0.25);
     g.fillCircle(80, 40, 50);
     g.fillCircle(140, 30, 60);
     g.fillCircle(450, 40, 55);
@@ -134,17 +134,17 @@ export default class GameScene extends Phaser.Scene {
         const tile = this.grid[row][col];
 
         if (tile === 0) {
-          // Yellow Sand Path
+          // Yellow Sand / Stone Pathway
           g.fillStyle(COLORS.PATH, 1);
           g.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 
           g.fillStyle(COLORS.PATH_INNER, 0.45);
           g.fillRect(x + 2, y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
 
-          g.lineStyle(1, COLORS.PATH_BORDER, 0.3);
+          g.lineStyle(1, COLORS.PATH_BORDER, 0.35);
           g.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
         } else {
-          // Checkerboard green grass
+          // Checkerboard emerald grass
           const isAlt = (row + col) % 2 === 0;
           if (isAlt) {
             g.fillStyle(COLORS.GRASS_DARK, 0.3);
@@ -160,14 +160,14 @@ export default class GameScene extends Phaser.Scene {
 
     this.drawPathChevrons();
 
-    // Start Portal
+    // Demon Portal at start
     if (this.waypoints.length > 0) {
       const start = this.waypoints[0];
-      g.fillStyle(0x38bdf8, 0.35);
+      g.fillStyle(0x7c3aed, 0.35);
       g.fillCircle(start.x, start.y, 16);
-      g.lineStyle(2, 0x0284c7, 0.85);
+      g.lineStyle(2, 0xa855f7, 0.85);
       g.strokeCircle(start.x, start.y, 13);
-      g.fillStyle(0x0284c7, 0.9);
+      g.fillStyle(0x581c87, 0.9);
       g.fillCircle(start.x, start.y, 6);
     }
   }
@@ -188,7 +188,7 @@ export default class GameScene extends Phaser.Scene {
         const px = a.x + (b.x - a.x) * t;
         const py = a.y + (b.y - a.y) * t;
 
-        g.fillStyle(COLORS.PATH_CHEVRON, 0.4);
+        g.fillStyle(COLORS.PATH_CHEVRON, 0.45);
         const p1x = px + Math.cos(angle) * 5;
         const p1y = py + Math.sin(angle) * 5;
         const p2x = px + Math.cos(angle + 2.4) * 6;
@@ -200,80 +200,91 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // ==================== CUTE BIG CARROT ====================
-  drawCarrot() {
-    const g = this.carrotGfx;
+  // ==================== DIVINE SAINTESS (我方纯阳圣女) ====================
+  drawSaintess() {
+    const g = this.saintessGfx;
     g.clear();
 
-    const carrotWp = this.waypoints[this.waypoints.length - 1];
-    if (!carrotWp) return;
+    const saintessWp = this.waypoints[this.waypoints.length - 1];
+    if (!saintessWp) return;
 
-    const cx = carrotWp.x;
-    const cy = carrotWp.y;
+    const cx = saintessWp.x;
+    const cy = saintessWp.y;
 
-    // Grass shadow
-    g.fillStyle(0x4d7c0f, 0.45);
-    g.fillEllipse(cx, cy + 12, 28, 12);
+    // 1. Golden Divine Aura Ring behind head
+    g.fillStyle(COLORS.SAINTESS_HALO, 0.35);
+    g.fillCircle(cx, cy - 8, 16);
+    g.lineStyle(1.5, COLORS.SAINTESS_HALO, 0.9);
+    g.strokeCircle(cx, cy - 8, 16);
 
-    // Carrot Body
-    g.fillStyle(COLORS.CARROT_BODY, 1);
-    g.fillRoundedRect(cx - 13, cy - 8, 26, 26, 12);
-    g.fillStyle(COLORS.CARROT_BODY_DARK, 0.3);
-    g.fillRect(cx - 10, cy + 4, 20, 3);
-    g.fillRect(cx - 8, cy + 10, 16, 2.5);
+    // 2. Pink Lotus Pedestal (莲花法座)
+    const petals = 6;
+    for (let i = 0; i < petals; i++) {
+      const a = (Math.PI * 2 * i) / petals;
+      g.fillStyle(COLORS.SAINTESS_LOTUS, 0.9);
+      g.fillEllipse(cx + Math.cos(a) * 11, cy + 10 + Math.sin(a) * 4, 10, 6);
+    }
+    g.fillStyle(COLORS.SAINTESS_LOTUS_CORE, 1);
+    g.fillEllipse(cx, cy + 10, 18, 8);
 
-    // Leaves
-    g.fillStyle(COLORS.CARROT_LEAF, 1);
-    g.fillTriangle(cx - 8, cy - 8, cx - 14, cy - 22, cx - 3, cy - 8);
-    g.fillTriangle(cx - 4, cy - 8, cx, cy - 26, cx + 4, cy - 8);
-    g.fillTriangle(cx + 3, cy - 8, cx + 14, cy - 22, cx + 8, cy - 8);
+    // 3. Saintess Celestial Robe (天蓝与纯白仙裳)
+    g.fillStyle(0xffffff, 1);
+    g.fillTriangle(cx - 10, cy + 8, cx, cy - 5, cx + 10, cy + 8);
+    g.fillStyle(COLORS.SAINTESS_ROBE, 0.85);
+    g.fillTriangle(cx - 7, cy + 8, cx, cy - 2, cx + 7, cy + 8);
 
-    // Expression
+    // Floating Ribbon Sash
+    g.lineStyle(2, 0xf472b6, 0.85);
+    g.beginPath();
+    g.arc(cx - 11, cy + 2, 6, 0, Math.PI);
+    g.arc(cx + 11, cy + 2, 6, 0, Math.PI);
+    g.strokePath();
+
+    // 4. Saintess Head & Face
+    g.fillStyle(0x0f172a, 1); // Dark hair bun
+    g.fillCircle(cx, cy - 10, 8);
+    g.fillCircle(cx, cy - 16, 4); // Top knot
+    g.fillStyle(0xfde047, 1); // Gold hairpin
+    g.fillRect(cx - 6, cy - 17, 12, 2);
+
+    g.fillStyle(0xffedd5, 1); // Face skin
+    g.fillCircle(cx, cy - 7, 6);
+
+    // Anime Eyes & Expression based on Lives
     if (this.lives >= 8) {
-      // Happy Smiling
+      // Serene Smiling Eyes
       g.fillStyle(0x0f172a, 1);
-      g.fillCircle(cx - 5, cy - 1, 2.5);
-      g.fillCircle(cx + 5, cy - 1, 2.5);
-      g.fillStyle(0xffffff, 1);
-      g.fillCircle(cx - 6, cy - 2, 1);
-      g.fillCircle(cx + 4, cy - 2, 1);
+      g.fillCircle(cx - 2.5, cy - 8, 1.3);
+      g.fillCircle(cx + 2.5, cy - 8, 1.3);
 
-      g.fillStyle(COLORS.CARROT_BLUSH, 0.85);
-      g.fillCircle(cx - 8, cy + 4, 3);
-      g.fillCircle(cx + 8, cy + 4, 3);
+      // Pink Blush
+      g.fillStyle(0xf43f5e, 0.7);
+      g.fillCircle(cx - 4, cy - 5, 1.5);
+      g.fillCircle(cx + 4, cy - 5, 1.5);
 
-      g.lineStyle(1.5, 0x0f172a, 1);
+      // Smile
+      g.lineStyle(1, 0x0f172a, 1);
       g.beginPath();
-      g.arc(cx, cy + 2, 3, 0, Math.PI);
+      g.arc(cx, cy - 6, 1.5, 0, Math.PI);
       g.strokePath();
     } else if (this.lives >= 4) {
-      // Worried
+      // Concerned / Praying
       g.fillStyle(0x0f172a, 1);
-      g.fillCircle(cx - 5, cy - 1, 2.5);
-      g.fillCircle(cx + 5, cy - 1, 2.5);
-      g.fillStyle(0x38bdf8, 1);
-      g.fillCircle(cx + 10, cy - 6, 2);
-
-      g.lineStyle(1.5, 0x0f172a, 1);
-      g.beginPath();
-      g.moveTo(cx - 4, cy + 4);
-      g.lineTo(cx + 4, cy + 4);
-      g.strokePath();
+      g.fillCircle(cx - 2.5, cy - 8, 1.3);
+      g.fillCircle(cx + 2.5, cy - 8, 1.3);
+      g.fillStyle(0x38bdf8, 1); // Sweat
+      g.fillCircle(cx + 6, cy - 10, 1.5);
     } else {
-      // Crying
+      // Shield cracked / Weakened
       g.fillStyle(0x0f172a, 1);
-      g.fillCircle(cx - 5, cy - 1, 2.5);
-      g.fillCircle(cx + 5, cy - 1, 2.5);
-      g.fillStyle(0x38bdf8, 0.9);
-      g.fillCircle(cx - 5, cy + 4, 2);
-      g.fillCircle(cx + 5, cy + 4, 2);
-
-      g.fillStyle(COLORS.GRASS_LIGHT, 1);
-      g.fillCircle(cx + 12, cy + 3, 5);
+      g.fillCircle(cx - 2.5, cy - 8, 1.3);
+      g.fillCircle(cx + 2.5, cy - 8, 1.3);
+      g.lineStyle(1.5, 0xef4444, 0.85); // Shield crack
+      g.strokeCircle(cx, cy - 4, 18);
     }
   }
 
-  // ==================== DESTRUCTIBLE OBSTACLES ====================
+  // ==================== DESTRUCTIBLE ENCHANTED OBSTACLES ====================
   renderObstacles() {
     const g = this.obstacleGfx;
     g.clear();
@@ -286,6 +297,7 @@ export default class GameScene extends Phaser.Scene {
 
       switch (obs.type) {
         case OBSTACLE_TYPES.TREE: {
+          // 千年古松
           g.fillStyle(0x78350f, 1);
           g.fillRect(cx - 3, cy + 4, 6, 8);
           g.fillStyle(0x15803d, 1);
@@ -298,21 +310,23 @@ export default class GameScene extends Phaser.Scene {
         }
 
         case OBSTACLE_TYPES.ROCK: {
+          // 封魔巨石
           g.fillStyle(0x475569, 1);
           g.fillRoundedRect(cx - 10, cy - 9, 20, 18, 5);
           g.fillStyle(0x94a3b8, 0.8);
           g.fillCircle(cx - 3, cy - 4, 3.5);
-          g.lineStyle(1.5, 0x1e293b, 0.8);
+          g.lineStyle(1.5, 0xef4444, 0.8); // Red seal runes
           g.strokeRoundedRect(cx - 10, cy - 9, 20, 18, 5);
           break;
         }
 
         case OBSTACLE_TYPES.MUSHROOM: {
+          // 九转灵芝
           g.fillStyle(0xfde047, 1);
           g.fillRoundedRect(cx - 4, cy + 2, 8, 9, 2);
           g.fillStyle(0xef4444, 1);
           g.fillCircle(cx, cy - 2, 10);
-          g.fillStyle(0xffffff, 1);
+          g.fillStyle(0xfde047, 1);
           g.fillCircle(cx - 4, cy - 5, 2);
           g.fillCircle(cx + 4, cy - 5, 2);
           g.fillCircle(cx, cy - 1, 2);
@@ -320,22 +334,24 @@ export default class GameScene extends Phaser.Scene {
         }
 
         case OBSTACLE_TYPES.CHEST: {
-          g.fillStyle(0x92400e, 1);
+          // 玄天宝匣
+          g.fillStyle(0x78350f, 1);
           g.fillRoundedRect(cx - 11, cy - 7, 22, 16, 4);
-          g.fillStyle(0xfacc15, 1);
+          g.fillStyle(0xfacc15, 1); // Gold Trim
           g.fillRect(cx - 11, cy - 1, 22, 3);
-          g.fillCircle(cx, cy, 3);
-          g.lineStyle(1.5, 0x78350f, 1);
+          g.fillCircle(cx, cy, 3.5);
+          g.lineStyle(1.5, 0xfde047, 1);
           g.strokeRoundedRect(cx - 11, cy - 7, 22, 16, 4);
           break;
         }
 
         case OBSTACLE_TYPES.HOUSE: {
-          g.fillStyle(0xfbbf24, 1);
+          // 镇魔古刹
+          g.fillStyle(0xd97706, 1);
           g.fillRect(cx - 9, cy - 1, 18, 13);
-          g.fillStyle(0xef4444, 1);
-          g.fillTriangle(cx - 13, cy - 1, cx, cy - 15, cx + 13, cy - 1);
-          g.fillStyle(0x38bdf8, 1);
+          g.fillStyle(0xb91c1c, 1); // Temple Roof
+          g.fillTriangle(cx - 14, cy - 1, cx, cy - 16, cx + 14, cy - 1);
+          g.fillStyle(0xfacc15, 1);
           g.fillRect(cx - 3, cy + 2, 6, 6);
           break;
         }
@@ -355,7 +371,7 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // ==================== IN-PLACE BUILD WHEEL (保卫萝卜就地造塔轮盘) ====================
+  // ==================== IN-PLACE BUILD WHEEL (保卫圣女布阵法盘) ====================
   createInPlaceBuildWheel() {
     this.buildWheelContainer = this.add.container(0, 0).setVisible(false).setDepth(100);
     this.wheelGfx = this.add.graphics();
@@ -364,7 +380,6 @@ export default class GameScene extends Phaser.Scene {
     this.wheelButtons = [];
     const available = this.levelData.availableTowers || Object.values(TOWER_TYPES);
 
-    // Create 6 radial/dock buttons
     available.forEach((type, idx) => {
       const cfg = TOWER_CONFIG[type];
       const btnGfx = this.add.graphics();
@@ -396,18 +411,17 @@ export default class GameScene extends Phaser.Scene {
     const tileX = col * TILE_SIZE + TILE_SIZE / 2;
     const tileY = MAP_Y + row * TILE_SIZE + TILE_SIZE / 2;
 
-    // Highlight Tile
     this.rangeGfx.clear();
-    this.rangeGfx.lineStyle(2, 0x16a34a, 0.95);
+    this.rangeGfx.lineStyle(2, 0x10b981, 0.95);
     this.rangeGfx.strokeRoundedRect(col * TILE_SIZE, MAP_Y + row * TILE_SIZE, TILE_SIZE, TILE_SIZE, 6);
 
     const count = this.wheelButtons.length;
     const radius = 54;
 
     this.wheelGfx.clear();
-    this.wheelGfx.fillStyle(0x0369a1, 0.85);
+    this.wheelGfx.fillStyle(0x064e3b, 0.88);
     this.wheelGfx.fillCircle(tileX, tileY, radius + 28);
-    this.wheelGfx.lineStyle(2, 0x38bdf8, 0.9);
+    this.wheelGfx.lineStyle(2, 0x34d399, 0.9);
     this.wheelGfx.strokeCircle(tileX, tileY, radius + 28);
 
     this.wheelButtons.forEach((btn, i) => {
@@ -419,9 +433,9 @@ export default class GameScene extends Phaser.Scene {
 
       const canAfford = this.gold >= btn.cfg.levels[0].buildCost;
       btn.gfx.clear();
-      btn.gfx.fillStyle(canAfford ? 0x0284c7 : 0x0f172a, 0.95);
+      btn.gfx.fillStyle(canAfford ? 0x047857 : 0x0f172a, 0.95);
       btn.gfx.fillCircle(0, 0, 20);
-      btn.gfx.lineStyle(1.5, canAfford ? 0x38bdf8 : 0x475569, 1);
+      btn.gfx.lineStyle(1.5, canAfford ? 0x6ee7b7 : 0x475569, 1);
       btn.gfx.strokeCircle(0, 0, 20);
       btn.costTxt.setColor(canAfford ? '#facc15' : '#f87171');
     });
@@ -434,7 +448,7 @@ export default class GameScene extends Phaser.Scene {
   createInPlaceTowerActionBubbles() {
     this.towerActionContainer = this.add.container(0, 0).setVisible(false).setDepth(101);
 
-    // 1. Upgrade Bubble (Above Tower)
+    // 1. Upgrade Formation Bubble (Above)
     this.upgradeBubbleGfx = this.add.graphics();
     this.upgradeBubbleTxt = this.add.text(0, 0, '⬆️ 升级 30', {
       fontSize: '12px',
@@ -442,21 +456,21 @@ export default class GameScene extends Phaser.Scene {
       color: '#ffffff',
       fontStyle: 'bold',
     }).setOrigin(0.5);
-    this.upgradeZone = this.add.zone(0, 0, 92, 34).setInteractive({ useHandCursor: true });
+    this.upgradeZone = this.add.zone(0, 0, 96, 34).setInteractive({ useHandCursor: true });
     this.upgradeZone.on('pointerdown', () => {
       if (this.selectedTower) this.onUIUpgradeTower();
     });
     this.upgradeContainer = this.add.container(0, -38, [this.upgradeBubbleGfx, this.upgradeBubbleTxt, this.upgradeZone]);
 
-    // 2. Sell Bubble (Below Tower)
+    // 2. Refine / Sell Formation Bubble (Below)
     this.sellBubbleGfx = this.add.graphics();
-    this.sellBubbleTxt = this.add.text(0, 0, '💰 出售 14', {
+    this.sellBubbleTxt = this.add.text(0, 0, '💰 炼化 14', {
       fontSize: '12px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
       fontStyle: 'bold',
     }).setOrigin(0.5);
-    this.sellZone = this.add.zone(0, 0, 92, 34).setInteractive({ useHandCursor: true });
+    this.sellZone = this.add.zone(0, 0, 96, 34).setInteractive({ useHandCursor: true });
     this.sellZone.on('pointerdown', () => {
       if (this.selectedTower) this.onUISellTower();
     });
@@ -473,39 +487,34 @@ export default class GameScene extends Phaser.Scene {
     const curLevelCfg = cfg.levels[tower.level - 1];
     const nextLevelCfg = tower.level < 3 ? cfg.levels[tower.level] : null;
 
-    // Draw Range Circle
     this.rangeGfx.clear();
     this.rangeGfx.lineStyle(2, COLORS.RANGE_CIRCLE, 0.85);
     this.rangeGfx.strokeCircle(tower.x, tower.y, curLevelCfg.range);
     this.rangeGfx.fillStyle(COLORS.RANGE_CIRCLE, COLORS.RANGE_CIRCLE_ALPHA);
     this.rangeGfx.fillCircle(tower.x, tower.y, curLevelCfg.range);
 
-    // Selected Border
     this.rangeGfx.lineStyle(2, 0xfacc15, 0.95);
     this.rangeGfx.strokeRoundedRect(tower.gridCol * TILE_SIZE, MAP_Y + tower.gridRow * TILE_SIZE, TILE_SIZE, TILE_SIZE, 6);
 
-    // Position Container
     this.towerActionContainer.setPosition(tower.x, tower.y);
 
-    // Upgrade Bubble
     const ug = this.upgradeBubbleGfx;
     ug.clear();
     if (nextLevelCfg) {
       const canAfford = this.gold >= nextLevelCfg.upgradeCost;
       ug.fillStyle(canAfford ? COLORS.BTN_UPGRADE : 0x475569, 0.95);
-      ug.fillRoundedRect(-46, -16, 92, 32, 16);
+      ug.fillRoundedRect(-48, -16, 96, 32, 16);
       ug.lineStyle(1.5, 0xffffff, 0.8);
-      ug.strokeRoundedRect(-46, -16, 92, 32, 16);
+      ug.strokeRoundedRect(-48, -16, 96, 32, 16);
       this.upgradeBubbleTxt.setText(`⬆️ 升级 💰${nextLevelCfg.upgradeCost}`);
       this.upgradeContainer.setVisible(true);
     } else {
       ug.fillStyle(0x334155, 0.9);
-      ug.fillRoundedRect(-46, -16, 92, 32, 16);
+      ug.fillRoundedRect(-48, -16, 96, 32, 16);
       this.upgradeBubbleTxt.setText('★ MAX 满级');
       this.upgradeContainer.setVisible(true);
     }
 
-    // Sell Bubble
     let totalInvested = 0;
     for (let i = 0; i < tower.level; i++) {
       totalInvested += i === 0 ? cfg.levels[i].buildCost : cfg.levels[i].upgradeCost;
@@ -515,10 +524,10 @@ export default class GameScene extends Phaser.Scene {
     const sg = this.sellBubbleGfx;
     sg.clear();
     sg.fillStyle(COLORS.BTN_SELL, 0.95);
-    sg.fillRoundedRect(-46, -16, 92, 32, 16);
+    sg.fillRoundedRect(-48, -16, 96, 32, 16);
     sg.lineStyle(1.5, 0xffffff, 0.8);
-    sg.strokeRoundedRect(-46, -16, 92, 32, 16);
-    this.sellBubbleTxt.setText(`🗑️ 出售 +💰${refund}`);
+    sg.strokeRoundedRect(-48, -16, 96, 32, 16);
+    this.sellBubbleTxt.setText(`🗑️ 炼化 +💰${refund}`);
 
     this.towerActionContainer.setVisible(true);
     soundManager.playClick();
@@ -535,8 +544,6 @@ export default class GameScene extends Phaser.Scene {
   // ==================== POINTER & INTERACTION ====================
   onPointerDown(pointer) {
     if (this.state === GAME_STATES.PAUSED || this.state === GAME_STATES.GAME_OVER) return;
-
-    // Ignore clicks on floating HUD bars (Top: 0~58, Bottom: 880~960)
     if (pointer.y < 58 || pointer.y > 880) return;
 
     const col = Math.floor(pointer.x / TILE_SIZE);
@@ -544,21 +551,21 @@ export default class GameScene extends Phaser.Scene {
 
     if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) return;
 
-    // 1. Check Carrot Click
-    const carrotWp = this.waypoints[this.waypoints.length - 1];
-    if (carrotWp && Math.hypot(pointer.x - carrotWp.x, pointer.y - carrotWp.y) <= 26) {
-      this.interactCarrot();
+    // 1. Check Saintess Click
+    const saintessWp = this.waypoints[this.waypoints.length - 1];
+    if (saintessWp && Math.hypot(pointer.x - saintessWp.x, pointer.y - saintessWp.y) <= 26) {
+      this.interactSaintess();
       return;
     }
 
-    // 2. Check Click on existing Tower
+    // 2. Check Click on existing Tower Formation
     const clickedTower = this.towers.find(t => t.gridCol === col && t.gridRow === row);
     if (clickedTower) {
       this.showInPlaceTowerActions(clickedTower);
       return;
     }
 
-    // 3. Check Click on Enemy (Lock-on 🎯)
+    // 3. Check Click on Enemy (Lock-on 🎯 诛邪锁定)
     for (const enemy of this.enemies) {
       if (!enemy.alive) continue;
       if (Math.hypot(pointer.x - enemy.x, pointer.y - enemy.y) <= enemy.radius + 10) {
@@ -574,24 +581,25 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    // 5. Check Click on empty buildable Grass Tile -> In-Place Wheel!
+    // 5. Check Click on empty Grass -> In-Place Wheel!
     if (this.grid[row][col] === 1) {
       this.showInPlaceBuildWheel(col, row);
       return;
     }
 
-    // Dismiss popups
     this.dismissAllInPlacePopups();
     this.clearLockTarget();
   }
 
-  interactCarrot() {
-    soundManager.playCarrot();
-    const carrotWp = this.waypoints[this.waypoints.length - 1];
-    this.showFloatingText('🥕 萌萌大萝卜!', carrotWp.x, carrotWp.y - 30, '#fb923c');
+  interactSaintess() {
+    soundManager.playSaintess();
+    const saintessWp = this.waypoints[this.waypoints.length - 1];
+    const msgs = ['🌸 誓死保卫圣女大人！', '✨ 圣女：多谢少侠护法！', '🪷 愿圣光庇佑诸位少侠！'];
+    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+    this.showFloatingText(msg, saintessWp.x, saintessWp.y - 30, '#f472b6');
 
     this.tweens.add({
-      targets: this.carrotGfx,
+      targets: this.saintessGfx,
       scaleY: 1.25,
       y: -6,
       duration: 120,
@@ -607,7 +615,7 @@ export default class GameScene extends Phaser.Scene {
     } else {
       this.lockedTarget = target;
       soundManager.playLock();
-      this.showFloatingText('🎯 锁定集火!', target.x, target.y - 20, '#ef4444');
+      this.showFloatingText('🎯 诛邪锁定!', target.x, target.y - 20, '#ef4444');
     }
   }
 
@@ -624,7 +632,7 @@ export default class GameScene extends Phaser.Scene {
     const cost = cfg.levels[0].buildCost;
     if (this.gold < cost) {
       soundManager.playError();
-      this.showFloatingText('金币不足!', col * TILE_SIZE + 15, MAP_Y + row * TILE_SIZE + 15, '#f59e0b');
+      this.showFloatingText('灵石不足!', col * TILE_SIZE + 15, MAP_Y + row * TILE_SIZE + 15, '#f59e0b');
       return;
     }
 
@@ -651,7 +659,7 @@ export default class GameScene extends Phaser.Scene {
     this.emitUIUpdate();
   }
 
-  // ==================== TOWER RENDERING ====================
+  // ==================== TOWER FORMATION RENDERING ====================
   renderTower(tower) {
     if (!tower._gfx) {
       tower._gfx = this.add.graphics();
@@ -676,55 +684,55 @@ export default class GameScene extends Phaser.Scene {
   drawTowerShape(g, cx, cy, type, level, angle) {
     const baseRadius = 12;
 
-    g.fillStyle(0x0f172a, 0.3);
+    // Taoist Formation Base
+    g.fillStyle(0x064e3b, 0.3);
     g.fillCircle(cx, cy + 2, baseRadius);
 
-    g.fillStyle(0x334155, 1);
+    g.fillStyle(0x134e4a, 1);
     g.fillCircle(cx, cy, baseRadius);
-    g.lineStyle(1.5, 0x475569, 1);
+    g.lineStyle(1.5, 0x2dd4bf, 1);
     g.strokeCircle(cx, cy, baseRadius);
 
     const cfg = TOWER_CONFIG[type];
 
     switch (type) {
-      case TOWER_TYPES.BOTTLE: {
+      case TOWER_TYPES.SWORD: {
+        // 🗡️ Flying Sword
         g.fillStyle(cfg.color, 1);
         g.fillRoundedRect(cx - 7, cy - 7, 14, 14, 4);
 
-        const nx = cx + Math.cos(angle) * 11;
-        const ny = cy + Math.sin(angle) * 11;
-        g.lineStyle(4, 0x34d399, 1);
+        const nx = cx + Math.cos(angle) * 12;
+        const ny = cy + Math.sin(angle) * 12;
+        g.lineStyle(3.5, 0x34d399, 1);
         g.beginPath();
         g.moveTo(cx, cy);
         g.lineTo(nx, ny);
         g.strokePath();
 
+        // Sword blade tip
         g.fillStyle(0xffffff, 1);
         g.fillCircle(nx, ny, 2.5);
 
         if (level === 3) {
-          g.lineStyle(1.5, 0xfacc15, 0.6);
+          g.lineStyle(1.5, 0xfacc15, 0.7);
           g.strokeCircle(cx, cy, baseRadius + 3);
         }
         break;
       }
 
-      case TOWER_TYPES.POOP: {
+      case TOWER_TYPES.TURTLE: {
+        // 🪨 Black Tortoise Shield
         g.fillStyle(cfg.color, 1);
-        g.fillCircle(cx, cy + 4, 8);
-        g.fillCircle(cx, cy - 1, 6);
-        g.fillCircle(cx, cy - 6, 3.5);
-
-        g.fillStyle(0xffffff, 1);
-        g.fillCircle(cx - 3, cy, 2);
-        g.fillCircle(cx + 3, cy, 2);
-        g.fillStyle(0x000000, 1);
-        g.fillCircle(cx - 3, cy, 1);
-        g.fillCircle(cx + 3, cy, 1);
+        g.fillCircle(cx, cy + 2, 8);
+        g.fillStyle(0x38bdf8, 1);
+        g.fillCircle(cx, cy - 4, 4);
+        g.lineStyle(1.5, 0x7dd3fc, 1);
+        g.strokeCircle(cx, cy + 2, 8);
         break;
       }
 
-      case TOWER_TYPES.SUN: {
+      case TOWER_TYPES.FIRE: {
+        // ☀️ Nine Sun True Fire Bagua
         const petals = 8;
         g.fillStyle(0xfde047, 1);
         for (let i = 0; i < petals; i++) {
@@ -739,6 +747,7 @@ export default class GameScene extends Phaser.Scene {
       }
 
       case TOWER_TYPES.FAN: {
+        // 🌀 Tai Chi Wind Fan
         g.fillStyle(cfg.color, 1);
         g.fillCircle(cx, cy, 4);
         for (let i = 0; i < 4; i++) {
@@ -751,7 +760,8 @@ export default class GameScene extends Phaser.Scene {
         break;
       }
 
-      case TOWER_TYPES.MAGIC: {
+      case TOWER_TYPES.THUNDER: {
+        // 🔮 Five Element Purple Thunder Orb
         g.fillStyle(0x7e22ce, 1);
         g.fillCircle(cx, cy, 8);
         g.fillStyle(0xc084fc, 1);
@@ -761,7 +771,8 @@ export default class GameScene extends Phaser.Scene {
         break;
       }
 
-      case TOWER_TYPES.ROCKET: {
+      case TOWER_TYPES.GODFIRE: {
+        // 🚀 Godfire Phoenix Ballistic Bow
         g.fillStyle(cfg.color, 1);
         g.fillCircle(cx, cy, 8);
 
@@ -806,7 +817,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.waveStartTime = this.time.now;
-    soundManager.playWaveStart();
+    soundManager.playSword();
     this.emitUIUpdate();
   }
 
@@ -865,13 +876,14 @@ export default class GameScene extends Phaser.Scene {
     const wp = this.waypoints[enemy.waypointIndex];
 
     if (!wp) {
+      // Reached Saintess!
       enemy.alive = false;
       this.lives -= enemy.damage;
       this.waveEnemiesRemaining--;
 
-      soundManager.playCarrotHurt();
-      this.cameras.main.shake(150, 0.01);
-      this.drawCarrot();
+      soundManager.playSaintessHurt();
+      this.cameras.main.shake(150, 0.012);
+      this.drawSaintess();
 
       if (this.lives <= 0) {
         this.lives = 0;
@@ -907,15 +919,15 @@ export default class GameScene extends Phaser.Scene {
     let color = enemy.color;
     if (enemy.slowTimer > 0) color = 0x67e8f9;
 
-    g.fillStyle(0x000000, 0.25);
+    g.fillStyle(0x000000, 0.28);
     g.fillEllipse(enemy.x, enemy.y + r + 1, r * 1.6, r * 0.7);
 
     g.fillStyle(color, 1);
     g.fillCircle(enemy.x, enemy.y, r);
-    g.lineStyle(1.5, 0x0f172a, 0.7);
+    g.lineStyle(1.5, 0x0f172a, 0.75);
     g.strokeCircle(enemy.x, enemy.y, r);
 
-    // Googly Eyes
+    // Demon Eyes
     if (enemy.waypointIndex < this.waypoints.length) {
       const wp = this.waypoints[enemy.waypointIndex];
       const ang = Math.atan2(wp.y - enemy.y, wp.x - enemy.x);
@@ -927,12 +939,12 @@ export default class GameScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1);
       g.fillCircle(ex1, ey1, 2.5);
       g.fillCircle(ex2, ey2, 2.5);
-      g.fillStyle(0x000000, 1);
+      g.fillStyle(0xdc2626, 1); // Red glowing evil pupils
       g.fillCircle(ex1 + Math.cos(ang) * 0.8, ey1 + Math.sin(ang) * 0.8, 1.2);
       g.fillCircle(ex2 + Math.cos(ang) * 0.8, ey2 + Math.sin(ang) * 0.8, 1.2);
     }
 
-    if (enemy.type === ENEMY_TYPES.BOSS) {
+    if (enemy.type === ENEMY_TYPES.LORD) {
       g.fillStyle(0xfacc15, 1);
       const crownY = enemy.y - r - 12;
       g.fillTriangle(enemy.x - 7, crownY, enemy.x - 4, crownY - 5, enemy.x - 1, crownY);
@@ -970,17 +982,17 @@ export default class GameScene extends Phaser.Scene {
     const cfg = TOWER_CONFIG[tower.type].levels[tower.level - 1];
 
     let attackSpeed = cfg.attackSpeed;
-    const hasNearbyBottleAura = this.towers.some(
-      t => t !== tower && t.type === TOWER_TYPES.BOTTLE && t.level === 3 && Math.hypot(t.x - tower.x, t.y - tower.y) <= 80
+    const hasNearbySwordAura = this.towers.some(
+      t => t !== tower && t.type === TOWER_TYPES.SWORD && t.level === 3 && Math.hypot(t.x - tower.x, t.y - tower.y) <= 80
     );
-    if (hasNearbyBottleAura) {
+    if (hasNearbySwordAura) {
       attackSpeed *= 0.75;
     }
 
-    if (tower.type === TOWER_TYPES.SUN) {
+    if (tower.type === TOWER_TYPES.FIRE) {
       if (time - tower.lastAttackTime >= attackSpeed) {
         tower.lastAttackTime = time;
-        this.fireSunflower(tower, cfg);
+        this.fireNineSunFire(tower, cfg);
       }
       return;
     }
@@ -992,10 +1004,10 @@ export default class GameScene extends Phaser.Scene {
       const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
       tower.angle = angle;
 
-      if (tower.type === TOWER_TYPES.MAGIC) {
+      if (tower.type === TOWER_TYPES.THUNDER) {
         if (time - tower.lastAttackTime >= attackSpeed) {
           tower.lastAttackTime = time;
-          this.fireMagicBeams(tower, cfg);
+          this.firePurpleThunder(tower, cfg);
         }
       } else {
         if (time - tower.lastAttackTime >= attackSpeed) {
@@ -1046,7 +1058,7 @@ export default class GameScene extends Phaser.Scene {
       target,
       targetX: target.x,
       targetY: target.y,
-      speed: 400,
+      speed: 420,
       damage: cfg.damage,
       splash: cfg.splash || 0,
       slow: cfg.slow || 0,
@@ -1056,42 +1068,42 @@ export default class GameScene extends Phaser.Scene {
     };
 
     switch (tower.type) {
-      case TOWER_TYPES.BOTTLE:
-        soundManager.playBottle();
+      case TOWER_TYPES.SWORD:
+        soundManager.playSword();
         this.projectiles.push(p);
         break;
 
-      case TOWER_TYPES.POOP:
-        soundManager.playPoop();
-        p.speed = 320;
+      case TOWER_TYPES.TURTLE:
+        soundManager.playTurtle();
+        p.speed = 330;
         this.projectiles.push(p);
         break;
 
       case TOWER_TYPES.FAN: {
         soundManager.playFan();
         const angle = Math.atan2(target.y - tower.y, target.x - tower.x);
-        p.vx = Math.cos(angle) * 450;
-        p.vy = Math.sin(angle) * 450;
+        p.vx = Math.cos(angle) * 460;
+        p.vy = Math.sin(angle) * 460;
         p.hitList = [];
         this.piercingBlades.push(p);
         break;
       }
 
-      case TOWER_TYPES.ROCKET:
-        soundManager.playRocket();
-        p.speed = 280;
+      case TOWER_TYPES.GODFIRE:
+        soundManager.playGodfire();
+        p.speed = 290;
         this.projectiles.push(p);
         break;
     }
   }
 
-  fireSunflower(tower, cfg) {
-    soundManager.playSun();
+  fireNineSunFire(tower, cfg) {
+    soundManager.playFire();
 
     const ring = this.add.graphics();
     ring.fillStyle(0xfde047, 0.45);
     ring.fillCircle(tower.x, tower.y, 10);
-    ring.lineStyle(3, 0xf59e0b, 0.9);
+    ring.lineStyle(3, 0xf59e0b, 0.95);
     ring.strokeCircle(tower.x, tower.y, 10);
 
     this.tweens.add({
@@ -1119,8 +1131,8 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  fireMagicBeams(tower, cfg) {
-    soundManager.playMagic();
+  firePurpleThunder(tower, cfg) {
+    soundManager.playThunder();
     const maxTargets = cfg.maxTargets || 1;
     let hitCount = 0;
 
@@ -1223,11 +1235,11 @@ export default class GameScene extends Phaser.Scene {
       this.score += obs.reward * 15;
 
       if (obs.type === OBSTACLE_TYPES.CHEST) {
-        soundManager.playTreasure();
-        this.showFloatingText(`🎁 宝箱大奖 +${obs.reward} 💰`, obs.x, obs.y, '#facc15');
+        soundManager.playTreasureChest();
+        this.showFloatingText(`🎁 玄天宝匣大奖 +${obs.reward} 灵石`, obs.x, obs.y, '#facc15');
       } else {
         soundManager.playObstacleBreak();
-        this.showFloatingText(`+${obs.reward} 💰`, obs.x, obs.y, '#facc15');
+        this.showFloatingText(`+${obs.reward} 灵石`, obs.x, obs.y, '#facc15');
       }
 
       this.grid[obs.row][obs.col] = 1;
@@ -1273,7 +1285,7 @@ export default class GameScene extends Phaser.Scene {
     this.score += enemy.reward * 12;
 
     soundManager.playEnemyDeath();
-    soundManager.playCoin();
+    soundManager.playSpiritStone();
 
     this.createCoinDropEffect(enemy.x, enemy.y, enemy.reward);
     this.removeEnemy(enemy);
@@ -1309,7 +1321,7 @@ export default class GameScene extends Phaser.Scene {
       fontFamily: 'system-ui, Arial, sans-serif',
       color: color || '#ffffff',
       fontStyle: 'bold',
-      stroke: '#0f172a',
+      stroke: '#064e3b',
       strokeThickness: 3,
     }).setOrigin(0.5);
 
@@ -1351,7 +1363,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   createCoinDropEffect(x, y, amount) {
-    const t = this.add.text(x, y, `+${amount}🪙`, {
+    const t = this.add.text(x, y, `+${amount}💎`, {
       fontSize: '13px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#facc15',
@@ -1379,7 +1391,7 @@ export default class GameScene extends Phaser.Scene {
       const bonus = 25 + this.currentWave * 8;
       this.gold += bonus;
       this.score += bonus * 10;
-      this.showFloatingText(`🥕 波次防守成功! +${bonus} 💰`, GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#facc15');
+      this.showFloatingText(`🌸 护法防守大捷! +${bonus} 灵石`, GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#facc15');
       this.emitUIUpdate();
 
       if (this.currentWave >= this.totalWaves) {
@@ -1431,7 +1443,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   calculateStars() {
-    if (this.lives >= 10) return 3;
+    if (this.lives >= 10) return 3; // 金莲护法
     if (this.lives >= 5) return 2;
     return 1;
   }
@@ -1496,8 +1508,8 @@ export default class GameScene extends Phaser.Scene {
       } else {
         if (!p._gfx) p._gfx = this.add.graphics();
         p._gfx.clear();
-        p._gfx.fillStyle(p.type === TOWER_TYPES.POOP ? 0xb45309 : p.type === TOWER_TYPES.ROCKET ? 0xef4444 : 0x10b981, 1);
-        p._gfx.fillCircle(p.x, p.y, p.type === TOWER_TYPES.ROCKET ? 4.5 : 3.5);
+        p._gfx.fillStyle(p.type === TOWER_TYPES.TURTLE ? 0x0284c7 : p.type === TOWER_TYPES.GODFIRE ? 0xef4444 : 0x10b981, 1);
+        p._gfx.fillCircle(p.x, p.y, p.type === TOWER_TYPES.GODFIRE ? 4.5 : 3.5);
       }
     }
     this.projectiles = this.projectiles.filter(p => !p.hit);
@@ -1587,7 +1599,7 @@ export default class GameScene extends Phaser.Scene {
     this.gold += refund;
 
     soundManager.playSell();
-    this.showFloatingText(`+${refund} 💰`, t.x, t.y, '#facc15');
+    this.showFloatingText(`+${refund} 灵石`, t.x, t.y, '#facc15');
 
     if (t._gfx) { t._gfx.destroy(); t._gfx = null; }
     this.towers = this.towers.filter(tw => tw !== t);
@@ -1628,27 +1640,27 @@ export default class GameScene extends Phaser.Scene {
     if (this.state === GAME_STATES.PAUSED) return;
 
     switch (skillType) {
-      case 'bomb':
+      case 'thunder':
         if (this.gold < 40) { soundManager.playError(); return; }
         this.gold -= 40;
-        this.skillBomb();
+        this.skillThunder();
         break;
       case 'freeze':
         if (this.gold < 30) { soundManager.playError(); return; }
         this.gold -= 30;
         this.skillFreeze();
         break;
-      case 'gold':
+      case 'blessing':
         if (this.gold < 20) { soundManager.playError(); return; }
         this.gold -= 20;
-        this.skillGold();
+        this.skillBlessing();
         break;
     }
     this.emitUIUpdate();
   }
 
-  skillBomb() {
-    soundManager.playRocket();
+  skillThunder() {
+    soundManager.playGodfire();
     this.cameras.main.flash(300, 249, 115, 22, 0.4);
     this.cameras.main.shake(250, 0.015);
 
@@ -1661,11 +1673,11 @@ export default class GameScene extends Phaser.Scene {
       if (!obs.alive) continue;
       this.damageObstacle(obs, dmg);
     }
-    this.showFloatingText('💣 全场大爆破!', GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#ef4444');
+    this.showFloatingText('⚡ 九天玄雷轰顶!', GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#ef4444');
   }
 
   skillFreeze() {
-    soundManager.playSun();
+    soundManager.playFire();
     this.cameras.main.flash(300, 103, 232, 249, 0.4);
 
     for (const enemy of this.enemies) {
@@ -1673,13 +1685,13 @@ export default class GameScene extends Phaser.Scene {
       enemy.slowTimer = 4500;
       enemy.slowFactor = 0.2;
     }
-    this.showFloatingText('❄️ 全场冰冻!', GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#38bdf8');
+    this.showFloatingText('❄️ 玄冰定身法!', GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#38bdf8');
   }
 
-  skillGold() {
-    soundManager.playTreasure();
+  skillBlessing() {
+    soundManager.playTreasureChest();
     const bonus = 45 + this.currentWave * 10;
     this.gold += bonus;
-    this.showFloatingText(`🎁 萝卜福袋 +${bonus} 💰`, GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#facc15');
+    this.showFloatingText(`🌸 圣女祈福 +${bonus} 灵石`, GAME_WIDTH / 2, MAP_Y + MAP_HEIGHT / 2, '#facc15');
   }
 }

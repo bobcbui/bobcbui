@@ -1,5 +1,5 @@
-// Web Audio API procedural sound synthesizer for Carrot Fantasy (保卫萝卜)
-// Cute, playful cartoon sound effects with zero external file dependencies
+// Web Audio API procedural sound synthesizer for Defend the Saintess (保卫圣女)
+// Ethereal Xianxia fantasy sound effects with zero external file dependencies
 
 class SoundManager {
   constructor() {
@@ -104,95 +104,101 @@ class SoundManager {
     } catch (e) {}
   }
 
-  // --- Cute Cartoon Sound Effects ---
+  // --- Xianxia & Saintess Sound Effects ---
 
-  // Carrot Squeak / Giggle when tapped or happy
-  playCarrot() {
-    this.playTone(880, 'sine', 0.08, 0.3, 0.01, 200);
-    setTimeout(() => this.playTone(1174.66, 'sine', 0.12, 0.35, 0.01, 300), 70);
+  // Saintess Blessing / Chime when tapped
+  playSaintess() {
+    const notes = [659.25, 783.99, 1046.50, 1318.51];
+    notes.forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'sine', 0.2, 0.3, 0.01), i * 60);
+    });
   }
 
-  // Carrot hurt squeak
-  playCarrotHurt() {
-    this.playTone(520, 'triangle', 0.12, 0.35, 0.01, -250);
+  // Saintess Hurt / Shield alarm
+  playSaintessHurt() {
+    this.playTone(400, 'triangle', 0.15, 0.35, 0.01, -200);
+    this.playNoise(0.12, 0.3, true, 400);
   }
 
-  // Target Lock on (🎯 集火锁定)
+  // Target Lock (🎯 诛邪锁定)
   playLock() {
-    this.playTone(1046.5, 'sine', 0.05, 0.25, 0.01);
-    setTimeout(() => this.playTone(1318.5, 'sine', 0.08, 0.3, 0.01), 40);
+    this.playTone(987.77, 'sine', 0.06, 0.25, 0.01);
+    setTimeout(() => this.playTone(1318.51, 'sine', 0.08, 0.28, 0.01), 40);
   }
 
-  // Bottle Cannon (🍼 瓶子炮)
-  playBottle() {
-    this.playTone(700, 'triangle', 0.07, 0.22, 0.01, -300);
+  // Flying Sword Slash (🗡️ 飞剑破空)
+  playSword() {
+    this.playTone(850, 'triangle', 0.06, 0.22, 0.01, -400);
+    this.playNoise(0.04, 0.15, true, 1200);
   }
 
-  // Poop Tower (💩 便便塔黏液)
-  playPoop() {
-    this.playTone(280, 'sine', 0.1, 0.25, 0.01, 150);
-    setTimeout(() => this.playTone(200, 'sine', 0.12, 0.2, 0.01, -80), 50);
+  // Black Turtle Water/Mud Seal (🪨 玄龟镇魔)
+  playTurtle() {
+    this.playTone(240, 'sine', 0.12, 0.25, 0.01, 120);
+    setTimeout(() => this.playTone(160, 'sine', 0.15, 0.2, 0.01, -60), 50);
   }
 
-  // Sunflower (🌻 太阳花光波)
-  playSun() {
-    this.playTone(440, 'sine', 0.18, 0.25, 0.01, 350);
+  // Nine Sun True Fire Wave (☀️ 九阳真火)
+  playFire() {
+    this.playTone(380, 'sine', 0.2, 0.3, 0.01, 400);
+    this.playNoise(0.18, 0.25, true, 600);
   }
 
-  // Fan Tower (🪭 风扇飞叶)
+  // Tai Chi Wind Fan (🌀 乾坤宝扇)
   playFan() {
-    this.playTone(900, 'triangle', 0.09, 0.2, 0.01, -400);
+    this.playTone(750, 'triangle', 0.1, 0.22, 0.01, -350);
+    this.playNoise(0.12, 0.2, false);
   }
 
-  // Magic Ball (🔮 魔法球)
-  playMagic() {
-    this.playTone(1100, 'sine', 0.06, 0.18, 0.01, 200);
+  // Purple Thunder (🔮 五行紫雷)
+  playThunder() {
+    this.playTone(1200, 'sawtooth', 0.07, 0.2, 0.01, 300);
+    this.playNoise(0.08, 0.25, false);
   }
 
-  // Rocket Launcher (🚀 火箭炮)
-  playRocket() {
-    this.playNoise(0.22, 0.45, true, 500);
-    this.playTone(180, 'sawtooth', 0.2, 0.35, 0.01, -120);
+  // Godfire Phoenix / Celestial Thunder Rocket (🚀 诛仙神火)
+  playGodfire() {
+    this.playNoise(0.28, 0.5, true, 450);
+    this.playTone(160, 'sawtooth', 0.22, 0.4, 0.01, -100);
   }
 
-  // Obstacle Break / Treasure Open (🪓 道具清除)
+  // Obstacle / Lingzhi broken (灵物破除)
   playObstacleBreak() {
-    this.playTone(440, 'sine', 0.08, 0.3, 0.01, 250);
-    setTimeout(() => this.playTone(660, 'sine', 0.1, 0.3, 0.01, 200), 60);
-    setTimeout(() => this.playTone(880, 'sine', 0.15, 0.35, 0.01), 120);
+    this.playTone(523.25, 'sine', 0.08, 0.3, 0.01, 200);
+    setTimeout(() => this.playTone(783.99, 'sine', 0.12, 0.35, 0.01), 70);
   }
 
-  // Treasure chest big reward
-  playTreasure() {
+  // Ancient Mystic Chest (玄天宝匣大奖)
+  playTreasureChest() {
     const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
     notes.forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.14, 0.28, 0.01), i * 55);
+      setTimeout(() => this.playTone(f, 'sine', 0.18, 0.3, 0.01), i * 50);
     });
   }
 
   // Hit Impact
   playHit() {
-    this.playTone(320, 'triangle', 0.04, 0.18, 0.01, -160);
+    this.playTone(300, 'triangle', 0.04, 0.18, 0.01, -150);
   }
 
-  // Enemy Pop Death
+  // Demon Dissipated (妖魔化灰)
   playEnemyDeath() {
-    this.playTone(400, 'triangle', 0.08, 0.25, 0.01, -150);
+    this.playTone(380, 'triangle', 0.08, 0.25, 0.01, -180);
   }
 
-  // Coin Sound (叮当清脆金币)
-  playCoin() {
-    this.playTone(1046.50, 'sine', 0.06, 0.25, 0.01);
-    setTimeout(() => this.playTone(1318.51, 'sine', 0.12, 0.25, 0.01), 50);
+  // Spirit Stone Earned (获得灵石)
+  playSpiritStone() {
+    this.playTone(1046.50, 'sine', 0.05, 0.22, 0.01);
+    setTimeout(() => this.playTone(1318.51, 'sine', 0.1, 0.25, 0.01), 45);
   }
 
-  // Build Tower
+  // Build Formation
   playBuild() {
     this.playTone(440, 'triangle', 0.08, 0.28, 0.01, 220);
-    setTimeout(() => this.playTone(660, 'triangle', 0.1, 0.3, 0.01, 220), 60);
+    setTimeout(() => this.playTone(659.25, 'triangle', 0.1, 0.3, 0.01, 220), 60);
   }
 
-  // Upgrade Tower
+  // Upgrade Formation
   playUpgrade() {
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, i) => {
@@ -200,16 +206,16 @@ class SoundManager {
     });
   }
 
-  // Sell Tower
+  // Sell / Refine Formation
   playSell() {
-    this.playTone(600, 'sine', 0.09, 0.2, 0.01, -220);
+    this.playTone(587.33, 'sine', 0.09, 0.2, 0.01, -200);
   }
 
   // Victory
   playVictory() {
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
     notes.forEach((freq, i) => {
-      setTimeout(() => this.playTone(freq, 'sine', 0.22, 0.35, 0.01), i * 90);
+      setTimeout(() => this.playTone(freq, 'sine', 0.25, 0.35, 0.01), i * 80);
     });
   }
 
@@ -222,7 +228,7 @@ class SoundManager {
   }
 
   playClick() {
-    this.playTone(800, 'sine', 0.03, 0.15, 0.01);
+    this.playTone(850, 'sine', 0.03, 0.15, 0.01);
   }
 
   playError() {

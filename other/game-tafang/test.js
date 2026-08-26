@@ -1,40 +1,40 @@
-import { GRID_COLS, GRID_ROWS, TILE_SIZE, GAME_WIDTH, GAME_HEIGHT, MAP_Y, MAP_HEIGHT, CARROT_MAX_HP } from './src/config/gameConfig.js';
+import { GRID_COLS, GRID_ROWS, TILE_SIZE, GAME_WIDTH, GAME_HEIGHT, MAP_Y, MAP_HEIGHT, SAINTESS_MAX_HP } from './src/config/gameConfig.js';
 import { TOWER_CONFIG, TOWER_TYPES } from './src/config/towerConfig.js';
 import { ENEMY_CONFIG, ENEMY_TYPES } from './src/config/enemyConfig.js';
 import { getLevelData, getTotalLevels, getLevelInfo } from './src/config/levelConfig.js';
 
-console.log('=== RUNNING CARROT FANTASY INTEGRITY CHECKS ===');
+console.log('=== RUNNING DEFEND THE SAINTESS (保卫圣女) INTEGRITY CHECKS ===');
 
-// 1. Check Dimensions & Carrot
+// 1. Check Dimensions & Saintess HP
 console.log(`Grid: ${GRID_COLS}x${GRID_ROWS}, Tile: ${TILE_SIZE}px => Map: ${GAME_WIDTH}x${MAP_HEIGHT}px`);
-console.log(`Map Y: ${MAP_Y}, Game Height: ${GAME_HEIGHT}, Carrot Max HP: ${CARROT_MAX_HP}`);
+console.log(`Map Y: ${MAP_Y}, Game Height: ${GAME_HEIGHT}, Saintess Max HP: ${SAINTESS_MAX_HP}`);
 if (GAME_WIDTH !== GRID_COLS * TILE_SIZE || MAP_HEIGHT !== GRID_ROWS * TILE_SIZE) {
   throw new Error('Dimension calculation mismatch!');
 }
 
-// 2. Check Carrot Fantasy Towers
+// 2. Check 6 Immortal Defense Formations
 const towerTypes = Object.values(TOWER_TYPES);
-console.log(`Verifying ${towerTypes.length} tower types...`);
+console.log(`Verifying ${towerTypes.length} immortal tower types...`);
 towerTypes.forEach(type => {
   const cfg = TOWER_CONFIG[type];
   if (!cfg) throw new Error(`Missing tower config for ${type}`);
   if (!cfg.levels || cfg.levels.length !== 3) throw new Error(`Tower ${type} must have 3 levels`);
-  console.log(`  ✓ Tower [${cfg.name} (${type})] icon: ${cfg.icon}, tag: ${cfg.tag}`);
+  console.log(`  ✓ Formation [${cfg.name} (${type})] icon: ${cfg.icon}, tag: ${cfg.tag}`);
 });
 
-// 3. Check Cute Enemies
+// 3. Check Demon Clan & Evil Cultists
 const enemyTypes = Object.values(ENEMY_TYPES);
-console.log(`Verifying ${enemyTypes.length} enemy types...`);
+console.log(`Verifying ${enemyTypes.length} demon types...`);
 enemyTypes.forEach(type => {
   const cfg = ENEMY_CONFIG[type];
   if (!cfg) throw new Error(`Missing enemy config for ${type}`);
   if (!cfg.hp || !cfg.speed || !cfg.reward) throw new Error(`Enemy ${type} missing essential attributes`);
-  console.log(`  ✓ Enemy [${cfg.name} (${type})] HP: ${cfg.hp}, Speed: ${cfg.speed}, Reward: ${cfg.reward}`);
+  console.log(`  ✓ Demon [${cfg.name} (${type})] HP: ${cfg.hp}, Speed: ${cfg.speed}, Reward: ${cfg.reward}`);
 });
 
 // 4. Check Levels, Obstacles & Waypoints
 const totalLevels = getTotalLevels();
-console.log(`Verifying ${totalLevels} levels with obstacles...`);
+console.log(`Verifying ${totalLevels} sacred levels with obstacles...`);
 for (let id = 1; id <= totalLevels; id++) {
   const level = getLevelData(id);
   const info = getLevelInfo(id);
@@ -71,4 +71,4 @@ for (let id = 1; id <= totalLevels; id++) {
   console.log(`  ✓ Level ${id} [${info.name}] - Waves: ${level.waves.length}, Obstacles: ${level.obstacleList.length}, Waypoints: ${level.waypoints.length}`);
 }
 
-console.log('=== ALL CARROT FANTASY INTEGRITY CHECKS PASSED! ===');
+console.log('=== ALL DEFEND THE SAINTESS INTEGRITY CHECKS PASSED! ===');

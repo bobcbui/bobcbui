@@ -11,25 +11,24 @@ export default class LevelSelectScene extends Phaser.Scene {
   create() {
     const cx = GAME_WIDTH / 2;
 
-    // Sky Background
     const bg = this.add.graphics();
-    bg.fillStyle(0x0ea5e9, 1);
+    bg.fillStyle(0x064e3b, 1);
     bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     // Title
-    this.add.text(cx, 55, '选择战役地图', {
+    this.add.text(cx, 55, '选择护法道场', {
       fontSize: '32px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
       fontStyle: 'bold',
-      stroke: '#0284c7',
-      strokeThickness: 5,
+      stroke: '#047857',
+      strokeThickness: 6,
     }).setOrigin(0.5);
 
-    this.add.text(cx, 95, '保卫大萝卜 · 赢取三星金萝卜勋章', {
+    this.add.text(cx, 95, '诛灭魔族妖人 · 誓死保卫我方圣女', {
       fontSize: '13px',
       fontFamily: 'system-ui, Arial, sans-serif',
-      color: '#fef08a',
+      color: '#fde047',
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -60,11 +59,11 @@ export default class LevelSelectScene extends Phaser.Scene {
       this.drawLevelCard(cardGfx, x - cardW / 2, y - cardH / 2, cardW, cardH, unlocked);
 
       if (unlocked) {
-        // Level number badge
+        // Level number
         this.add.text(x - cardW / 2 + 14, y - cardH / 2 + 14, `第 ${i} 关`, {
           fontSize: '13px',
           fontFamily: 'system-ui, Arial, sans-serif',
-          color: '#fef08a',
+          color: '#fde047',
           fontStyle: 'bold',
         });
 
@@ -78,32 +77,32 @@ export default class LevelSelectScene extends Phaser.Scene {
 
         // Tower icons
         const towerIcons = lvlData.availableTowers.map(t => TOWER_CONFIG[t]?.icon || '').join(' ');
-        this.add.text(x - cardW / 2 + 14, y - cardH / 2 + 70, `炮塔: ${towerIcons}`, {
+        this.add.text(x - cardW / 2 + 14, y - cardH / 2 + 70, `法塔: ${towerIcons}`, {
           fontSize: '13px',
         });
 
         // Obstacles & Waves
-        this.add.text(x - cardW / 2 + 14, y - cardH / 2 + 96, `波次: ${info.totalWaves} 波  ·  道具: ${lvlData.obstacles.length} 个`, {
+        this.add.text(x - cardW / 2 + 14, y - cardH / 2 + 96, `妖波: ${info.totalWaves} 波  ·  灵物: ${lvlData.obstacles.length} 处`, {
           fontSize: '11px',
           fontFamily: 'system-ui, Arial, sans-serif',
-          color: '#bae6fd',
+          color: '#a7f3d0',
         });
 
-        // Star rating
+        // Lotus / Stars
         let starStr = '';
-        for (let s = 1; s <= 3; s++) starStr += s <= starCount ? '★' : '☆';
+        for (let s = 1; s <= 3; s++) starStr += s <= starCount ? '🪷' : '⚪';
         this.add.text(x + cardW / 2 - 14, y - cardH / 2 + 16, starStr, {
-          fontSize: '18px',
+          fontSize: '14px',
           fontFamily: 'system-ui, Arial, sans-serif',
-          color: '#facc15',
+          color: '#f472b6',
         }).setOrigin(1, 0);
 
         const zone = this.add.zone(x, y, cardW, cardH).setInteractive({ useHandCursor: true });
         zone.on('pointerover', () => {
           cardGfx.clear();
-          cardGfx.fillStyle(0x0284c7, 0.98);
+          cardGfx.fillStyle(0x047857, 0.98);
           cardGfx.fillRoundedRect(x - cardW / 2, y - cardH / 2, cardW, cardH, 12);
-          cardGfx.lineStyle(2, 0xfacc15, 1);
+          cardGfx.lineStyle(2, 0xfde047, 1);
           cardGfx.strokeRoundedRect(x - cardW / 2, y - cardH / 2, cardW, cardH, 12);
         });
         zone.on('pointerout', () => {
@@ -119,18 +118,18 @@ export default class LevelSelectScene extends Phaser.Scene {
         this.add.text(x, y + 25, `第 ${i} 关 (未解锁)`, {
           fontSize: '14px',
           fontFamily: 'system-ui, Arial, sans-serif',
-          color: '#93c5fd',
+          color: '#6ee7b7',
           fontStyle: 'bold',
         }).setOrigin(0.5);
       }
     }
 
-    // Return to Menu Button
-    const backBtn = this.add.text(cx, 890, '← 返回主菜单', {
+    // Return Button
+    const backBtn = this.add.text(cx, 890, '← 返回道门主峰', {
       fontSize: '16px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
-      backgroundColor: '#0369a1',
+      backgroundColor: '#047857',
       padding: { left: 24, right: 24, top: 12, bottom: 12 },
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
@@ -143,14 +142,14 @@ export default class LevelSelectScene extends Phaser.Scene {
   drawLevelCard(g, x, y, w, h, unlocked) {
     g.clear();
     if (unlocked) {
-      g.fillStyle(0x075985, 0.95);
+      g.fillStyle(0x064e3b, 0.95);
       g.fillRoundedRect(x, y, w, h, 12);
-      g.lineStyle(1.5, 0x38bdf8, 0.8);
+      g.lineStyle(1.5, 0x34d399, 0.8);
       g.strokeRoundedRect(x, y, w, h, 12);
     } else {
-      g.fillStyle(0x0c4a6e, 0.5);
+      g.fillStyle(0x022c22, 0.6);
       g.fillRoundedRect(x, y, w, h, 12);
-      g.lineStyle(1, 0x0369a1, 0.4);
+      g.lineStyle(1, 0x065f46, 0.4);
       g.strokeRoundedRect(x, y, w, h, 12);
     }
   }

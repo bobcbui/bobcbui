@@ -11,13 +11,12 @@ export default class GameOverScene extends Phaser.Scene {
     const { level, wave, score } = data || {};
 
     const bg = this.add.graphics();
-    bg.fillStyle(0x0c4a6e, 1);
+    bg.fillStyle(0x022c22, 1);
     bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // Crying Carrot Icon
-    this.add.text(cx, 160, '😭', { fontSize: '68px' }).setOrigin(0.5);
+    this.add.text(cx, 160, '💔', { fontSize: '64px' }).setOrigin(0.5);
 
-    this.add.text(cx, 240, '大萝卜被吃掉啦！', {
+    this.add.text(cx, 240, '圣女灵力耗尽！', {
       fontSize: '38px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#f87171',
@@ -27,7 +26,7 @@ export default class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     if (level) {
-      this.add.text(cx, 300, `战役：第 ${level} 关  ·  已坚守至第 ${wave || 0} 波`, {
+      this.add.text(cx, 300, `战役：第 ${level} 关  ·  已坚守至第 ${wave || 0} 波妖魔`, {
         fontSize: '16px',
         fontFamily: 'system-ui, Arial, sans-serif',
         color: '#e0f2fe',
@@ -35,7 +34,7 @@ export default class GameOverScene extends Phaser.Scene {
     }
 
     if (score !== undefined) {
-      this.add.text(cx, 345, `本次战役得分: ${score}`, {
+      this.add.text(cx, 345, `本次护法除魔功勋: ${score}`, {
         fontSize: '22px',
         fontFamily: 'system-ui, Arial, sans-serif',
         color: '#facc15',
@@ -43,18 +42,18 @@ export default class GameOverScene extends Phaser.Scene {
       }).setOrigin(0.5);
     }
 
-    // Action Buttons
-    this.createButton(cx, 460, '🔄 重新保卫萝卜', 0x16a34a, 0x22c55e, () => {
+    // Buttons
+    this.createButton(cx, 460, '🔄 重整阵法 · 再次护法', 0x16a34a, 0x22c55e, () => {
       soundManager.playClick();
       this.scene.start('GameScene', { level: level || 1 });
     });
 
-    this.createButton(cx, 540, '🗺️ 返回选关', 0x075985, 0x0284c7, () => {
+    this.createButton(cx, 540, '🗺️ 返回护法道场', 0x064e3b, 0x047857, () => {
       soundManager.playClick();
       this.scene.start('LevelSelectScene');
     });
 
-    this.createButton(cx, 620, '🏠 返回主菜单', 0x075985, 0x0284c7, () => {
+    this.createButton(cx, 620, '🏠 返回道门主峰', 0x064e3b, 0x047857, () => {
       soundManager.playClick();
       this.scene.start('MenuScene');
     });

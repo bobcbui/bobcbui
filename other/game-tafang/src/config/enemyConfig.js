@@ -1,35 +1,35 @@
 export const ENEMY_TYPES = {
-  JELLY: 'jelly',
-  DUCK: 'duck',
-  PIGGY: 'piggy',
-  SAUCER: 'saucer',
-  SPOOKY: 'spooky',
-  BOSS: 'boss',
+  BAT: 'bat',
+  WOLF: 'wolf',
+  BOAR: 'boar',
+  SPECTER: 'specter',
+  FOX: 'fox',
+  LORD: 'lord',
 };
 
 export const ENEMY_CONFIG = {
-  [ENEMY_TYPES.JELLY]: {
-    name: '粉红果冻怪',
+  [ENEMY_TYPES.BAT]: {
+    name: '魔界小蝠妖',
     hp: 85,
     speed: 80,
     reward: 10,
     damage: 1,
     color: 0xf472b6,
     radius: 10,
-    icon: '🍮',
+    icon: '🦇',
   },
-  [ENEMY_TYPES.DUCK]: {
-    name: '疾风呆呆鸭',
+  [ENEMY_TYPES.WOLF]: {
+    name: '疾风魔狼',
     hp: 45,
     speed: 150,
     reward: 12,
     damage: 1,
     color: 0xfbbf24,
     radius: 8,
-    icon: '⚡',
+    icon: '🐺',
   },
-  [ENEMY_TYPES.PIGGY]: {
-    name: '笨笨巨力猪',
+  [ENEMY_TYPES.BOAR]: {
+    name: '狂暴猪妖',
     hp: 300,
     speed: 50,
     reward: 25,
@@ -37,10 +37,10 @@ export const ENEMY_CONFIG = {
     armor: 0.3,
     color: 0xa855f7,
     radius: 14,
-    icon: '🐷',
+    icon: '🐗',
   },
-  [ENEMY_TYPES.SAUCER]: {
-    name: '漂浮飞碟怪',
+  [ENEMY_TYPES.SPECTER]: {
+    name: '幽冥邪灵',
     hp: 150,
     speed: 75,
     reward: 22,
@@ -50,8 +50,8 @@ export const ENEMY_CONFIG = {
     radius: 11,
     icon: '🛸',
   },
-  [ENEMY_TYPES.SPOOKY]: {
-    name: '调皮小幽灵',
+  [ENEMY_TYPES.FOX]: {
+    name: '魅影妖狐',
     hp: 110,
     speed: 95,
     reward: 18,
@@ -61,8 +61,8 @@ export const ENEMY_CONFIG = {
     radius: 10,
     icon: '👻',
   },
-  [ENEMY_TYPES.BOSS]: {
-    name: '巨型大萌王',
+  [ENEMY_TYPES.LORD]: {
+    name: '九幽魔尊',
     hp: 950,
     speed: 40,
     reward: 100,

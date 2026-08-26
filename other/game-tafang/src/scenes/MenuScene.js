@@ -9,42 +9,39 @@ export default class MenuScene extends Phaser.Scene {
   create() {
     const cx = GAME_WIDTH / 2;
 
-    // Sky blue fresh cartoon background
+    // Celestial jade green mountain background
     const bg = this.add.graphics();
-    bg.fillStyle(0x0ea5e9, 1);
+    bg.fillStyle(0x064e3b, 1);
     bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // Fluffy clouds & green hill at bottom
-    bg.fillStyle(0x38bdf8, 0.4);
-    bg.fillCircle(100, 180, 80);
-    bg.fillCircle(200, 150, 100);
-    bg.fillCircle(440, 170, 90);
-
-    bg.fillStyle(0x84cc16, 1);
+    // Ethereal glowing mountain mist
+    bg.fillStyle(0x047857, 0.45);
+    bg.fillCircle(100, 180, 100);
+    bg.fillCircle(440, 160, 110);
     bg.fillCircle(cx, 1100, 480);
 
-    // Big Cute Carrot Mascot in Menu Center
-    this.add.text(cx, 125, '🥕', { fontSize: '68px' }).setOrigin(0.5);
+    // Divine Saintess Halo & Lotus Mascot
+    this.add.text(cx, 125, '🌸', { fontSize: '64px' }).setOrigin(0.5);
 
-    this.add.text(cx, 205, '保卫大萝卜', {
-      fontSize: '44px',
+    this.add.text(cx, 205, '保卫圣女', {
+      fontSize: '46px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
       fontStyle: 'bold',
-      stroke: '#ea580c',
-      strokeThickness: 7,
+      stroke: '#047857',
+      strokeThickness: 8,
     }).setOrigin(0.5);
 
-    this.add.text(cx, 252, 'CARROT FANTASY · 经典萌趣塔防', {
+    this.add.text(cx, 252, '魔族妖人来袭 · 请少侠布阵护法！', {
       fontSize: '13px',
       fontFamily: 'system-ui, Arial, sans-serif',
-      color: '#fef08a',
+      color: '#fde047',
       letterSpacing: 2,
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
     // Start Game Button
-    this.createButton(cx, 340, '▶ 开始保卫萝卜', 0x16a34a, 0x22c55e, () => {
+    this.createButton(cx, 340, '▶ 降妖除魔 · 保卫圣女', 0x16a34a, 0x22c55e, () => {
       soundManager.playClick();
       this.scene.start('LevelSelectScene');
     });
@@ -52,7 +49,7 @@ export default class MenuScene extends Phaser.Scene {
     // Continue Game Button
     const save = JSON.parse(localStorage.getItem('td_save') || '{}');
     const hasSave = !!save.currentLevel;
-    const contBtn = this.createButton(cx, 420, `🔄 继续第 ${save.currentLevel || 1} 关`, 0xf59e0b, 0xfbbf24, () => {
+    const contBtn = this.createButton(cx, 420, `🔄 继续护法 (第 ${save.currentLevel || 1} 关)`, 0xd97706, 0xf59e0b, () => {
       soundManager.playClick();
       this.scene.start('GameScene', { level: save.currentLevel || 1 });
     });
@@ -63,32 +60,32 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     // Sound toggle button
-    this.createButton(cx, 500, soundManager.isMuted() ? '🔇 开启音效' : '🔊 关闭音效', 0x0284c7, 0x0369a1, (btnTxt) => {
+    this.createButton(cx, 500, soundManager.isMuted() ? '🔇 开启仙乐音效' : '🔊 关闭仙乐音效', 0x0f766e, 0x14b8a6, (btnTxt) => {
       const muted = soundManager.toggleMute();
-      btnTxt.setText(muted ? '🔇 开启音效' : '🔊 关闭音效');
+      btnTxt.setText(muted ? '🔇 开启仙乐音效' : '🔊 关闭仙乐音效');
     }, true);
 
-    // Carrot Guide Card
+    // Saintess Guide Card
     const guide = this.add.graphics();
-    guide.fillStyle(0x0369a1, 0.9);
+    guide.fillStyle(0x064e3b, 0.95);
     guide.fillRoundedRect(30, 595, GAME_WIDTH - 60, 285, 16);
-    guide.lineStyle(2, 0x38bdf8, 0.8);
+    guide.lineStyle(2, 0x34d399, 0.8);
     guide.strokeRoundedRect(30, 595, GAME_WIDTH - 60, 285, 16);
 
-    this.add.text(50, 615, '🥕 保卫萝卜玩法秘籍', {
+    this.add.text(50, 615, '🌸 护法修仙除魔秘籍', {
       fontSize: '17px',
       fontFamily: 'system-ui, Arial, sans-serif',
-      color: '#fef08a',
+      color: '#fde047',
       fontStyle: 'bold',
     });
 
     const tips = [
-      '1. 🎯 点击地图上的怪物或松树/宝箱可锁定集火！',
-      '2. 🪓 清除障碍物不仅掉落大量金币，还能开辟建造地块！',
-      '3. 🍼 瓶子炮满级会给周围炮塔提供攻速加成光环！',
-      '4. 🌻 太阳花向四周释放 360° 环形光波，清怪清道具神塔！',
-      '5. 💩 便便塔投掷黏液泥浆，强力减速高速冲刺怪物！',
-      '6. 🥕 保证大萝卜满血 10/10 过关即可荣获三星金萝卜勋章！',
+      '1. 🎯 点击地图上的妖魔或古松/宝匣可施展诛邪锁定集火！',
+      '2. 🪓 清除灵山封魔障碍可获巨量灵石，并开辟全新布阵法位！',
+      '3. 🗡️ 飞剑塔满级触发“万剑归宗”，极大提升周围法塔攻速！',
+      '4. ☀️ 九阳真火塔释放 360° 三昧真火，乃大面积清图除魔神塔！',
+      '5. 🪨 玄龟镇魔塔引动重水迟滞泥沼，强力减速狂暴妖魔！',
+      '6. 🌸 誓死守护圣女灵力 10/10 满血通关，荣获金莲天道勋章！',
     ];
 
     tips.forEach((tip, idx) => {
@@ -99,7 +96,7 @@ export default class MenuScene extends Phaser.Scene {
       });
     });
 
-    this.add.text(cx, 915, '🥕 点击大萝卜有惊喜 · 自动保存 · 休闲解压', {
+    this.add.text(cx, 915, '🌸 点击圣女大人有惊喜 · 自动保存 · 仙侠除魔', {
       fontSize: '12px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',

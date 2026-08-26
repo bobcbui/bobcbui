@@ -3,7 +3,7 @@ import {
   GAME_HEIGHT,
   COLORS,
   GAME_STATES,
-  CARROT_MAX_HP,
+  SAINTESS_MAX_HP,
 } from '../config/gameConfig.js';
 import { soundManager } from '../utils/soundManager.js';
 
@@ -22,16 +22,16 @@ export default class UIScene extends Phaser.Scene {
 
   create() {
     this.gold = 0;
-    this.lives = CARROT_MAX_HP;
+    this.lives = SAINTESS_MAX_HP;
     this.wave = 0;
     this.totalWaves = 0;
     this.score = 0;
     this.state = GAME_STATES.PREPARATION;
 
-    // 1. Top Floating Ribbon (y: 8 to 52)
+    // 1. Top Floating Celestial Ribbon (y: 8 to 52)
     this.createTopFloatingRibbon();
 
-    // 2. Bottom Floating Tactical Dock (y: 895 to 948)
+    // 2. Bottom Floating Immortal Tactical Dock (y: 895 to 948)
     this.createBottomFloatingDock();
 
     // 3. Connect GameScene Events
@@ -49,9 +49,9 @@ export default class UIScene extends Phaser.Scene {
     const rh = 44;
 
     const g = this.add.graphics();
-    g.fillStyle(0x0284c7, 0.88);
+    g.fillStyle(0x064e3b, 0.9);
     g.fillRoundedRect(rx, ry, rw, rh, 22);
-    g.lineStyle(2, 0xffffff, 0.7);
+    g.lineStyle(2, 0x34d399, 0.8);
     g.strokeRoundedRect(rx, ry, rw, rh, 22);
 
     // Wave Text
@@ -67,7 +67,7 @@ export default class UIScene extends Phaser.Scene {
       fontSize: '13px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
-      backgroundColor: '#0369a1',
+      backgroundColor: '#047857',
       padding: { left: 6, right: 6, top: 4, bottom: 4 },
     }).setInteractive({ useHandCursor: true });
 
@@ -81,7 +81,7 @@ export default class UIScene extends Phaser.Scene {
       fontSize: '14px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
-      backgroundColor: '#0369a1',
+      backgroundColor: '#047857',
       padding: { left: 5, right: 5, top: 4, bottom: 4 },
     }).setInteractive({ useHandCursor: true });
 
@@ -95,7 +95,7 @@ export default class UIScene extends Phaser.Scene {
       fontSize: '14px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
-      backgroundColor: '#0369a1',
+      backgroundColor: '#047857',
       padding: { left: 5, right: 5, top: 4, bottom: 4 },
     }).setInteractive({ useHandCursor: true });
 
@@ -103,19 +103,19 @@ export default class UIScene extends Phaser.Scene {
       this.callGame('onUIPause');
     });
 
-    // Gold Counter
-    this.goldText = this.add.text(rx + 285, ry + 12, '💰 140', {
+    // Spirit Stone Counter
+    this.goldText = this.add.text(rx + 280, ry + 12, '💎 140', {
       fontSize: '15px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#facc15',
       fontStyle: 'bold',
     });
 
-    // Carrot HP Counter
-    this.carrotHpText = this.add.text(rx + rw - 16, ry + 12, '🥕 10/10', {
+    // Saintess HP Counter
+    this.saintessHpText = this.add.text(rx + rw - 16, ry + 12, '🌸 10/10', {
       fontSize: '15px',
       fontFamily: 'system-ui, Arial, sans-serif',
-      color: '#ffffff',
+      color: '#f472b6',
       fontStyle: 'bold',
     }).setOrigin(1, 0);
   }
@@ -124,12 +124,12 @@ export default class UIScene extends Phaser.Scene {
   createBottomFloatingDock() {
     const dockY = 896;
 
-    // 1. Magic Skill Bubbles (Left)
+    // 1. Saintess Divine Magic Skills (Left)
     this.skillButtons = [];
     const skills = [
-      { type: 'bomb', name: '爆破', icon: '💣', cost: 40, color: 0xef4444 },
-      { type: 'freeze', name: '冰冻', icon: '❄️', cost: 30, color: 0x38bdf8 },
-      { type: 'gold', name: '福袋', icon: '🎁', cost: 20, color: 0xfacc15 },
+      { type: 'thunder', name: '玄雷', icon: '⚡', cost: 40, color: 0xef4444 },
+      { type: 'freeze', name: '定身', icon: '❄️', cost: 30, color: 0x38bdf8 },
+      { type: 'blessing', name: '祈福', icon: '🌸', cost: 20, color: 0xf472b6 },
     ];
 
     skills.forEach((sk, i) => {
@@ -137,9 +137,9 @@ export default class UIScene extends Phaser.Scene {
       const sy = dockY + 24;
 
       const bg = this.add.graphics();
-      bg.fillStyle(0x0369a1, 0.92);
+      bg.fillStyle(0x064e3b, 0.92);
       bg.fillCircle(sx, sy, 24);
-      bg.lineStyle(2, 0xffffff, 0.85);
+      bg.lineStyle(2, 0x34d399, 0.85);
       bg.strokeCircle(sx, sy, 24);
 
       const icon = this.add.text(sx, sy - 6, sk.icon, { fontSize: '18px' }).setOrigin(0.5);
@@ -159,12 +159,12 @@ export default class UIScene extends Phaser.Scene {
     });
 
     // 2. Auto Wave Toggle Pill
-    this.autoWaveBtn = this.add.text(220, dockY + 7, '🔁 自动: 关', {
-      fontSize: '12px',
+    this.autoWaveBtn = this.add.text(216, dockY + 7, '🔁 自动除魔: 关', {
+      fontSize: '11px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
-      backgroundColor: '#0369a1',
-      padding: { left: 10, right: 10, top: 10, bottom: 10 },
+      backgroundColor: '#047857',
+      padding: { left: 8, right: 8, top: 11, bottom: 11 },
     }).setInteractive({ useHandCursor: true });
 
     this.autoWaveBtn.on('pointerdown', () => {
@@ -172,15 +172,15 @@ export default class UIScene extends Phaser.Scene {
     });
 
     // 3. Start Wave Big Pill Button (Right)
-    const btnW = 185;
+    const btnW = 180;
     const btnH = 44;
-    const btnX = 335;
+    const btnX = 340;
     const btnY = dockY + 4;
 
     this.startWaveBtnGfx = this.add.graphics();
     this.drawStartWaveBtn(btnX, btnY, btnW, btnH, false);
 
-    this.startWaveBtnTxt = this.add.text(btnX + btnW / 2, btnY + btnH / 2, '▶ 开始第 1 波', {
+    this.startWaveBtnTxt = this.add.text(btnX + btnW / 2, btnY + btnH / 2, '▶ 迎战第 1 波', {
       fontSize: '16px',
       fontFamily: 'system-ui, Arial, sans-serif',
       color: '#ffffff',
@@ -197,14 +197,14 @@ export default class UIScene extends Phaser.Scene {
     const g = this.startWaveBtnGfx;
     g.clear();
     if (inWave) {
-      g.fillStyle(0x0284c7, 0.9);
+      g.fillStyle(0x064e3b, 0.92);
       g.fillRoundedRect(x, y, w, h, 22);
-      g.lineStyle(2, 0xffffff, 0.7);
+      g.lineStyle(2, 0x34d399, 0.7);
       g.strokeRoundedRect(x, y, w, h, 22);
     } else {
       g.fillStyle(0x16a34a, 0.95);
       g.fillRoundedRect(x, y, w, h, 22);
-      g.lineStyle(2, 0xffffff, 0.9);
+      g.lineStyle(2, 0x86efac, 0.9);
       g.strokeRoundedRect(x, y, w, h, 22);
     }
   }
@@ -220,29 +220,29 @@ export default class UIScene extends Phaser.Scene {
     this.gameSpeed = data.gameSpeed;
     this.autoWave = data.autoWave;
 
-    this.goldText.setText(`💰 ${this.gold}`);
-    this.carrotHpText.setText(`🥕 ${this.lives}/${CARROT_MAX_HP}`);
+    this.goldText.setText(`💎 ${this.gold}`);
+    this.saintessHpText.setText(`🌸 ${this.lives}/${SAINTESS_MAX_HP}`);
     this.waveText.setText(`波次 ${this.wave}/${this.totalWaves}`);
     this.speedBtn.setText(`${this.gameSpeed}x ⏩`);
-    this.autoWaveBtn.setText(this.autoWave ? '🔁 自动: 开' : '🔁 自动: 关');
-    this.autoWaveBtn.setBackgroundColor(this.autoWave ? '#0284c7' : '#0369a1');
+    this.autoWaveBtn.setText(this.autoWave ? '🔁 自动除魔: 开' : '🔁 自动除魔: 关');
+    this.autoWaveBtn.setBackgroundColor(this.autoWave ? '#059669' : '#047857');
 
     const inWave = this.state === GAME_STATES.IN_WAVE;
-    this.drawStartWaveBtn(335, 900, 185, 44, inWave);
+    this.drawStartWaveBtn(340, 900, 180, 44, inWave);
     if (inWave) {
-      this.startWaveBtnTxt.setText('⚔️ 怪物进犯中…');
+      this.startWaveBtnTxt.setText('⚔️ 妖魔进犯中…');
     } else if (this.state === GAME_STATES.PAUSED) {
-      this.startWaveBtnTxt.setText('⏸️ 游戏已暂停');
+      this.startWaveBtnTxt.setText('⏸️ 乾坤已暂停');
     } else {
-      this.startWaveBtnTxt.setText(`▶ 开始第 ${this.wave + 1} 波`);
+      this.startWaveBtnTxt.setText(`▶ 迎战第 ${this.wave + 1} 波`);
     }
 
     this.skillButtons.forEach(btn => {
       const canAfford = this.gold >= btn.sk.cost;
       btn.bg.clear();
-      btn.bg.fillStyle(canAfford ? 0x0369a1 : 0x0f172a, 0.92);
+      btn.bg.fillStyle(canAfford ? 0x064e3b : 0x0f172a, 0.92);
       btn.bg.fillCircle(btn.sx, btn.sy, 24);
-      btn.bg.lineStyle(2, canAfford ? 0xffffff : 0x475569, 0.85);
+      btn.bg.lineStyle(2, canAfford ? 0x34d399 : 0x475569, 0.85);
       btn.bg.strokeCircle(btn.sx, btn.sy, 24);
       btn.costTxt.setColor(canAfford ? '#facc15' : '#f87171');
     });
