@@ -1,120 +1,516 @@
 {
-  "level": "B1",
-  "dailyGoal": 12,
-  "cards": [
-    {
-      "type": "word",
-      "label": "Vocabulary",
-      "title": "reliable",
-      "phonetic": "/rɪˈlaɪəbəl/",
-      "meaning": "可信赖的；可靠的",
-      "example": "“She is one of the most reliable people on our team.”",
-      "translation": "她是我们团队中最可靠的人之一。",
-      "note": "Useful in everyday conversations"
+  "levels": {
+    "A1": {
+      "name": "A1",
+      "title": "A1 · Beginner",
+      "subtitle": "入门起步",
+      "description": "基础高频词汇、日常问候与简单生活表达",
+      "dailyGoal": 8,
+      "cards": [
+        {
+          "id": "a1_1",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "delicious",
+          "phonetic": "/dɪˈlɪʃ.əs/",
+          "meaning": "美味的；好吃的",
+          "example": "“This homemade apple pie is delicious.”",
+          "translation": "这个自制的苹果派非常美味。",
+          "note": "常用在餐饮与日常生活会话中"
+        },
+        {
+          "id": "a1_2",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "nice to meet you",
+          "meaning": "很高兴认识你",
+          "example": "“Hello, nice to meet you, I’m Alex.”",
+          "translation": "你好，很高兴认识你，我是亚历克斯。",
+          "note": "初次见面最常用的礼貌问候语"
+        },
+        {
+          "id": "a1_3",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "comfortable",
+          "phonetic": "/ˈkʌm.fɚ.tə.bəl/",
+          "meaning": "舒适的；舒服的",
+          "example": "“These running shoes are very comfortable.”",
+          "translation": "这双跑鞋穿起来非常舒适。",
+          "note": "描述日常穿着、家具或居住感受"
+        },
+        {
+          "id": "a1_4",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "have a good day",
+          "meaning": "祝你度过愉快的一天",
+          "example": "“See you tomorrow and have a good day!”",
+          "translation": "明天见，祝你度过愉快的一天！",
+          "note": "日常道别时的亲切祝福"
+        },
+        {
+          "id": "a1_5",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "favourite",
+          "phonetic": "/ˈfeɪ.vər.ɪt/",
+          "meaning": "特别喜爱的；心爱之物",
+          "example": "“Listening to music is my favourite hobby.”",
+          "translation": "听音乐是我最喜欢的爱好。",
+          "note": "表达个人偏好与日常兴趣"
+        },
+        {
+          "id": "a1_6",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "by the way",
+          "meaning": "顺便说一下；顺便问问",
+          "example": "“By the way, what time does the shop open?”",
+          "translation": "顺便问一下，这家店几点开门？",
+          "note": "日常轻松转换谈话话题"
+        },
+        {
+          "id": "a1_7",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "exciting",
+          "phonetic": "/ɪkˈsaɪ.tɪŋ/",
+          "meaning": "令人激动的；使人兴奋的",
+          "example": "“We had an exciting trip to the amusement park.”",
+          "translation": "我们在游乐园度过了一次令人兴奋的旅程。",
+          "note": "描述充满活力的活动或经历"
+        },
+        {
+          "id": "a1_8",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "take care",
+          "meaning": "保重；路上小心",
+          "example": "“Goodbye, take care on your way back home.”",
+          "translation": "再见，回家的路上多保重。",
+          "note": "温暖得体的道别短语"
+        }
+      ],
+      "quizzes": [
+        {
+          "id": "q_a1_1",
+          "type": "choice",
+          "question": "What is the meaning of 'delicious'?",
+          "options": ["美味的；好吃的", "昂贵的", "危险的", "安静的"],
+          "answer": 0,
+          "explanation": "'delicious' 意为美味的、可口的。"
+        },
+        {
+          "id": "q_a1_2",
+          "type": "scramble",
+          "question": "点击词块组装句子：'这个苹果派非常美味。'",
+          "tokens": ["This", "apple", "pie", "is", "delicious."],
+          "answer": "This apple pie is delicious.",
+          "translation": "This apple pie is delicious."
+        },
+        {
+          "id": "q_a1_3",
+          "type": "listen",
+          "audioText": "comfortable",
+          "question": "听音辨词：请选择你听到的正确单词",
+          "options": ["comfortable", "company", "confident", "convenient"],
+          "answer": 0,
+          "explanation": "朗读内容为 'comfortable'（舒适的）。"
+        },
+        {
+          "id": "q_a1_4",
+          "type": "choice",
+          "question": "初次与新朋友见面时，最得体的问候短语是？",
+          "options": ["Nice to meet you", "Take your time", "Out of order", "Never mind"],
+          "answer": 0,
+          "explanation": "'Nice to meet you' 是初次见面的经典问候。"
+        }
+      ]
     },
-    {
-      "type": "phrase",
-      "label": "Short phrase",
-      "title": "take your time",
-      "meaning": "慢慢来；别着急",
-      "example": "“Take your time — there’s no need to rush.”",
-      "translation": "慢慢来——不需要着急。",
-      "note": "A gentle way to reassure someone"
+    "A2": {
+      "name": "A2",
+      "title": "A2 · Elementary",
+      "subtitle": "初级进阶",
+      "description": "日常生活、餐饮旅行与基础情境表达",
+      "dailyGoal": 8,
+      "cards": [
+        {
+          "id": "a2_1",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "convenient",
+          "phonetic": "/kənˈviː.ni.ənt/",
+          "meaning": "方便的；便利的",
+          "example": "“Mobile payment makes our daily life very convenient.”",
+          "translation": "移动支付让我们的日常生活非常便利。",
+          "note": "描述现代科技与生活服务"
+        },
+        {
+          "id": "a2_2",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "look forward to",
+          "meaning": "期待；盼望",
+          "example": "“I really look forward to seeing you this weekend.”",
+          "translation": "我非常期待这个周末与你见面。",
+          "note": "注意后接动词-ing形式或名词"
+        },
+        {
+          "id": "a2_3",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "opportunity",
+          "phonetic": "/ˌɑː.pɚˈtuː.nə.t̬i/",
+          "meaning": "机会；良机",
+          "example": "“Studying abroad is a wonderful opportunity to learn.”",
+          "translation": "出国留学是一个极佳的学习机会。",
+          "note": "表达发展机遇与成长契机"
+        },
+        {
+          "id": "a2_4",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "make up one’s mind",
+          "meaning": "下定决心；做出决定",
+          "example": "“She finally made up her mind to learn a new language.”",
+          "translation": "她终于下定决心去学一门新语言。",
+          "note": "表达经过思量后做出的决策"
+        },
+        {
+          "id": "a2_5",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "environment",
+          "phonetic": "/ɪnˈvaɪ.rən.mənt/",
+          "meaning": "自然环境；周围氛围",
+          "example": "“A quiet working environment helps me focus better.”",
+          "translation": "安静的工作环境能帮我更好地集中精力。",
+          "note": "讨论生活环境与学习氛围"
+        },
+        {
+          "id": "a2_6",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "out of order",
+          "meaning": "发生故障；损坏中",
+          "example": "“The coffee machine is currently out of order.”",
+          "translation": "咖啡机目前出现故障了。",
+          "note": "公共设施和日常电器的常见标牌"
+        },
+        {
+          "id": "a2_7",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "confident",
+          "phonetic": "/ˈkɑːn.fə.dənt/",
+          "meaning": "自信的；充满信心的",
+          "example": "“Daily speaking practice will make you confident.”",
+          "translation": "每天坚持口语练习会让你充满自信。",
+          "note": "描述积极自信的精神状态"
+        },
+        {
+          "id": "a2_8",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "pay attention to",
+          "meaning": "注意；留心倾听",
+          "example": "“Please pay attention to the traffic signs ahead.”",
+          "translation": "请注意前方的交通指示牌。",
+          "note": "提醒他人集中注意力"
+        }
+      ],
+      "quizzes": [
+        {
+          "id": "q_a2_1",
+          "type": "choice",
+          "question": "短语 'look forward to' 的正确意思是？",
+          "options": ["期待；盼望", "向前方看", "寻找某物", "照顾某人"],
+          "answer": 0,
+          "explanation": "'look forward to' 意为期待、盼望（后接 doing/noun）。"
+        },
+        {
+          "id": "q_a2_2",
+          "type": "scramble",
+          "question": "点击词块组装句子：'移动支付很方便。'",
+          "tokens": ["Mobile", "payment", "is", "very", "convenient."],
+          "answer": "Mobile payment is very convenient.",
+          "translation": "Mobile payment is very convenient."
+        },
+        {
+          "id": "q_a2_3",
+          "type": "listen",
+          "audioText": "opportunity",
+          "question": "听音辨词：请选择听到的正确单词",
+          "options": ["opportunity", "operation", "opposite", "optimistic"],
+          "answer": 0,
+          "explanation": "朗读内容为 'opportunity'（机会）。"
+        },
+        {
+          "id": "q_a2_4",
+          "type": "choice",
+          "question": "当你看到电梯挂着 'Out of order' 牌子时，代表什么？",
+          "options": ["电梯发生故障暂停使用", "电梯正在按顺序运行", "请排队乘坐电梯", "电梯已满载"],
+          "answer": 0,
+          "explanation": "'out of order' 专指机器或设施出故障。"
+        }
+      ]
     },
-    {
-      "type": "word",
-      "label": "Vocabulary",
-      "title": "perspective",
-      "phonetic": "/pəˈspektɪv/",
-      "meaning": "观点；看法",
-      "example": "“Travel can give you a fresh perspective on life.”",
-      "translation": "旅行可以让你对生活有全新的看法。",
-      "note": "Useful when sharing an opinion"
+    "B1": {
+      "name": "B1",
+      "title": "B1 · Intermediate",
+      "subtitle": "中级应用",
+      "description": "观点表达、职场交流与常用习惯短语",
+      "dailyGoal": 8,
+      "cards": [
+        {
+          "id": "b1_1",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "reliable",
+          "phonetic": "/rɪˈlaɪəbəl/",
+          "meaning": "可信赖的；可靠的",
+          "example": "“She is one of the most reliable people on our team.”",
+          "translation": "她是我们团队中最可靠的人之一。",
+          "note": "用于职场人际评价与产品性能"
+        },
+        {
+          "id": "b1_2",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "take your time",
+          "meaning": "慢慢来；别着急",
+          "example": "“Take your time — there’s no need to rush.”",
+          "translation": "慢慢来——不需要着急。",
+          "note": "安抚他人与减轻压力的温和表达"
+        },
+        {
+          "id": "b1_3",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "perspective",
+          "phonetic": "/pəˈspektɪv/",
+          "meaning": "观点；看法；宏观视角",
+          "example": "“Travel can give you a fresh perspective on life.”",
+          "translation": "旅行可以让你对生活有全新的看法。",
+          "note": "表达个人见解与宏观视野"
+        },
+        {
+          "id": "b1_4",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "make it count",
+          "meaning": "让它变得有意义；好好利用",
+          "example": "“We only have one day here, so let’s make it count.”",
+          "translation": "我们只有一天时间，所以好好利用它吧。",
+          "note": "极具激励感的日常表达"
+        },
+        {
+          "id": "b1_5",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "adapt",
+          "phonetic": "/əˈdæpt/",
+          "meaning": "适应；调整；改变以适应",
+          "example": "“You need to adapt quickly when things change.”",
+          "translation": "当事情发生变化时，你需要快速适应。",
+          "note": "职场与生活环境变化高频词"
+        },
+        {
+          "id": "b1_6",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "as far as I know",
+          "meaning": "据我所知",
+          "example": "“As far as I know, the meeting starts at ten.”",
+          "translation": "据我所知，会议十点开始。",
+          "note": "委婉提出已有信息的常用语"
+        },
+        {
+          "id": "b1_7",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "flexible",
+          "phonetic": "/ˈfleksəbəl/",
+          "meaning": "灵活的；有弹性的",
+          "example": "“My work schedule is quite flexible this week.”",
+          "translation": "我这周的工作时间安排非常灵活。",
+          "note": "用于日程安排与工作协作"
+        },
+        {
+          "id": "b1_8",
+          "type": "phrase",
+          "label": "Short phrase",
+          "title": "on the bright side",
+          "meaning": "往好的方面看；乐观地看",
+          "example": "“On the bright side, we learned something valuable.”",
+          "translation": "往好的方面看，我们学到了宝贵的经验。",
+          "note": "引导积极视角的转折短语"
+        }
+      ],
+      "quizzes": [
+        {
+          "id": "q_b1_1",
+          "type": "choice",
+          "question": "'She is a reliable partner.' 句中 'reliable' 最恰当的意思是？",
+          "options": ["值得信赖的", "性格急躁的", "富有的", "善于交际的"],
+          "answer": 0,
+          "explanation": "'reliable' 意为可靠的、可信赖的。"
+        },
+        {
+          "id": "q_b1_2",
+          "type": "scramble",
+          "question": "点击词块组装句子：'慢慢来，别着急。'",
+          "tokens": ["Take", "your", "time,", "there", "is", "no", "rush."],
+          "answer": "Take your time, there is no rush.",
+          "translation": "Take your time, there is no rush."
+        },
+        {
+          "id": "q_b1_3",
+          "type": "listen",
+          "audioText": "perspective",
+          "question": "听音辨词：请选择听到的正确单词",
+          "options": ["perspective", "prospective", "perception", "perfection"],
+          "answer": 0,
+          "explanation": "朗读内容为 'perspective'（观点；视角）。"
+        },
+        {
+          "id": "q_b1_4",
+          "type": "choice",
+          "question": "当你想要引导大家看到不利情况中积极的一面时，可以使用：",
+          "options": ["On the bright side", "Out of order", "By no means", "At all costs"],
+          "answer": 0,
+          "explanation": "'On the bright side' 意为往好的方面看、从积极角度看。"
+        }
+      ]
     },
-    {
-      "type": "phrase",
-      "label": "Short phrase",
-      "title": "make it count",
-      "meaning": "让它变得有意义；好好利用",
-      "example": "“We only have one day here, so let’s make it count.”",
-      "translation": "我们只有一天时间，所以好好利用它吧。",
-      "note": "A motivating everyday expression"
-    },
-    {
-      "type": "word",
-      "label": "Vocabulary",
-      "title": "adapt",
-      "phonetic": "/əˈdæpt/",
-      "meaning": "适应；调整",
-      "example": "“You need to adapt quickly when things change.”",
-      "translation": "当事情发生变化时，你需要快速适应。",
-      "note": "Common at work and in life"
-    },
-    {
-      "type": "phrase",
-      "label": "Short phrase",
-      "title": "as far as I know",
-      "meaning": "据我所知",
-      "example": "“As far as I know, the meeting starts at ten.”",
-      "translation": "据我所知，会议十点开始。",
-      "note": "A useful way to soften a statement"
-    },
-    {
-      "type": "word",
-      "label": "Vocabulary",
-      "title": "encourage",
-      "phonetic": "/ɪnˈkʌrɪdʒ/",
-      "meaning": "鼓励；支持",
-      "example": "“Good teachers encourage students to ask questions.”",
-      "translation": "好老师会鼓励学生提问。",
-      "note": "A positive action word"
-    },
-    {
-      "type": "phrase",
-      "label": "Short phrase",
-      "title": "it turns out",
-      "meaning": "结果是；原来",
-      "example": "“It turns out that we went to the same school.”",
-      "translation": "原来我们上的是同一所学校。",
-      "note": "Use it when revealing a result"
-    },
-    {
-      "type": "word",
-      "label": "Vocabulary",
-      "title": "flexible",
-      "phonetic": "/ˈfleksəbəl/",
-      "meaning": "灵活的；有弹性的",
-      "example": "“My schedule is flexible this week.”",
-      "translation": "我这周的时间安排很灵活。",
-      "note": "Useful for plans and arrangements"
-    },
-    {
-      "type": "phrase",
-      "label": "Short phrase",
-      "title": "on the bright side",
-      "meaning": "往好的方面看",
-      "example": "“On the bright side, we learned something new.”",
-      "translation": "往好的方面看，我们学到了新东西。",
-      "note": "A way to find the positive"
-    },
-    {
-      "type": "word",
-      "label": "Vocabulary",
-      "title": "benefit",
-      "phonetic": "/ˈbenɪfɪt/",
-      "meaning": "好处；受益",
-      "example": "“One benefit of reading is a bigger vocabulary.”",
-      "translation": "阅读的一个好处是能扩大词汇量。",
-      "note": "Useful for explaining advantages"
-    },
-    {
-      "type": "phrase",
-      "label": "Short phrase",
-      "title": "that makes sense",
-      "meaning": "这说得通；有道理",
-      "example": "“That makes sense — thanks for explaining it.”",
-      "translation": "这就说得通了——谢谢你的解释。",
-      "note": "A natural way to show understanding"
+    "B2": {
+      "name": "B2",
+      "title": "B2 · Upper-Intermediate",
+      "subtitle": "中高进阶",
+      "description": "抽象概念、深度逻辑连接与地道习语搭配",
+      "dailyGoal": 8,
+      "cards": [
+        {
+          "id": "b2_1",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "comprehensive",
+          "phonetic": "/ˌkɑːm.prəˈhen.sɪv/",
+          "meaning": "全面的；综合详尽的",
+          "example": "“The report provides a comprehensive analysis of the market.”",
+          "translation": "该报告对市场进行了全面详尽的分析。",
+          "note": "学术研究与商务高管报告高级词汇"
+        },
+        {
+          "id": "b2_2",
+          "type": "phrase",
+          "label": "Idiom & phrase",
+          "title": "read between the lines",
+          "meaning": "领会言外之意；读懂潜台词",
+          "example": "“You need to read between the lines to catch his true intent.”",
+          "translation": "你需要领会言外之意才能理解他的真实意图。",
+          "note": "高阶职场社交与沟通理解"
+        },
+        {
+          "id": "b2_3",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "resilience",
+          "phonetic": "/rɪˈzɪl.jəns/",
+          "meaning": "心理韧性；恢复力；抗逆力",
+          "example": "“Emotional resilience helps people bounce back from setbacks.”",
+          "translation": "心理韧性帮助人们在遭遇挫折后迅速重振旗鼓。",
+          "note": "高阶心理学与领导力核心概念"
+        },
+        {
+          "id": "b2_4",
+          "type": "phrase",
+          "label": "Idiom & phrase",
+          "title": "come to terms with",
+          "meaning": "逐渐接受；与…妥协释怀",
+          "example": "“He finally came to terms with the unexpected outcome.”",
+          "translation": "他最终欣然接受了这个意料之外的结果。",
+          "note": "描述接受复杂现实的情感演进过程"
+        },
+        {
+          "id": "b2_5",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "subtle",
+          "phonetic": "/ˈsʌt̬.əl/",
+          "meaning": "微妙的；敏锐的；不易察觉的",
+          "example": "“There is a subtle difference in nuance between the words.”",
+          "translation": "这两个词在细微语感上存在着微妙的差异。",
+          "note": "精细化语义辨析与深度观察"
+        },
+        {
+          "id": "b2_6",
+          "type": "phrase",
+          "label": "Idiom & phrase",
+          "title": "play devil’s advocate",
+          "meaning": "故意唱反调；提出反方观点以促进深入讨论",
+          "example": "“Let me play devil’s advocate to test our current plan.”",
+          "translation": "让我故意唱个反调来全面检验我们当前的方案。",
+          "note": "团队深度思辨与战略决策必备短语"
+        },
+        {
+          "id": "b2_7",
+          "type": "word",
+          "label": "Vocabulary",
+          "title": "sustainable",
+          "phonetic": "/səˈsteɪ.nə.bəl/",
+          "meaning": "可持续的；长期可维持的",
+          "example": "“We aim to build an economically sustainable strategy.”",
+          "translation": "我们的目标是构建一个在经济上可持续的战略。",
+          "note": "商业战略与全球发展高频前沿词"
+        },
+        {
+          "id": "b2_8",
+          "type": "phrase",
+          "label": "Idiom & phrase",
+          "title": "hit the nail on the head",
+          "meaning": "一针见血；切中要害",
+          "example": "“Your remark really hit the nail on the head.”",
+          "translation": "你的这番话确实切中了问题的要害。",
+          "note": "高度赞赏对方洞察力的地道习语"
+        }
+      ],
+      "quizzes": [
+        {
+          "id": "q_b2_1",
+          "type": "choice",
+          "question": "短语 'play devil's advocate' 在商务讨论中的真实含义是？",
+          "options": ["故意提出反方意见以启发思辨", "替对手辩护", "破坏团队气氛", "拒绝参与决策"],
+          "answer": 0,
+          "explanation": "'play devil's advocate' 意为故意提出反对观点以促进更深入的思考与论证。"
+        },
+        {
+          "id": "q_b2_2",
+          "type": "scramble",
+          "question": "点击词块组装句子：'该报告提供了全面的分析。'",
+          "tokens": ["The", "report", "provides", "a", "comprehensive", "analysis."],
+          "answer": "The report provides a comprehensive analysis.",
+          "translation": "The report provides a comprehensive analysis."
+        },
+        {
+          "id": "q_b2_3",
+          "type": "listen",
+          "audioText": "resilience",
+          "question": "听音辨词：请选择听到的正确单词",
+          "options": ["resilience", "resistance", "reliance", "resonance"],
+          "answer": 0,
+          "explanation": "朗读内容为 'resilience'（韧性；恢复力）。"
+        },
+        {
+          "id": "q_b2_4",
+          "type": "choice",
+          "question": "'Your summary hit the nail on the head.' 表达的是：",
+          "options": ["你的总结一针见血、切中要害", "你的总结偏离了主题", "你的总结太过于严厉", "你的总结缺少依据"],
+          "answer": 0,
+          "explanation": "'hit the nail on the head' 是指切中要害、说得很准。"
+        }
+      ]
     }
-  ]
+  }
 }
