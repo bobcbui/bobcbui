@@ -1,64 +1,151 @@
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config/gameConfig.js';
-import { getTotalLevels } from '../config/levelConfig.js';
+import { soundManager } from '../utils/soundManager.js';
 
 export default class MenuScene extends Phaser.Scene {
-  constructor() { super('MenuScene'); }
+  constructor() {
+    super('MenuScene');
+  }
 
   create() {
     const cx = GAME_WIDTH / 2;
 
-    this.add.text(cx, 116, '2D 塔防游戏', { fontSize: '42px', fontFamily: 'Arial, sans-serif', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
-    this.add.text(cx, 164, 'TOWER DEFENSE  ·  MOBILE EDITION', { fontSize: '13px', fontFamily: 'Arial, sans-serif', color: '#6f87b3', letterSpacing: 2 }).setOrigin(0.5);
+    // Sky blue fresh cartoon background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0ea5e9, 1);
+    bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    const badge = this.add.graphics();
-    badge.fillStyle(0x182b4b, 1);
-    badge.fillRoundedRect(cx - 110, 205, 220, 34, 17);
-    badge.lineStyle(1, 0x2d568e, 0.8);
-    badge.strokeRoundedRect(cx - 110, 205, 220, 34, 17);
-    this.add.text(cx, 222, '守住基地 · 赢下每一波', { fontSize: '14px', fontFamily: 'Arial, sans-serif', color: '#9fc7ff' }).setOrigin(0.5);
+    // Fluffy clouds & green hill at bottom
+    bg.fillStyle(0x38bdf8, 0.4);
+    bg.fillCircle(100, 180, 80);
+    bg.fillCircle(200, 150, 100);
+    bg.fillCircle(440, 170, 90);
 
-    this.createButton(cx, 320, '开始游戏', () => {
+    bg.fillStyle(0x84cc16, 1);
+    bg.fillCircle(cx, 1100, 480);
+
+    // Big Cute Carrot Mascot in Menu Center
+    this.add.text(cx, 125, '🥕', { fontSize: '68px' }).setOrigin(0.5);
+
+    this.add.text(cx, 205, '保卫大萝卜', {
+      fontSize: '44px',
+      fontFamily: 'system-ui, Arial, sans-serif',
+      color: '#ffffff',
+      fontStyle: 'bold',
+      stroke: '#ea580c',
+      strokeThickness: 7,
+    }).setOrigin(0.5);
+
+    this.add.text(cx, 252, 'CARROT FANTASY · 经典萌趣塔防', {
+      fontSize: '13px',
+      fontFamily: 'system-ui, Arial, sans-serif',
+      color: '#fef08a',
+      letterSpacing: 2,
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    // Start Game Button
+    this.createButton(cx, 340, '▶ 开始保卫萝卜', 0x16a34a, 0x22c55e, () => {
+      soundManager.playClick();
       this.scene.start('LevelSelectScene');
     });
 
-    const continueBtn = this.createButton(cx, 390, '继续游戏', () => {
-      const save = JSON.parse(localStorage.getItem('td_save') || '{}');
-      const lvl = save.currentLevel || 1;
-      this.scene.start('GameScene', { level: lvl });
+    // Continue Game Button
+    const save = JSON.parse(localStorage.getItem('td_save') || '{}');
+    const hasSave = !!save.currentLevel;
+    const contBtn = this.createButton(cx, 420, `🔄 继续第 ${save.currentLevel || 1} 关`, 0xf59e0b, 0xfbbf24, () => {
+      soundManager.playClick();
+      this.scene.start('GameScene', { level: save.currentLevel || 1 });
     });
 
-    const saved = localStorage.getItem('td_save');
-    if (!saved) {
-      continueBtn.setAlpha(0.4);
-      continueBtn.removeInteractive();
+    if (!hasSave) {
+      contBtn.setAlpha(0.45);
+      contBtn.disableInteractive();
     }
 
+    // Sound toggle button
+    this.createButton(cx, 500, soundManager.isMuted() ? '🔇 开启音效' : '🔊 关闭音效', 0x0284c7, 0x0369a1, (btnTxt) => {
+      const muted = soundManager.toggleMute();
+      btnTxt.setText(muted ? '🔇 开启音效' : '🔊 关闭音效');
+    }, true);
+
+    // Carrot Guide Card
     const guide = this.add.graphics();
-    guide.fillStyle(0x101a30, 0.92);
-    guide.fillRoundedRect(36, 520, GAME_WIDTH - 72, 196, 16);
-    guide.lineStyle(1, 0x263e65, 1);
-    guide.strokeRoundedRect(36, 520, GAME_WIDTH - 72, 196, 16);
-    this.add.text(60, 548, '新手指南', { fontSize: '18px', fontFamily: 'Arial, sans-serif', color: '#dbe9ff', fontStyle: 'bold' });
-    this.add.text(60, 588, '01  选择下方防御塔，再点击地图空地建造', { fontSize: '14px', fontFamily: 'Arial, sans-serif', color: '#9aaaca' });
-    this.add.text(60, 624, '02  点击已建防御塔，可升级或出售', { fontSize: '14px', fontFamily: 'Arial, sans-serif', color: '#9aaaca' });
-    this.add.text(60, 660, '03  准备好后点击“开始下一波”', { fontSize: '14px', fontFamily: 'Arial, sans-serif', color: '#9aaaca' });
-    this.add.text(cx, 820, '自动保存进度 · 支持触控操作', { fontSize: '13px', fontFamily: 'Arial, sans-serif', color: '#526383' }).setOrigin(0.5);
+    guide.fillStyle(0x0369a1, 0.9);
+    guide.fillRoundedRect(30, 595, GAME_WIDTH - 60, 285, 16);
+    guide.lineStyle(2, 0x38bdf8, 0.8);
+    guide.strokeRoundedRect(30, 595, GAME_WIDTH - 60, 285, 16);
+
+    this.add.text(50, 615, '🥕 保卫萝卜玩法秘籍', {
+      fontSize: '17px',
+      fontFamily: 'system-ui, Arial, sans-serif',
+      color: '#fef08a',
+      fontStyle: 'bold',
+    });
+
+    const tips = [
+      '1. 🎯 点击地图上的怪物或松树/宝箱可锁定集火！',
+      '2. 🪓 清除障碍物不仅掉落大量金币，还能开辟建造地块！',
+      '3. 🍼 瓶子炮满级会给周围炮塔提供攻速加成光环！',
+      '4. 🌻 太阳花向四周释放 360° 环形光波，清怪清道具神塔！',
+      '5. 💩 便便塔投掷黏液泥浆，强力减速高速冲刺怪物！',
+      '6. 🥕 保证大萝卜满血 10/10 过关即可荣获三星金萝卜勋章！',
+    ];
+
+    tips.forEach((tip, idx) => {
+      this.add.text(50, 650 + idx * 34, tip, {
+        fontSize: '12px',
+        fontFamily: 'system-ui, Arial, sans-serif',
+        color: '#e0f2fe',
+      });
+    });
+
+    this.add.text(cx, 915, '🥕 点击大萝卜有惊喜 · 自动保存 · 休闲解压', {
+      fontSize: '12px',
+      fontFamily: 'system-ui, Arial, sans-serif',
+      color: '#ffffff',
+    }).setOrigin(0.5);
   }
 
-  createButton(x, y, label, callback) {
-    const w = 300, h = 58;
-    const bg = this.add.graphics();
-    bg.fillStyle(COLORS.UI_BUTTON, 1);
-    bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 12);
-    bg.lineStyle(2, COLORS.UI_BORDER, 1);
-    bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 12);
+  createButton(x, y, label, bgColor, hoverColor, callback, passBtn = false) {
+    const w = 320;
+    const h = 54;
 
-    const txt = this.add.text(x, y, label, { fontSize: '21px', fontFamily: 'Arial, sans-serif', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+    const bg = this.add.graphics();
+    bg.fillStyle(bgColor, 1);
+    bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 14);
+    bg.lineStyle(2, 0xffffff, 0.4);
+    bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 14);
+
+    const txt = this.add.text(x, y, label, {
+      fontSize: '18px',
+      fontFamily: 'system-ui, Arial, sans-serif',
+      color: '#ffffff',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
 
     const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true });
-    zone.on('pointerover', () => { bg.clear(); bg.fillStyle(COLORS.UI_BUTTON_HOVER, 1); bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 12); bg.lineStyle(2, COLORS.UI_BORDER, 1); bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 12); });
-    zone.on('pointerout', () => { bg.clear(); bg.fillStyle(COLORS.UI_BUTTON, 1); bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 12); bg.lineStyle(2, COLORS.UI_BORDER, 1); bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 12); });
-    zone.on('pointerdown', callback);
+
+    zone.on('pointerover', () => {
+      bg.clear();
+      bg.fillStyle(hoverColor, 1);
+      bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 14);
+      bg.lineStyle(2, 0xffffff, 0.7);
+      bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 14);
+    });
+
+    zone.on('pointerout', () => {
+      bg.clear();
+      bg.fillStyle(bgColor, 1);
+      bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 14);
+      bg.lineStyle(2, 0xffffff, 0.4);
+      bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 14);
+    });
+
+    zone.on('pointerdown', () => {
+      if (passBtn) callback(txt);
+      else callback();
+    });
+
     return zone;
   }
 }

@@ -1,45 +1,52 @@
-// The game is designed around a portrait phone viewport. Keeping the logical
-// canvas at 2:1 gives Phaser enough room for a readable HUD while still
-// fitting common 18:9 and 19.5:9 devices with FIT scaling.
-export const TILE_SIZE = 32;
-export const GRID_COLS = 15;
-export const GRID_ROWS = 10;
-export const GAME_WIDTH = GRID_COLS * TILE_SIZE;
+// Carrot Fantasy (保卫萝卜) Full-Screen Immersive Map & Theme Configuration
+export const TILE_SIZE = 30;
+export const GRID_COLS = 18;
+export const GRID_ROWS = 27;
+
+export const GAME_WIDTH = GRID_COLS * TILE_SIZE; // 540
 export const GAME_HEIGHT = 960;
-export const MAP_HEIGHT = GRID_ROWS * TILE_SIZE;
-export const HUD_HEIGHT = GAME_HEIGHT - MAP_HEIGHT;
+
+export const MAP_Y = 60; // Map area from y=60 to y=870
+export const MAP_HEIGHT = GRID_ROWS * TILE_SIZE; // 810
+
+export const CARROT_MAX_HP = 10; // 经典保卫大萝卜 10 点生命
 
 export const COLORS = {
-  PATH: 0xd4a656,
-  BUILDABLE: 0x4a8c3f,
-  BUILDABLE_HOVER: 0x5aac4f,
-  BUILDABLE_INVALID: 0xcc4444,
-  BLOCKED: 0x335577,
-  GRID_LINE: 0x3a7c2f,
-  RANGE_CIRCLE: 0xffffff,
-  RANGE_CIRCLE_ALPHA: 0.15,
-  TOWER_BASE: 0x888888,
-  ENEMY_NORMAL: 0xff4444,
-  ENEMY_FAST: 0xffaa00,
-  ENEMY_TANK: 0x9933cc,
-  ENEMY_BOSS: 0xff0066,
-  HP_BAR_BG: 0x333333,
-  HP_BAR_FILL: 0x00ff00,
-  HP_BAR_WARN: 0xffcc00,
-  HP_BAR_DANGER: 0xff0000,
-  PROJECTILE_ARROW: 0xffff88,
-  PROJECTILE_CANNON: 0x444444,
-  PROJECTILE_ICE: 0x88ccff,
-  PROJECTILE_LIGHTNING: 0xffff00,
-  UI_BG: 0x2a2a2a,
-  UI_BORDER: 0x565656,
-  UI_BUTTON: 0x446688,
-  UI_BUTTON_HOVER: 0x5588aa,
-  UI_BUTTON_DISABLED: 0x444444,
-  UI_TEXT: 0xffffff,
-  UI_GOLD: 0xffdd00,
-  UI_LIVES: 0xff6666,
-  UI_SKILL_BAR: 0x2266aa,
+  // Fresh Lawn & Sand Path
+  GRASS_LIGHT: 0x8edb4b,
+  GRASS_DARK: 0x7bc73a,
+  GRASS_GRID: 0x6db530,
+  PATH: 0xfef08a,
+  PATH_INNER: 0xfde047,
+  PATH_BORDER: 0xf59e0b,
+  PATH_CHEVRON: 0xf97316,
+
+  // Grid Highlights
+  BUILDABLE_HOVER: 0x86efac,
+  BUILDABLE_INVALID: 0xf87171,
+  RANGE_CIRCLE: 0x38bdf8,
+  RANGE_CIRCLE_ALPHA: 0.22,
+
+  // Carrot Base
+  CARROT_BODY: 0xf97316,
+  CARROT_BODY_DARK: 0xea580c,
+  CARROT_LEAF: 0x22c55e,
+  CARROT_BLUSH: 0xf43f5e,
+
+  // Lock On Target Reticle
+  LOCK_TARGET_RING: 0xef4444,
+
+  // HP Bar
+  HP_BAR_BG: 0x334155,
+  HP_BAR_FILL: 0x22c55e,
+  HP_BAR_WARN: 0xeab308,
+  HP_BAR_DANGER: 0xef4444,
+
+  // In-place Wheel & Bubbles
+  WHEEL_BG: 0x0369a1,
+  WHEEL_BORDER: 0x38bdf8,
+  BTN_UPGRADE: 0x16a34a,
+  BTN_SELL: 0xdc2626,
 };
 
 export const GAME_STATES = {
@@ -49,4 +56,12 @@ export const GAME_STATES = {
   PAUSED: 'paused',
   GAME_OVER: 'game_over',
   VICTORY: 'victory',
+};
+
+export const OBSTACLE_TYPES = {
+  TREE: 'tree',         // 🌲 绿叶松树 (HP: 120, 奖励: 25金币)
+  ROCK: 'rock',         // 🪨 坚硬大石 (HP: 200, 奖励: 35金币)
+  MUSHROOM: 'mushroom', // 🍄 彩虹蘑菇 (HP: 150, 奖励: 30金币)
+  CHEST: 'chest',       // 🎁 豪华宝箱 (HP: 350, 奖励: 80金币)
+  HOUSE: 'house',       // 🏠 童话木屋 (HP: 280, 奖励: 50金币)
 };

@@ -1,0 +1,10 @@
+{
+  "name": "game-tafang",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "2D Mobile Tower Defense Game",
+  "scripts": {
+    "test": "node test.js"
+  }
+}
+
