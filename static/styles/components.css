@@ -5,9 +5,10 @@ site-header.site-header {
     top: 0;
     z-index: 100;
     min-height: var(--header-height);
-    background: rgba(255, 255, 255, 0.94);
-    border-bottom: 1px solid var(--color-border);
-    backdrop-filter: blur(14px);
+    background: rgba(255, 250, 252, 0.96);
+    border-bottom: 1px solid #efc6d5;
+    box-shadow: 0 3px 12px rgba(74, 52, 61, 0.05);
+    backdrop-filter: blur(12px);
 }
 
 .header-inner {
@@ -33,17 +34,19 @@ site-header.site-header {
 }
 
 .logo::before {
-    content: "✦";
-    display: grid;
+    content: "";
+    display: block;
     width: 34px;
     height: 34px;
     margin-right: 9px;
-    place-items: center;
-    border: 1px solid #f4cede;
+    flex: 0 0 34px;
+    border: 1px solid #ff9fc2;
     border-radius: 11px;
-    background: #fff0f5;
-    color: #e34b7d;
-    font-size: 19px;
+    background-color: #ffe2ed;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f72578' d='M12 1c.73 6.32 4.68 10.27 11 11-6.32.73-10.27 4.68-11 11C11.27 16.68 7.32 12.73 1 12 7.32 11.27 11.27 7.32 12 1Z'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
 }
 
 .header-left { display: none; }
@@ -89,7 +92,7 @@ site-header.site-header {
     max-height: none;
     padding: var(--space-3) var(--page-gutter) var(--space-6);
     overflow-y: auto;
-    background: rgba(255, 248, 250, 0.98);
+    background: rgba(255, 248, 251, 0.98);
     border-bottom: 1px solid var(--color-border);
     box-shadow: var(--shadow-md);
 }
@@ -108,9 +111,9 @@ site-header.site-header {
     font-weight: 600;
 }
 .center-nav a[aria-current="page"] {
-    border: 1px solid var(--color-primary);
+    border-color: transparent;
     color: var(--color-primary);
-    background: var(--color-primary-soft);
+    background: transparent;
 }
 
 .home-header-search { display: none; }
@@ -128,7 +131,7 @@ site-header.site-header {
 }
 .home-page .home-header-search:focus-within {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(219, 75, 120, 0.14);
+    box-shadow: 0 0 0 3px rgba(247, 37, 120, 0.18);
 }
 .home-header-search input {
     width: 100%;
@@ -170,7 +173,7 @@ site-header.site-header {
 }
 .nav-search-control:focus-within {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(219, 75, 120, 0.13);
+    box-shadow: 0 0 0 3px rgba(247, 37, 120, 0.18);
 }
 .nav-search-control input {
     min-width: 0;

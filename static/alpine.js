@@ -10,7 +10,6 @@
                         <template x-for="item in navItems" :key="item.href">
                             <li><a :href="item.href" :aria-current="isCurrent(item.href) ? 'page' : null" x-text="item.title"></a></li>
                         </template>
-                        <li><a href="/page/blog.html" :aria-current="isCurrent('/page/blog.html') ? 'page' : null">日志</a></li>
                     </ul>
                 </nav>
             </div>
@@ -24,7 +23,6 @@
                         <template x-for="item in navItems" :key="item.href">
                             <li><a :href="item.href" :aria-current="isCurrent(item.href) ? 'page' : null" @click="closeMenu" x-text="item.title"></a></li>
                         </template>
-                        <li><a href="/page/blog.html" :aria-current="isCurrent('/page/blog.html') ? 'page' : null" @click="closeMenu">日志</a></li>
                     </ul>
                 </nav>
             </details>
@@ -93,10 +91,16 @@
         });
 
         loadNavigation().then((groups) => {
-          this.navItems = groups.map((group) => ({
+          const items = groups.map((group) => ({
             title: group.name,
             href: group.items[0]?.href || '#'
           }));
+          const aboutIndex = items.findIndex((item) => item.title === '关于');
+          items.splice(aboutIndex === -1 ? items.length : aboutIndex, 0, {
+            title: '日志',
+            href: '/page/blog.html'
+          });
+          this.navItems = items;
         }).catch((error) => {
           console.warn('页头导航加载失败：', error);
         });
@@ -132,21 +136,30 @@
         ]
       },
 
-      get filteredGroups() {
+      get searchResults() {
         const keyword = this.query.trim().toLocaleLowerCase();
-        if (!keyword) return this.groups;
+        if (!keyword) return [];
 
-        return this.groups.map((group) => {
-          const matchesGroup = `${group.name} ${group.desc}`.toLocaleLowerCase().includes(keyword);
-          const items = group.items.filter((item) => item.title.toLocaleLowerCase().includes(keyword));
-          return matchesGroup ? group : { ...group, items };
-        }).filter((group) => group.items.length);
+        const seen = new Set();
+        return this.groups.flatMap((group) => group.items
+          .filter((item) => `${group.name} ${group.desc} ${item.title}`.toLocaleLowerCase().includes(keyword))
+          .map((item) => ({
+            group: group.name,
+            title: item.title,
+            href: item.href,
+            desc: group.desc
+          })))
+          .filter((item) => {
+            if (seen.has(item.href)) return false;
+            seen.add(item.href);
+            return true;
+          });
       },
 
       async init() {
         this.loadTrends();
         try {
-          this.groups = (await loadNavigation()).filter((group) => !['在线卖身', '赛博水军', 'ICU 防丢指南'].includes(group.name));
+          this.groups = (await loadNavigation()).filter((group) => !['关于', '在线卖身', '赛博水军', 'ICU 防丢指南'].includes(group.name));
         } catch (error) {
           this.errorMessage = error.message;
         } finally {
@@ -179,9 +192,12 @@
         }
       },
 
-      searchWeb() {
-        const keyword = this.query.trim();
-        if (keyword) window.open(`https://www.baidu.com/s?wd=${encodeURIComponent(keyword)}`, '_blank', 'noopener');
+      showSearchResults() {
+        if (!this.query.trim()) {
+          document.querySelector('#site-search')?.focus();
+          return;
+        }
+        document.querySelector('.site-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }));
 
@@ -196,6 +212,14 @@
 
       get hasMore() {
         return this.group.items.length > this.maxItems;
+      },
+
+      get showMore() {
+        return ['学习', '工具', '实践'].includes(this.group.name);
+      },
+
+      get landingHref() {
+        return this.group.items[0]?.href || '#';
       }
     }));
   });
