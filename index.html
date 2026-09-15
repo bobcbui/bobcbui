@@ -90,25 +90,6 @@
               <p class="site-search-results-empty" x-show="isLoading">正在加载站内内容…</p>
             </section>
 
-            <section class="stats-grid" aria-label="站点统计">
-              <article class="stat-card">
-                <span class="stat-icon">◎</span>
-                <div><strong>8</strong><small>学习主题</small></div>
-              </article>
-              <article class="stat-card">
-                <span class="stat-icon">⌘</span>
-                <div><strong>5</strong><small>实用工具</small></div>
-              </article>
-              <article class="stat-card">
-                <span class="stat-icon">↗</span>
-                <div><strong>4</strong><small>实践方向</small></div>
-              </article>
-              <article class="stat-card">
-                <span class="stat-icon">✎</span>
-                <div><strong>1</strong><small>持续记录</small></div>
-              </article>
-            </section>
-
             <section class="nav-grid" aria-label="网站导航" aria-live="polite">
               <template x-for="item in (isLoading ? 6 : 0)" :key="item">
                 <div class="nav-group nav-skeleton" aria-hidden="true"></div>

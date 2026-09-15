@@ -1,0 +1,117 @@
+{
+  "site": {
+    "title": "AI 漫剧导航",
+    "description": "发现值得关注的 YouTube AI 漫剧",
+    "updatedAt": "2026-09-15"
+  },
+  "categories": [
+    { "id": "all", "name": "全部", "order": 0 },
+    { "id": "fantasy", "name": "奇幻冒险", "order": 1 },
+    { "id": "scifi", "name": "科幻未来", "order": 2 },
+    { "id": "urban", "name": "都市故事", "order": 3 },
+    { "id": "comedy", "name": "轻松喜剧", "order": 4 },
+    { "id": "suspense", "name": "悬疑推理", "order": 5 }
+  ],
+  "items": [
+    {
+      "id": "neon-dream-01",
+      "title": "霓虹梦境：失落的记忆",
+      "channel": "AI Story Lab",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "thumbnail": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+      "category": "scifi",
+      "rank": 1,
+      "views": 2860000,
+      "publishedAt": "2026-08-28",
+      "featured": true,
+      "description": "少女在未来都市寻找被抹去的记忆。"
+    },
+    {
+      "id": "sword-moon-02",
+      "title": "月下剑歌",
+      "channel": "绘梦剧场",
+      "url": "https://youtu.be/ysz5S6PUM-U",
+      "thumbnail": "https://i.ytimg.com/vi/ysz5S6PUM-U/hqdefault.jpg",
+      "category": "fantasy",
+      "rank": 2,
+      "views": 1950000,
+      "publishedAt": "2026-09-02",
+      "featured": true,
+      "description": "一柄古剑牵出跨越百年的守望。"
+    },
+    {
+      "id": "roommate-ai-03",
+      "title": "我的室友是 AI",
+      "channel": "次元便利店",
+      "url": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+      "thumbnail": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg",
+      "category": "comedy",
+      "rank": 3,
+      "views": 1270000,
+      "publishedAt": "2026-08-19",
+      "featured": false,
+      "description": "人工智能搬进合租屋后发生的爆笑日常。"
+    },
+    {
+      "id": "midnight-case-04",
+      "title": "午夜档案馆",
+      "channel": "像素悬疑社",
+      "url": "https://youtu.be/aqz-KE-bpKQ",
+      "thumbnail": "https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg",
+      "category": "suspense",
+      "rank": 4,
+      "views": 938000,
+      "publishedAt": "2026-09-10",
+      "featured": true,
+      "description": "管理员每到午夜都会收到一份来自未来的卷宗。"
+    },
+    {
+      "id": "last-delivery-05",
+      "title": "最后一单外卖",
+      "channel": "城市切片",
+      "url": "https://www.youtube.com/watch?v=ScMzIvxBSi4",
+      "thumbnail": "https://i.ytimg.com/vi/ScMzIvxBSi4/hqdefault.jpg",
+      "category": "urban",
+      "views": 654000,
+      "publishedAt": "2026-09-12",
+      "featured": false,
+      "description": "凌晨骑手的一次订单，连接起陌生人的人生。"
+    },
+    {
+      "id": "star-keeper-06",
+      "title": "星海守望者",
+      "channel": "未来动画局",
+      "url": "https://youtu.be/M7lc1UVf-VE",
+      "thumbnail": "https://i.ytimg.com/vi/M7lc1UVf-VE/hqdefault.jpg",
+      "category": "scifi",
+      "views": 421000,
+      "publishedAt": "2026-09-14",
+      "featured": false,
+      "description": "孤独的空间站守望者发现了未知生命信号。"
+    },
+    {
+      "id": "fox-inn-07",
+      "title": "狐狸客栈营业中",
+      "channel": "云端小剧场",
+      "url": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+      "thumbnail": "https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg",
+      "category": "fantasy",
+      "views": 318000,
+      "publishedAt": "2026-08-31",
+      "featured": false,
+      "description": "只在雨夜出现的客栈，为旅人完成一个愿望。"
+    },
+    {
+      "id": "coffee-loop-08",
+      "title": "今天也在循环咖啡",
+      "channel": "脑洞放映室",
+      "url": "https://youtu.be/jNQXAC9IVRw",
+      "thumbnail": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg",
+      "category": "comedy",
+      "views": 205000,
+      "publishedAt": "2026-09-08",
+      "featured": false,
+      "description": "咖啡师被困在同一个周一，唯一变量是客人的订单。"
+    }
+  ]
+}

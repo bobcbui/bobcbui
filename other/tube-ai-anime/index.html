@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="发现值得关注的 YouTube AI 漫剧">
+  <title>AI 漫剧导航</title>
+  <style>
+    :root { --red:#e62117; --red-dark:#c91810; --text:#171717; --muted:#606060; --line:#e5e5e5; --soft:#f2f2f2; --surface:#fff; --radius:10px; --header:72px; }
+    * { box-sizing:border-box; }
+    html { color-scheme:light; scrollbar-gutter:stable; }
+    body { margin:0; color:var(--text); background:var(--surface); font:14px/1.5 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; overflow-x:hidden; }
+    button,input,select { font:inherit; }
+    button,select { cursor:pointer; }
+    a { color:inherit; text-decoration:none; }
+    img { display:block; max-width:100%; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    :focus-visible { outline:3px solid rgba(230,33,23,.34); outline-offset:3px; }
+    .header { position:sticky; top:0; z-index:10; height:var(--header); border-bottom:1px solid var(--line); background:rgba(255,255,255,.96); backdrop-filter:blur(12px); }
+    .header-inner { max-width:1600px; height:100%; margin:auto; padding:0 32px; display:grid; grid-template-columns:minmax(210px,1fr) minmax(280px,620px) minmax(210px,1fr); align-items:center; gap:28px; }
+    .brand { display:flex; align-items:center; gap:10px; width:max-content; font-size:20px; font-weight:750; letter-spacing:-.02em; }
+    .brand-mark { width:32px; height:24px; display:grid; place-items:center; border-radius:8px; color:#fff; background:var(--red); }
+    .brand-mark::after { content:""; margin-left:2px; border-width:5px 0 5px 8px; border-style:solid; border-color:transparent transparent transparent currentColor; }
+    .search { display:flex; height:44px; }
+    .search input { min-width:0; flex:1; padding:0 18px; border:1px solid #c6c6c6; border-right:0; border-radius:22px 0 0 22px; color:var(--text); background:#fff; }
+    .search input:focus { z-index:1; outline:2px solid #5b8def; outline-offset:-1px; }
+    .search button { width:64px; border:1px solid #c6c6c6; border-radius:0 22px 22px 0; background:#f8f8f8; font-size:18px; }
+    .updated { justify-self:end; color:var(--muted); white-space:nowrap; }
+    .main { width:min(1600px,100%); margin:auto; padding:0 32px 32px; }
+    .chips-wrap { position:sticky; top:var(--header); z-index:9; margin:0 -32px; padding:12px 32px; background:rgba(255,255,255,.96); overflow:hidden; }
+    .chips { display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; }
+    .chips::-webkit-scrollbar { display:none; }
+    .chip { min-height:40px; padding:0 17px; border:0; border-radius:999px; background:var(--soft); color:#242424; white-space:nowrap; transition:background-color 150ms,color 150ms; }
+    .chip:hover { background:#e5e5e5; }
+    .chip[aria-pressed="true"] { color:#fff; background:#202020; }
+    .section-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin:24px 0 16px; }
+    h1,h2,p { margin:0; }
+    h1 { font-size:clamp(24px,3vw,38px); line-height:1.18; letter-spacing:-.035em; }
+    h2 { font-size:22px; letter-spacing:-.02em; }
+    .intro { margin-top:8px; color:var(--muted); font-size:15px; }
+    .ranking { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(270px,1fr); grid-template-rows:repeat(2,1fr); gap:12px; overflow-x:auto; overscroll-behavior-inline:contain; padding:2px 2px 8px; }
+    .rank-card { min-height:96px; display:grid; grid-template-columns:42px 128px minmax(120px,1fr); align-items:center; gap:12px; padding:8px; border-radius:var(--radius); transition:background-color 150ms; }
+    .rank-card:hover { background:#f7f7f7; }
+    .rank-number { color:var(--red); font-size:24px; font-weight:800; text-align:center; }
+    .rank-card img { width:128px; aspect-ratio:16/9; object-fit:cover; border-radius:8px; background:var(--soft); }
+    .rank-title { display:-webkit-box; overflow:hidden; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-weight:700; line-height:1.35; }
+    .rank-channel,.meta { margin-top:5px; color:var(--muted); font-size:13px; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:32px 0 18px; }
+    .count { color:var(--muted); }
+    .sort { min-height:44px; padding:0 36px 0 14px; border:1px solid #c9c9c9; border-radius:9px; background:#fff; color:var(--text); }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:30px 18px; }
+    .card { min-width:0; border-radius:var(--radius); transition:transform 150ms; }
+    .card:hover { transform:translateY(-2px); }
+    .thumb { position:relative; overflow:hidden; border-radius:var(--radius); background:var(--soft); }
+    .thumb img { width:100%; aspect-ratio:16/9; object-fit:cover; }
+    .badge { position:absolute; left:8px; bottom:8px; padding:3px 7px; border-radius:5px; color:#fff; background:rgba(0,0,0,.78); font-size:12px; }
+    .card-body { padding:12px 4px 0; }
+    .card-title { display:-webkit-box; overflow:hidden; min-height:2.75em; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-size:16px; font-weight:700; line-height:1.38; }
+    .card-description { display:-webkit-box; overflow:hidden; margin-top:7px; color:var(--muted); -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .state { min-height:280px; display:grid; place-items:center; padding:56px 20px; text-align:center; }
+    .state-box { max-width:440px; }
+    .state h2 { margin-bottom:8px; }
+    .state p { color:var(--muted); }
+    .retry { min-height:44px; margin-top:20px; padding:0 20px; border:0; border-radius:9px; color:#fff; background:var(--red); font-weight:700; }
+    .retry:hover { background:var(--red-dark); }
+    .skeleton { animation:pulse 1.2s ease-in-out infinite; background:linear-gradient(100deg,#eee 30%,#f7f7f7 50%,#eee 70%); background-size:300% 100%; }
+    .skeleton-card .skeleton-thumb { aspect-ratio:16/9; border-radius:var(--radius); }
+    .skeleton-line { height:14px; margin-top:12px; border-radius:5px; }
+    .skeleton-line.short { width:60%; }
+    .footer { display:flex; justify-content:space-between; gap:20px; margin-top:48px; padding:24px 0; border-top:1px solid var(--line); color:var(--muted); }
+    [hidden] { display:none !important; }
+    @keyframes pulse { 0%{background-position:100% 0} 100%{background-position:0 0} }
+    @media (min-width:1440px) { .grid { grid-template-columns:repeat(5,minmax(0,1fr)); } }
+    @media (max-width:1000px) { .header-inner { grid-template-columns:auto minmax(240px,1fr) auto; padding:0 22px; gap:18px; } .updated-label { display:none; } .main { padding-inline:22px; } .chips-wrap { margin-inline:-22px; padding-inline:22px; } .grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (max-width:720px) { :root { --header:64px; } .header-inner { grid-template-columns:auto 1fr; padding:0 16px; } .brand-text,.updated { display:none; } .search { width:100%; } .main { padding-inline:16px; } .chips-wrap { margin-inline:-16px; padding-inline:16px; } .section-head { margin-top:18px; } .ranking { grid-auto-columns:85%; grid-template-rows:repeat(2,1fr); } .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px 12px; } .toolbar { align-items:flex-start; } .footer { flex-direction:column; gap:5px; } }
+    @media (max-width:430px) { .grid { grid-template-columns:1fr; } .ranking { grid-auto-columns:94%; } .rank-card { grid-template-columns:34px 112px minmax(100px,1fr); } .rank-card img { width:112px; } .sort { max-width:150px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="brand" href="./" aria-label="返回首页"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text" id="brandName">AI 漫剧导航</span></a>
+      <form class="search" id="searchForm" role="search"><label class="sr-only" for="searchInput">搜索作品、频道或简介</label><input id="searchInput" type="search" autocomplete="off" placeholder="搜索作品、频道或简介"><button type="submit" aria-label="搜索">⌕</button></form>
+      <div class="updated"><span class="updated-label">数据更新：</span><time id="headerDate">—</time></div>
+    </div>
+  </header>
+  <main class="main">
+    <nav class="chips-wrap" aria-label="作品分类"><div class="chips" id="categories"></div></nav>
+    <section aria-labelledby="pageTitle">
+      <div class="section-head"><div><h1 id="pageTitle">AI 漫剧导航</h1><p class="intro" id="siteDescription">发现值得关注的 YouTube AI 漫剧</p></div></div>
+    </section>
+    <div id="loadingState" aria-live="polite"><span class="sr-only">正在加载内容</span><div class="grid" id="skeletonGrid"></div></div>
+    <div id="content" hidden>
+      <section id="rankingSection" aria-labelledby="rankingTitle"><div class="section-head"><h2 id="rankingTitle">热门排行榜</h2></div><div class="ranking" id="ranking"></div></section>
+      <section aria-labelledby="worksTitle"><div class="toolbar"><div><h2 id="worksTitle">全部作品</h2><p class="count" id="resultCount" aria-live="polite"></p></div><label><span class="sr-only">排序方式</span><select class="sort" id="sortSelect"><option value="rank">排行榜</option><option value="latest">最新发布</option><option value="views">最多播放</option></select></label></div><div class="grid" id="worksGrid"></div><div class="state" id="emptyState" hidden><div class="state-box"><h2>没有找到相关作品</h2><p>试试其他关键词、分类或排序方式。</p></div></div></section>
+    </div>
+    <div class="state" id="errorState" hidden role="alert"><div class="state-box"><h2>数据加载失败</h2><p id="errorMessage">请检查 data.json 后重新加载。</p><button class="retry" id="retryButton" type="button">重新加载</button></div></div>
+    <footer class="footer"><span id="footerCount">共 0 部作品</span><span>数据更新：<time id="footerDate">—</time></span></footer>
+  </main>
+  <template id="imageFallback"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9"><rect width="16" height="9" fill="#eee"/><path d="M6.5 3.1v2.8L9 4.5z" fill="#999"/><text x="8" y="7.4" text-anchor="middle" font-size=".8" fill="#777">暂无图片</text></svg></template>
+  <script>
+    'use strict';
+    const state={data:null,category:'all',query:'',sort:'rank'};
+    const el=id=>document.getElementById(id);
+    const refs={loading:el('loadingState'),content:el('content'),error:el('errorState'),categories:el('categories'),ranking:el('ranking'),rankingSection:el('rankingSection'),grid:el('worksGrid'),empty:el('emptyState'),count:el('resultCount'),footerCount:el('footerCount'),sort:el('sortSelect'),search:el('searchInput')};
+    const fallbackUrl='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(el('imageFallback').innerHTML.trim());
+    function warn(message,item){console.warn('[data.json] '+message,item||'');}
+    function validYouTubeUrl(value){try{const url=new URL(value);return url.protocol==='https:'&&(url.hostname==='www.youtube.com'||url.hostname==='youtube.com'||url.hostname==='youtu.be');}catch{return false;}}
+    function validDate(value){if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return false;const d=new Date(value+'T00:00:00Z');return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value;}
+    function normalize(raw){
+      if(!raw||typeof raw!=='object')throw new Error('数据根节点必须是对象。');
+      const rawCategories=Array.isArray(raw.categories)?raw.categories:[];
+      const categoryMap=new Map();
+      rawCategories.forEach((c,i)=>{if(c&&typeof c.id==='string'&&c.id.trim()&&typeof c.name==='string'&&!categoryMap.has(c.id.trim()))categoryMap.set(c.id.trim(),{id:c.id.trim(),name:c.name.trim()||c.id.trim(),order:Number.isFinite(Number(c.order))?Number(c.order):i});});
+      const allCategory=categoryMap.get('all');
+      categoryMap.set('all',{id:'all',name:allCategory&&allCategory.name||'全部',order:allCategory&&Number.isFinite(allCategory.order)?allCategory.order:-1});
+      categoryMap.set('other',{id:'other',name:'其他',order:99999});
+      const ids=new Set(),ranks=new Set(),items=[];
+      (Array.isArray(raw.items)?raw.items:[]).forEach((item,index)=>{
+        if(!item||typeof item!=='object'){warn('第 '+(index+1)+' 项不是对象，已忽略。');return;}
+        const id=typeof item.id==='string'?item.id.trim():'';
+        const title=typeof item.title==='string'?item.title.trim():'';
+        const url=typeof item.url==='string'?item.url.trim():'';
+        let category=typeof item.category==='string'?item.category.trim():'';
+        if(!id||!title||!url||!category){warn('作品缺少必填字段，已忽略。',item);return;}
+        if(ids.has(id)){warn('发现重复 id，后出现的作品已忽略：'+id,item);return;}
+        if(!validYouTubeUrl(url)){warn('作品链接不是允许的 YouTube HTTPS 链接，已忽略：'+id,item);return;}
+        ids.add(id);
+        if(!categoryMap.has(category)){warn('分类不存在，已归入“其他”：'+category,item);category='other';}
+        let rank=Number.isInteger(item.rank)&&item.rank>0?item.rank:null;
+        if(rank!==null&&ranks.has(rank)){warn('排名重复，后出现作品的排名已移除：'+rank,item);rank=null;}else if(rank!==null)ranks.add(rank);
+        if(item.rank!=null&&rank===null)warn('rank 必须是大于 0 的非重复整数：'+id,item);
+        let publishedAt=validDate(item.publishedAt)?item.publishedAt:'';
+        if(item.publishedAt&&!publishedAt)warn('publishedAt 格式或日期无效：'+id,item);
+        items.push({id,title,url,category,rank,publishedAt,channel:typeof item.channel==='string'&&item.channel.trim()?item.channel.trim():'未知频道',thumbnail:typeof item.thumbnail==='string'?item.thumbnail.trim():'',views:Number.isInteger(item.views)&&item.views>=0?item.views:0,featured:Boolean(item.featured),description:typeof item.description==='string'?item.description.trim():''});
+      });
+      const used=new Set(items.map(i=>i.category));
+      const categories=[...categoryMap.values()].filter(c=>c.id==='all'||used.has(c.id)).sort((a,b)=>a.order-b.order||a.name.localeCompare(b.name,'zh-CN'));
+      const site=raw.site&&typeof raw.site==='object'?raw.site:{};
+      return {site:{title:typeof site.title==='string'&&site.title.trim()||'AI 漫剧导航',description:typeof site.description==='string'?site.description.trim():'',updatedAt:validDate(site.updatedAt)?site.updatedAt:''},categories,items};
+    }
+    function formatViews(value){if(value>=100000000)return (value/100000000).toFixed(value>=1000000000?0:1).replace('.0','')+'亿';if(value>=10000)return (value/10000).toFixed(value>=100000?0:1).replace('.0','')+'万';return new Intl.NumberFormat('zh-CN').format(value);}
+    function categoryName(id){const category=state.data.categories.find(c=>c.id===id);return category?category.name:'其他';}
+    function makeImage(item){const img=document.createElement('img');img.src=item.thumbnail||fallbackUrl;img.alt=item.title+'缩略图';img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>{if(img.src!==fallbackUrl)img.src=fallbackUrl;},{once:true});return img;}
+    function externalLink(item,className){const a=document.createElement('a');a.className=className;a.href=item.url;a.target='_blank';a.rel='noopener noreferrer';a.setAttribute('aria-label',item.title+'（在 YouTube 中打开）');return a;}
+    function renderCategories(){const frag=document.createDocumentFragment();state.data.categories.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=c.name;b.dataset.id=c.id;b.setAttribute('aria-pressed',String(c.id===state.category));b.addEventListener('click',()=>{state.category=c.id;render();syncUrl();});frag.append(b);});refs.categories.replaceChildren(frag);}
+    function sortedFiltered(){const q=state.query.toLocaleLowerCase('zh-CN');const list=state.data.items.filter(i=>(state.category==='all'||i.category===state.category)&&(!q||(i.title+' '+i.channel+' '+i.description).toLocaleLowerCase('zh-CN').includes(q)));return list.sort((a,b)=>state.sort==='latest'?(b.publishedAt||'').localeCompare(a.publishedAt||'')||a.title.localeCompare(b.title,'zh-CN'):state.sort==='views'?b.views-a.views||a.title.localeCompare(b.title,'zh-CN'):(a.rank===null?Infinity:a.rank)-(b.rank===null?Infinity:b.rank)||(b.publishedAt||'').localeCompare(a.publishedAt||''));}
+    function renderRanking(){const ranked=state.data.items.filter(i=>i.rank!==null).sort((a,b)=>a.rank-b.rank);refs.rankingSection.hidden=!ranked.length;const frag=document.createDocumentFragment();ranked.forEach(item=>{const a=externalLink(item,'rank-card');const n=document.createElement('span');n.className='rank-number';n.textContent=item.rank;const info=document.createElement('div');const title=document.createElement('div');title.className='rank-title';title.textContent=item.title;const channel=document.createElement('div');channel.className='rank-channel';channel.textContent=item.channel;info.append(title,channel);a.append(n,makeImage(item),info);frag.append(a);});refs.ranking.replaceChildren(frag);}
+    function renderGrid(items){const frag=document.createDocumentFragment();items.forEach(item=>{const a=externalLink(item,'card');const thumb=document.createElement('div');thumb.className='thumb';thumb.append(makeImage(item));if(item.featured){const badge=document.createElement('span');badge.className='badge';badge.textContent='编辑推荐';thumb.append(badge);}const body=document.createElement('div');body.className='card-body';const title=document.createElement('div');title.className='card-title';title.textContent=item.title;const meta=document.createElement('div');meta.className='meta';meta.textContent=item.channel+' · '+categoryName(item.category)+' · '+formatViews(item.views)+'次播放';body.append(title,meta);if(item.description){const desc=document.createElement('p');desc.className='card-description';desc.textContent=item.description;body.append(desc);}a.append(thumb,body);frag.append(a);});refs.grid.replaceChildren(frag);}
+    function render(){renderCategories();const items=sortedFiltered();renderGrid(items);refs.empty.hidden=items.length>0;refs.grid.hidden=items.length===0;refs.count.textContent='找到 '+items.length+' 部作品';refs.footerCount.textContent='当前显示 '+items.length+' / 共 '+state.data.items.length+' 部作品';el('worksTitle').textContent=state.category==='all'?'全部作品':categoryName(state.category);}
+    function syncUrl(){const p=new URLSearchParams();if(state.category!=='all')p.set('category',state.category);if(state.query)p.set('q',state.query);if(state.sort!=='rank')p.set('sort',state.sort);history.replaceState(null,'',location.pathname+(p.size?'?'+p:''));}
+    function restoreUrl(){const p=new URLSearchParams(location.search);const category=p.get('category');state.category=state.data.categories.some(c=>c.id===category)?category:'all';state.query=(p.get('q')||'').trim();state.sort=['rank','latest','views'].includes(p.get('sort'))?p.get('sort'):'rank';refs.search.value=state.query;refs.sort.value=state.sort;}
+    function skeletons(){const frag=document.createDocumentFragment();for(let i=0;i<8;i++){const c=document.createElement('div');c.className='skeleton-card';c.innerHTML='<div class="skeleton skeleton-thumb"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div>';frag.append(c);}el('skeletonGrid').replaceChildren(frag);}
+    async function load(){refs.loading.hidden=false;refs.content.hidden=true;refs.error.hidden=true;try{const response=await fetch('data.json',{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);state.data=normalize(await response.json());restoreUrl();document.title=state.data.site.title;el('brandName').textContent=state.data.site.title;el('pageTitle').textContent=state.data.site.title;el('siteDescription').textContent=state.data.site.description;el('headerDate').textContent=state.data.site.updatedAt||'未知';el('footerDate').textContent=state.data.site.updatedAt||'未知';renderRanking();render();refs.loading.hidden=true;refs.content.hidden=false;}catch(error){console.error(error);refs.loading.hidden=true;refs.error.hidden=false;el('errorMessage').textContent='请确认通过本地服务器访问，并检查 data.json 格式。'+(error.message?'（'+error.message+'）':'');}}
+    let debounce;
+    refs.search.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(()=>{state.query=refs.search.value.trim();render();syncUrl();},180);});
+    el('searchForm').addEventListener('submit',event=>{event.preventDefault();clearTimeout(debounce);state.query=refs.search.value.trim();render();syncUrl();});
+    refs.sort.addEventListener('change',()=>{state.sort=refs.sort.value;render();syncUrl();});
+    el('retryButton').addEventListener('click',load);
+    skeletons();load();
+  </script>
+</body>
+</html>
