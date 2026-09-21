@@ -510,7 +510,7 @@ main.article-page { max-width: calc(var(--article-max-width) + var(--page-gutter
     max-width: 660px;
     margin-bottom: 12px;
     color: #2c2529;
-    font-size: clamp(2rem, 3.4vw, 3.2rem);
+    font-size: clamp(1.8rem, 2.8vw, 2.7rem);
     line-height: 1.12;
     letter-spacing: -0.055em;
 }

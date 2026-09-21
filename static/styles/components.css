@@ -40,7 +40,7 @@ site-header.site-header {
     height: 34px;
     margin-right: 9px;
     flex: 0 0 34px;
-    border: 1px solid #ff9fc2;
+    border: 1px solid #ff1f71;
     border-radius: 11px;
     background-color: #ffe2ed;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f72578' d='M12 1c.73 6.32 4.68 10.27 11 11-6.32.73-10.27 4.68-11 11C11.27 16.68 7.32 12.73 1 12 7.32 11.27 11.27 7.32 12 1Z'/%3E%3C/svg%3E");
