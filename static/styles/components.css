@@ -115,6 +115,10 @@ site-header.site-header {
     color: var(--color-primary);
     background: transparent;
 }
+.mobile-nav-panel a[aria-current="page"] {
+    border-color: var(--color-primary);
+    font-weight: 400;
+}
 
 .home-header-search { display: none; }
 .home-page .home-header-search {
