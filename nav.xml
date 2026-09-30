@@ -6,12 +6,15 @@
   <group name="学习" emoji="📚" desc="英语、编程和技术基础，从能看懂到能做出来，按自己的节奏持续积累。">
     <item href="/page/study.html">学习总览</item>
     <item href="/page/english.html">英语学习</item>
-    <item href="/page/dev.html">编程学习</item>
-    <item href="/page/e-commerce.html">前端开发</item>
-    <item href="/page/outsource.html">后端工程</item>
-    <item href="/page/counselor.html">计算机基础</item>
-    <item href="/page/media.html">AI 与技术工具</item>
     <item href="/page/blog.html">学习笔记</item>
+  </group>
+
+  <group name="编程学习" emoji="💻" desc="从编程基础延伸到前端、后端、计算机基础和 AI 工具。">
+    <item href="/page/dev.html">编程学习总览</item>
+    <item href="/page/e-commerce.html">前端开发</item>
+    <item href="/page/outsource.html">后端开发</item>
+    <item href="/page/counselor.html">计算机基础</item>
+    <item href="/page/media.html">AI 与工具</item>
   </group>
 
   <group name="工具" emoji="💻" desc="从小工具到碎经验，主打一个能省两步就不多点三下，给脆弱的工位人生续一口气。">

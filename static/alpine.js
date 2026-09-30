@@ -91,7 +91,7 @@
         });
 
         loadNavigation().then((groups) => {
-          const items = groups.map((group) => ({
+          const items = groups.filter((group) => group.name !== '编程学习').map((group) => ({
             title: group.name,
             href: group.items[0]?.href || '#'
           }));
