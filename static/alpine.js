@@ -83,26 +83,18 @@
 
   document.addEventListener('alpine:init', () => {
     Alpine.data('siteHeader', () => ({
-      navItems: [],
+      navItems: [
+        { title: '学习', href: '/page/study.html' },
+        { title: '工具', href: '/tools/index.html' },
+        { title: '实践', href: '/page/outsource.html' },
+        { title: '游戏', href: '/page/games.html' },
+        { title: '日志', href: '/page/blog.html' },
+        { title: '关于', href: '/page/about.html' }
+      ],
       menuOpen: false,
       init() {
         this.$watch('menuOpen', (isOpen) => {
           document.body.classList.toggle('menu-open', isOpen);
-        });
-
-        loadNavigation().then((groups) => {
-          const items = groups.filter((group) => group.name !== '编程学习').map((group) => ({
-            title: group.name,
-            href: group.items[0]?.href || '#'
-          }));
-          const aboutIndex = items.findIndex((item) => item.title === '关于');
-          items.splice(aboutIndex === -1 ? items.length : aboutIndex, 0, {
-            title: '日志',
-            href: '/page/blog.html'
-          });
-          this.navItems = items;
-        }).catch((error) => {
-          console.warn('页头导航加载失败：', error);
         });
       },
 

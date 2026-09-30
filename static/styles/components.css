@@ -11,6 +11,11 @@ site-header.site-header {
     backdrop-filter: blur(12px);
 }
 
+site-header.site-header[x-cloak] {
+    display: block !important;
+    visibility: hidden;
+}
+
 .header-inner {
     display: flex;
     align-items: center;

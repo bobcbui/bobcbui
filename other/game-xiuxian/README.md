@@ -66,8 +66,7 @@ game-xiuxian/
 │       └── actions.js        # ACTIONS 动作表 + data-action 事件委托
 ├── lib/phaser.min.js   # 第三方 Phaser 运行库
 ├── jsconfig.json       # 编辑器路径映射：@/* -> ./src/*
-├── README.md           # 本文档
-└── TASK.md             # 历史实施计划（已过时，仅供参考）
+└── README.md           # 本文档
 ```
 
 **路径别名**：`index.html` 通过 `<script type="importmap">` 把 `@/` 映射到 `./src/`，所有模块导入统一使用 `@/core/state.js` 这类别名；`jsconfig.json` 为编辑器提供相同映射。
