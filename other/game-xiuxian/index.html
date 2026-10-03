@@ -11,6 +11,9 @@
 window.xiuxianHome = () => ({
   activeTab: 'stage',
   settingsOpen: false,
+  guideOpen: false,
+  skillCards: [],
+  upgradeCards: [],
   selectedStage: 1,
   maxClearedStage: 0,
   totalLevel: 1,
@@ -31,6 +34,16 @@ window.xiuxianHome = () => ({
       this.totalXpToNext = Math.max(1, Number(save.totalXpToNext) || 40);
       this.inventoryCount = Array.isArray(save.inventory) ? save.inventory.length : 0;
     } catch (error) {
+      console.warn('存档读取失败，使用默认数据', error);
+    }
+    try {
+      fetch('data.json').then(r => r.json()).then(data => {
+        if (data && data.cards) {
+          this.skillCards = data.cards.skill || [];
+          this.upgradeCards = data.cards.upgrade || [];
+        }
+      }).catch(e => console.warn('加载技能配置失败', e));
+    } catch (e) {}
       console.warn('存档读取失败，使用默认数据', error);
     }
   },
@@ -62,6 +75,7 @@ window.xiuxianHome = () => ({
     window.location.href = 'battle.html?stage=' + encodeURIComponent(this.selectedStage);
   },
   toggleSettings() { this.settingsOpen = !this.settingsOpen; },
+  toggleGuide() { this.guideOpen = !this.guideOpen; },
   setTab(tab) { this.activeTab = tab; },
   showNotice(message) {
     this.saveNotice = message;
@@ -105,7 +119,10 @@ window.xiuxianHome = () => ({
       </div>
     </div>
 
-    <button class="icon-button" type="button" @click="toggleSettings()" aria-label="设置">⚙</button>
+    <div class="header-actions">
+      <button class="icon-button guide-btn" type="button" @click="toggleGuide()" aria-label="修仙指南" title="修仙指南">📖</button>
+      <button class="icon-button" type="button" @click="toggleSettings()" aria-label="设置" title="系统设置">⚙</button>
+    </div>
   </header>
 
   <section class="home-content">
@@ -116,7 +133,7 @@ window.xiuxianHome = () => ({
           <span class="clear-count">已通关 <b x-text="maxClearedStage">0</b></span>
         </div>
         <h1 x-text="stageName">青云山门</h1>
-        <p>守住城墙，击退五波妖兽侵袭。</p>
+        <p>守住城墙，击退二十波妖兽侵袭，迎战守关大妖。</p>
         <div class="monster-info">
           <span>本关怪物</span>
           <strong x-text="stageMonsters">灵兔 · 野狗 · 毒蜂</strong>
@@ -151,8 +168,54 @@ window.xiuxianHome = () => ({
     </div>
 
     <div class="tab-page list-page" x-show="activeTab === 'skill'">
-      <div class="page-heading"><div><span class="eyebrow">术法图鉴</span><h1>技能</h1></div></div>
-      <div class="info-card"><span>📖</span><div><strong>战斗中升级可抽取技能</strong><small>每次升级从三张卡牌中选择一张</small></div></div>
+      <div class="page-heading">
+        <div><span class="eyebrow">术法心法图鉴</span><h1>技能总览</h1></div>
+        <span class="page-sub-badge">主动限修 4 门 · 心法无限叠加</span>
+      </div>
+      <div class="skill-encyclopedia">
+        <div class="encyclopedia-section">
+          <h3>⚡ 主动法术（限修 4 门 · 自动轮转施放）</h3>
+          <div class="encyclopedia-grid">
+            <template x-for="skill in skillCards" :key="skill.id">
+              <div class="encyclopedia-card skill-border">
+                <div class="card-head">
+                  <span class="card-icon" x-text="skill.icon"></span>
+                  <div>
+                    <strong x-text="skill.name"></strong>
+                    <span class="badge-tag">主动法术</span>
+                  </div>
+                </div>
+                <p x-text="skill.desc"></p>
+                <div class="card-foot">
+                  <span>冷却: <b x-text="skill.cooldown + 's'"></b></span>
+                  <span>基础威力: <b x-text="skill.baseDmg"></b></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="encyclopedia-section">
+          <h3>📖 被动心法（常驻生效 · 可无限叠加）</h3>
+          <div class="encyclopedia-grid">
+            <template x-for="up in upgradeCards" :key="up.id">
+              <div class="encyclopedia-card upgrade-border">
+                <div class="card-head">
+                  <span class="card-icon" x-text="up.icon"></span>
+                  <div>
+                    <strong x-text="up.name"></strong>
+                    <span class="badge-tag upgrade-tag">被动心法</span>
+                  </div>
+                </div>
+                <p x-text="up.desc"></p>
+                <div class="card-foot">
+                  <span>属性: <b>心法加成</b></span>
+                  <span>上限: <b>无限叠层</b></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="tab-page list-page" x-show="activeTab === 'activity'">
@@ -180,6 +243,37 @@ window.xiuxianHome = () => ({
   </div>
 
   <div class="home-notice" x-show="saveNotice" x-text="saveNotice" x-transition></div>
+  <div class="guide-layer" x-show="guideOpen" x-transition @click.self="toggleGuide()">
+    <section class="guide-card">
+      <button class="close-button" type="button" @click="toggleGuide()">×</button>
+      <span class="eyebrow">仙道指引</span>
+      <h2>修仙破阵指南</h2>
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>固守阵眼 · 自动诛妖</strong>
+            <p>修士固定于底部中央阵眼。本门飞剑术及参悟的法术均为<b>全自动索敌轰击</b>，无需复杂走位操作。</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>誓守城墙 · 防线勿破</strong>
+            <p>妖兽从天际涌来，触碰防线将直接猛攻城墙。<b>城墙坚固度归零则试炼失败</b>；修习「回春术」可在疗伤时修复城墙。</p>
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>每波参悟 · 二十波战妖王</strong>
+            <p>每挺过一波妖兽均可从三卷秘籍中参悟其一。<b>主动法术限修 4 门（自动轮转），被动心法无限叠加</b>。守住二十波并将最终大妖击毙即告通关！</p>
+          </div>
+        </div>
+      </div>
+      <button class="setting-action primary" type="button" @click="toggleGuide()">领悟明晰，前往试炼</button>
+    </section>
+  </div>
 </main>
 </body>
 </html>
